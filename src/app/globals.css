@@ -1,0 +1,339 @@
+:root {
+  /* Common Tokens */
+  --transition-speed: 0.1s; /* Shorter for retro snap */
+  --glass-blur: none;
+}
+
+/* Dark Theme (Commodore 64 Inspired) */
+[data-theme='dark'] {
+  --bg-color: #352879; /* C64 Purple-Blue Background */
+  --bg-gradient: none;
+  --surface-color: #352879;
+  --border-color: #6c5eb5; /* C64 Light Blue Border */
+  --primary-color: #6c5eb5;
+  --secondary-color: #95d667; /* C64 Green for success */
+  --text-primary: #6c5eb5;
+  --text-secondary: #6c5eb5;
+  --accent-color: #e03530; /* C64 Red */
+  --glass-bg: #352879;
+  --shadow: none;
+  --header-bg: #6c5eb5;
+  --header-text: #352879;
+}
+
+/* Light Theme (1984 PC / Apple II Inspired) */
+[data-theme='light'] {
+  --bg-color: #e6dfd0; /* Classic Beige */
+  --bg-gradient: none;
+  --surface-color: #e6dfd0;
+  --border-color: #2b2b2b;
+  --primary-color: #008744; /* Retro Green */
+  --secondary-color: #008744;
+  --text-primary: #2b2b2b;
+  --text-secondary: #4a4a4a;
+  --accent-color: #d62828;
+  --glass-bg: #e6dfd0;
+  --shadow: none;
+  --header-bg: #2b2b2b;
+  --header-text: #e6dfd0;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Space Mono', 'Roboto Mono', monospace;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: initial;
+  transition: none; /* Instant snap for retro feel */
+}
+
+body {
+  background: var(--bg-color);
+  min-height: 100vh;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.1s steps(2) forwards;
+}
+
+/* Block Utility */
+.glass {
+  background: var(--surface-color);
+  border: 4px solid var(--border-color); /* Thicker borders */
+  border-radius: 0;
+  box-shadow: none;
+  transition: none;
+  position: relative;
+}
+
+/* Retro Header decoration */
+.glass::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  right: 10px;
+  height: 4px;
+  background: var(--border-color);
+  display: none; /* Can be enabled per component */
+}
+
+/* Scrollbar (Retro style) */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+}
+
+/* Buttons and Inputs */
+button {
+  cursor: pointer;
+  border: 2px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  font-family: inherit;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+button:hover:not(:disabled) {
+  background: var(--border-color);
+  color: var(--bg-color);
+}
+
+button:active:not(:disabled) {
+  transform: translate(2px, 2px);
+}
+
+input {
+  background: var(--bg-color);
+  border: 4px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 12px 16px;
+  border-radius: 0;
+  outline: none;
+  font-family: inherit;
+}
+
+input:focus {
+  border-color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Success/Error states in Retro */
+[data-theme='dark'] .success { color: #95d667 !important; }
+[data-theme='dark'] .error { color: #ff7777 !important; }
+
+[data-theme='light'] .success { color: #008744 !important; }
+[data-theme='light'] .error { color: #d62828 !important; }
+
+/* --- ABDFN SHELL SYSTEM --- */
+
+.shell-container {
+  display: grid;
+  grid-template-areas: 
+    "sidebar topbar"
+    "sidebar content"
+    "sidebar status";
+  grid-template-columns: auto 1xl;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.shell-topbar {
+  grid-area: topbar;
+  height: 60px;
+  border-bottom: 4px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: var(--bg-color);
+  z-index: 100;
+}
+
+.shell-sidebar {
+  grid-area: sidebar;
+  width: 280px;
+  border-right: 4px solid var(--border-color);
+  background: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.15s steps(4); /* Retro choppy transition */
+  overflow: hidden;
+  z-index: 110;
+}
+
+.shell-sidebar.collapsed {
+  width: 70px;
+}
+
+.shell-content {
+  grid-area: content;
+  overflow-y: auto;
+  padding: 30px;
+  background-color: var(--bg-color);
+  position: relative;
+}
+
+.shell-status {
+  grid-area: status;
+  height: 32px;
+  border-top: 4px solid var(--border-color);
+  background: var(--header-bg);
+  color: var(--header-text);
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+/* CRT Overlay Effect */
+.crt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.05) 50%
+  ), linear-gradient(
+    90deg, 
+    rgba(255, 0, 0, 0.02), 
+    rgba(0, 255, 0, 0.01), 
+    rgba(0, 0, 255, 0.02)
+  );
+  background-size: 100% 4px, 3px 100%;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* Sidebar Navigation Items */
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  color: var(--text-primary);
+  text-decoration: none;
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+  gap: 15px;
+}
+
+.nav-item:hover {
+  background: var(--border-color);
+  color: var(--bg-color);
+}
+
+.nav-item.active {
+  background: var(--text-primary);
+  color: var(--bg-color);
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+  min-width: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-label {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.collapsed .nav-label {
+  display: none;
+}
+
+/* Hamburger Toggle */
+.menu-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+}
+
+.menu-toggle:hover {
+  background: var(--text-primary);
+  color: var(--bg-color);
+}
+
+/* --- MODULE LAYOUT SYSTEM (DRY) --- */
+
+.module-grid {
+  display: grid;
+  grid-template-columns: 1fr 450px;
+  gap: 32px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.module-col-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.module-col-side {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.module-title {
+  font-size: 2.2rem;
+  line-height: 1;
+  color: var(--bg-color);
+  background: var(--text-primary);
+  padding: 4px 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 2px solid var(--text-primary);
+  display: inline-block;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+  .module-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.module-section {
+  background: var(--surface-color);
+  border: 4px solid var(--border-color);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+}

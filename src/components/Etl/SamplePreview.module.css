@@ -1,0 +1,133 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 400px;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.clearBtn {
+  background: transparent;
+  border: none;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-decoration: underline;
+  cursor: pointer;
+  color: var(--accent-color);
+}
+
+.viewport {
+  flex: 1;
+  background: #000;
+  border: 4px solid var(--border-color);
+  overflow: hidden;
+  position: relative;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+}
+
+.dragging {
+  background: var(--surface-color);
+  border-color: var(--accent-color);
+}
+
+.dropPrompt {
+  text-align: center;
+  color: #fff;
+}
+
+.dropPrompt p {
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+
+.dropPrompt small {
+  opacity: 0.6;
+  font-weight: 700;
+}
+
+.codeArea {
+  height: 100%;
+  overflow-y: auto;
+  font-family: 'Roboto Mono', monospace;
+  padding: 8px 0;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 2px 8px;
+  font-size: 0.85rem;
+  white-space: pre;
+  color: #666; /* Unmatched color */
+}
+
+.lineNo {
+  opacity: 0.3;
+  user-select: none;
+  width: 30px;
+}
+
+.textContainer {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.text {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+}
+
+.matched {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.activeLine {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: inset 4px 0 0 var(--border-color);
+}
+
+.matchTag {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  background: var(--border-color);
+  color: var(--bg-color);
+  text-transform: uppercase;
+}
+
+.matchTag[data-behavior="HEADER"] {
+  background: #00aa00;
+}
+
+.matchTag[data-behavior="FOOTER"] {
+  background: #aa0000;
+}
