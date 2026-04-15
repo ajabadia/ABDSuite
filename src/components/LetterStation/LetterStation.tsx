@@ -1,288 +1,284 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db/db';
-import { LetterTemplate, LetterMapping, LetterGenerationOptions } from '@/lib/types/letter.types';
-import LogConsole, { LogEntry } from '@/components/LogConsole';
-import { RefreshIcon, EyeIcon, FolderIcon, ListIcon, CogIcon } from '@/components/common/Icons';
-import DataPreviewModal from './DataPreviewModal';
+import { 
+  LetterTemplate, 
+  LetterMapping, 
+  LetterGenerationOptions 
+} from '@/lib/types/letter.types';
+import { EtlPreset } from '@/lib/types/etl.types';
 import PresetEditorModal from './PresetEditorModal';
-import PreferencesModal from './PreferencesModal';
-import { EtlPreset, EtlGlobalSettings } from '@/lib/types/etl.types';
+import MappingMatrix from './MappingMatrix';
+import { 
+  PlayIcon, 
+  SquareIcon, 
+  FolderIcon, 
+  RefreshCwIcon,
+  TagIcon,
+  MapIcon,
+  SearchIcon,
+  FileTextIcon
+} from '@/components/common/Icons';
+import JSZip from 'jszip';
 
-interface LetterStationProps {
-  onOpenMapping: () => void;
-}
-
-const LetterStation: React.FC<LetterStationProps> = ({ onOpenMapping }) => {
+const LetterStation: React.FC = () => {
   const { t } = useLanguage();
+  
+  // Data Resources (IndexedDB)
   const presets = useLiveQuery(() => db.presets.toArray()) || [];
   const templates = useLiveQuery(() => db.letter_templates.toArray()) || [];
-  
-  const [selectedEtlPresetId, setSelectedEtlPresetId] = useState<number | undefined>(undefined);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<number | undefined>(undefined);
+  const mappings = useLiveQuery(() => db.letter_mappings.toArray()) || [];
+
+  // Selections
+  const [selectedPresetId, setSelectedPresetId] = useState<number | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const [dataFile, setDataFile] = useState<File | null>(null);
   
+  // Modals
+  const [showPresetEditor, setShowPresetEditor] = useState(false);
+  const [showMappingMatrix, setShowMappingMatrix] = useState(false);
+
+  // Lote Parameters (Matches Screenshot v2.0 Step 2)
   const [options, setOptions] = useState<LetterGenerationOptions>({
-    lote: '0001',
+    lote: '0013',
     oficina: '00000',
-    codDocumento: 'X00054',
+    codDocumento: 'x00054',
     fechaGeneracion: new Date().toISOString().split('T')[0].replace(/-/g, ''),
-    fechaCarta: new Date().toISOString().split('T')[0].replace(/-/g, ''),
-    rangeFrom: 1,
+    fechaCarta: '20251218',
+    rangeFrom: 0,
     rangeTo: 0,
     outputType: 'PDF_GAWEB'
   });
 
-  const [outputHandle, setOutputHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  // Engine state
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showDataPreview, setShowDataPreview] = useState(false);
-  const [showTagsPreview, setShowTagsPreview] = useState(false);
-  const [showPresetEditor, setShowPresetEditor] = useState(false);
-  const [showPreferences, setShowPreferences] = useState(false);
-  const [editorPreset, setEditorPreset] = useState<EtlPreset | null>(null);
-  const [settings, setSettings] = useState<EtlGlobalSettings>({
-    defaultPath: 'C:\\ABD\\Presets',
-    language: 'ES',
-    defaultEncoding: 'utf-8',
-    defaultChunkSize: 1000
-  });
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [logs, setLogs] = useState<{timestamp: string, message: string, type: 'info' | 'error'}[]>([]);
+  const workerRef = useRef<Worker | null>(null);
 
-  const addLog = (type: LogEntry['type'], message: string) => {
-    setLogs(prev => [...prev, { id: Math.random().toString(36).substring(2, 9), timestamp: new Date(), type, message }]);
+  const addLog = (message: string, type: 'info' | 'error' = 'info') => {
+    const timestamp = new Date().toTimeString().split(' ')[0];
+    setLogs(prev => [...prev, { timestamp, message, type }]);
   };
 
-  const handleToday = (field: 'fechaGeneracion' | 'fechaCarta') => {
-    const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
-    setOptions({ ...options, [field]: today });
-    addLog('info', `DATE_UPDATED: ${field} -> ${today}`);
-  };
-
-  const handleSavePreset = async (p: EtlPreset) => {
-    try {
-      const id = await db.presets.put({ ...p, updatedAt: Date.now() });
-      setSelectedEtlPresetId(id);
-      setShowPresetEditor(false);
-      addLog('success', `PRESET_SAVED: ${p.name}`);
-    } catch (err: any) { addLog('error', `FAILED_TO_SAVE_PRESET: ${err.message}`); }
-  };
-
-  const handleSaveSettings = (s: EtlGlobalSettings) => {
-    setSettings(s);
-    setShowPreferences(false);
-    addLog('success', `PREFERENCES_UPDATED: Default path set to ${s.defaultPath}`);
-  };
-
-  const handlePickOutput = async () => {
-    try {
-      const handle = await (window as any).showDirectoryPicker();
-      setOutputHandle(handle);
-      addLog('info', `OUTPUT_DIR_SELECTED: ${handle.name}`);
-    } catch (err) { }
-  };
-
-  const startGeneration = async () => {
-    if (!dataFile || !outputHandle || !selectedEtlPresetId || !selectedTemplateId) return;
-    setIsProcessing(true);
-    addLog('info', 'STARTING_BATCH_GENERATION...');
-    try {
-      const template = templates.find(t => t.id === selectedTemplateId);
-      const etlPreset = presets.find(p => p.id === selectedEtlPresetId);
-      const mapping = await db.letter_mappings.where({ templateId: selectedTemplateId, etlPresetId: selectedEtlPresetId }).first();
-      if (!mapping) {
-        addLog('error', 'MISSING_FIELD_MAPPING_FOR_THIS_PRESET_TEMPLATE_PAIR');
-        setIsProcessing(false);
-        return;
-      }
-      const worker = new Worker(new URL('../../lib/workers/document-engine.worker.ts', import.meta.url));
-      worker.onmessage = async (e) => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      workerRef.current = new Worker(new URL('../../lib/workers/document-engine.worker.ts', import.meta.url));
+      workerRef.current.onmessage = (e) => {
         const { type, payload } = e.data;
-        if (type === 'LOG') addLog(payload.type, payload.message);
+        if (type === 'LOG') addLog(payload.message, payload.type);
+        if (type === 'PROGRESS') { /* Progress logic */ }
         if (type === 'COMPLETE') {
-          const zipBlob = payload;
-          const fileName = `PACKAGE_${options.lote}_${Date.now()}.zip`;
-          const fileHandle = await outputHandle.getFileHandle(fileName, { create: true });
-          const writable = await fileHandle.createWritable();
-          await writable.write(zipBlob);
-          await writable.close();
-          addLog('success', `BATCH_COMPLETED_SUCCESSFULLY: ${fileName}`);
           setIsProcessing(false);
-          worker.terminate();
+          addLog('GENERACIÓN FINALIZADA CON ÉXITO.');
+          const url = URL.createObjectURL(payload);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `GEN_CARTAS_${options.lote}_${Date.now()}.zip`;
+          a.click();
         }
       };
-      worker.postMessage({ dataFile, template, mapping, etlPreset, options });
-    } catch (err: any) {
-      addLog('error', `WORKER_INITIALIZATION_FAILED: ${err.message}`);
-      setIsProcessing(false);
     }
+    return () => workerRef.current?.terminate();
+  }, [options.lote]);
+
+  const handleTemplateUpload = async (file: File) => {
+    try {
+      const buffer = await file.arrayBuffer();
+      const newTemplate: LetterTemplate = {
+        name: file.name,
+        type: file.name.toLowerCase().endsWith('.docx') ? 'DOCX' : 'HTML',
+        binaryContent: buffer,
+        updatedAt: Date.now()
+      };
+      const id = await db.letter_templates.add(newTemplate);
+      setSelectedTemplateId(id as number);
+      addLog(`PLANTILLA DOCX CARGADA: ${file.name}`);
+    } catch (err) { addLog(`ERROR_UPLOAD: ${err}`, 'error'); }
+  };
+
+  const handleShowTags = async () => {
+    const template = templates.find(t => t.id === selectedTemplateId);
+    if (!template) { alert('Seleccione plantilla.'); return; }
+    let tags: string[] = [];
+    if (template.type === 'DOCX' && template.binaryContent) {
+      const zip = await JSZip.loadAsync(template.binaryContent);
+      const docXml = await zip.file('word/document.xml')?.async('text');
+      if (docXml) {
+        const regex = /\{\{(.*?)\}\}/g;
+        let match;
+        while ((match = regex.exec(docXml)) !== null) {
+          tags.push(match[1].trim().replace(/<[^>]*>?/gm, ''));
+        }
+      }
+    }
+    alert(`ETIQUETAS IDENTIFICADAS:\n\n${Array.from(new Set(tags)).join('\n') || 'Ninguna'}`);
+  };
+
+  const handleStart = () => {
+    if (!dataFile || !selectedTemplateId || !selectedPresetId) {
+      addLog('ERROR: Faltan recursos requeridos.', 'error');
+      return;
+    }
+    const template = templates.find(t => t.id === selectedTemplateId);
+    const mapping = mappings.find(m => m.templateId === selectedTemplateId && m.etlPresetId === selectedPresetId);
+    const preset = presets.find(p => p.id === selectedPresetId);
+    
+    if (!mapping) { addLog('ERROR: Se requiere configurar el MAPEO para este Preset.', 'error'); return; }
+
+    setIsProcessing(true);
+    setLogs([]);
+    addLog(`INICIANDO PROCESO INDUSTRIAL (Lote ${options.lote})...`);
+    workerRef.current?.postMessage({ dataFile, template, mapping, etlPreset: preset, options });
   };
 
   return (
-    <div className="flex-col" style={{ height: '100%', gap: '20px' }}>
-      <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center', background: 'rgba(var(--primary-color), 0.05)', padding: '5px 15px', border: 'var(--border-thin) solid var(--border-color)' }}>
-         <div className="flex-row" style={{ gap: '20px' }}>
-            <button className="station-btn" style={{ padding: '8px 12px', boxShadow: 'none' }} onClick={() => setShowPreferences(true)}>[PREFERENCES]</button>
-            <button className="station-btn" style={{ padding: '8px 12px', boxShadow: 'none' }}>[IMPORT_TEMPLATE]</button>
-         </div>
-         <span style={{ fontSize: '0.7rem', fontWeight: 900, opacity: 0.5 }}>STATION_ALPHA / LETTER_GENERATOR</span>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '25px', flex: 1, minHeight: 0 }}>
+    <div className="station-container flex-col" style={{ gap: '0', background: '#f0f0f0', color: '#000', height: '100%', overflow: 'hidden' }}>
+      
+      {/* Paso 1 */}
+      <section className="station-card" style={{ margin: '15px', padding: '15px', border: '1px solid #ccc', boxShadow: 'none' }}>
+        <span className="station-card-title" style={{ top: '-11px', left: '15px', background: '#f0f0f0', padding: '0 5px', fontSize: '0.85rem', fontWeight: 900 }}>
+          Paso 1: Selección de Archivos y Presets
+        </span>
         
-        {/* Step 1 */}
-        <div className="station-card">
-          <div className="station-card-title">1. DATA_RESOURCES</div>
-          <div className="flex-col" style={{ gap: '15px' }}>
-            <div className="flex-col" style={{ gap: '5px' }}>
-              <label className="station-label">{t('letter.preset_gaweb')}</label>
-              <div className="flex-row" style={{ gap: '5px' }}>
-                <select className="station-select" value={selectedEtlPresetId} onChange={(e) => setSelectedEtlPresetId(Number(e.target.value))}>
-                  <option value="">{t('etl.no_presets')}</option>
-                  {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-                <button className="station-btn" style={{ padding: '8px', boxShadow: 'none' }} onClick={() => { setEditorPreset(null); setShowPresetEditor(true); }}><CogIcon size={16} /></button>
-              </div>
+        <div className="flex-col" style={{ gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 120px', gap: '10px', alignItems: 'center' }}>
+            <label className="station-label" style={{ marginBottom: 0 }}>Preset GAWEB:</label>
+            <div style={{ display: 'flex', gap: '5px' }}>
+              <select className="station-select" style={{ flex: 1 }} value={selectedPresetId || ''} onChange={e => setSelectedPresetId(Number(e.target.value))}>
+                <option value="">-- Seleccionar --</option>
+                {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <button className="station-btn" style={{ padding: '4px 8px' }} onClick={() => setShowPresetEditor(true)}><FolderIcon size={14} /></button>
+              <button className="station-btn" style={{ padding: '4px 8px' }}><RefreshCwIcon size={14} /></button>
             </div>
+            <button className="station-btn" style={{ fontWeight: 900 }} onClick={() => setShowPresetEditor(true)}>Ver</button>
+          </div>
 
-            <div className="flex-col" style={{ gap: '5px' }}>
-              <label className="station-label">{t('letter.data_file')}</label>
-              <div className="flex-row" style={{ gap: '5px' }}>
-                <div className="station-input" style={{ fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {dataFile ? dataFile.name : 'IDLE_WAITING_FILE'}
-                </div>
-                <input type="file" id="data-file-in" style={{ display: 'none' }} onChange={(e) => setDataFile(e.target.files?.[0] || null)} />
-                <button className="station-btn" style={{ padding: '8px 15px', boxShadow: 'none' }} onClick={() => document.getElementById('data-file-in')?.click()}>...</button>
-              </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 100px 100px', gap: '10px', alignItems: 'center' }}>
+            <label className="station-label" style={{ marginBottom: 0 }}>Archivo Datos:</label>
+            <input className="station-input" readOnly value={dataFile?.name || ''} placeholder="IDLE..." />
+            <label className="station-btn" style={{ padding: '5px', textAlign: 'center', cursor: 'pointer' }}>
+              Explorar..
+              <input type="file" hidden onChange={e => setDataFile(e.target.files?.[0] || null)} />
+            </label>
+            <button className="station-btn">Vista</button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 100px 100px', gap: '10px', alignItems: 'center' }}>
+            <label className="station-label" style={{ marginBottom: 0 }}>Plantilla DOCX:</label>
+            <select className="station-select" value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(Number(e.target.value))}>
+              <option value="">-- Seleccionar --</option>
+              {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+            <label className="station-btn" style={{ padding: '5px', textAlign: 'center', cursor: 'pointer' }}>
+              Explorar..
+              <input type="file" hidden onChange={e => e.target.files?.[0] && handleTemplateUpload(e.target.files?.[0])} />
+            </label>
+            <button className="station-btn" onClick={handleShowTags}>Etiquetas</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Paso 2 */}
+      <section className="station-card" style={{ margin: '0 15px 15px 15px', padding: '15px', border: '1px solid #ccc', boxShadow: 'none' }}>
+        <span className="station-card-title" style={{ top: '-11px', left: '15px', background: '#f0f0f0', padding: '0 5px', fontSize: '0.85rem', fontWeight: 900 }}>
+          Paso 2: Parámetros del Lote (Sobrescriben Preset)
+        </span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+          <div className="flex-col" style={{ gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label className="station-label" style={{ width: '120px', marginBottom: 0 }}>F. Generación:</label>
+              <input className="station-input" style={{ width: '120px' }} value={options.fechaGeneracion} onChange={e => setOptions({...options, fechaGeneracion: e.target.value})} />
+              <button className="station-btn" style={{ padding: '4px 10px' }} onClick={() => setOptions({...options, fechaGeneracion: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button>
             </div>
-
-            <div className="flex-col" style={{ gap: '5px' }}>
-              <label className="station-label">{t('letter.template_file')}</label>
-              <div className="flex-row" style={{ gap: '5px' }}>
-                <select className="station-select" value={selectedTemplateId} onChange={(e) => setSelectedTemplateId(Number(e.target.value))}>
-                  <option value="">-- SELECT TEMPLATE --</option>
-                  {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-                <button className="station-btn" style={{ padding: '8px 15px', boxShadow: 'none' }} onClick={() => setShowTagsPreview(true)}><EyeIcon size={16} /></button>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label className="station-label" style={{ width: '120px', marginBottom: 0 }}>Lote:</label>
+              <input className="station-input" style={{ width: '80px' }} value={options.lote} onChange={e => setOptions({...options, lote: e.target.value})} />
+              <label className="station-label" style={{ width: '120px', textAlign: 'right', marginBottom: 0 }}>Cód. Documento:</label>
+              <input className="station-input" style={{ width: '100px' }} value={options.codDocumento} onChange={e => setOptions({...options, codDocumento: e.target.value})} />
+            </div>
+          </div>
+          <div className="flex-col" style={{ gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label className="station-label" style={{ width: '120px', marginBottom: 0 }}>F. Carta:</label>
+              <input className="station-input" style={{ width: '120px' }} value={options.fechaCarta} onChange={e => setOptions({...options, fechaCarta: e.target.value})} />
+              <button className="station-btn" style={{ padding: '4px 10px' }} onClick={() => setOptions({...options, fechaCarta: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label className="station-label" style={{ width: '120px', marginBottom: 0 }}>Oficina:</label>
+              <input className="station-input" style={{ width: '100px' }} value={options.oficina} onChange={e => setOptions({...options, oficina: e.target.value})} />
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Step 2 */}
-        <div className="station-card">
-          <div className="station-card-title">2. METADATA_PARAMETERS</div>
-          <div className="grid-2" style={{ gap: '15px' }}>
-            <div className="flex-col" style={{ gap: '5px' }}>
-              <label className="station-label">{t('letter.gen_date')}</label>
-              <div className="flex-row" style={{ gap: '5px' }}>
-                <input className="station-input" value={options.fechaGeneracion} onChange={(e) => setOptions({...options, fechaGeneracion: e.target.value})} />
-                <button className="station-btn" style={{ padding: '8px', boxShadow: 'none' }} onClick={() => handleToday('fechaGeneracion')}>T</button>
-              </div>
-            </div>
-            <div className="flex-col" style={{ gap: '5px' }}>
-              <label className="station-label">{t('letter.letter_date')}</label>
-              <div className="flex-row" style={{ gap: '5px' }}>
-                <input className="station-input" value={options.fechaCarta} onChange={(e) => setOptions({...options, fechaCarta: e.target.value})} />
-                <button className="station-btn" style={{ padding: '8px', boxShadow: 'none' }} onClick={() => handleToday('fechaCarta')}>T</button>
-              </div>
-            </div>
+      {/* Paso 3 */}
+      <section className="station-card" style={{ margin: '0 15px 15px 15px', padding: '15px', border: '1px solid #ccc', boxShadow: 'none' }}>
+        <span className="station-card-title" style={{ top: '-11px', left: '15px', background: '#f0f0f0', padding: '0 5px', fontSize: '0.85rem', fontWeight: 900 }}>
+          Paso 3: Selección de Registros y Salida
+        </span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <label className="station-label" style={{ width: '120px', marginBottom: 0 }}>Desde Registro:</label>
+            <input className="station-input" style={{ width: '80px' }} type="number" value={options.rangeFrom} onChange={e => setOptions({...options, rangeFrom: Number(e.target.value)})} />
+            <label className="station-label" style={{ marginBottom: 0 }}>Hasta:</label>
+            <input className="station-input" style={{ width: '80px' }} type="number" value={options.rangeTo} onChange={e => setOptions({...options, rangeTo: Number(e.target.value)})} />
           </div>
-
-          <div className="grid-2" style={{ gap: '15px', marginTop: '10px' }}>
-            <div className="flex-col" style={{ gap: '5px' }}>
-              <label className="station-label">{t('letter.lote')}</label>
-              <input className="station-input" value={options.lote} onChange={(e) => setOptions({...options, lote: e.target.value})} />
-            </div>
-            <div className="flex-col" style={{ gap: '5px' }}>
-              <label className="station-label">{t('letter.office')}</label>
-              <input className="station-input" value={options.oficina} onChange={(e) => setOptions({...options, oficina: e.target.value})} />
-            </div>
-          </div>
-          <div className="flex-col" style={{ gap: '5px', marginTop: '10px' }}>
-            <label className="station-label">{t('letter.doc_code')}</label>
-            <input className="station-input" value={options.codDocumento} onChange={(e) => setOptions({...options, codDocumento: e.target.value})} />
-          </div>
-        </div>
-
-        {/* Step 3 */}
-        <div className="station-card">
-          <div className="station-card-title">3. OUTPUT_STREAM</div>
-          <div className="grid-2" style={{ gap: '15px' }}>
-            <div className="flex-col" style={{ gap: '5px' }}>
-              <label className="station-label">{t('letter.range_from')}</label>
-              <input type="number" className="station-input" value={options.rangeFrom} onChange={(e) => setOptions({...options, rangeFrom: Number(e.target.value)})} />
-            </div>
-            <div className="flex-col" style={{ gap: '5px' }}>
-              <label className="station-label">{t('letter.range_to')}</label>
-              <input type="number" className="station-input" value={options.rangeTo} onChange={(e) => setOptions({...options, rangeTo: Number(e.target.value)})} />
-            </div>
-          </div>
-          <div className="flex-col" style={{ gap: '5px', marginTop: '10px' }}>
-            <label className="station-label">{t('letter.output_type')}</label>
-            <select className="station-select" value={options.outputType} onChange={(e) => setOptions({...options, outputType: e.target.value as any})}>
-              <option value="PDF_GAWEB">GAWEB_PACKAGE (.ZIP)</option>
-              <option value="PDF">RAW_PDF_STREAM</option>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <label className="station-label" style={{ width: '120px', marginBottom: 0 }}>Tipo Salida:</label>
+            <select className="station-select" style={{ flex: 1 }} value={options.outputType} onChange={e => setOptions({...options, outputType: e.target.value as any})}>
+              <option value="PDF_GAWEB">DOCX + GAWEB (Empaquetado Industrial)</option>
+              <option value="ZIP">Solo ZIP de Word</option>
             </select>
           </div>
-          <div className="flex-col" style={{ gap: '5px', marginTop: '10px' }}>
-            <label className="station-label">{t('letter.output_dir')}</label>
-            <div className="flex-row" style={{ gap: '5px' }}>
-              <div className="station-input" style={{ fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {outputHandle ? outputHandle.name : 'TARGET_DIR_UNSET'}
-              </div>
-              <button className="station-btn" style={{ padding: '8px 15px', boxShadow: 'none' }} onClick={handlePickOutput}>...</button>
-            </div>
-          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="flex-row" style={{ gap: '15px' }}>
-        <button className="station-btn" style={{ flex: 1, padding: '15px' }} onClick={onOpenMapping}>
-          <EyeIcon size={20} /> [MAP_FIELDS_MATRIX]
+      {/* Action Block */}
+      <div style={{ display: 'flex', gap: '20px', padding: '0 15px 15px 15px' }}>
+        <button className="station-btn" style={{ height: '60px', flex: 1, background: '#e1e100', color: '#000', fontSize: '1.1rem', fontWeight: 900 }} onClick={() => setShowMappingMatrix(true)}>
+          <MapIcon size={20} /> MAPEO...
         </button>
-        <button 
-          className="station-btn station-btn-primary" 
-          style={{ flex: 2, padding: '15px', fontSize: '1.2rem' }}
-          disabled={!dataFile || !outputHandle || isProcessing}
-          onClick={startGeneration}
-        >
-           {isProcessing ? 'GENERATING_PACKAGE...' : t('letter.btn_start')}
+        <button className="station-btn" disabled={isProcessing} style={{ height: '60px', flex: 2, background: '#5bc0de', color: '#000', fontSize: '1.1rem', fontWeight: 900 }} onClick={handleStart}>
+          <PlayIcon size={20} /> {isProcessing ? 'PROCESANDO...' : 'INICIAR GENERACIÓN'}
         </button>
-        <button className="station-btn" style={{ flex: 1, padding: '15px', color: 'var(--accent-color)' }} disabled={!isProcessing}>
-          [TERMINATE]
+        <button className="station-btn" style={{ height: '60px', width: '120px', background: '#d9534f', color: '#fff', fontSize: '1.1rem', fontWeight: 900 }} onClick={() => { workerRef.current?.terminate(); setIsProcessing(false); addLog('PROCESO CANCELADO', 'error'); }}>
+          <SquareIcon size={20} /> PARAR
         </button>
       </div>
 
-      <div style={{ minHeight: '300px', display: 'flex' }}>
-        <LogConsole logs={logs} onClear={() => setLogs([])} onSave={() => {}} />
-      </div>
-
-      {showDataPreview && dataFile && <DataPreviewModal file={dataFile} onClose={() => setShowDataPreview(false)} />}
-
-      {showTagsPreview && selectedTemplateId && (
-        <div className="station-modal-overlay" onClick={() => setShowTagsPreview(false)}>
-          <div className="station-modal" style={{ maxWidth: '400px' }} onClick={e => e.stopPropagation()}>
-             <div className="station-card-title">DETECTED_TOKENS</div>
-             <div className="flex-col" style={{ padding: '10px' }}>
-                <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                   {templates.find(t => t.id === selectedTemplateId)?.content
-                     .match(/\{\{(.*?)\}\}/g)?.map(tag => (
-                       <li key={tag} style={{ color: 'var(--secondary-color)', fontWeight: 800 }}>
-                         {tag}
-                       </li>
-                     )) || <li>NO_TOKENS_IDENTIFIED</li>}
-                </ul>
-             </div>
-             <button className="station-btn" onClick={() => setShowTagsPreview(false)}>CLOSE</button>
+      {/* Local Console */}
+      <div style={{ flex: 1, margin: '0 15px 15px 15px', background: '#fff', border: '1px solid #ccc', padding: '10px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '0.85rem' }}>
+        {logs.map((log, i) => (
+          <div key={i} style={{ color: log.type === 'error' ? '#d00' : '#444' }}>
+            [{log.timestamp}] {log.message}
           </div>
+        ))}
+      </div>
+
+      {/* Modals */}
+      {showPresetEditor && (
+        <PresetEditorModal 
+          onSave={async (p) => { await db.presets.put(p); setShowPresetEditor(false); }} 
+          onClose={() => setShowPresetEditor(false)} 
+        />
+      )}
+
+      {showMappingMatrix && (
+        <div className="station-modal-overlay" style={{ zIndex: 1000 }}>
+           <div className="station-modal" style={{ maxWidth: '1100px', height: '90vh' }}>
+              <header className="station-console-header" style={{ padding: '10px 20px', background: '#e1e100', color: '#000', display: 'flex', justifyContent: 'space-between' }}>
+                 <div style={{ fontWeight: 900 }}>Mapeo de Variables y Campos (DOCX Parity)</div>
+                 <button className="station-btn" style={{ padding: '2px 8px', border: 'none', background: 'transparent', fontWeight: 900 }} onClick={() => setShowMappingMatrix(false)}>X</button>
+              </header>
+              <MappingMatrix />
+           </div>
         </div>
       )}
 
-      {showPresetEditor && <PresetEditorModal preset={editorPreset} onSave={handleSavePreset} onClose={() => setShowPresetEditor(false)} />}
-      {showPreferences && <PreferencesModal settings={settings} onSave={handleSaveSettings} onClose={() => setShowPreferences(false)} />}
     </div>
   );
 };

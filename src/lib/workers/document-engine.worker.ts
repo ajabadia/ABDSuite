@@ -1,22 +1,20 @@
 /**
- * Document Engine Worker - Phase C: Letter Station
- * Handles batch PDF generation and GAWEB packaging in a secondary thread.
+ * Document Engine Worker - Phase D: Word & Mapping Parity
+ * Handles batch generation of DOCX and HTML letters.
  * 
- * Compliance: 04-compliance-security (SHA256 Audit Trail)
+ * Compliance: 04-compliance-security (Local processing only)
  * Compliance: Legacy Parity (Industrial GAWEB Standards)
  */
 
-import { jsPDF } from 'jspdf';
 import JSZip from 'jszip';
 import Handlebars from 'handlebars';
+import Docxtemplater from 'docxtemplater';
 import { LetterTemplate, LetterMapping, LetterGenerationOptions } from '../types/letter.types';
 import { EtlPreset } from '../types/etl.types';
 import { GawebExporter } from '../utils/gaweb-exporter';
 import { md5 } from '../utils/crypto.utils';
 
-/**
- * Calculates SHA256 Hex string for a Blob/Buffer.
- */
+// Helper for SHA256 (Audit Trail)
 async function calculateSha256(data: ArrayBuffer): Promise<string> {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -39,26 +37,31 @@ self.onmessage = async (e) => {
   } = e.data;
 
   try {
-    const zip = new JSZip();
+    const zipOutput = new JSZip();
     const gawebLines: string[] = [];
-    const auditLines: string[] = ['INDICE;PDF_NAME;SHA256;TIMESTAMP']; // Audit Trail CSV
+    const auditLines: string[] = ['INDICE;DOC_NAME;SHA256;TIMESTAMP'];
     
-    const hbsTemplate = Handlebars.compile(template.content);
+    // Prepare engines
+    let hbsTemplate: any = null;
+    let docxTemplate: ArrayBuffer | null = null;
     
-    // 1. Process Data Loader
+    if (template.type === 'HTML' && template.content) {
+      hbsTemplate = Handlebars.compile(template.content);
+    } else if (template.type === 'DOCX' && template.binaryContent) {
+      docxTemplate = template.binaryContent;
+    }
+
     const dataStream = dataFile.stream().getReader();
-    // Use windows-1252 for legacy parity if needed, otherwise UTF-8
     const decoder = new TextDecoder('windows-1252'); 
     
     let lineCount = 0;
     let processed = 0;
     let partialLine = '';
     
-    // Industrial Batch Hash (Unique for this specific run and source)
     const batchSeed = `${dataFile.name}_${options.lote}_${Date.now()}`;
-    const industrialBaseHash = md5(batchSeed); // 32 chars hex
+    const industrialBaseHash = md5(batchSeed);
     
-    self.postMessage({ type: 'LOG', payload: { type: 'info', message: `INITIALIZING_BATCH: ${dataFile.name}` } });
+    self.postMessage({ type: 'LOG', payload: { type: 'info', message: `INICIANDO PROCESO BATCH: ${dataFile.name}` } });
 
     while (true) {
       const { done, value } = await dataStream.read();
@@ -72,68 +75,75 @@ self.onmessage = async (e) => {
         if (line.trim() === '') continue;
         lineCount++;
         
-        // CSV Header Skip
+        // Skip header if lineCount 1
         if (lineCount === 1) continue; 
 
-        if (options.rangeFrom > 0 && lineCount < options.rangeFrom) continue;
-        if (options.rangeTo > 0 && lineCount > options.rangeTo) break;
+        if (options.rangeFrom > 0 && (lineCount - 1) < options.rangeFrom) continue;
+        if (options.rangeTo > 0 && (lineCount - 1) > options.rangeTo) break;
 
-        // Data extraction mapping
         const parts = line.split(';');
-        const mockData: Record<string, string> = {
-          INDEX: (lineCount - 1).toString(),
-          LOTE: options.lote,
-          ...mapping.mappings.reduce((acc, m) => {
-             acc[m.templateVar] = parts[0] || ''; 
-             return acc;
-          }, {} as any)
+        
+        // Construct merge data based on mapping
+        const mergeData: Record<string, any> = {
+          _INDEX: (lineCount - 1).toString(),
+          _LOTE: options.lote,
+          _OFICINA: options.oficina,
+          _FECHA_CARTA: options.fechaCarta
         };
 
-        // 2. Generate PDF
-        const doc = new jsPDF({
-           orientation: 'p',
-           unit: 'mm',
-           format: 'a4'
+        mapping.mappings.forEach(m => {
+          if (m.sourceType === 'TEMPLATE' || m.sourceType === 'GAWEB') {
+              // Extract from CSV parts based on preset field index
+              const presetField = etlPreset.recordTypes[0].fields.find(f => f.Name === m.sourceField || (f as any).name === m.sourceField);
+              if (presetField) {
+                  const val = parts[presetField.Index] || '';
+                  mergeData[m.templateVar] = val.trim();
+              }
+          }
         });
 
-        // Merge template
-        const mergedHtml = hbsTemplate(mockData);
-        const cleanText = mergedHtml.replace(/<[^>]*>?/gm, '');
+        // Generate Document Content
+        let documentContent: ArrayBuffer;
+        const outExt = template.type === 'DOCX' ? 'docx' : 'html';
 
-        const offsetX = etlPreset.gawebConfig?.windowOffsetX || 0;
-        const offsetY = etlPreset.gawebConfig?.windowOffsetY || 0;
+        if (template.type === 'DOCX' && docxTemplate) {
+          const zip = new JSZip();
+          await zip.loadAsync(docxTemplate);
+          const doc = new Docxtemplater(zip, {
+            paragraphLoop: true,
+            linebreaks: true,
+          });
+          doc.render(mergeData);
+          documentContent = doc.getZip().generate({ type: 'arraybuffer' });
+        } else {
+          const merged = hbsTemplate(mergeData);
+          documentContent = new TextEncoder().encode(merged).buffer;
+        }
 
-        doc.setFont('courier', 'normal');
-        doc.setFontSize(10);
-        doc.text(cleanText, 20 + offsetX, 30 + offsetY);
+        const docName = GawebExporter.generateDocName(industrialBaseHash, lineCount - 1);
+        const fileName = `${docName}.${outExt}`;
         
-        // Finalize PDF binary with Legacy industrial name (40 chars)
-        const pdfName = GawebExporter.generateDocName(industrialBaseHash, lineCount - 1);
-        const pdfArrayBuffer = doc.output('arraybuffer');
-        
-        // Audit SHA256 Calculation
-        const sha256 = await calculateSha256(pdfArrayBuffer);
-        auditLines.push(`${lineCount - 1};${pdfName}.pdf;${sha256};${new Date().toISOString()}`);
+        // Audit & ZIP
+        const sha256 = await calculateSha256(documentContent);
+        auditLines.push(`${lineCount - 1};${fileName};${sha256};${new Date().toISOString()}`);
+        zipOutput.file(fileName, documentContent);
 
-        // 3. Add PDF to ZIP
-        zip.file(`${pdfName}.pdf`, pdfArrayBuffer);
-
-        // 4. GAWEB Metadata (Full 27-field Serialization)
+        // GAWEB Serialization
         if (options.outputType === 'PDF_GAWEB') {
            const gaLine = GawebExporter.serializeRecord({
              LetterType: ' ',
-             Format: '04',
+             Format: etlPreset.gawebConfig?.formatoCarta || '04',
              GenerationDate: options.fechaGeneracion,
              Batch: options.lote,
-             Sequential: (lineCount - 1).toString(),
+             Sequential: (lineCount - 1).toString().padStart(7, '0'),
              Page: '0001',
              DocCode: options.codDocumento,
              Version: '0000',
              ContractClass: '  ',
-             ContractCode: ' '.repeat(25),
+             ContractCode: (mergeData['CodContrato'] || '').padEnd(25),
              TIREL: ' ',
              NUREL: '000',
-             CLALF: (mockData['CLALF'] || '').padEnd(15),
+             CLALF: (mergeData['CLALF'] || '').padEnd(15),
              INDOM: '00',
              ForceSend: ' ',
              Language: 'ES',
@@ -152,7 +162,7 @@ self.onmessage = async (e) => {
              OfficeCode: options.oficina,
              EmailFax: ' '.repeat(50),
              ContentLength: '00000',
-             PdfName: pdfName
+             PdfName: docName
            });
            gawebLines.push(gaLine);
         }
@@ -164,24 +174,21 @@ self.onmessage = async (e) => {
       }
     }
 
-    // Finalize Metadata File
+    // Finalize Metadata
     const timestamp = new Date().toISOString().split('T')[0].replace(/-/g, '') + 
                      new Date().toTimeString().split(' ')[0].replace(/:/g, '');
 
     if (options.outputType === 'PDF_GAWEB') {
        const packageName = GawebExporter.generatePackageName('ARATORES', timestamp, options.lote);
-       zip.file(`${packageName}.GAWEB`, gawebLines.join('\n'));
-       
-       // Add the SHA256 Audit Report (Legacy Requirement)
-       zip.file(`AUDIT_REPORT_${timestamp}.CSV`, auditLines.join('\n'));
+       zipOutput.file(`${packageName}.GAWEB`, gawebLines.join('\n'));
+       zipOutput.file(`AUDIT_REPORT_${timestamp}.CSV`, auditLines.join('\n'));
     }
 
-    // Finalize ZIP
-    const finalZip = await zip.generateAsync({ type: 'blob' });
-    self.postMessage({ type: 'COMPLETE', payload: finalZip });
+    const finalBundle = await zipOutput.generateAsync({ type: 'blob' });
+    self.postMessage({ type: 'COMPLETE', payload: finalBundle });
 
   } catch (err: any) {
     console.error(err);
-    self.postMessage({ type: 'LOG', payload: { type: 'error', message: `FATAL_ENGINE_ERROR: ${err.message}` } });
+    self.postMessage({ type: 'LOG', payload: { type: 'error', message: `ERROR CRÍTICO EN MOTOR: ${err.message}` } });
   }
 };

@@ -9,9 +9,9 @@ export class ABDFNSuiteDB extends Dexie {
 
   constructor() {
     super('ABDFNSuiteDB');
-    this.version(3).stores({
+    this.version(4).stores({
       presets: '++id, name, gawebConfig.active, updatedAt',
-      letter_templates: '++id, name, updatedAt',
+      letter_templates: '++id, name, type, updatedAt',
       letter_mappings: '++id, name, templateId, etlPresetId, updatedAt'
     });
   }

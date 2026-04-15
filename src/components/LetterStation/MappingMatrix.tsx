@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db/db';
@@ -8,9 +8,11 @@ import {
   LetterMapping, 
   CANONICAL_GAWEB_FIELDS, 
   UI_OVERRIDE_MAPPING,
-  MappingSourceType
+  MappingSourceType,
+  VariableMapping
 } from '@/lib/types/letter.types';
-import { TrashIcon } from '@/components/common/Icons';
+import { TrashIcon, CheckIcon, AlertTriangleIcon, ActivityIcon } from '@/components/common/Icons';
+import JSZip from 'jszip';
 
 const MappingMatrix: React.FC = () => {
   const { t } = useLanguage();
@@ -21,29 +23,59 @@ const MappingMatrix: React.FC = () => {
 
   const [selectedMappingId, setSelectedMappingId] = useState<number | null>(null);
   const [activeMapping, setActiveMapping] = useState<Partial<LetterMapping>>({
-    name: 'NEW_MAPPING',
+    name: 'NUEVO_MAPEO',
     mappings: []
   });
+  const [extractedVars, setExtractedVars] = useState<string[]>([]);
+  const [isExtracting, setIsExtracting] = useState(false);
 
-  const extractVariables = (html: string): string[] => {
-    const regex = /\{\{(.*?)\}\}/g;
-    const matches = new Set<string>();
-    let match;
-    while ((match = regex.exec(html)) !== null) {
-      matches.add(match[1].trim());
-    }
-    return Array.from(matches);
-  };
+  // Extract variables (supports HTML and DOCX)
+  useEffect(() => {
+    const fetchVars = async () => {
+      const template = templates.find(t => t.id === activeMapping.templateId);
+      if (!template) {
+        setExtractedVars([]);
+        return;
+      }
+
+      setIsExtracting(true);
+      try {
+        if (template.type === 'DOCX' && template.binaryContent) {
+          const zip = await JSZip.loadAsync(template.binaryContent);
+          const docXml = await zip.file('word/document.xml')?.async('text');
+          if (docXml) {
+            const regex = /\{\{(.*?)\}\}/g;
+            const matches = new Set<string>();
+            let match;
+            while ((match = regex.exec(docXml)) !== null) {
+              matches.add(match[1].trim().replace(/<[^>]*>?/gm, '')); // Clean XML tags inside var
+            }
+            setExtractedVars(Array.from(matches));
+          }
+        } else if (template.type === 'HTML' && template.content) {
+          const regex = /\{\{(.*?)\}\}/g;
+          const matches = new Set<string>();
+          let match;
+          while ((match = regex.exec(template.content)) !== null) {
+            matches.add(match[1].trim());
+          }
+          setExtractedVars(Array.from(matches));
+        }
+      } catch (err) {
+        console.error('Extraction error:', err);
+      }
+      setIsExtracting(false);
+    };
+
+    fetchVars();
+  }, [activeMapping.templateId, templates]);
 
   const handleSelectMapping = (m: LetterMapping) => {
     setSelectedMappingId(m.id || null);
     setActiveMapping(m);
   };
 
-  const currentTemplate = templates.find(t => t.id === activeMapping.templateId);
   const currentPreset = presets.find(p => p.id === activeMapping.etlPresetId);
-
-  const templateVars = currentTemplate ? extractVariables(currentTemplate.content) : [];
   const presetFields = currentPreset ? currentPreset.recordTypes.flatMap(rt => rt.fields.map(f => f.Name || (f as any).name)) : [];
   const uniqueFields = Array.from(new Set(presetFields));
 
@@ -57,23 +89,18 @@ const MappingMatrix: React.FC = () => {
 
   const handleAutoMap = () => {
     if (uniqueFields.length === 0) return;
-
     const normalize = (s: string) => s.replace(/_|\s|-/g, '').toLowerCase();
     const newMappings = [...(activeMapping.mappings || [])];
 
-    templateVars.forEach(v => {
-      const alreadyMapped = newMappings.find(m => m.templateVar === v && m.sourceType === 'TEMPLATE');
-      if (alreadyMapped) return;
-      const normV = normalize(v);
-      const match = uniqueFields.find(f => normalize(f) === normV);
+    extractedVars.forEach(v => {
+      if (newMappings.find(m => m.templateVar === v && m.sourceType === 'TEMPLATE')) return;
+      const match = uniqueFields.find(f => normalize(f) === normalize(v));
       if (match) newMappings.push({ templateVar: v, sourceField: match, sourceType: 'TEMPLATE' });
     });
 
     CANONICAL_GAWEB_FIELDS.forEach(f => {
-      const alreadyMapped = newMappings.find(m => m.templateVar === f && m.sourceType === 'GAWEB');
-      if (alreadyMapped) return;
-      const normF = normalize(f);
-      const match = uniqueFields.find(cf => normalize(cf) === normF);
+      if (newMappings.find(m => m.templateVar === f && m.sourceType === 'GAWEB')) return;
+      const match = uniqueFields.find(cf => normalize(cf) === normalize(f));
       if (match) newMappings.push({ templateVar: f, sourceField: match, sourceType: 'GAWEB' });
     });
 
@@ -82,7 +109,7 @@ const MappingMatrix: React.FC = () => {
 
   const handleSave = async () => {
     if (!activeMapping.templateId || !activeMapping.etlPresetId || !activeMapping.name) {
-      alert('REQUIRED_FIELDS_MISSING');
+      alert('Faltan campos obligatorios (Nombre, Preset o Plantilla)');
       return;
     }
     const payload = { ...activeMapping, updatedAt: Date.now() } as LetterMapping;
@@ -92,131 +119,116 @@ const MappingMatrix: React.FC = () => {
       const id = await db.letter_mappings.add(payload);
       setSelectedMappingId(id as number);
     }
-    alert('MAPPING_SAVED');
   };
-
-  const matrixGridStyle = { display: 'grid', gridTemplateColumns: '40px 180px 220px 1fr 120px', gap: '15px' };
 
   const renderMappingRow = (label: string, type: MappingSourceType) => {
     const mapping = activeMapping.mappings?.find(m => m.templateVar === label && m.sourceType === type);
     const isOverride = type === 'GAWEB' && UI_OVERRIDE_MAPPING[label];
     
     return (
-      <div key={`${type}-${label}`} className="station-matrix-row" style={matrixGridStyle}>
+      <div key={`${type}-${label}`} style={{ display: 'grid', gridTemplateColumns: '50px 220px 250px 1fr 120px', gap: '5px', padding: '4px 15px', borderBottom: '1px solid #eee', alignItems: 'center', background: mapping ? '#f8f9ff' : 'transparent' }}>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          {type === 'TEMPLATE' && <span className="station-badge station-badge-blue">W</span>}
-          {type === 'GAWEB' && !isOverride && <span className="station-badge station-badge-green">G</span>}
-          {isOverride && <span className="station-badge station-badge-orange">*</span>}
+          {type === 'TEMPLATE' && <span style={{ background: '#337ab7', color: '#fff', padding: '2px 6px', fontSize: '0.65rem', fontWeight: 900, borderRadius: '2px' }}>W</span>}
+          {type === 'GAWEB' && !isOverride && <span style={{ background: '#5cb85c', color: '#fff', padding: '2px 6px', fontSize: '0.65rem', fontWeight: 900, borderRadius: '2px' }}>G</span>}
+          {isOverride && <span style={{ background: '#f0ad4e', color: '#fff', padding: '2px 6px', fontSize: '0.65rem', fontWeight: 900, borderRadius: '2px' }}>*</span>}
         </div>
-        <div style={{ fontWeight: 700, opacity: 0.9 }}>
-          {type === 'GAWEB' ? t(`audit.fields.${label}`) : label}
-        </div>
+        <div style={{ fontSize: '0.8rem', fontWeight: mapping ? 900 : 400, color: mapping ? '#000' : '#666' }}>{label}</div>
         <div>
           <select 
             className="station-select"
-            style={{ padding: '4px', fontSize: '0.8rem' }}
+            style={{ padding: '2px', fontSize: '0.75rem', height: '24px' }}
             value={mapping?.sourceField || ''}
             onChange={(e) => updateMapping(label, e.target.value, type)}
           >
-            <option value="">{isOverride ? '-- DESDE PANTALLA --' : '-- SIN MAPEAR --'}</option>
+            <option value="">{isOverride ? '-- DESDE PANTALLA --' : '-- Sin mapear --'}</option>
             {uniqueFields.map(f => <option key={f} value={f}>{f}</option>)}
           </select>
         </div>
-        <div style={{ fontStyle: 'italic', opacity: 0.5, fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {mapping ? 'PROBE_VALUE' : (isOverride ? 'FLASH_VALUE' : '')}
+        <div style={{ fontSize: '0.75rem', color: mapping ? '#333' : '#999', fontStyle: 'italic' }}>
+          {mapping ? 'Ejemplo de dato...' : (isOverride ? 'Parámetro pantalla principal' : '')}
         </div>
-        <div className={`txt-ok`} style={{ textAlign: 'right', fontSize: '0.75rem', opacity: mapping ? 1 : 0.4 }}>
-           {mapping ? '✓ OK' : (isOverride ? '⚡ READY' : '⏸ IDLE')}
+        <div style={{ textAlign: 'right', fontSize: '0.7rem', fontWeight: 900, color: mapping ? '#5cb85c' : (isOverride ? '#f0ad4e' : '#999') }}>
+           {mapping ? '✓ Mapeado' : (isOverride ? '⚡ Pantalla' : '⏸ Sin mapear')}
         </div>
       </div>
     );
   };
 
   return (
-    <div style={{ display: 'flex', height: '100%', gap: '1px', background: 'var(--border-color)' }}>
-      <aside style={{ width: '280px', background: 'var(--bg-color)', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '20px' }}>
-          <button className="station-btn" style={{ width: '100%' }} onClick={() => { setSelectedMappingId(null); setActiveMapping({ name: 'NEW_MAPPING', mappings: [] }); }}>
-            + NEW_MAPPING
+    <div style={{ display: 'flex', height: '100%', gap: '1px', background: '#ccc' }}>
+      <aside style={{ width: '250px', background: '#f0f0f0', borderRight: '1px solid #aaa', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '15px' }}>
+          <button className="station-btn" style={{ width: '100%', fontWeight: 900 }} onClick={() => { setSelectedMappingId(null); setActiveMapping({ name: 'NUEVO_MAPEO', mappings: [] }); }}>
+            + NUEVO MAPEO
           </button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {mappings.map(m => (
             <div 
               key={m.id} 
-              className={`nav-item ${selectedMappingId === m.id ? 'active' : ''}`} 
-              style={{ borderBottom: '1px solid var(--border-color)', padding: '12px 20px' }}
+              style={{ padding: '10px 15px', borderBottom: '1px solid #ddd', cursor: 'pointer', background: selectedMappingId === m.id ? '#fff' : 'transparent', fontWeight: selectedMappingId === m.id ? 900 : 400 }}
               onClick={() => handleSelectMapping(m)}
             >
-              <span>{m.name}</span>
-              <button className="station-btn" style={{ padding: '4px', background: 'transparent', boxShadow: 'none', border: 'none' }} onClick={(e) => { e.stopPropagation(); m.id && db.letter_mappings.delete(m.id); }}>
-                <TrashIcon size={14} />
-              </button>
+              {m.name}
             </div>
           ))}
         </div>
       </aside>
 
-      <main style={{ flex: 1, background: 'var(--bg-color)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-         <header style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)' }}>
-            <div className="flex-row" style={{ fontSize: '0.75rem', opacity: 0.8, gap: '15px' }}>
+      <main style={{ flex: 1, background: '#fff', display: 'flex', flexDirection: 'column' }}>
+         <header style={{ padding: '10px 15px', background: '#ffffdd', borderBottom: '1px solid #eedd88', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 900, display: 'flex', gap: '15px' }}>
                <span>LEYENDA:</span>
-               <span className="station-badge station-badge-blue">W</span> TEMPLATE
-               <span className="station-badge station-badge-green">G</span> GAWEB
-               <span className="station-badge station-badge-orange">*</span> SCREEN
+               <span><span style={{ background: '#337ab7', color: '#fff', padding: '1px 4px', marginRight: '4px' }}>W</span> Variable Word</span>
+               <span><span style={{ background: '#5cb85c', color: '#fff', padding: '1px 4px', marginRight: '4px' }}>G</span> Campo GAWEB</span>
+               <span><span style={{ background: '#f0ad4e', color: '#fff', padding: '1px 4px', marginRight: '4px' }}>*</span> Valor Pantalla</span>
             </div>
-            <button className="station-btn station-btn-primary" onClick={handleSave}>SAVE_MAPPING</button>
+            <button className="station-btn station-btn-primary" style={{ padding: '4px 15px' }} onClick={handleSave}>GUARDAR MAPEO</button>
          </header>
 
-         <div className="flex-col" style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.05)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', alignItems: 'center' }}>
-               <label className="station-label">MAPPING_NAME:</label>
-               <input className="station-input" value={activeMapping.name} onChange={(e) => setActiveMapping({...activeMapping, name: e.target.value})} />
+         <div style={{ padding: '15px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', background: '#f9f9f9', borderBottom: '1px solid #eee' }}>
+            <div className="flex-col">
+              <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#666' }}>NOMBRE DEL MAPEO:</label>
+              <input className="station-input" value={activeMapping.name} onChange={(e) => setActiveMapping({...activeMapping, name: e.target.value})} />
             </div>
-            <div className="grid-2">
-               <div>
-                  <label className="station-label">SOURCE (ETL PRESET):</label>
+            <div className="flex-row" style={{ gap: '15px' }}>
+               <div className="flex-col" style={{ flex: 1 }}>
+                  <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#666' }}>ETL PRESET ORIGEN:</label>
                   <select className="station-select" value={activeMapping.etlPresetId} onChange={(e) => setActiveMapping({...activeMapping, etlPresetId: Number(e.target.value)})}>
-                    <option value="">-- SELECT PRESET --</option>
+                    <option value="">-- Seleccionar --</option>
                     {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                </div>
-               <div>
-                  <label className="station-label">TARGET (TEMPLATE):</label>
+               <div className="flex-col" style={{ flex: 1 }}>
+                  <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#666' }}>PLANTILLA WORD/HTML:</label>
                   <select className="station-select" value={activeMapping.templateId} onChange={(e) => setActiveMapping({...activeMapping, templateId: Number(e.target.value)})}>
-                    <option value="">-- SELECT TEMPLATE --</option>
+                    <option value="">-- Seleccionar --</option>
                     {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                </div>
             </div>
          </div>
 
-         {activeMapping.templateId && activeMapping.etlPresetId ? (
-           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-              <div style={{ ...matrixGridStyle, padding: '10px 15px', background: 'var(--border-color)', color: 'var(--bg-color)', fontWeight: 900, fontSize: '0.75rem', textTransform: 'uppercase' }}>
-                <div />
-                <div>CAMPO/VAR</div>
-                <div>COLUMNA_ETL</div>
-                <div>EJEMPLO</div>
-                <div style={{ textAlign: 'right' }}>ESTADO</div>
-              </div>
-              
-              <div style={{ flex: 1, overflowY: 'auto' }}>
-                {templateVars.map(v => renderMappingRow(v, 'TEMPLATE'))}
-                <div className="separator-industrial">CAMPOS GAWEB CANÓNICOS</div>
-                {CANONICAL_GAWEB_FIELDS.map(f => renderMappingRow(f, 'GAWEB'))}
-              </div>
+         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '50px 220px 250px 1fr 120px', gap: '5px', padding: '5px 15px', background: '#eee', fontSize: '0.7rem', fontWeight: 900, borderBottom: '1px solid #ccc' }}>
+              <div />
+              <div>CAMPO/VARIABLE</div>
+              <div>COLUMNA CSV/EXCEL</div>
+              <div>EJEMPLO</div>
+              <div style={{ textAlign: 'right' }}>ESTADO</div>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {isExtracting && <div style={{ padding: '20px', textAlign: 'center', fontSize: '0.8rem', opacity: 0.5 }}>Escanenado variables del documento...</div>}
+              {extractedVars.map(v => renderMappingRow(v, 'TEMPLATE'))}
+              <div style={{ padding: '5px 15px', background: '#f0f0f0', fontSize: '0.65rem', fontWeight: 900, color: '#888', borderBottom: '1px solid #ddd' }}>— CAMPOS GAWEB —</div>
+              {CANONICAL_GAWEB_FIELDS.map(f => renderMappingRow(f, 'GAWEB'))}
+            </div>
+         </div>
 
-              <footer style={{ padding: '20px', borderTop: 'var(--border-thick) solid var(--border-color)', display: 'flex', gap: '20px' }}>
-                <button className="station-btn" style={{ background: '#1e88e5', color: '#fff' }} onClick={handleAutoMap}>AUTO-MAPEAR</button>
-                <button className="station-btn" onClick={() => setActiveMapping({...activeMapping, mappings: []})}>LIMPIAR_TODO</button>
-              </footer>
-           </div>
-         ) : (
-           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '4px' }}>
-             SELECCIONE PRESET Y PLANTILLA PARA ACTIVAR MATRIZ
-           </div>
-         )}
+         <footer style={{ padding: '10px 15px', borderTop: '2px solid #ccc', background: '#f0f0f0', display: 'flex', gap: '15px' }}>
+            <button className="station-btn" style={{ background: '#fff', padding: '5px 15px' }} onClick={handleAutoMap}>Auto-Mapear</button>
+            <button className="station-btn" style={{ background: '#fff', padding: '5px 15px' }} onClick={() => setActiveMapping({...activeMapping, mappings: []})}>Limpiar</button>
+         </footer>
       </main>
     </div>
   );

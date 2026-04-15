@@ -3,7 +3,9 @@ import { z } from 'zod';
 export interface LetterTemplate {
   id?: number;
   name: string;
-  content: string; // HTML with {{variables}}
+  type: 'HTML' | 'DOCX';
+  content?: string; // HTML with {{variables}}
+  binaryContent?: ArrayBuffer; // Binary .docx
   updatedAt: number;
 }
 
@@ -20,49 +22,41 @@ export interface VariableMapping {
  * Standardized English Technical Keys matching translations and logic.
  */
 export const CANONICAL_GAWEB_FIELDS = [
-  "LetterType",
-  "Format",
-  "GenerationDate",
-  "Batch",
-  "Sequential",
-  "Page",
-  "DocCode",
+  "Formato",
+  "Lote",
+  "Secuencial",
+  "Pagina",
+  "CodDocumento",
   "Version",
-  "ContractClass",
-  "ContractCode",
+  "ClaseContrato",
+  "CodContrato",
   "TIREL",
   "NUREL",
   "CLALF",
   "INDOM",
-  "ForceSend",
-  "Language",
-  "SavingOpCode",
-  "SavingOpAccount",
-  "SavingOpSign",
-  "SavingOpAmount",
-  "SavingOpCurrency",
-  "SavingOpISO",
-  "SavingOpConcept",
-  "LetterDate",
-  "DestinationIndicator",
-  "LoadDetail",
-  "DeliveryWay",
-  "PaperCopy",
-  "OfficeCode",
-  "EmailFax",
-  "ContentLength",
-  "PdfName"
+  "ForzarEnvio",
+  "Idioma",
+  "OpAhorroCode",
+  "OpAhorroCuenta",
+  "OpAhorroImporte",
+  "FechaCarta",
+  "IndDestino",
+  "ViaReparto",
+  "CopiaPapel",
+  "Oficina",
+  "MailFax",
+  "NombrePDF"
 ];
 
 /**
  * UI Overrides: Fields that can be ignored in mapping if provided via UI forms.
  */
 export const UI_OVERRIDE_MAPPING: Record<string, string> = {
-  "LetterDate": "letterDate",
-  "DocCode": "docCode",
-  "OfficeCode": "officeCode",
-  "Batch": "batch",
-  "GenerationDate": "generationDate",
+  "FechaCarta": "fechaCarta",
+  "CodDocumento": "codDocumento",
+  "Oficina": "oficina",
+  "Lote": "lote",
+  "Formato": "tipoSoporte", // Indirect override from preset
 };
 
 /**

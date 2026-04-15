@@ -170,14 +170,22 @@ const AuditStation: React.FC<AuditStationProps> = ({ onAddLog }) => {
                 <thead>
                   <tr>
                     <th style={{ width: '50px', textAlign: 'center' }}>#</th>
-                    {GAWEB_FIELDS.slice(0, 15).map(f => (<th key={f.name}>{f.name}</th>))}
+                    {GAWEB_FIELDS.map(f => (
+                      <th key={f.name} style={{ minWidth: f.length > 20 ? '200px' : '100px' }}>
+                        {t(`audit.fields.${f.name}`)}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {result.parsedData.map((row, idx) => (
                     <tr key={idx} style={{ background: selectedLine === idx + 1 ? 'rgba(var(--primary-color), 0.1)' : 'transparent', cursor: 'pointer' }} onClick={() => setSelectedLine(idx + 1)}>
                       <td style={{ fontWeight: 900, textAlign: 'center', opacity: 0.5, fontSize: '0.7rem' }}>{idx + 1}</td>
-                      {GAWEB_FIELDS.slice(0, 15).map(f => (<td key={f.name} style={{ fontSize: '0.8rem' }}>{row[f.name]}</td>))}
+                      {GAWEB_FIELDS.map(f => (
+                        <td key={f.name} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                          {row[f.name]}
+                        </td>
+                      ))}
                     </tr>
                   ))}
                 </tbody>
