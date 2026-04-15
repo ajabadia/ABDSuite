@@ -50,6 +50,37 @@
   cursor: pointer;
 }
 
+.statsBar {
+  display: flex;
+  gap: 15px;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 4px solid var(--border-color);
+  font-family: inherit;
+  font-size: 0.8rem;
+}
+
+.statBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statLabel {
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+.statValue {
+  font-weight: 900;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+}
+
+.statSuccess { color: var(--secondary-color); }
+.statSkip { color: #f2c94c; }
+.statError { color: var(--accent-color); }
+
 .listHeader {
   display: flex;
   justify-content: space-between;

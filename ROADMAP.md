@@ -24,17 +24,25 @@ La aplicación evolucionará a un diseño de **"Shell & Modules"**:
 1.  **Refactorización de Layout:** Creado el componente `Sidebar` retro-colapsable y un `TopBar` con gestión i18n/Theme.
 2.  **Dashboard Hub:** Implementada terminal de inicio con monitor de sistema simulado y arte ASCII.
 
-### Fase B: ETL Studio (Designer & Runner) [EN PROGRESO 🚧]
+### Fase B: ETL Studio (Designer & Runner) [CONCLUIDO ✅]
 1.  **ETL Designer [COMPLETADO ✅]**: 
     - Arquitectura "Read-Only + Modal Edit" para Presets y Record Types.
     - Detección visual de colisiones y huecos en campos.
     - Gestión avanzada de campos (Numeric Sort, ID-based tracking).
     - Refinamiento Estético: Layout lateral simétrico, prompt terminal en TopBar, iconografía industrial estandarizada.
-2.  **ETL Runner [PENDIENTE]**: Implementación de procesamiento paralelo mediante Web Workers para archivos de GBs.
+2.  **ETL Runner [COMPLETADO ✅]**: 
+    - Implementación de procesamiento paralelo mediante Web Workers.
+    - Integración de File System Access API para gestión de carpetas industriales.
+    - Sincronización global de preferencias y i18n dinámica.
 
-### Fase C: Letter Station [PENDIENTE]
-1.  **Mapping Engine:** Interfaz interactiva para arrastrar campos de datos a variables de plantilla.
-2.  **Generation Engine:** Implementación de generación PDF local basada en HTML o DOCX.
+### Fase C: Letter Station [CONCLUIDO ✅]
+1.  **Mapping Engine [COMPLETADO ✅]**: Interfaz interactiva para asociar campos del ETL Studio con variables de plantilla `{{variable}}`.
+2.  **Generation Engine [COMPLETADO ✅]**: Implementación de generación PDF/GAWEB masiva mediante Web Workers y packaging ZIP local.
+3.  **Template Editor [COMPLETADO ✅]**: Gestión de plantillas HTML con vista previa en tiempo real y persistencia en IndexedDB.
+
+### Fase D: System Audit [PRÓXIMO OBJETIVO 🎯]
+1.  **Package Verification:** Herramientas para validar la integridad de paquetes ZIP y firmas GAWEB.
+2.  **Integrity Tools:** Chequeo de consistencia entre datos procesados y documentos generados.
 
 ## 5. Instrucciones para Continuar
 Si se pierde el contexto de la sesión, el agente deberá:

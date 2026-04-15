@@ -1,0 +1,117 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.group {
+  border: 1px solid var(--border-color);
+  padding: 24px 16px 16px 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.groupTitle {
+  position: absolute;
+  top: -10px;
+  left: 12px;
+  background: var(--bg-color);
+  padding: 0 8px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: var(--text-secondary);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label {
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.input, .select {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  font-family: inherit;
+  outline: none;
+}
+
+.inputGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.mainAction {
+  padding: 20px;
+  background: #b2ebf2; /* Light cyan from screenshot */
+  color: #000;
+  border: 1px solid var(--border-color);
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  letter-spacing: 2px;
+}
+
+.mainAction:hover:not(:disabled) {
+  background: #80deea;
+  box-shadow: 0 0 15px rgba(128, 222, 234, 0.4);
+}
+
+.mainAction:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.logWrapper {
+  flex: 1;
+  min-height: 300px;
+}
+
+.pathDisplay {
+  flex: 1;
+  font-family: monospace;
+  font-size: 0.8rem;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed var(--border-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniBtn {
+  background: var(--border-color);
+  color: var(--bg-color);
+  border: none;
+  padding: 4px 12px;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.miniBtn:hover {
+  opacity: 0.8;
+}

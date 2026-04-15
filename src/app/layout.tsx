@@ -12,7 +12,6 @@ const spaceMono = Space_Mono({
   weight: ['400', '700'],
   variable: '--font-space-mono',
 });
-
 const robotoMono = Roboto_Mono({
   subsets: ['latin'],
   weight: ['300', '400', '500', '700'],
@@ -30,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className={`${spaceMono.variable} ${robotoMono.variable}`}>
+    <html lang="es" suppressHydrationWarning>
+      <body className={`${spaceMono.className} ${spaceMono.variable} ${robotoMono.variable}`} suppressHydrationWarning>
         <LanguageProvider initialLang="es">
           <ThemeProvider>
             <div className="crt-overlay" />

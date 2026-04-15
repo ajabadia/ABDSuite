@@ -88,7 +88,7 @@ export default function Dashboard() {
             padding: '20px', 
             background: 'rgba(0,0,0,0.2)', 
             border: '2px dashed var(--border-color)',
-            fontFamily: 'monospace',
+            fontFamily: 'var(--font-mono)',
             color: 'var(--secondary-color)'
           }}>
             [ SYSTEM REPORT ]<br />

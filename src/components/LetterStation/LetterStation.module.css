@@ -1,0 +1,154 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--bg-color);
+  padding: 0;
+}
+
+.legacyMenuBar {
+  background: #d4d0c8;
+  padding: 2px 8px;
+  border-bottom: 2px solid #808080;
+  display: flex;
+  gap: 15px;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  z-index: 10;
+}
+
+.menuItem {
+  color: #000;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: #000080;
+  color: #fff;
+}
+
+.stepGrid {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.step {
+  border: 1px solid var(--border-color);
+  padding: 24px 16px 16px 16px;
+  position: relative;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stepTitle {
+  position: absolute;
+  top: -10px;
+  left: 12px;
+  background: var(--bg-color);
+  padding: 0 8px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--text-secondary);
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.input, .select {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  font-family: inherit;
+  outline: none;
+  flex: 1;
+}
+
+.miniBtn {
+  background: var(--border-color);
+  color: var(--bg-color);
+  border: none;
+  padding: 8px 12px;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.btn {
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btnMapping {
+  background: #ffd54f; /* Yellow from screenshot */
+  color: #000;
+}
+
+.btnStart {
+  background: #4fc3f7; /* Blue from screenshot */
+  color: #000;
+}
+
+.btnStop {
+  background: #e57373; /* Red from screenshot */
+  color: #000;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.logArea {
+  flex: 1;
+  min-height: 200px;
+  margin-top: 20px;
+}

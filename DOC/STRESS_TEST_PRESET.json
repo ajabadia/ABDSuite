@@ -1,0 +1,51 @@
+{
+  "name": "ABDFN_STRESS_AUDIT_PRESET",
+  "version": "1.0.0",
+  "description": "Preset industrial para validación de volumen y segregación de registros.",
+  "chunkSize": 5000,
+  "encoding": "windows-1252",
+  "recordTypeStart": 0,
+  "recordTypeLen": 4,
+  "defaultRecordType": "DATA",
+  "recordTypes": [
+    {
+      "name": "HEADER",
+      "behavior": "HEADER",
+      "trigger": "HEAD",
+      "triggerStart": 0,
+      "range": "1",
+      "fields": [
+        { "id": "h1", "name": "ETIQUETA", "start": 0, "length": 4 },
+        { "id": "h2", "name": "FECHA", "start": 5, "length": 10 },
+        { "id": "h3", "name": "LOTE_ID", "start": 16, "length": 16 }
+      ]
+    },
+    {
+      "name": "DATA",
+      "behavior": "DATA",
+      "trigger": "DATA",
+      "triggerStart": 0,
+      "fields": [
+        { "id": "d1", "name": "ETIQUETA", "start": 0, "length": 4 },
+        { "id": "d2", "name": "ID_CLIENTE", "start": 5, "length": 6 },
+        { "id": "d3", "name": "NOMBRE_COMPLETO", "start": 12, "length": 25 },
+        { "id": "d4", "name": "IBAN", "start": 38, "length": 22 },
+        { "id": "d5", "name": "IMPORTE_CENT", "start": 61, "length": 10 }
+      ]
+    },
+    {
+      "name": "FOOTER",
+      "behavior": "FOOTER",
+      "trigger": "FOOT",
+      "triggerStart": 0,
+      "fields": [
+        { "id": "f1", "name": "ETIQUETA", "start": 0, "length": 4 },
+        { "id": "f2", "name": "TOTAL_REGS", "start": 5, "length": 6 },
+        { "id": "f3", "name": "SUMA_IMPORTE", "start": 12, "length": 12 }
+      ]
+    }
+  ],
+  "isActive": true,
+  "createdAt": 1713180000000,
+  "updatedAt": 1713180000000
+}

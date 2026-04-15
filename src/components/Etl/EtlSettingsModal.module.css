@@ -1,0 +1,123 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(2px);
+}
+
+.modalContent {
+  background: var(--surface-color);
+  border: 4px solid var(--border-color);
+  width: 500px;
+  max-width: 90vw;
+  padding: 0;
+}
+
+.modalHeader {
+  background: var(--border-color);
+  color: var(--bg-color);
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalTitle {
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.modalBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+.inputGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.input {
+  flex: 1;
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+.select {
+  width: 100%;
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+}
+
+.modalFooter {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.saveBtn {
+  background: var(--border-color);
+  color: var(--bg-color);
+  border: none;
+  padding: 10px 24px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  background: transparent;
+  border: 2px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 20px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.dotsBtn {
+  background: var(--surface-color);
+  border: 2px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0 12px;
+  font-weight: 900;
+  cursor: pointer;
+}

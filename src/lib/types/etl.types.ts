@@ -17,6 +17,26 @@ export interface EtlRecordType {
   maxLength?: number;
 }
 
+export interface GawebConfig {
+  active: boolean;
+  tipoSoporte: 'OV' | 'PDF';
+  formatoCarta: string;
+  forzarMetodo: string;
+  indicadorDestino: string;
+  tipoDestino: string;
+  codigoEntorno: string;
+  codigoDocumento: string;
+  fechaGeneracion: string;
+  fechaCarta: string;
+  oficina: string;
+  paginasDefecto: number;
+  idioma: string;
+  viaReparto: string;
+  copiaPapel: string;
+  windowOffsetX?: number; // mm
+  windowOffsetY?: number; // mm
+}
+
 export interface EtlPreset {
   id?: number; // Primary key for Dexie (auto-incremented)
   name: string;
@@ -33,6 +53,17 @@ export interface EtlPreset {
   
   recordTypes: EtlRecordType[];
   isActive: boolean;
+  
+  // Letter Station Extension
+  gawebConfig?: GawebConfig;
+
   createdAt: number;
   updatedAt: number;
+}
+
+export interface EtlGlobalSettings {
+  defaultPath: string;
+  language: string;
+  defaultEncoding: string;
+  defaultChunkSize: number;
 }

@@ -1,154 +1,84 @@
 :root {
-  /* Common Tokens */
-  --transition-speed: 0.1s; /* Shorter for retro snap */
-  --glass-blur: none;
+  /* Common Design Tokens */
+  --font-mono: 'Space Mono', 'Roboto Mono', monospace;
+  --panel-padding: 30px;
+  --border-thick: 4px;
+  --border-thin: 1px;
+  --shadow-retro: 4px 4px 0px rgba(0, 0, 0, 0.5);
+  --snap: 0.1s linear;
 }
 
-/* Dark Theme (Commodore 64 Inspired) */
+/* --- THEMES --- */
+
+/* DARK: Industrial Terminal (Phosphor Amber) */
 [data-theme='dark'] {
-  --bg-color: #352879; /* C64 Purple-Blue Background */
-  --bg-gradient: none;
-  --surface-color: #352879;
-  --border-color: #6c5eb5; /* C64 Light Blue Border */
-  --primary-color: #6c5eb5;
-  --secondary-color: #95d667; /* C64 Green for success */
-  --text-primary: #6c5eb5;
-  --text-secondary: #6c5eb5;
-  --accent-color: #e03530; /* C64 Red */
-  --glass-bg: #352879;
-  --shadow: none;
-  --header-bg: #6c5eb5;
-  --header-text: #352879;
+  --bg-color: #0c0c0c;
+  --surface-color: #1a1a1a;
+  --border-color: #ffb000; /* High-Contrast Amber */
+  --primary-color: #ffb000;
+  --secondary-color: #32cd32; /* CRT Green */
+  --text-primary: #ffb000;
+  --text-secondary: rgba(255, 176, 0, 0.7);
+  --accent-color: #ff4500;
+  --status-ok: #32cd32;
+  --status-warn: #ffb000;
+  --status-err: #ff4500;
+  --header-bg: #ffb000;
+  --header-text: #0c0c0c;
 }
 
-/* Light Theme (1984 PC / Apple II Inspired) */
+/* LIGHT: IBM Case v1984 (Classic Beige) */
 [data-theme='light'] {
-  --bg-color: #e6dfd0; /* Classic Beige */
-  --bg-gradient: none;
+  --bg-color: #e6dfd0;
   --surface-color: #e6dfd0;
   --border-color: #2b2b2b;
-  --primary-color: #008744; /* Retro Green */
-  --secondary-color: #008744;
+  --primary-color: #ff8c00; /* Industrial Amber */
+  --secondary-color: #00703c; /* IBM Green */
   --text-primary: #2b2b2b;
   --text-secondary: #4a4a4a;
   --accent-color: #d62828;
-  --glass-bg: #e6dfd0;
-  --shadow: none;
+  --status-ok: #00703c;
+  --status-warn: #ff8c00;
+  --status-err: #d62828;
   --header-bg: #2b2b2b;
   --header-text: #e6dfd0;
 }
+
+/* --- BASE ENGINE --- */
 
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  font-family: inherit; /* FORCE UNIVERSAL INHERITANCE */
 }
 
 html, body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  font-family: 'Space Mono', 'Roboto Mono', monospace;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
   background-color: var(--bg-color);
   color: var(--text-primary);
+  font-family: var(--font-mono) !important;
   line-height: 1.5;
   -webkit-font-smoothing: initial;
-  transition: none; /* Instant snap for retro feel */
+  text-rendering: optimizeLegibility;
 }
 
-body {
-  background: var(--bg-color);
-  min-height: 100vh;
+/* Performance-optimized scanline pattern */
+.crt-overlay {
+  position: fixed;
+  inset: 0;
+  background: 
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.005), rgba(0, 0, 255, 0.01));
+  background-size: 100% 4px, 3px 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.8;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.1s steps(2) forwards;
-}
-
-/* Block Utility */
-.glass {
-  background: var(--surface-color);
-  border: 4px solid var(--border-color); /* Thicker borders */
-  border-radius: 0;
-  box-shadow: none;
-  transition: none;
-  position: relative;
-}
-
-/* Retro Header decoration */
-.glass::before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 10px;
-  right: 10px;
-  height: 4px;
-  background: var(--border-color);
-  display: none; /* Can be enabled per component */
-}
-
-/* Scrollbar (Retro style) */
-::-webkit-scrollbar {
-  width: 12px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-}
-
-/* Buttons and Inputs */
-button {
-  cursor: pointer;
-  border: 2px solid var(--border-color);
-  background: var(--bg-color);
-  color: var(--text-primary);
-  padding: 8px 16px;
-  font-family: inherit;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-button:hover:not(:disabled) {
-  background: var(--border-color);
-  color: var(--bg-color);
-}
-
-button:active:not(:disabled) {
-  transform: translate(2px, 2px);
-}
-
-input {
-  background: var(--bg-color);
-  border: 4px solid var(--border-color);
-  color: var(--text-primary);
-  padding: 12px 16px;
-  border-radius: 0;
-  outline: none;
-  font-family: inherit;
-}
-
-input:focus {
-  border-color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/* Success/Error states in Retro */
-[data-theme='dark'] .success { color: #95d667 !important; }
-[data-theme='dark'] .error { color: #ff7777 !important; }
-
-[data-theme='light'] .success { color: #008744 !important; }
-[data-theme='light'] .error { color: #d62828 !important; }
-
-/* --- ABDFN SHELL SYSTEM --- */
+/* --- SYSTEM SHELL GRID --- */
 
 .shell-container {
   display: grid;
@@ -156,184 +86,341 @@ input:focus {
     "sidebar topbar"
     "sidebar content"
     "sidebar status";
-  grid-template-columns: auto 1xl;
-  grid-template-rows: auto 1fr auto;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 60px 1fr 34px;
   height: 100vh;
   width: 100vw;
-  overflow: hidden;
+  background: var(--bg-color);
+}
+
+.shell-sidebar {
+  grid-area: sidebar;
+  width: 300px;
+  background: var(--bg-color);
+  border-right: var(--border-thick) solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--snap);
+  z-index: 1000;
+}
+
+.shell-sidebar.collapsed {
+  width: 80px;
 }
 
 .shell-topbar {
   grid-area: topbar;
-  height: 60px;
-  border-bottom: 4px solid var(--border-color);
+  border-bottom: var(--border-thick) solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
   background: var(--bg-color);
-  z-index: 100;
-}
-
-.shell-sidebar {
-  grid-area: sidebar;
-  width: 280px;
-  border-right: 4px solid var(--border-color);
-  background: var(--bg-color);
-  display: flex;
-  flex-direction: column;
-  transition: width 0.15s steps(4); /* Retro choppy transition */
-  overflow: hidden;
-  z-index: 110;
-}
-
-.shell-sidebar.collapsed {
-  width: 70px;
 }
 
 .shell-content {
   grid-area: content;
-  overflow-y: auto;
-  padding: 30px;
-  background-color: var(--bg-color);
+  overflow: auto;
+  padding: var(--panel-padding);
   position: relative;
 }
 
 .shell-status {
   grid-area: status;
-  height: 32px;
-  border-top: 4px solid var(--border-color);
   background: var(--header-bg);
   color: var(--header-text);
   display: flex;
   align-items: center;
-  padding: 0 15px;
+  padding: 0 20px;
   font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-/* CRT Overlay Effect */
-.crt-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%, 
-    rgba(0, 0, 0, 0.05) 50%
-  ), linear-gradient(
-    90deg, 
-    rgba(255, 0, 0, 0.02), 
-    rgba(0, 255, 0, 0.01), 
-    rgba(0, 0, 255, 0.02)
-  );
-  background-size: 100% 4px, 3px 100%;
-  pointer-events: none;
-  z-index: 999;
-}
+/* --- GLOBAL STATION COMPONENTS (STANDARD CLASSES) --- */
 
-/* Sidebar Navigation Items */
-.nav-item {
+/* 1. Station Panels */
+.station-card {
+  background: var(--surface-color);
+  border: var(--border-thick) solid var(--border-color);
+  padding: 24px;
   display: flex;
-  align-items: center;
-  padding: 15px 20px;
-  color: var(--text-primary);
-  text-decoration: none;
-  border-bottom: 2px solid var(--border-color);
-  white-space: nowrap;
-  gap: 15px;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  box-shadow: var(--shadow-retro);
 }
 
-.nav-item:hover {
+/* Use for titles in panels */
+.station-card-title {
+  position: absolute;
+  top: -15px;
+  left: 20px;
+  background: var(--bg-color);
+  padding: 0 10px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  border: var(--border-thin) solid var(--border-color);
+}
+
+/* 2. Station Form Elements */
+.station-input, .station-select, .station-textarea {
+  background: var(--bg-color);
+  border: var(--border-thick) solid var(--border-color);
+  color: var(--text-primary);
+  padding: 12px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  outline: none;
+  width: 100%;
+}
+
+.station-input:focus, .station-select:focus, .station-textarea:focus {
+  background: rgba(var(--primary-color), 0.05);
+  box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.station-label {
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* 3. Station Buttons */
+.station-btn {
+  background: var(--bg-color);
+  border: var(--border-thick) solid var(--border-color);
+  color: var(--text-primary);
+  padding: 10px 20px;
+  font-family: inherit;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--border-color);
+  transition: transform 0.05s;
+}
+
+.station-btn:hover:not(:disabled) {
   background: var(--border-color);
   color: var(--bg-color);
 }
 
-.nav-item.active {
-  background: var(--text-primary);
+.station-btn:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+.station-btn-primary {
+  background: var(--border-color);
   color: var(--bg-color);
 }
 
-.nav-icon {
-  font-size: 1.5rem;
-  min-width: 30px;
-  display: flex;
-  justify-content: center;
+/* 4. Station Tables & Matrix Grid */
+.station-table-container {
+  width: 100%;
+  overflow: auto;
+  border: var(--border-thin) solid var(--border-color);
+  background: rgba(0,0,0,0.1);
 }
 
-.nav-label {
-  font-weight: 700;
+.station-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.station-table th {
+  background: var(--border-color);
+  color: var(--bg-color);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 900;
   text-transform: uppercase;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.collapsed .nav-label {
-  display: none;
+.station-table td {
+  padding: 8px 12px;
+  border-bottom: var(--border-thin) solid var(--border-color);
+  white-space: nowrap;
 }
 
-/* Hamburger Toggle */
-.menu-toggle {
-  background: none;
+.station-table tr:hover {
+  background: rgba(var(--primary-color), 0.05);
+}
+
+.station-matrix-row {
+  display: grid;
+  gap: 15px;
+  padding: 10px 15px;
+  border-bottom: var(--border-thin) solid var(--border-color);
+  align-items: center;
+  transition: background 0.1s;
+}
+
+.station-matrix-row:hover {
+  background: rgba(var(--primary-color), 0.05);
+}
+
+/* 5. Utility Status Classes */
+.txt-ok { color: var(--status-ok) !important; }
+.txt-warn { color: var(--status-warn) !important; }
+.txt-err { color: var(--status-err) !important; }
+
+/* 5b. Station Badges */
+.station-badge {
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  font-weight: 900;
+  font-size: 0.7rem;
+  color: #fff;
+  border-radius: 2px;
+}
+
+.station-badge-blue { background: #4169e1; }
+.station-badge-green { background: #228b22; }
+.station-badge-orange { background: #ffa500; }
+
+/* 6. Station Console (Log Console) */
+.station-console {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-color);
+  border: var(--border-thick) solid var(--border-color);
+  height: 100%;
+  min-height: 0;
+}
+
+.station-console-header {
+  padding: 10px 20px;
+  background: var(--border-color);
+  color: var(--bg-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.station-console-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.station-log-line {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+/* 7. Tabs Station */
+.station-tabs {
+  display: flex;
+  background: var(--bg-color);
+  border-bottom: var(--border-thick) solid var(--border-color);
+}
+
+.tab-item {
+  padding: 12px 24px;
+  background: transparent;
   border: none;
-  padding: 0;
-  margin-right: 15px;
+  font-family: inherit;
+  color: var(--text-secondary);
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-right: var(--border-thin) solid var(--border-color);
+}
+
+.tab-item:hover {
+  background: rgba(var(--primary-color), 0.05);
+}
+
+.tab-item.active {
+  background: var(--border-color);
+  color: var(--bg-color);
+}
+
+/* 8. Industrial Modals */
+.station-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 5000;
+  backdrop-filter: none;
+}
+
+.station-modal {
+  background: var(--bg-color);
+  border: var(--border-thick) solid var(--border-color);
+  padding: 30px;
+  width: 90%;
+  max-width: 800px;
+  box-shadow: 20px 20px 0 rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 9. Navigation Station Refinements */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 25px;
   color: var(--text-primary);
-}
-
-.menu-toggle:hover {
-  background: var(--text-primary);
-  color: var(--bg-color);
-}
-
-/* --- MODULE LAYOUT SYSTEM (DRY) --- */
-
-.module-grid {
-  display: grid;
-  grid-template-columns: 1fr 450px;
-  gap: 32px;
-  align-items: stretch;
-  width: 100%;
-}
-
-.module-col-main {
-  display: flex;
-  flex-direction: column;
-}
-
-.module-col-side {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.module-title {
-  font-size: 2.2rem;
-  line-height: 1;
-  color: var(--bg-color);
-  background: var(--text-primary);
-  padding: 4px 12px;
+  text-decoration: none;
+  font-family: inherit;
   font-weight: 700;
   text-transform: uppercase;
-  border: 2px solid var(--text-primary);
-  display: inline-block;
-  margin-bottom: 24px;
+  border-bottom: 2px solid var(--border-color);
+  position: relative;
+  cursor: pointer;
 }
 
-@media (max-width: 1024px) {
-  .module-grid {
-    grid-template-columns: 1fr;
-  }
+.nav-item.active {
+  background: var(--border-color);
+  color: var(--bg-color);
 }
 
-.module-section {
-  background: var(--surface-color);
-  border: 4px solid var(--border-color);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  height: 100%;
+.nav-item.active::after {
+  content: '◄';
+  position: absolute;
+  right: 15px;
+  color: var(--bg-color);
+}
+
+/* 8. Layout Utilities */
+.flex-row { display: flex; gap: 20px; align-items: start; }
+.flex-col { display: flex; flex-direction: column; gap: 20px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.separator-industrial {
+  padding: 8px 16px;
+  background: rgba(var(--primary-color), 0.1);
+  color: var(--text-primary);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: 2px;
+  border-top: var(--border-thin) solid var(--border-color);
+  border-bottom: var(--border-thin) solid var(--border-color);
 }

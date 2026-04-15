@@ -21,19 +21,19 @@ export const Sidebar: React.FC = () => {
     { href: '/', icon: <SystemIcon />, label: t('shell.home'), id: 'home' },
     { href: '/crypt', icon: <LockIcon />, label: t('shell.crypt'), id: 'crypt' },
     { href: '/etl', icon: <ListIcon />, label: t('shell.etl'), id: 'etl' },
-    { href: '#', icon: <FileTextIcon />, label: t('shell.letter'), id: 'letter', disabled: true },
-    { href: '#', icon: <ShieldIcon />, label: t('shell.audit'), id: 'audit', disabled: true },
+    { href: '/letter', icon: <FileTextIcon />, label: t('shell.letter'), id: 'letter' },
+    { href: '/audit', icon: <ShieldIcon />, label: t('shell.audit'), id: 'audit' },
   ];
 
   return (
     <aside className={`shell-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-      <div style={{ padding: '20px', borderBottom: '4px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'space-between' }}>
-        {!isCollapsed && <span style={{ fontWeight: 900, fontSize: '1.2rem' }}>ABDFN</span>}
+      <div style={{ padding: '24px', borderBottom: 'var(--border-thick) solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'space-between' }}>
+        {!isCollapsed && <span style={{ fontWeight: 900, fontSize: '1.4rem', letterSpacing: '2px' }}>ABDFN OS</span>}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="menu-toggle"
+          className="station-btn"
+          style={{ padding: '4px 8px', minWidth: '40px', boxShadow: 'none' }}
           title={isCollapsed ? t('shell.menu_open') : t('shell.menu_close')}
-          style={{ cursor: 'pointer', fontSize: '1.5rem', border: '2px solid var(--border-color)', width: '40px', height: '40px' }}
         >
           {isCollapsed ? '»' : '«'}
         </button>
@@ -48,23 +48,23 @@ export const Sidebar: React.FC = () => {
               href={item.disabled ? '#' : item.href}
               className={`nav-item ${isActive ? 'active' : ''}`}
               style={{ 
-                opacity: item.disabled ? 0.5 : 1, 
-                cursor: item.disabled ? 'not-allowed' : 'pointer',
+                opacity: item.disabled ? 0.3 : 1, 
                 pointerEvents: item.disabled ? 'none' : 'auto'
               }}
             >
-              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-icon" style={{ fontSize: '1.2rem' }}>{item.icon}</span>
               {!isCollapsed && <span className="nav-label">{item.label}</span>}
-              {item.disabled && !isCollapsed && <span style={{ fontSize: '0.6rem', marginLeft: 'auto', border: '1px solid var(--border-color)', padding: '2px 4px' }}>LOCKED</span>}
+              {isActive && !isCollapsed && <span className="blink" style={{ marginLeft: 'auto', color: 'inherit' }}>●</span>}
             </Link>
           );
         })}
       </nav>
 
       {!isCollapsed && (
-        <div style={{ padding: '20px', fontSize: '0.7rem', borderTop: '4px solid var(--border-color)', opacity: 0.7 }}>
-          © 2026 ABD-IA SYSTEMS<br />
-          v5.0.0-STABLE
+        <div style={{ padding: '20px', fontSize: '0.7rem', borderTop: 'var(--border-thick) solid var(--border-color)', opacity: 0.5, lineHeight: 1.4 }}>
+          ABD-IA INFRASTRUCTURES<br />
+          BUILD: 2026.04.15-R5<br />
+          NODE: 0x8F2A
         </div>
       )}
     </aside>

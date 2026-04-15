@@ -1,0 +1,300 @@
+/* MappingMatrix.module.css - Aseptic Refinement */
+
+.container {
+  display: flex;
+  height: 100%;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+}
+
+.sidebar {
+  width: 240px;
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.newBtn {
+  margin: 16px;
+  padding: 10px;
+  background: var(--border-color);
+  color: var(--bg-color);
+  border: none;
+  font-weight: 900;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.item {
+  padding: 12px 16px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.item.active {
+  background: var(--border-color);
+  color: var(--bg-color);
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.main {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.badgeW, .badgeG, .badgeU {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  font-weight: 900;
+  color: #fff;
+  font-size: 0.7rem;
+}
+
+.badgeW { background: #4169e1; } /* RoyalBlue */
+.badgeG { background: #228b22; } /* ForestGreen */
+.badgeU { background: #ffa500; } /* Orange */
+
+.configArea {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.selectors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.input, .select {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.saveBtn {
+  padding: 8px 20px;
+  background: #fbc02d;
+  color: #000;
+  border: 1px solid #f9a825;
+  font-weight: 900;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.matrixContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.2);
+  min-height: 0;
+}
+
+.matrixHeader {
+  display: grid;
+  grid-template-columns: 35px 180px 220px 1fr 120px;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.75rem;
+  font-weight: 900;
+  border-bottom: 2px solid var(--border-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.matrixBody {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.matrixRow {
+  display: grid;
+  grid-template-columns: 35px 180px 220px 1fr 120px;
+  gap: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.matrixRow:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.typeIcon {
+  display: flex;
+  justify-content: center;
+}
+
+.varName {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.matrixSelect {
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #a5d6a7;
+  padding: 4px;
+  font-size: 0.8rem;
+}
+
+.matrixSelect:focus {
+  border-color: #a5d6a7;
+  background: var(--bg-color);
+}
+
+.sampleValue {
+  font-style: italic;
+  opacity: 0.5;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status {
+  text-align: right;
+  font-size: 0.7rem;
+  font-weight: 900;
+  opacity: 0.6;
+}
+
+.statusOk {
+  color: #4caf50;
+  opacity: 1;
+}
+
+.separator {
+  padding: 8px 16px;
+  background: #333;
+  color: #aaa;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+.matrixFooter {
+  padding: 12px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 10px;
+}
+
+.autoBtn {
+  background: #1e88e5;
+  color: #fff;
+  border: none;
+  padding: 6px 16px;
+  font-weight: 900;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.clearBtn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid var(--border-color);
+  padding: 6px 16px;
+  font-weight: 900;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.emptyHint {
+  padding: 60px;
+  border: 2px dashed var(--border-color);
+  text-align: center;
+  opacity: 0.4;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+/* Styles for DataPreviewModal */
+.previewTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.previewTable th {
+  background: #333;
+  padding: 8px;
+  text-align: left;
+  font-size: 0.8rem;
+  border: 1px solid var(--border-color);
+}
+
+.previewTable td {
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+}

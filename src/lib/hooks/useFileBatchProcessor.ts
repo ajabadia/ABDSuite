@@ -26,6 +26,7 @@ export const useFileBatchProcessor = ({
   const { t } = useLanguage();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [stats, setStats] = useState({ success: 0, error: 0, skip: 0 });
 
   const addLog = useCallback((type: LogEntry['type'], messageKey: string, fileName?: string, params?: any) => {
     const newLog: LogEntry = {
@@ -38,7 +39,10 @@ export const useFileBatchProcessor = ({
     setLogs(prev => [...prev, newLog]);
   }, [t]);
 
-  const clearLogs = useCallback(() => setLogs([]), []);
+  const clearLogs = useCallback(() => {
+    setLogs([]);
+    setStats({ success: 0, error: 0, skip: 0 });
+  }, []);
 
   const processFiles = useCallback(async (files: File[], mode: 'encrypt' | 'decrypt') => {
     if (!password) {
@@ -47,24 +51,27 @@ export const useFileBatchProcessor = ({
     }
 
     setIsProcessing(true);
+    setStats({ success: 0, error: 0, skip: 0 });
     addLog('info', mode === 'encrypt' ? 'logs.start_enc' : 'logs.start_dec');
 
-    let successCount = 0;
-    let errorCount = 0;
-    let skipCount = 0;
+    let sCount = 0;
+    let eCount = 0;
+    let kCount = 0;
 
     for (const file of files) {
       try {
         // Validation logic
         if (mode === 'encrypt' && file.name.endsWith('.enc')) {
           addLog('skip', 'logs.skip_enc', file.name);
-          skipCount++;
+          kCount++;
+          setStats(prev => ({ ...prev, skip: kCount }));
           continue;
         }
 
         if (mode === 'decrypt' && !file.name.endsWith('.enc')) {
           addLog('skip', 'logs.skip_dec', file.name);
-          skipCount++;
+          kCount++;
+          setStats(prev => ({ ...prev, skip: kCount }));
           continue;
         }
 
@@ -90,14 +97,16 @@ export const useFileBatchProcessor = ({
         URL.revokeObjectURL(url);
 
         addLog('success', 'logs.success', file.name);
-        successCount++;
+        sCount++;
+        setStats(prev => ({ ...prev, success: sCount }));
       } catch (error: any) {
         addLog('error', error.message || 'logs.error', file.name);
-        errorCount++;
+        eCount++;
+        setStats(prev => ({ ...prev, error: eCount }));
       }
     }
 
-    addLog('info', 'logs.summary', undefined, { s: successCount, e: errorCount, k: skipCount });
+    addLog('info', 'logs.summary', undefined, { s: sCount, e: eCount, k: kCount });
     setIsProcessing(false);
   }, [password, outputSuffix, t, addLog]);
 
@@ -114,10 +123,11 @@ export const useFileBatchProcessor = ({
     a.download = `log_abdfn_${new Date().toISOString().split('T')[0]}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [logs]);
+  }, [logs, addLog]);
 
   return {
     logs,
+    stats,
     isProcessing,
     processFiles,
     clearLogs,

@@ -27,7 +27,8 @@ export default function Home() {
     processFiles, 
     clearLogs, 
     saveLogs, 
-    addLog 
+    addLog,
+    stats
   } = useFileBatchProcessor({ 
     password, 
     outputSuffix 
@@ -51,6 +52,7 @@ export default function Home() {
           onSort={() => addLog('info', 'logs.sort_applied')}
           isProcessing={isProcessing}
           clearOnFinish={!batchMode}
+          stats={stats}
         />
       </section>
 

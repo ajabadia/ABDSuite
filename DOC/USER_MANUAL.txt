@@ -1,0 +1,47 @@
+================================================================================
+ MANUAL DE USUARIO - ABDFN UNIFIED SUITE v5.0
+================================================================================
+
+1. INTRODUCCIÓN
+--------------------------------------------------------------------------------
+ABDFN Suite es una plataforma Zero-Knowledge para el procesamiento local de 
+datos bancarios. El sistema opera 100% en el navegador, garantizando que ninguna
+información sensible o clave maestra (Master Key) abandone su estación de trabajo.
+
+2. MÓDULO DE ENCRIPTADO (ASEPTIC VAULT)
+--------------------------------------------------------------------------------
+Permite encriptar y desencriptar archivos en lote utilizando el algoritmo
+AES-256-GCM compatible con las herramientas ABDTools legacy.
+
+Pasos:
+1. Arrastre los archivos al área "DROP ZONE".
+2. Introduzca la clave de encriptación en el panel de configuración.
+3. Pulse "ENCRIPTAR TODO" o "DESENCRIPTAR TODO".
+4. El sistema descargará automáticamente los resultados procesados.
+
+Nota: Los archivos ya encriptados (.enc) serán omitidos durante la encriptación.
+
+3. ESTACIÓN ETL (STUDIO)
+--------------------------------------------------------------------------------
+Transforma archivos de texto plano (ancho fijo) a formatos modernos (CSV/JSON).
+
+Pasos:
+1. Cargue el fichero de entrada.
+2. Seleccione la carpeta de destino mediante el selector de directorios de Chrome.
+3. Seleccione un "PRESET" (Configuración de reglas).
+4. Pulse "PROCESAR FICHEROS". El sistema realizará la segregación y rotación
+   (chunking) de forma automática.
+
+4. GENERACIÓN GAWEB (LETTER STATION)
+--------------------------------------------------------------------------------
+Genera correspondencia industrial con el índice oficial para HOST.
+
+Pasos:
+1. Mapee las variables de la plantilla con los campos del fichero de entrada
+   en la "MAPPING MATRIX".
+2. Verifique la calibración de ventana (Offsets X/Y) si usa sobres Ibercaja.
+3. Genere el paquete ZIP que contiene: PDFs + .GAWEB + AUDIT_REPORT.CSV.
+
+================================================================================
+ SOPORTE TÉCNICO: A:\ABDFN\HELP>
+================================================================================

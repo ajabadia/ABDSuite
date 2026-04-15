@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { Language } from '@/lib/i18n/translations';
-import styles from './LanguageSwitcher.module.css';
 
 const LanguageSwitcher: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -19,25 +18,54 @@ const LanguageSwitcher: React.FC = () => {
   const currentOption = options.find(o => o.code === language) || options[0];
 
   return (
-    <div className={styles.wrapper}>
+    <div style={{ position: 'relative' }}>
       <button 
-        className={styles.toggleBtn}
+        className="station-btn"
+        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 15px', height: '40px' }}
         onClick={() => setIsOpen(!isOpen)}
-        aria-label={t('ui.lang_select')}
-        aria-expanded={isOpen}
+        title={t('ui.lang_select')}
       >
-        <span className={styles.flag}>{currentOption.flag}</span>
-        <span className={styles.label}>{currentOption.label}</span>
+        <span>{currentOption.flag}</span>
+        <span style={{ fontSize: '0.75rem' }}>{currentOption.label}</span>
       </button>
 
       {isOpen && (
         <>
-          <div className={styles.overlay} onClick={() => setIsOpen(false)} />
-          <div className={styles.menu}>
+          <div 
+            style={{ position: 'fixed', inset: 0, zIndex: 1000 }} 
+            onClick={() => setIsOpen(false)} 
+          />
+          <div style={{ 
+            position: 'absolute', 
+            top: 'calc(100% + 10px)', 
+            right: 0, 
+            background: 'var(--bg-color)', 
+            border: 'var(--border-thick) solid var(--border-color)',
+            boxShadow: '8px 8px 0 rgba(0,0,0,0.5)',
+            zIndex: 1001,
+            width: '180px'
+          }}>
             {options.map((opt) => (
               <button
                 key={opt.code}
-                className={`${styles.menuItem} ${language === opt.code ? styles.active : ''}`}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '12px 15px',
+                  background: language === opt.code ? 'var(--border-color)' : 'transparent',
+                  color: language === opt.code ? 'var(--bg-color)' : 'var(--text-primary)',
+                  border: 'none',
+                  borderBottom: '1px solid var(--border-color)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  fontWeight: 900,
+                  fontSize: '0.75rem',
+                  textTransform: 'uppercase',
+                  fontFamily: 'inherit'
+                }}
                 onClick={() => {
                   setLanguage(opt.code);
                   setIsOpen(false);

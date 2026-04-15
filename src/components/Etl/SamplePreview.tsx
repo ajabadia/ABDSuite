@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { EtlPreset, EtlRecordType } from '@/lib/types/etl.types';
-import styles from './SamplePreview.module.css';
 
 interface SamplePreviewProps {
   preset: EtlPreset;
@@ -36,17 +35,6 @@ export const SamplePreview: React.FC<SamplePreviewProps> = ({ preset, activeReco
     if (file) loadFile(file);
   };
 
-  const getLineMatch = (line: string, index: number) => {
-    const totalLines = index + 1;
-
-    // 1. Check Headers by Range
-    const headerMatch = preset.recordTypes.find(r => r.behavior === 'HEADER' && isLineInRange(totalLines, r.range));
-    if (headerMatch) return headerMatch;
-
-    // 2. Check Data by Trigger
-    return identifyRecordType(line, preset.recordTypes.filter(r => r.behavior === 'DATA'));
-  };
-
   const isLineInRange = (line: number, range: string) => {
     if (!range) return false;
     const parts = range.split(',');
@@ -61,94 +49,67 @@ export const SamplePreview: React.FC<SamplePreviewProps> = ({ preset, activeReco
     return false;
   };
 
-  const identifyRecordType = (line: string, rules: EtlRecordType[]) => {
-    let fallback: EtlRecordType | null = null;
-    
-    for (const rule of rules) {
-      if (!rule.trigger) {
-        fallback = fallback || rule;
-        continue;
-      }
-
-      // 1. Determine identification window
-      // If global len is set, use global pos/len. Else use rule-specific trigger pos.
-      const start = preset.recordTypeLen > 0 ? preset.recordTypeStart : rule.triggerStart;
-      const len = preset.recordTypeLen > 0 ? preset.recordTypeLen : rule.trigger.length;
-      
-      if (line.length < start + len) continue;
-      
-      // 2. Extract and Compare
-      const candidate = line.substring(start, start + len).trim();
-      
-      // If global len is used, we compare the trimmed candidate with the rule trigger
-      if (preset.recordTypeLen > 0) {
-        if (matchesPattern(candidate, rule.trigger)) return rule;
-      } else {
-        // Legacy/Specific behavior: match exact length of trigger
-        const specificCandidate = line.substring(rule.triggerStart, rule.triggerStart + rule.trigger.length);
-        if (matchesPattern(specificCandidate, rule.trigger)) return rule;
-      }
-    }
-    return fallback;
-  };
-
   const matchesPattern = (input: string, pattern: string) => {
     if (input.length !== pattern.length) return false;
     for (let i = 0; i < pattern.length; i++) {
-      const p = pattern[i];
-      const c = input[i];
-      if (p === '?') continue;
-      if (p === '*') {
-        if (c !== ' ') return false;
-        continue;
-      }
-      if (p !== c) return false;
+       if (pattern[i] === '?') continue;
+       if (pattern[i] === '*') { if (input[i] !== ' ') return false; continue; }
+       if (pattern[i] !== input[i]) return false;
     }
     return true;
   };
 
+  const getLineMatch = (line: string, index: number) => {
+    const totalLines = index + 1;
+    const headerMatch = preset.recordTypes.find(r => r.behavior === 'HEADER' && isLineInRange(totalLines, r.range));
+    if (headerMatch) return headerMatch;
+
+    for (const rule of preset.recordTypes.filter(r => r.behavior === 'DATA')) {
+      if (!rule.trigger) continue;
+      const start = preset.recordTypeLen > 0 ? preset.recordTypeStart : rule.triggerStart;
+      const len = preset.recordTypeLen > 0 ? preset.recordTypeLen : rule.trigger.length;
+      if (line.length < start + len) continue;
+      const cand = line.substring(start, start + len).trim();
+      if (preset.recordTypeLen > 0) {
+        if (matchesPattern(cand, rule.trigger)) return rule;
+      } else {
+        const spec = line.substring(rule.triggerStart, rule.triggerStart + rule.trigger.length);
+        if (matchesPattern(spec, rule.trigger)) return rule;
+      }
+    }
+    return null;
+  };
+
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <span className={styles.label}>{t('etl.sample_file')}</span>
-        {lines.length > 0 && (
-          <button className={styles.clearBtn} onClick={() => setLines([])}>
-            {t('processor.clear_list')}
-          </button>
-        )}
-      </header>
+    <div className="station-card" style={{ height: '100%', margin: 0 }}>
+      <div className="station-card-title">DATA_SPECTROMETER_VIEW</div>
 
       <div 
-        className={`${styles.viewport} ${isDragging ? styles.dragging : ''} ${lines.length === 0 ? styles.empty : ''}`}
+        className="station-card"
+        style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: 'rgba(0,0,0,0.5)', cursor: 'crosshair', borderStyle: isDragging ? 'dashed' : 'solid' }}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
       >
         {lines.length === 0 ? (
-          <div className={styles.dropPrompt}>
-            <p>ARRASTRA ARCHIVOS AQUÍ O HAZ CLIC PARA SELECCIONAR</p>
-            <small>(TEXT_FILE_ONLY / MAX_PREVIEW_100_ROWS)</small>
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.2 }}>
+            <p style={{ fontWeight: 900 }}>[DRAG_DATA_FILE_TO_PREVIEW]</p>
+            <small>TEXT_UTF8_MONO_ONLY</small>
           </div>
         ) : (
-          <div className={styles.codeArea}>
+          <div style={{ padding: '10px' }}>
             {lines.map((line, i) => {
               const match = getLineMatch(line, i);
               const isActive = match?.name === activeRecordTypeName;
-              
               return (
-                <div 
-                  key={i} 
-                  className={`${styles.line} ${match ? styles.matched : ''} ${isActive ? styles.activeLine : ''}`}
-                >
-                  <span className={styles.lineNo}>{(i + 1).toString().padStart(3, '0')}</span>
-                  <div className={styles.textContainer}>
-                    <pre className={styles.text}>{line || ' '}</pre>
-                    {match && (
-                      <div className={styles.matchTag} data-behavior={match.behavior}>
-                        {match.name.substring(0, 10)}
-                      </div>
-                    )}
-                  </div>
+                <div key={i} style={{ display: 'flex', gap: '15px', padding: '2px 0', borderBottom: '1px solid rgba(var(--primary-color), 0.05)', background: isActive ? 'rgba(var(--primary-color), 0.1)' : 'transparent' }}>
+                  <span style={{ width: '40px', opacity: 0.3, fontSize: '0.7rem', fontWeight: 900, textAlign: 'right', fontFamily: 'inherit' }}>{(i + 1).toString().padStart(3, '0')}</span>
+                  <pre style={{ margin: 0, fontSize: '0.85rem', whiteSpace: 'pre', flex: 1, fontFamily: 'inherit', color: match ? 'var(--border-color)' : 'var(--text-secondary)' }}>{line || ' '}</pre>
+                  {match && (
+                    <span style={{ fontSize: '0.6rem', fontWeight: 900, padding: '1px 5px', background: 'var(--border-color)', color: 'var(--bg-color)', fontFamily: 'inherit' }}>
+                      {match.name.substring(0, 12)}
+                    </span>
+                  )}
                 </div>
               );
             })}

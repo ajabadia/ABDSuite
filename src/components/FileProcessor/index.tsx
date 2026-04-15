@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { FolderIcon, ArrowUpIcon, ArrowDownIcon, CloseIcon, EyeIcon, LockIcon } from '@/components/common/Icons';
+import { FolderIcon, ArrowUpIcon, ArrowDownIcon, CloseIcon } from '@/components/common/Icons';
 import { useLanguage } from '@/lib/context/LanguageContext';
-import styles from './FileProcessor.module.css';
 
 interface SelectedFile {
   file: File;
@@ -16,6 +15,7 @@ interface FileProcessorProps {
   onSort?: (asc: boolean) => void;
   isProcessing: boolean;
   clearOnFinish: boolean;
+  stats?: { success: number; error: number; skip: number };
 }
 
 const FileProcessor: React.FC<FileProcessorProps> = ({ 
@@ -23,7 +23,8 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
   onClear,
   onSort,
   isProcessing,
-  clearOnFinish
+  clearOnFinish,
+  stats = { success: 0, error: 0, skip: 0 }
 }) => {
   const { t } = useLanguage();
   const [files, setFiles] = useState<SelectedFile[]>([]);
@@ -32,7 +33,6 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
   const addFiles = useCallback((newFiles: FileList | File[]) => {
     const fileList = Array.from(newFiles);
     setFiles(prev => {
-      // Avoid duplicates by name + size
       const uniqueNewFiles = fileList.filter(nf => 
         !prev.some(p => p.file.name === nf.name && p.file.size === nf.size)
       ).map(f => ({ file: f, id: Math.random().toString(36).substr(2, 9) }));
@@ -70,81 +70,84 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
   };
 
   return (
-    <div className={`glass ${styles.container}`}>
+    <div className="station-card" style={{ gap: '25px', paddingBottom: '30px' }}>
+      <div className="station-card-title">ASEPTIC_VAULT_CONTROLLER</div>
+
       <div 
-        className={`${styles.dropZone} ${isDragging ? styles.dragging : ''}`}
+        className={`station-card ${isDragging ? 'active' : ''}`}
+        style={{ height: '140px', borderStyle: 'dashed', cursor: 'pointer', justifyContent: 'center', alignItems: 'center', boxShadow: 'none', background: 'rgba(var(--primary-color), 0.03)' }}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
       >
-        <div className={styles.dropZoneContent}>
-          <FolderIcon size={48} className={styles.icon} aria-hidden="true" />
-          <p>{t('processor.dropzone')}</p>
+        <div style={{ textAlign: 'center', pointerEvents: 'none' }}>
+          <FolderIcon size={48} style={{ marginBottom: '10px', opacity: 0.8 }} />
+          <p style={{ fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>{t('processor.dropzone')}</p>
         </div>
         <input 
           type="file" 
           multiple 
-          className={styles.fileInput} 
+          style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
           onChange={(e) => e.target.files && addFiles(e.target.files)}
         />
       </div>
 
-      <div className={styles.listHeader}>
-        <div className={styles.listStats}>
-          {files.length} {t('processor.selected')}
+      <div style={{ display: 'flex', gap: '20px', background: 'rgba(var(--primary-color), 0.05)', padding: '12px 20px', border: 'var(--border-thin) solid var(--border-color)', alignItems: 'center' }}>
+        <div style={{ flex: 1, display: 'flex', gap: '20px', fontSize: '0.75rem', fontWeight: 900 }}>
+          <span>PROCESSED: <b className="txt-ok">{stats.success}</b></span>
+          <span>RETAINED: <b className="txt-warn">{stats.skip}</b></span>
+          <span>ANOMALIES: <b className="txt-err">{stats.error}</b></span>
         </div>
-        <div className={styles.listActions}>
-          <button onClick={() => sortFiles(true)} title={t('processor.sort_az')} aria-label={t('processor.sort_az')}>
-            <ArrowUpIcon size={16} aria-hidden="true" />
-          </button>
-          <button onClick={() => sortFiles(false)} title={t('processor.sort_za')} aria-label={t('processor.sort_za')}>
-            <ArrowDownIcon size={16} aria-hidden="true" />
-          </button>
-          <button onClick={clearFiles} className={styles.dangerText}>{t('processor.clear_list')}</button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => sortFiles(true)} className="station-btn" style={{ padding: '4px 10px', boxShadow: 'none', fontSize: '0.7rem' }}>A-Z</button>
+          <button onClick={() => sortFiles(false)} className="station-btn" style={{ padding: '4px 10px', boxShadow: 'none', fontSize: '0.7rem' }}>Z-A</button>
+          <button onClick={clearFiles} className="station-btn" style={{ padding: '4px 10px', color: 'var(--accent-color)', boxShadow: 'none', fontSize: '0.7rem' }}>[CLEAR]</button>
         </div>
       </div>
 
-      <div className={styles.fileList} role="list">
+      <div style={{ flex: 1, minHeight: '350px', maxHeight: '500px', overflowY: 'auto', border: 'var(--border-thick) solid var(--border-color)', background: 'var(--bg-color)', padding: '0' }}>
         {files.length === 0 ? (
-          <div className={styles.emptyList}>{t('processor.empty')}</div>
+          <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.15, fontWeight: 900, letterSpacing: '2px' }}>IDLE_WAITING_FOR_DATA_STREAM</div>
         ) : (
-          files.map(({ file, id }) => (
-            <div key={id} className={styles.fileItem} role="listitem">
-              <span className={styles.fileName}>{file.name}</span>
-              <span className={styles.fileSize}>{(file.size / 1024).toFixed(1)} KB</span>
-              <button 
-                onClick={() => removeFile(id)} 
-                className={styles.removeBtn}
-                title={t('processor.remove')}
-                aria-label={`${t('processor.remove')} ${file.name}`}
-              >
-                <CloseIcon size={16} aria-hidden="true" />
-              </button>
-            </div>
-          ))
+          <div className="flex-col" style={{ gap: '0' }}>
+            {files.map(({ file, id }) => (
+              <div key={id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 20px', borderBottom: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
+                <span style={{ flex: 1, fontWeight: 800 }}>{file.name}</span>
+                <span style={{ opacity: 0.5, fontSize: '0.7rem', fontWeight: 900 }}>{(file.size / 1024).toFixed(1)} KB</span>
+                <button 
+                  onClick={() => removeFile(id)} 
+                  style={{ background: 'transparent', border: 'none', color: 'var(--accent-color)', fontWeight: 900, cursor: 'pointer', padding: '5px' }}
+                >
+                  <CloseIcon size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
-      <div className={styles.mainActions}>
+      <div className="grid-2" style={{ gap: '20px' }}>
         <button 
-          className={`${styles.btn} ${styles.btnEncrypt}`}
+          className="station-btn station-btn-primary"
+          style={{ padding: '18px', fontSize: '1.1rem', boxShadow: 'none' }}
           disabled={files.length === 0 || isProcessing}
           onClick={() => {
             onProcess(files.map(f => f.file), 'encrypt');
             if (clearOnFinish) setFiles([]);
           }}
         >
-          {isProcessing ? t('processor.processing') : t('processor.encrypt_all')}
+          {isProcessing ? t('processor.processing').toUpperCase() : t('processor.encrypt_all').toUpperCase()}
         </button>
         <button 
-          className={`${styles.btn} ${styles.btnDecrypt}`}
+          className="station-btn"
+          style={{ padding: '18px', fontSize: '1.1rem', boxShadow: 'none' }}
           disabled={files.length === 0 || isProcessing}
           onClick={() => {
             onProcess(files.map(f => f.file), 'decrypt');
             if (clearOnFinish) setFiles([]);
           }}
         >
-          {isProcessing ? t('processor.processing') : t('processor.decrypt_all')}
+          {isProcessing ? t('processor.processing').toUpperCase() : t('processor.decrypt_all').toUpperCase()}
         </button>
       </div>
     </div>
