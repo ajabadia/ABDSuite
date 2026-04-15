@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { EtlPreset } from '@/lib/types/etl.types';
 import { EtlProcessorOptions, ProcessorLogEntry } from '@/lib/types/etl-processor.types';
-import { RefreshIcon, FolderIcon } from '@/components/common/Icons';
+import { RefreshIcon, FolderIcon, PlayIcon, SquareIcon } from '@/components/common/Icons';
 import LogConsole, { LogEntry } from '@/components/LogConsole';
 
 interface EtlRunnerProps {
@@ -20,7 +20,7 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
   const [options, setOptions] = useState<EtlProcessorOptions>({
     startRow: 1,
     endRow: 0,
-    chunkSize: 900000,
+    chunkSize: 500000,
     outputFormat: 'CSV',
     encoding: 'utf-8',
   });
@@ -51,9 +51,7 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
     try {
       const handle = await (window as any).showDirectoryPicker();
       setOutputHandle(handle);
-    } catch (err) {
-      console.error('Directory picker cancelled or failed', err);
-    }
+    } catch (err) { }
   };
 
   const startProcess = async () => {
@@ -63,7 +61,7 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
     setLogs([]);
     outputStreamsRef.current = new Map();
 
-    addLog({ type: 'info', message: `INITIALIZING_ENGINE: ${selectedPreset.name}` });
+    addLog({ type: 'info', message: `Iniciando motor ETL: ${selectedPreset.name}` });
 
     const worker = new Worker(new URL('../../lib/workers/etl-processor.worker.ts', import.meta.url));
     workerRef.current = worker;
@@ -76,7 +74,7 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
         case 'COMPLETE':
           cleanupStreams();
           setIsProcessing(false);
-          addLog({ type: 'success', message: 'TASK_COMPLETED_SUCCESSFULLY' });
+          addLog({ type: 'success', message: 'Procesamiento finalizado con éxito.' });
           break;
       }
     };
@@ -129,71 +127,69 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
   };
 
   return (
-    <div className="flex-col" style={{ gap: '30px' }}>
+    <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
+      
       <div className="station-card">
-        <div className="station-card-title">PROCESS_CONTROL_UNIT</div>
+        <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '8px' }}>Control de Ejecución</h3>
         
-        <div className="grid-2" style={{ gap: '25px' }}>
-          <div className="flex-col" style={{ gap: '10px' }}>
-            <label className="station-label">DATA_INPUT_STREAM</label>
-            <div className="flex-row" style={{ gap: '5px' }}>
-              <input className="station-input" readOnly value={inputFile?.name || ''} placeholder="RAW_FILE_PATH" style={{ fontSize: '0.8rem' }} />
+        <div className="grid-2" style={{ gap: '24px' }}>
+          <div className="flex-col" style={{ gap: '4px' }}>
+            <label className="station-label">Archivo de Entrada</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input className="station-input" readOnly value={inputFile?.name || ''} placeholder="Seleccionar CSV/TXT..." />
               <input type="file" id="etl-run-in" style={{ display: 'none' }} onChange={e => setInputFile(e.target.files?.[0] || null)} />
-              <button className="station-btn" style={{ padding: '8px 12px', boxShadow: 'none' }} onClick={() => document.getElementById('etl-run-in')?.click()}>...</button>
+              <button className="station-btn" onClick={() => document.getElementById('etl-run-in')?.click()}>...</button>
             </div>
           </div>
-          <div className="flex-col" style={{ gap: '10px' }}>
-            <label className="station-label">OUTPUT_DESTINATION_HANDLE</label>
-            <div className="flex-row" style={{ gap: '5px' }}>
-              <input className="station-input" readOnly value={outputHandle?.name || ''} placeholder="DRIVE:\DESTINATION" style={{ fontSize: '0.8rem' }} />
-              <button className="station-btn" style={{ padding: '8px 12px', boxShadow: 'none' }} onClick={handlePickOutput}>...</button>
+          <div className="flex-col" style={{ gap: '4px' }}>
+            <label className="station-label">Carpeta de Salida</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input className="station-input" readOnly value={outputHandle?.name || ''} placeholder="Seleccionar destino..." />
+              <button className="station-btn" onClick={handlePickOutput}>...</button>
             </div>
           </div>
         </div>
 
-        <div className="flex-col" style={{ gap: '10px', marginTop: '10px' }}>
-          <label className="station-label">ACTIVE_PRESET_CONFIGURATION</label>
-          <div className="flex-row" style={{ gap: '10px' }}>
-            <select 
-              className="station-select"
-              style={{ flex: 1, padding: '12px' }}
-              value={selectedPreset?.id || ''}
-              onChange={(e) => {
-                const p = presets.find(p => p.id === parseInt(e.target.value));
-                if (p) onSelectPreset(p);
-              }}
-            >
-              <option value="">{t('etl.no_presets')}</option>
-              {presets.map(p => (
-                <option key={p.id} value={p.id}>{p.name} (V{p.version})</option>
-              ))}
-            </select>
-          </div>
+        <div className="flex-col" style={{ gap: '4px', marginTop: '16px' }}>
+          <label className="station-label">Configuración del Preset</label>
+          <select 
+            className="station-select"
+            value={selectedPreset?.id || ''}
+            onChange={(e) => {
+              const p = presets.find(p => p.id === parseInt(e.target.value));
+              if (p) onSelectPreset(p);
+            }}
+          >
+            <option value="">-- Seleccionar Preset --</option>
+            {presets.map(p => (
+              <option key={p.id} value={p.id}>{p.name} (v{p.version})</option>
+            ))}
+          </select>
         </div>
       </div>
 
       <div className="station-card">
-        <div className="station-card-title">ENGINE_PARAMETERS</div>
-        <div className="grid-2" style={{ gap: '25px' }}>
-           <div className="flex-col" style={{ gap: '10px' }}>
-             <label className="station-label">MAX_CHUNK_SIZE</label>
+        <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '8px' }}>Parámetros del Motor</h3>
+        <div className="grid-2" style={{ gap: '24px' }}>
+           <div className="flex-col" style={{ gap: '4px' }}>
+             <label className="station-label">Tamaño Partición</label>
              <input type="number" className="station-input" value={options.chunkSize} onChange={e => setOptions({...options, chunkSize: parseInt(e.target.value) || 0})} />
            </div>
-           <div className="flex-col" style={{ gap: '10px' }}>
-             <label className="station-label">SERIALIZATION_FORMAT</label>
+           <div className="flex-col" style={{ gap: '4px' }}>
+             <label className="station-label">Formato Salida</label>
              <select className="station-select" value={options.outputFormat} onChange={e => setOptions({...options, outputFormat: e.target.value as any})}>
-                <option value="CSV">CSV_SEMICOLON</option>
-                <option value="JSON">JSON_ARRAY</option>
+                <option value="CSV">Valores Separados por Punto y Coma (CSV)</option>
+                <option value="JSON">Estructura de Datos JSON</option>
              </select>
            </div>
         </div>
-        <div className="grid-2" style={{ gap: '25px', marginTop: '20px' }}>
-           <div className="flex-col" style={{ gap: '10px' }}>
-             <label className="station-label">START_AT_ROW</label>
+        <div className="grid-2" style={{ gap: '24px', marginTop: '12px' }}>
+           <div className="flex-col" style={{ gap: '4px' }}>
+             <label className="station-label">Fila de Inicio</label>
              <input type="number" className="station-input" value={options.startRow} onChange={e => setOptions({...options, startRow: parseInt(e.target.value) || 1})} />
            </div>
-           <div className="flex-col" style={{ gap: '10px' }}>
-             <label className="station-label">END_AT_ROW (0=EOF)</label>
+           <div className="flex-col" style={{ gap: '4px' }}>
+             <label className="station-label">Fila Final (0 = Fin de Archivo)</label>
              <input type="number" className="station-input" value={options.endRow} onChange={e => setOptions({...options, endRow: parseInt(e.target.value) || 0})} />
            </div>
         </div>
@@ -201,14 +197,14 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
 
       <button 
         className="station-btn station-btn-primary"
-        style={{ padding: '18px', fontSize: '1.2rem', boxShadow: 'none', border: 'var(--border-thick) solid var(--border-color)' }}
+        style={{ height: '64px', fontSize: '1.1rem' }}
         disabled={!inputFile || !outputHandle || !selectedPreset || isProcessing}
         onClick={startProcess}
       >
-        {isProcessing ? 'ENGINE_RUNNING_DO_NOT_INTERRUPT' : 'INITIALIZE_BATCH_PROCESS'}
+        <PlayIcon size={20} /> {isProcessing ? 'PROCESANDO LOTE...' : 'INICIAR PROCESAMIENTO'}
       </button>
 
-      <div style={{ flex: 1, minHeight: '350px', display: 'flex' }}>
+      <div style={{ flex: 1, minHeight: '300px', display: 'flex' }}>
         <LogConsole 
           logs={logs} 
           onClear={() => setLogs([])} 

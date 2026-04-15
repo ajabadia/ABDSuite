@@ -35,6 +35,16 @@ export const SamplePreview: React.FC<SamplePreviewProps> = ({ preset, activeReco
     if (file) loadFile(file);
   };
 
+  const matchesPattern = (input: string, pattern: string) => {
+    if (input.length !== pattern.length) return false;
+    for (let i = 0; i < pattern.length; i++) {
+       if (pattern[i] === '?') continue;
+       if (pattern[i] === '*') { if (input[i] !== ' ') return false; continue; }
+       if (pattern[i] !== input[i]) return false;
+    }
+    return true;
+  };
+
   const isLineInRange = (line: number, range: string) => {
     if (!range) return false;
     const parts = range.split(',');
@@ -47,16 +57,6 @@ export const SamplePreview: React.FC<SamplePreviewProps> = ({ preset, activeReco
       }
     }
     return false;
-  };
-
-  const matchesPattern = (input: string, pattern: string) => {
-    if (input.length !== pattern.length) return false;
-    for (let i = 0; i < pattern.length; i++) {
-       if (pattern[i] === '?') continue;
-       if (pattern[i] === '*') { if (input[i] !== ' ') return false; continue; }
-       if (pattern[i] !== input[i]) return false;
-    }
-    return true;
   };
 
   const getLineMatch = (line: string, index: number) => {
@@ -81,33 +81,33 @@ export const SamplePreview: React.FC<SamplePreviewProps> = ({ preset, activeReco
   };
 
   return (
-    <div className="station-card" style={{ height: '100%', margin: 0 }}>
-      <div className="station-card-title">DATA_SPECTROMETER_VIEW</div>
+    <div className="flex-col" style={{ height: '100%', gap: '12px' }}>
+      <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase' }}>Vista Previa de Datos</h3>
 
       <div 
         className="station-card"
-        style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: 'rgba(0,0,0,0.5)', cursor: 'crosshair', borderStyle: isDragging ? 'dashed' : 'solid' }}
+        style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: 'var(--bg-color)', borderStyle: isDragging ? 'dashed' : 'solid', borderPrimaryColor: isDragging ? 'var(--primary-color)' : 'var(--border-color)' }}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
       >
         {lines.length === 0 ? (
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.2 }}>
-            <p style={{ fontWeight: 900 }}>[DRAG_DATA_FILE_TO_PREVIEW]</p>
-            <small>TEXT_UTF8_MONO_ONLY</small>
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
+            <p style={{ fontWeight: 800 }}>ARRASTRE UN ARCHIVO PARA EXPLORAR</p>
+            <small style={{ fontSize: '0.65rem' }}>FORMATO TEXTO / MONO</small>
           </div>
         ) : (
-          <div style={{ padding: '10px' }}>
+          <div style={{ padding: '8px' }}>
             {lines.map((line, i) => {
               const match = getLineMatch(line, i);
               const isActive = match?.name === activeRecordTypeName;
               return (
-                <div key={i} style={{ display: 'flex', gap: '15px', padding: '2px 0', borderBottom: '1px solid rgba(var(--primary-color), 0.05)', background: isActive ? 'rgba(var(--primary-color), 0.1)' : 'transparent' }}>
-                  <span style={{ width: '40px', opacity: 0.3, fontSize: '0.7rem', fontWeight: 900, textAlign: 'right', fontFamily: 'inherit' }}>{(i + 1).toString().padStart(3, '0')}</span>
-                  <pre style={{ margin: 0, fontSize: '0.85rem', whiteSpace: 'pre', flex: 1, fontFamily: 'inherit', color: match ? 'var(--border-color)' : 'var(--text-secondary)' }}>{line || ' '}</pre>
+                <div key={i} style={{ display: 'flex', gap: '12px', padding: '2px 0', alignItems: 'center', borderBottom: '1px solid rgba(var(--primary-color), 0.05)', background: isActive ? 'rgba(var(--primary-color), 0.1)' : 'transparent' }}>
+                  <span style={{ width: '32px', opacity: 0.3, fontSize: '0.65rem', fontWeight: 600, textAlign: 'right' }}>{(i + 1).toString().padStart(3, '0')}</span>
+                  <pre style={{ margin: 0, fontSize: '0.85rem', whiteSpace: 'pre', flex: 1, color: match ? 'var(--primary-color)' : 'var(--text-secondary)' }}>{line || ' '}</pre>
                   {match && (
-                    <span style={{ fontSize: '0.6rem', fontWeight: 900, padding: '1px 5px', background: 'var(--border-color)', color: 'var(--bg-color)', fontFamily: 'inherit' }}>
-                      {match.name.substring(0, 12)}
+                    <span className="station-badge station-badge-blue" style={{ fontSize: '0.6rem', padding: '0 4px', height: '16px' }}>
+                      {match.name.substring(0, 10)}
                     </span>
                   )}
                 </div>

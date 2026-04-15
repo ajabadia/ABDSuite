@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { FolderIcon, ArrowUpIcon, ArrowDownIcon, CloseIcon } from '@/components/common/Icons';
+import { FolderIcon, ArrowUpIcon, ArrowDownIcon, XIcon, ShieldCheckIcon, LockIcon, UnlockIcon } from '@/components/common/Icons';
 import { useLanguage } from '@/lib/context/LanguageContext';
 
 interface SelectedFile {
@@ -70,84 +70,105 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
   };
 
   return (
-    <div className="station-card" style={{ gap: '25px', paddingBottom: '30px' }}>
-      <div className="station-card-title">ASEPTIC_VAULT_CONTROLLER</div>
-
-      <div 
-        className={`station-card ${isDragging ? 'active' : ''}`}
-        style={{ height: '140px', borderStyle: 'dashed', cursor: 'pointer', justifyContent: 'center', alignItems: 'center', boxShadow: 'none', background: 'rgba(var(--primary-color), 0.03)' }}
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-      >
-        <div style={{ textAlign: 'center', pointerEvents: 'none' }}>
-          <FolderIcon size={48} style={{ marginBottom: '10px', opacity: 0.8 }} />
-          <p style={{ fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>{t('processor.dropzone')}</p>
+    <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
+      
+      <div className="station-card" style={{ padding: '0', overflow: 'hidden' }}>
+        <div 
+          className={`dropzone ${isDragging ? 'active' : ''}`}
+          style={{ 
+            height: '140px', 
+            border: '2px dashed var(--border-color)', 
+            margin: '16px',
+            borderRadius: '8px',
+            display: 'flex', 
+            flexDirection: 'column',
+            alignItems: 'center', 
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            background: isDragging ? 'var(--bg-color)' : 'transparent',
+            borderColor: isDragging ? 'var(--primary-color)' : 'var(--border-color)',
+            position: 'relative'
+          }}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+        >
+          <FolderIcon size={40} style={{ marginBottom: '8px', opacity: 0.4 }} />
+          <p style={{ fontSize: '0.85rem', fontWeight: 600, opacity: 0.6 }}>{t('processor.dropzone')}</p>
+          <input 
+            type="file" 
+            multiple 
+            style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+            onChange={(e) => e.target.files && addFiles(e.target.files)}
+          />
         </div>
-        <input 
-          type="file" 
-          multiple 
-          style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
-          onChange={(e) => e.target.files && addFiles(e.target.files)}
-        />
-      </div>
 
-      <div style={{ display: 'flex', gap: '20px', background: 'rgba(var(--primary-color), 0.05)', padding: '12px 20px', border: 'var(--border-thin) solid var(--border-color)', alignItems: 'center' }}>
-        <div style={{ flex: 1, display: 'flex', gap: '20px', fontSize: '0.75rem', fontWeight: 900 }}>
-          <span>PROCESSED: <b className="txt-ok">{stats.success}</b></span>
-          <span>RETAINED: <b className="txt-warn">{stats.skip}</b></span>
-          <span>ANOMALIES: <b className="txt-err">{stats.error}</b></span>
-        </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => sortFiles(true)} className="station-btn" style={{ padding: '4px 10px', boxShadow: 'none', fontSize: '0.7rem' }}>A-Z</button>
-          <button onClick={() => sortFiles(false)} className="station-btn" style={{ padding: '4px 10px', boxShadow: 'none', fontSize: '0.7rem' }}>Z-A</button>
-          <button onClick={clearFiles} className="station-btn" style={{ padding: '4px 10px', color: 'var(--accent-color)', boxShadow: 'none', fontSize: '0.7rem' }}>[CLEAR]</button>
-        </div>
-      </div>
-
-      <div style={{ flex: 1, minHeight: '350px', maxHeight: '500px', overflowY: 'auto', border: 'var(--border-thick) solid var(--border-color)', background: 'var(--bg-color)', padding: '0' }}>
-        {files.length === 0 ? (
-          <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.15, fontWeight: 900, letterSpacing: '2px' }}>IDLE_WAITING_FOR_DATA_STREAM</div>
-        ) : (
-          <div className="flex-col" style={{ gap: '0' }}>
-            {files.map(({ file, id }) => (
-              <div key={id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 20px', borderBottom: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
-                <span style={{ flex: 1, fontWeight: 800 }}>{file.name}</span>
-                <span style={{ opacity: 0.5, fontSize: '0.7rem', fontWeight: 900 }}>{(file.size / 1024).toFixed(1)} KB</span>
-                <button 
-                  onClick={() => removeFile(id)} 
-                  style={{ background: 'transparent', border: 'none', color: 'var(--accent-color)', fontWeight: 900, cursor: 'pointer', padding: '5px' }}
-                >
-                  <CloseIcon size={14} />
-                </button>
-              </div>
-            ))}
+        <div style={{ display: 'flex', gap: '24px', padding: '16px 24px', borderTop: '1px solid var(--border-color)', alignItems: 'center', background: 'var(--surface-color)' }}>
+          <div style={{ flex: 1, display: 'flex', gap: '20px', fontSize: '0.75rem', fontWeight: 700 }}>
+            <span>Procesados: <span className="txt-ok">{stats.success}</span></span>
+            <span>Retenidos: <span className="txt-warn">{stats.skip}</span></span>
+            <span>Errores: <span className="txt-err">{stats.error}</span></span>
           </div>
-        )}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => sortFiles(true)} className="station-btn" style={{ padding: '4px 8px', fontSize: '0.7rem' }}>A-Z</button>
+            <button onClick={() => sortFiles(false)} className="station-btn" style={{ padding: '4px 8px', fontSize: '0.7rem' }}>Z-A</button>
+            <button onClick={clearFiles} className="station-btn" style={{ padding: '4px 8px', fontSize: '0.7rem', color: 'var(--status-err)' }}>Limpiar Lista</button>
+          </div>
+        </div>
       </div>
 
-      <div className="grid-2" style={{ gap: '20px' }}>
+      <div style={{ flex: 1, minHeight: 0, border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-color)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <header style={{ padding: '12px 24px', borderBottom: '1px solid var(--border-color)', background: 'var(--surface-color)', fontSize: '0.75rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>
+          Cola de Procesamiento ({files.length})
+        </header>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {files.length === 0 ? (
+            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3, fontSize: '0.85rem' }}>
+              ESPERANDO FICHEROS...
+            </div>
+          ) : (
+            <div className="flex-col" style={{ gap: '0' }}>
+              {files.map(({ file, id }) => (
+                <div key={id} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 24px', borderBottom: '1px solid var(--border-color)' }}>
+                  <span style={{ flex: 1, fontWeight: 600, fontSize: '0.9rem' }}>{file.name}</span>
+                  <span style={{ opacity: 0.5, fontSize: '0.75rem' }}>{(file.size / 1024).toFixed(1)} KB</span>
+                  <button 
+                    onClick={() => removeFile(id)} 
+                    className="station-btn"
+                    style={{ padding: '4px', border: 'none', background: 'transparent' }}
+                  >
+                    <XIcon size={14} style={{ color: 'var(--status-err)' }} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid-2" style={{ gap: '16px' }}>
         <button 
           className="station-btn station-btn-primary"
-          style={{ padding: '18px', fontSize: '1.1rem', boxShadow: 'none' }}
+          style={{ height: '56px', fontSize: '1rem' }}
           disabled={files.length === 0 || isProcessing}
           onClick={() => {
             onProcess(files.map(f => f.file), 'encrypt');
             if (clearOnFinish) setFiles([]);
           }}
         >
-          {isProcessing ? t('processor.processing').toUpperCase() : t('processor.encrypt_all').toUpperCase()}
+          <LockIcon size={18} /> {isProcessing ? 'Procesando...' : 'Cifrar Archivos'}
         </button>
         <button 
           className="station-btn"
-          style={{ padding: '18px', fontSize: '1.1rem', boxShadow: 'none' }}
+          style={{ height: '56px', fontSize: '1rem' }}
           disabled={files.length === 0 || isProcessing}
           onClick={() => {
             onProcess(files.map(f => f.file), 'decrypt');
             if (clearOnFinish) setFiles([]);
           }}
         >
-          {isProcessing ? t('processor.processing').toUpperCase() : t('processor.decrypt_all').toUpperCase()}
+          <UnlockIcon size={18} /> {isProcessing ? 'Procesando...' : 'Descifrar Archivos'}
         </button>
       </div>
     </div>

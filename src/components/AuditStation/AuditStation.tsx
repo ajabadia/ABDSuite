@@ -5,7 +5,7 @@ import { useLanguage } from '@/lib/context/LanguageContext';
 import { auditGaweb, GawebAuditResult, GAWEB_FIELDS } from '@/lib/logic/gaweb-auditor.logic';
 import { auditPackageIntegrity, PackageAuditResult } from '@/lib/logic/package-auditor.logic';
 import { sanitizeFilename } from '@/lib/utils/filename.utils';
-import { FileIcon, ShieldCheckIcon, AlertTriangleIcon, SearchIcon, DownloadIcon, FolderIcon } from '@/components/common/Icons';
+import { FileIcon, ShieldCheckIcon, AlertTriangleIcon, SearchIcon, DownloadIcon, FolderIcon, XIcon, FileTextIcon } from '@/components/common/Icons';
 
 interface AuditStationProps {
   onAddLog: (type: 'info' | 'success' | 'error' | 'skip', messageKey: string, fileName?: string, params?: any) => void;
@@ -65,17 +65,6 @@ const AuditStation: React.FC<AuditStationProps> = ({ onAddLog }) => {
         if (md5File) md5Witness = await md5File.text();
         const pkgRes = await auditPackageIntegrity(auditResult, archiveFile, md5Witness);
         setPackageResult(pkgRes);
-        
-        if (pkgRes.md5Match === false) {
-           auditResult.errors.push({
-             line: 0,
-             field: 'MD5',
-             position: 'N/A',
-             severity: 'ERROR',
-             messageKey: 'audit.errors.md5_mismatch',
-             value: md5File?.name || 'UNKNOWN'
-           });
-        }
       }
 
       setResult(auditResult);
@@ -90,7 +79,6 @@ const AuditStation: React.FC<AuditStationProps> = ({ onAddLog }) => {
 
   const exportCsv = () => {
     if (!result || !indexFile) return;
-    
     const headers = [t('audit.col_line'), t('audit.col_field'), t('audit.col_pos'), t('audit.col_severity'), t('audit.col_message'), t('audit.col_value')].join(',');
     const rows = result.errors.map(e => `${e.line},${e.field},${e.position},${e.severity},"${t(e.messageKey, { file: e.value })}",${e.value}`).join('\n');
     const blob = new Blob([headers + '\n' + rows], { type: 'text/csv;charset=utf-8;' });
@@ -100,44 +88,44 @@ const AuditStation: React.FC<AuditStationProps> = ({ onAddLog }) => {
     const a = document.createElement('a');
     a.href = url; a.download = downloadName; a.click();
     URL.revokeObjectURL(url);
-    onAddLog('info', 'audit.logs.export', downloadName, { file: downloadName });
   };
 
   return (
-    <div className="flex-col" style={{ gap: '25px', height: '100%' }}>
+    <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
+      
       <div className="station-card">
-        <div className="station-card-title">INDUSTRIAL_AUDIT_STATION</div>
-
-        <div className="flex-col" style={{ gap: '20px' }}>
-          <div className="grid-2" style={{ gap: '25px' }}>
-            <div className="flex-col" style={{ gap: '8px' }}>
+        <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '8px' }}>Control de Auditoría</h3>
+        
+        <div className="flex-col" style={{ gap: '16px' }}>
+          <div className="grid-2" style={{ gap: '24px' }}>
+            <div className="flex-col" style={{ gap: '4px' }}>
               <label className="station-label">{t('audit.select_file')}</label>
-              <div className="flex-row" style={{ gap: '5px' }}>
-                <input className="station-input" readOnly value={indexFile?.name || ''} placeholder="IDLE_WAITING_FOR_INDEX" style={{ fontSize: '0.8rem' }} />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input className="station-input" readOnly value={indexFile?.name || ''} placeholder="Esperando fichero .TXT..." />
                 <input type="file" id="index-input" style={{ display: 'none' }} onChange={(e) => handleFileChange(e, 'index')} />
-                <button className="station-btn" style={{ padding: '8px 12px', boxShadow: 'none' }} onClick={() => document.getElementById('index-input')?.click()}>...</button>
+                <button className="station-btn" onClick={() => document.getElementById('index-input')?.click()}>...</button>
               </div>
             </div>
 
-            <div className="flex-col" style={{ gap: '8px' }}>
+            <div className="flex-col" style={{ gap: '4px' }}>
               <label className="station-label">{t('audit.select_archive')}</label>
-              <div className="flex-row" style={{ gap: '5px' }}>
-                <input className="station-input" readOnly value={archiveFile?.name || ''} placeholder="IDLE_WAITING_FOR_PACKAGE" style={{ fontSize: '0.8rem' }} />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input className="station-input" readOnly value={archiveFile?.name || ''} placeholder="Esperando paquete .ZIP..." />
                 <input type="file" id="archive-input" style={{ display: 'none' }} accept=".zip" onChange={(e) => handleFileChange(e, 'archive')} />
-                <button className="station-btn" style={{ padding: '8px 12px', boxShadow: 'none' }} onClick={() => document.getElementById('archive-input')?.click()}>...</button>
+                <button className="station-btn" onClick={() => document.getElementById('archive-input')?.click()}>...</button>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(var(--primary-color), 0.05)', padding: '15px', border: 'var(--border-thin) solid var(--border-color)' }}>
-            <div style={{ display: 'flex', gap: '20px', fontSize: '0.75rem', fontWeight: 900 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-color)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', gap: '24px', fontSize: '0.8rem' }}>
               {result ? (
                 <>
-                  <span>RECORDS_FOUND: <b className="txt-ok">{result.lines}</b></span>
-                  <span>ANOMALIES_DETECTED: <b className={result.errors.length > 0 ? 'txt-err' : 'txt-ok'}>{result.errors.length}</b></span>
+                  <span>Registros: <b className="txt-ok">{result.lines}</b></span>
+                  <span>Anomalías: <b className={result.errors.length > 0 ? 'txt-err' : 'txt-ok'}>{result.errors.length}</b></span>
                 </>
               ) : (
-                <span style={{ opacity: 0.5 }}>SYSTEM_STATUS: {t('audit.status_ready').toUpperCase()}</span>
+                <span style={{ opacity: 0.5 }}>Estado: LISTO PARA VALIDACIÓN</span>
               )}
             </div>
             
@@ -145,46 +133,42 @@ const AuditStation: React.FC<AuditStationProps> = ({ onAddLog }) => {
               className="station-btn station-btn-primary" 
               disabled={!indexFile || isValidating}
               onClick={runValidation}
-              style={{ padding: '10px 25px' }}
+              style={{ width: '200px' }}
             >
-              {isValidating ? 'VALIDATING...' : t('audit.validate').toUpperCase()}
+              {isValidating ? 'Validando...' : t('audit.validate')}
             </button>
           </div>
         </div>
       </div>
 
-      <div className="flex-col" style={{ flex: 1, overflow: 'hidden', border: 'var(--border-thin) solid var(--border-color)', background: 'var(--bg-color)', position: 'relative' }}>
+      <div className="flex-col" style={{ flex: 1, minHeight: 0, border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-color)', overflow: 'hidden' }}>
         <div className="station-tabs">
           <button className={`tab-item ${activeTab === 'DATA' ? 'active' : ''}`} onClick={() => setActiveTab('DATA')}>
-            {t('audit.tab_data').toUpperCase()}
+            {t('audit.tab_data')}
           </button>
           <button className={`tab-item ${activeTab === 'ERRORS' ? 'active' : ''}`} onClick={() => setActiveTab('ERRORS')}>
-            {t('audit.tab_errors').toUpperCase()}
+            {t('audit.tab_errors')}
           </button>
         </div>
 
         <div style={{ flex: 1, overflow: 'auto' }}>
           {activeTab === 'DATA' && result && (
-            <div className="station-table-container">
+            <div className="station-table-container" style={{ border: 'none', borderRadius: 0 }}>
               <table className="station-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '50px', textAlign: 'center' }}>#</th>
+                    <th style={{ width: '48px', textAlign: 'center' }}>ID</th>
                     {GAWEB_FIELDS.map(f => (
-                      <th key={f.name} style={{ minWidth: f.length > 20 ? '200px' : '100px' }}>
-                        {t(`audit.fields.${f.name}`)}
-                      </th>
+                      <th key={f.name}>{t(`audit.fields.${f.name}`)}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {result.parsedData.map((row, idx) => (
-                    <tr key={idx} style={{ background: selectedLine === idx + 1 ? 'rgba(var(--primary-color), 0.1)' : 'transparent', cursor: 'pointer' }} onClick={() => setSelectedLine(idx + 1)}>
-                      <td style={{ fontWeight: 900, textAlign: 'center', opacity: 0.5, fontSize: '0.7rem' }}>{idx + 1}</td>
+                    <tr key={idx} style={{ background: selectedLine === idx + 1 ? 'rgba(var(--primary-color), 0.1)' : 'transparent' }} onClick={() => setSelectedLine(idx + 1)}>
+                      <td style={{ textAlign: 'center', opacity: 0.5, fontSize: '0.7rem' }}>{idx + 1}</td>
                       {GAWEB_FIELDS.map(f => (
-                        <td key={f.name} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                          {row[f.name]}
-                        </td>
+                        <td key={f.name}>{row[f.name]}</td>
                       ))}
                     </tr>
                   ))}
@@ -194,32 +178,30 @@ const AuditStation: React.FC<AuditStationProps> = ({ onAddLog }) => {
           )}
 
           {activeTab === 'ERRORS' && result && (
-            <div className="station-table-container">
+            <div className="station-table-container" style={{ border: 'none', borderRadius: 0 }}>
               <table className="station-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '60px' }}>L#</th>
-                    <th style={{ width: '120px' }}>FIELD</th>
-                    <th style={{ width: '80px' }}>POS</th>
-                    <th style={{ width: '80px' }}>LEVEL</th>
-                    <th>MESSAGE_CONTENT</th>
+                    <th style={{ width: '50px' }}>Lín.</th>
+                    <th style={{ width: '120px' }}>Campo</th>
+                    <th style={{ width: '80px' }}>Severidad</th>
+                    <th>Mensaje de Auditoría</th>
                   </tr>
                 </thead>
                 <tbody>
                   {result.errors.map((err, idx) => (
                     <tr key={idx} style={{ background: err.severity === 'ERROR' ? 'rgba(var(--status-err), 0.05)' : 'transparent' }}>
-                      <td style={{ fontWeight: 900 }}>{err.line || '-'}</td>
-                      <td style={{ fontWeight: 900 }}>{err.field}</td>
-                      <td>{err.position}</td>
-                      <td className={err.severity === 'ERROR' ? 'txt-err' : 'txt-warn'} style={{ fontWeight: 900 }}>{err.severity}</td>
-                      <td style={{ whiteSpace: 'normal', fontSize: '0.8rem' }}>{t(err.messageKey, { file: err.value })}</td>
+                      <td style={{ fontWeight: 700 }}>{err.line || '-'}</td>
+                      <td>{err.field}</td>
+                      <td className={err.severity === 'ERROR' ? 'txt-err' : 'txt-warn'} style={{ fontWeight: 700 }}>{err.severity}</td>
+                      <td style={{ whiteSpace: 'normal', opacity: 0.8 }}>{t(err.messageKey, { file: err.value })}</td>
                     </tr>
                   ))}
                   {result.errors.length === 0 && (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '60px', opacity: 0.3 }}>
-                        <ShieldCheckIcon size={48} />
-                        <div style={{ marginTop: '15px', fontWeight: 900, fontSize: '1rem', letterSpacing: '2px' }}>INTEGRIDAD_VERIFICADA_OK</div>
+                      <td colSpan={4} style={{ textAlign: 'center', padding: '64px', opacity: 0.4 }}>
+                        <ShieldCheckIcon size={40} style={{ color: 'var(--status-ok)', marginBottom: '16px' }} />
+                        <div style={{ fontWeight: 700 }}>INTEGRIDAD VERIFICADA</div>
                       </td>
                     </tr>
                   )}
@@ -229,18 +211,18 @@ const AuditStation: React.FC<AuditStationProps> = ({ onAddLog }) => {
           )}
           
           {!result && (
-            <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.1 }}>
-              <FolderIcon size={120} />
-              <p style={{ fontWeight: 900, marginTop: '20px', fontSize: '1.2rem', letterSpacing: '3px' }}>WAITING_FOR_DATA_STREAM</p>
+            <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.2 }}>
+              <FileIcon size={64} style={{ marginBottom: '16px' }} />
+              <p style={{ fontWeight: 600 }}>ESPERANDO FLUJO DE DATOS</p>
             </div>
           )}
         </div>
       </div>
 
       {result && result.errors.length > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 0' }}>
-          <button className="station-btn" style={{ padding: '12px 25px' }} onClick={exportCsv}>
-            {t('audit.export_csv').toUpperCase()}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button className="station-btn" onClick={exportCsv}>
+            <DownloadIcon size={16} /> Exportar Reporte de Anomalías
           </button>
         </div>
       )}

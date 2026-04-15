@@ -14,76 +14,56 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => 
   if (!isOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10000
-    }} onClick={onClose}>
+    <div className="station-modal-overlay" onClick={onClose}>
       <div 
-        style={{
-          width: '500px',
-          background: 'var(--surface-color)',
-          border: '4px solid var(--border-color)',
-          padding: '30px',
-          position: 'relative',
-          boxShadow: '20px 20px 0 var(--border-color)'
-        }} 
+        className="station-modal" 
+        style={{ maxWidth: '500px' }} 
         onClick={e => e.stopPropagation()}
       >
         <div style={{ 
-          borderBottom: '4px solid var(--border-color)', 
+          borderBottom: '1px solid var(--border-color)', 
           paddingBottom: '20px', 
           marginBottom: '20px',
           display: 'flex',
           alignItems: 'baseline',
           gap: '15px'
         }}>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0 }}>ABDFN SUITE</h2>
-          <span style={{ fontSize: '0.8rem', border: '2px solid var(--border-color)', padding: '2px 8px' }}>v5.0.0</span>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>ABDFN Suite</h2>
+          <span style={{ fontSize: '0.7rem', border: '1px solid var(--border-color)', padding: '2px 8px', borderRadius: '4px' }}>v5.1.0-ASEPTIC</span>
         </div>
 
         <div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>
-          <p><strong>Aseptic Banking Data Factory Network</strong></p>
-          <p>Plataforma unificada de procesamiento local seguro y auditoría industrial.</p>
+          <p style={{ fontWeight: 700, color: 'var(--primary-color)' }}>Aseptic Banking Data Factory Network</p>
+          <p style={{ marginTop: '8px', opacity: 0.8 }}>Plataforma unificada de procesamiento local seguro y auditoría industrial.</p>
           
           <div style={{ 
-            marginTop: '20px', 
-            padding: '15px', 
-            background: 'rgba(0,0,0,0.2)', 
-            border: '2px dashed var(--border-color)',
-            fontFamily: 'var(--font-mono)'
+            marginTop: '24px', 
+            padding: '16px', 
+            background: 'var(--bg-color)', 
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px',
+            fontSize: '0.75rem',
+            opacity: 0.8
           }}>
-            SYSTEM_ID: ABDFN-MOD-2026-X86<br />
-            CRYPT_ENGINE: AES-GCM-256 (WebCrypto)<br />
-            LAYOUT_ENGINE: GAWEB-HOST-REV-Z
+            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '8px' }}>
+              <span style={{ fontWeight: 700 }}>SYSTEM_ID:</span> <span>ABDFN-MOD-2026-X86</span>
+              <span style={{ fontWeight: 700 }}>ENGINE:</span> <span>WebCrypto / DOCX-Parity</span>
+              <span style={{ fontWeight: 700 }}>STANDARD:</span> <span>UNCODIXFY V4</span>
+            </div>
           </div>
 
-          <p style={{ marginTop: '20px', fontSize: '0.75rem', opacity: 0.7 }}>
-            © 2026 ABD-IA INFRASTRUCTURES.<br />
-            Este sistema cumple con los mandatos de procesamiento local y seguridad de clave maestra en memoria volátil.
+          <p style={{ marginTop: '24px', fontSize: '0.7rem', opacity: 0.6 }}>
+            © {new Date().getFullYear()} ABD INDUSTRIAL INFRASTRUCTURES. <br />
+            Procesamiento 100% local. Zero-Knowledge Compliance.
           </p>
         </div>
 
         <button 
           onClick={onClose}
-          style={{
-            marginTop: '30px',
-            width: '100%',
-            padding: '12px',
-            background: 'var(--border-color)',
-            color: 'var(--bg-color)',
-            fontWeight: 900,
-            cursor: 'pointer'
-          }}
+          className="station-btn station-btn-primary"
+          style={{ marginTop: '20px', width: '100%' }}
         >
-          [CERRAR_SISTEMA]
+          Cerrar
         </button>
       </div>
     </div>

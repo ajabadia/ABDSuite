@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { EtlGlobalSettings } from '@/lib/types/etl.types';
+import { XIcon } from '@/components/common/Icons';
 
 interface EtlSettingsModalProps {
   isOpen: boolean;
@@ -32,42 +33,48 @@ const EtlSettingsModal: React.FC<EtlSettingsModalProps> = ({
 
   return (
     <div className="station-modal-overlay" onClick={onClose}>
-      <div className="station-modal" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: 'var(--border-thin) solid var(--border-color)', paddingBottom: '10px' }}>
-          <span style={{ fontWeight: 900, fontSize: '1.2rem' }}>[PREFERENCES_CORE]</span>
-          <button className="station-btn" onClick={onClose} style={{ padding: '2px 8px', boxShadow: 'none' }}>X</button>
-        </div>
+      <div 
+        className="station-modal" 
+        style={{ maxWidth: '600px', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }} 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: '1rem', fontWeight: 800 }}>AJUSTES ETL CORE</h2>
+          <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={onClose}>
+            <XIcon size={20} />
+          </button>
+        </header>
 
-        <div className="flex-col" style={{ gap: '20px' }}>
-          <div className="flex-col" style={{ gap: '10px' }}>
+        <div style={{ padding: '24px' }} className="flex-col">
+          <div className="flex-col" style={{ gap: '4px' }}>
             <label className="station-label">{t('etl.default_path')}:</label>
-            <div className="flex-row" style={{ gap: '5px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
               <input 
                 type="text" 
                 className="station-input" 
                 value={settings.defaultPath}
                 onChange={(e) => setSettings({ ...settings, defaultPath: e.target.value })}
               />
-              <button className="station-btn" style={{ padding: '8px 12px', boxShadow: 'none' }}>...</button>
+              <button className="station-btn">...</button>
             </div>
           </div>
 
-          <div className="flex-col" style={{ gap: '10px' }}>
-            <label className="station-label">SYSTEM_LANGUAGE:</label>
+          <div className="flex-col" style={{ gap: '4px' }}>
+            <label className="station-label">Idioma del Sistema:</label>
             <select 
               className="station-select"
               value={settings.language}
               onChange={(e) => setSettings({ ...settings, language: e.target.value })}
             >
-              <option value="es">es-ES (ESPAÑOL)</option>
-              <option value="en">en-US (ENGLISH)</option>
-              <option value="fr">fr-FR (FRANÇAIS)</option>
-              <option value="de">de-DE (DEUTSCH)</option>
+              <option value="es">es-ES (Español)</option>
+              <option value="en">en-US (English)</option>
+              <option value="fr">fr-FR (Français)</option>
+              <option value="de">de-DE (Deutsch)</option>
             </select>
           </div>
 
-          <div className="grid-2">
-            <div className="flex-col" style={{ gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="flex-col" style={{ gap: '4px' }}>
               <label className="station-label">{t('etl.default_encoding')}:</label>
               <select 
                 className="station-select"
@@ -75,11 +82,11 @@ const EtlSettingsModal: React.FC<EtlSettingsModalProps> = ({
                 onChange={(e) => setSettings({ ...settings, defaultEncoding: e.target.value })}
               >
                 <option value="utf-8">UTF-8</option>
-                <option value="windows-1252">WINDOWS-1252</option>
+                <option value="windows-1252">Windows-1252</option>
               </select>
             </div>
 
-            <div className="flex-col" style={{ gap: '10px' }}>
+            <div className="flex-col" style={{ gap: '4px' }}>
               <label className="station-label">{t('etl.default_chunk')}:</label>
               <input 
                 type="number" 
@@ -91,14 +98,14 @@ const EtlSettingsModal: React.FC<EtlSettingsModalProps> = ({
           </div>
         </div>
 
-        <div className="flex-row" style={{ justifyContent: 'flex-end', gap: '15px', marginTop: '10px' }}>
-          <button className="station-btn" onClick={onClose} style={{ boxShadow: 'none' }}>
+        <footer style={{ padding: '24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', gap: '16px', background: 'var(--surface-color)' }}>
+          <button className="station-btn" onClick={onClose}>
             {t('common.cancel')}
           </button>
           <button className="station-btn station-btn-primary" onClick={handleSave}>
             {t('common.save')}
           </button>
-        </div>
+        </footer>
       </div>
     </div>
   );

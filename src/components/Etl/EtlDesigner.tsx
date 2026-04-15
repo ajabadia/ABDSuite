@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { EtlPreset, EtlRecordType, EtlField, EtlRecordBehavior } from '@/lib/types/etl.types';
 import { SamplePreview } from './SamplePreview';
-import { CogIcon, EyeIcon, TrashIcon, ListIcon } from '@/components/common/Icons';
+import { CogIcon, EyeIcon, TrashIcon, ListIcon, XIcon, SaveIcon, UndoIcon } from '@/components/common/Icons';
 
 interface EtlDesignerProps {
   preset: EtlPreset;
@@ -46,7 +46,7 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
 
   const addRT = () => {
     const newRT: EtlRecordType = {
-      name: `NEW_TYPE_${preset.recordTypes.length}`,
+      name: `TIPO_${preset.recordTypes.length + 1}`,
       trigger: '',
       triggerStart: 0,
       behavior: 'DATA',
@@ -59,7 +59,7 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
 
   const removeRecordType = () => {
     if (!activeRT) return;
-    if (!confirm(t('common.confirm_delete') || 'REMOVER TIPO?')) return;
+    if (!confirm('¿Eliminar este tipo de registro?')) return;
     const newRTs = preset.recordTypes.filter((_, i) => i !== activeRTIndex);
     updatePreset({ recordTypes: newRTs });
     setActiveRTIndex(Math.max(0, activeRTIndex - 1));
@@ -68,8 +68,8 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
   const addField = () => {
     if (!activeRT) return;
     const newField: EtlField = { 
-      id: `f_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-      name: 'NEW_FIELD', start: 0, length: 10 
+      id: `f_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      name: 'NUEVO_CAMPO', start: 0, length: 1 
     };
     updateRT(activeRTIndex, { fields: [...activeRT.fields, newField] });
   };
@@ -86,168 +86,184 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
   };
 
   return (
-    <div className="flex-col" style={{ gap: '30px' }}>
+    <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
+      
+      {/* Cabecera del Preset */}
       <div className="station-card">
-        <div className="station-card-title">ETL_STUDIO_DESIGNER</div>
-        
-        <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-          <div className="flex-col" style={{ gap: '5px' }}>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, textTransform: 'uppercase' }}>{preset.name || 'UNNAMED_PRESET'}</h2>
-            <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-               <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>v{preset.version}</span>
-               <span className={`txt-${preset.isActive ? 'ok' : 'err'}`} style={{ fontWeight: 900, fontSize: '0.7rem', border: '1px solid currentColor', padding: '1px 6px' }}>
-                  {preset.isActive ? 'ONLINE' : 'OFFLINE'}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="flex-col" style={{ gap: '4px' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>{preset.name || 'Sin Nombre'}</h2>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+               <span style={{ opacity: 0.5, fontSize: '0.75rem' }}>v{preset.version}</span>
+               <span className={`station-badge ${preset.isActive ? 'station-badge-green' : 'station-badge-orange'}`} style={{ height: '18px' }}>
+                  {preset.isActive ? 'ACTIVO' : 'BORRADOR'}
                </span>
             </div>
           </div>
 
-          <div className="flex-row" style={{ gap: '15px' }}>
-            <button className="station-btn" onClick={() => setShowConfigModal(true)} title="Settings"><CogIcon size={20} /></button>
-            <button className="station-btn station-btn-primary" onClick={onSave}>{t('etl.save_preset')}</button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button className="station-btn" onClick={undo} disabled={undoStack.length === 0} title="Deshacer"><UndoIcon size={16} /></button>
+            <button className="station-btn" onClick={() => setShowConfigModal(true)}><CogIcon size={16} /> Configuración</button>
+            <button className="station-btn station-btn-primary" onClick={onSave}><SaveIcon size={16} /> Guardar Cambios</button>
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', padding: '12px', background: 'rgba(var(--primary-color), 0.05)', border: 'var(--border-thin) solid var(--border-color)', fontSize: '0.7rem', fontWeight: 700 }}>
-          <span>CHUNK: {preset.chunkSize}</span>
-          <span>ENC: {preset.encoding?.toUpperCase()}</span>
-          <span>TYPE_POS: {preset.recordTypeStart}</span>
-          <span>TYPE_LEN: {preset.recordTypeLen}</span>
-          <span>DEF_TYPE: {preset.defaultRecordType}</span>
+        <div style={{ display: 'flex', gap: '24px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-color)', fontSize: '0.75rem', opacity: 0.6 }}>
+          <span>Lote: {preset.chunkSize}</span>
+          <span>Enc: {preset.encoding?.toUpperCase()}</span>
+          <span>Tipo Pos: {preset.recordTypeStart}</span>
+          <span>Tipo Len: {preset.recordTypeLen}</span>
+          <span>Defecto: {preset.defaultRecordType}</span>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '30px' }}>
-        {/* Record Types List */}
-        <div className="station-card">
-          <div className="station-card-title">RECORD_TYPES</div>
-          <div className="flex-col" style={{ gap: '2px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px', flex: 1, minHeight: 0 }}>
+        
+        {/* Lista de Registros */}
+        <div className="flex-col" style={{ gap: '12px' }}>
+          <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase' }}>Tipos de Registro</h3>
+          <div className="station-card" style={{ padding: '8px', flex: 1, overflowY: 'auto' }}>
             {preset.recordTypes.map((rt, i) => (
               <button 
                 key={i} 
                 className={`nav-item ${activeRTIndex === i ? 'active' : ''}`}
-                style={{ padding: '14px 20px', fontSize: '0.85rem' }}
+                style={{ margin: '2px 0', border: 'none' }}
                 onClick={() => setActiveRTIndex(i)}
               >
-                [{rt.trigger?.substring(0, 1) || 'D'}] {rt.name}
+                <span className="station-badge station-badge-blue" style={{ minWidth: '24px', height: '18px' }}>{rt.trigger?.substring(0, 1) || 'D'}</span>
+                <span style={{ marginLeft: '8px' }}>{rt.name}</span>
               </button>
             ))}
-            <button className="station-btn" style={{ marginTop: '15px', width: '100%', boxShadow: 'none' }} onClick={addRT}>+ ADD_NEW_TYPE</button>
+            <button className="station-btn" style={{ marginTop: '12px', width: '100%', padding: '12px' }} onClick={addRT}>+ Nuevo Registro</button>
           </div>
         </div>
 
-        {/* Field Editor */}
-        <div className="station-card">
-          {activeRT ? (
-            <div className="flex-col" style={{ gap: '20px' }}>
-              <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center', borderBottom: 'var(--border-thin) solid var(--border-color)', paddingBottom: '15px' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 900 }}>{activeRT.name} <small style={{ opacity: 0.5, fontSize: '0.7rem' }}>[{activeRT.behavior}]</small></h3>
-                <div className="flex-row" style={{ gap: '10px' }}>
-                  <button className="station-btn" onClick={() => setShowSampleModal(true)} style={{ padding: '6px 12px' }}><EyeIcon size={16} /></button>
-                  <button className="station-btn" onClick={() => setShowRTModal(true)} style={{ padding: '6px 12px' }}><CogIcon size={16} /></button>
-                  <button className="station-btn" style={{ color: 'var(--accent-color)', padding: '6px 12px' }} onClick={removeRecordType}><TrashIcon size={16} /></button>
-                </div>
-              </div>
+        {/* Editor de Campos */}
+        <div className="flex-col" style={{ gap: '12px' }}>
+          <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase' }}>Definición de Campos</h3>
+          <div className="station-card" style={{ flex: 1, minHeight: 0, padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {activeRT ? (
+              <>
+                <header style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+                    <h4 style={{ fontWeight: 800 }}>{activeRT.name}</h4>
+                    <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>COMPORTAMIENTO: {activeRT.behavior}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="station-btn" onClick={() => setShowSampleModal(true)} title="Vista Previa"><EyeIcon size={16} /></button>
+                    <button className="station-btn" onClick={() => setShowRTModal(true)} title="Propiedades"><CogIcon size={16} /></button>
+                    <button className="station-btn" style={{ color: 'var(--status-err)' }} onClick={removeRecordType} title="Eliminar"><TrashIcon size={16} /></button>
+                  </div>
+                </header>
 
-              <div className="station-table-container" style={{ maxHeight: '500px' }}>
-                <table className="station-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '80px' }}>START</th>
-                      <th style={{ width: '80px' }}>LENGTH</th>
-                      <th>FIELD_IDENTIFIER</th>
-                      <th style={{ width: '50px' }}></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activeRT.fields.sort((a,b) => a.start - b.start).map((f) => (
-                      <tr key={f.id}>
-                        <td><input type="number" className="station-input" style={{ padding: '6px', textAlign: 'center', fontSize: '0.8rem' }} value={f.start} onChange={e => updateField(f.id, { start: parseInt(e.target.value) || 0 })} /></td>
-                        <td><input type="number" className="station-input" style={{ padding: '6px', textAlign: 'center', fontSize: '0.8rem' }} value={f.length} onChange={e => updateField(f.id, { length: parseInt(e.target.value) || 0 })} /></td>
-                        <td><input type="text" className="station-input" style={{ padding: '6px', fontSize: '0.8rem' }} value={f.name} onChange={e => updateField(f.id, { name: e.target.value })} /></td>
-                        <td style={{ textAlign: 'center' }}>
-                           <button onClick={() => removeField(f.id)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', padding: '5px' }}><TrashIcon size={14} /></button>
-                        </td>
+                <div className="station-table-container" style={{ border: 'none', borderRadius: 0, flex: 1 }}>
+                  <table className="station-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '100px', textAlign: 'center' }}>INICIO</th>
+                        <th style={{ width: '100px', textAlign: 'center' }}>LONGITUD</th>
+                        <th>NOMBRE DEL CAMPO</th>
+                        <th style={{ width: '60px' }}></th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {activeRT.fields.sort((a,b) => a.start - b.start).map((f, idx) => (
+                        <tr key={f.id || `f-${idx}`}>
+                          <td><input type="number" className="station-input" style={{ textAlign: 'center', fontSize: '0.85rem' }} value={f.start} onChange={e => updateField(f.id, { start: parseInt(e.target.value) || 0 })} /></td>
+                          <td><input type="number" className="station-input" style={{ textAlign: 'center', fontSize: '0.85rem' }} value={f.length} onChange={e => updateField(f.id, { length: parseInt(e.target.value) || 0 })} /></td>
+                          <td><input type="text" className="station-input" style={{ fontSize: '0.85rem' }} value={f.name} onChange={e => updateField(f.id, { name: e.target.value.toUpperCase() })} /></td>
+                          <td style={{ textAlign: 'center' }}>
+                             <button onClick={() => removeField(f.id)} className="station-btn" style={{ padding: '4px', border: 'none' }}><TrashIcon size={14} style={{ color: 'var(--status-err)' }} /></button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <button className="station-btn station-btn-primary" style={{ margin: '16px', height: '48px' }} onClick={addField}>+ Añadir Campo</button>
+              </>
+            ) : (
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.2 }}>
+                <ListIcon size={48} />
+                <p style={{ marginLeft: '16px', fontWeight: 700 }}>SELECCIONE UN TIPO DE REGISTRO</p>
               </div>
-              <button className="station-btn" style={{ padding: '15px' }} onClick={addField}>+ APPEND_FIELD_DEFINITION</button>
-            </div>
-          ) : (
-            <div style={{ padding: '100px 40px', textAlign: 'center', opacity: 0.2, fontWeight: 900 }}>WAITING_FOR_RECORD_SELECTION</div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Configuration Modal */}
+      {/* Modales de Configuración */}
       {showConfigModal && (
         <div className="station-modal-overlay" onClick={() => setShowConfigModal(false)}>
-          <div className="station-modal" onClick={e => e.stopPropagation()}>
-            <h3 className="mainTitle">PRESET_CORE_CONFIG</h3>
-            <div className="grid-2">
-              <div className="flex-col" style={{ gap: '10px' }}>
-                <label className="station-label">CONFIG_NAME</label>
+          <div className="station-modal" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <header style={{ paddingBottom: '16px', borderBottom: '1px solid var(--border-color)', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontWeight: 800 }}>CONFIGURACIÓN DEL PRESET</h3>
+              <button className="station-btn" style={{ border: 'none' }} onClick={() => setShowConfigModal(false)}><XIcon size={20} /></button>
+            </header>
+            <div className="flex-col" style={{ gap: '16px' }}>
+              <div className="flex-col" style={{ gap: '4px' }}>
+                <label className="station-label">Nombre del Preset</label>
                 <input className="station-input" value={preset.name} onChange={e => updatePreset({ name: e.target.value })} />
               </div>
-              <div className="flex-col" style={{ gap: '10px' }}>
-                <label className="station-label">VERSION</label>
-                <input className="station-input" value={preset.version} onChange={e => updatePreset({ version: e.target.value })} />
+              <div className="grid-2">
+                <div className="flex-col" style={{ gap: '4px' }}>
+                  <label className="station-label">Versión</label>
+                  <input className="station-input" value={preset.version} onChange={e => updatePreset({ version: e.target.value })} />
+                </div>
+                <div className="flex-col" style={{ gap: '4px' }}>
+                  <label className="station-label">Tamaño Lote</label>
+                  <input type="number" className="station-input" value={preset.chunkSize} onChange={e => updatePreset({ chunkSize: parseInt(e.target.value) || 0 })} />
+                </div>
               </div>
             </div>
-            <div className="grid-2">
-               <div className="flex-col" style={{ gap: '10px' }}>
-                <label className="station-label">MAX_CHUNK</label>
-                <input type="number" className="station-input" value={preset.chunkSize} onChange={e => updatePreset({ chunkSize: parseInt(e.target.value) || 0 })} />
-              </div>
-              <div className="flex-col" style={{ gap: '10px' }}>
-                <label className="station-label">WINDOW_OFFSET_X</label>
-                <input type="number" className="station-input" step="0.1" value={preset.gawebConfig?.windowOffsetX || 0} onChange={e => updatePreset({ gawebConfig: { ...(preset.gawebConfig || {} as any), windowOffsetX: parseFloat(e.target.value) || 0 }})} />
-              </div>
-            </div>
-            <button className="station-btn station-btn-primary" onClick={() => setShowConfigModal(false)}>CONSOLIDATE_AND_CLOSE</button>
+            <button className="station-btn station-btn-primary" style={{ marginTop: '32px', width: '100%' }} onClick={() => setShowConfigModal(false)}>Guardar y Cerrar</button>
           </div>
         </div>
       )}
 
-      {/* Record Type Editor Modal */}
       {showRTModal && activeRT && (
         <div className="station-modal-overlay" onClick={() => setShowRTModal(false)}>
-          <div className="station-modal" onClick={e => e.stopPropagation()}>
-            <h3 className="mainTitle">DATA_TYPE_CONFIG: {activeRT.name}</h3>
-            <div className="flex-col">
-              <label className="station-label">TRIGGER_IDENTIFIER</label>
-              <input className="station-input" value={activeRT.trigger} onChange={e => updateRT(activeRTIndex, { trigger: e.target.value })} />
+          <div className="station-modal" style={{ maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
+            <header style={{ paddingBottom: '16px', borderBottom: '1px solid var(--border-color)', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontWeight: 800 }}>PROPIEDADES DEL REGISTRO</h3>
+              <button className="station-btn" style={{ border: 'none' }} onClick={() => setShowRTModal(false)}><XIcon size={20} /></button>
+            </header>
+            <div className="flex-col" style={{ gap: '16px' }}>
+              <div className="flex-col" style={{ gap: '4px' }}>
+                <label className="station-label">Identificador (Trigger)</label>
+                <input className="station-input" value={activeRT.trigger} onChange={e => updateRT(activeRTIndex, { trigger: e.target.value })} />
+              </div>
               
               <div className="grid-2">
-                 <div className="flex-col" style={{ gap: '10px' }}>
-                    <label className="station-label">TRIGGER_POSITION</label>
+                 <div className="flex-col" style={{ gap: '4px' }}>
+                    <label className="station-label">Posición Inicio</label>
                     <input type="number" className="station-input" value={activeRT.triggerStart} onChange={e => updateRT(activeRTIndex, { triggerStart: parseInt(e.target.value) || 0 })} />
                  </div>
-                 <div className="flex-col" style={{ gap: '10px' }}>
-                    <label className="station-label">BEHAVIOR_ROLE</label>
+                 <div className="flex-col" style={{ gap: '4px' }}>
+                    <label className="station-label">Comportamiento</label>
                     <select className="station-select" value={activeRT.behavior} onChange={e => updateRT(activeRTIndex, { behavior: e.target.value as EtlRecordBehavior })}>
-                       <option value="DATA">DATA</option>
-                       <option value="HEADER">HEADER</option>
-                       <option value="FOOTER">FOOTER</option>
+                       <option value="DATA">DATA (DATOS)</option>
+                       <option value="HEADER">HEADER (CABECERA)</option>
+                       <option value="FOOTER">FOOTER (PIE)</option>
                     </select>
                  </div>
               </div>
             </div>
-            <button className="station-btn station-btn-primary" onClick={() => setShowRTModal(false)}>APPLY_PROPERTIES</button>
+            <button className="station-btn station-btn-primary" style={{ marginTop: '32px', width: '100%' }} onClick={() => setShowRTModal(false)}>Aplicar Cambios</button>
           </div>
         </div>
       )}
 
-      {/* Sample Modal */}
       {showSampleModal && (
         <div className="station-modal-overlay" onClick={() => setShowSampleModal(false)}>
-          <div className="station-modal" style={{ maxWidth: '1000px', height: '80vh' }} onClick={e => e.stopPropagation()}>
-            <h3 className="mainTitle">DATA_STEREOSCOPE_VIEW</h3>
-            <div style={{ flex: 1, minHeight: 0 }}>
+          <div className="station-modal" style={{ maxWidth: '1000px', height: '80vh', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+            <header style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontWeight: 800 }}>ESTUDIO DE DATOS</h3>
+              <button className="station-btn" style={{ border: 'none' }} onClick={() => setShowSampleModal(false)}><XIcon size={20} /></button>
+            </header>
+            <div style={{ flex: 1, minHeight: 0, padding: '12px' }}>
               <SamplePreview preset={preset} activeRecordTypeName={activeRT?.name} />
             </div>
-            <button className="station-btn" onClick={() => setShowSampleModal(false)}>CLOSE</button>
           </div>
         </div>
       )}

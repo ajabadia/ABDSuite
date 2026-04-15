@@ -34,76 +34,78 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     if (/[0-9]/.test(pwd)) score++;
     if (/[^A-Za-z0-9]/.test(pwd)) score++;
 
-    if (score <= 2) return { score, label: 'WEAK', color: 'var(--accent-color)', percent: '25%' };
-    if (score <= 4) return { score, label: 'MEDIUM', color: '#ffaa00', percent: '50%' };
-    if (score === 5) return { score, label: 'STRONG', color: 'var(--border-color)', percent: '75%' };
-    return { score, label: 'OPTIMAL', color: 'var(--border-color)', percent: '100%' };
+    if (score <= 2) return { score, label: 'Débil', color: 'var(--status-err)', percent: '25%' };
+    if (score <= 4) return { score, label: 'Media', color: 'var(--status-warn)', percent: '50%' };
+    if (score === 5) return { score, label: 'Fuerte', color: 'var(--status-ok)', percent: '75%' };
+    return { score, label: 'Óptima', color: 'var(--status-ok)', percent: '100%' };
   };
 
   const strength = getStrength(password);
 
   return (
     <div className="station-card">
-      <div className="station-card-title">AUTHENTICATION_PARAMETERS</div>
+      <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '16px' }}>Parámetros de Seguridad</h3>
       
-      <div className="flex-col" style={{ gap: '10px' }}>
-        <label className="station-label">{t('settings.password').toUpperCase()}</label>
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <input
-            id="master-pwd"
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="ENTER_MASTER_KEY"
-            className="station-input"
-            style={{ paddingRight: '45px' }}
-          />
-          <button 
-            onClick={() => setShowPassword(!showPassword)}
-            className="station-btn"
-            style={{ position: 'absolute', right: '5px', height: '30px', width: '30px', padding: 0, boxShadow: 'none', background: 'transparent' }}
-          >
-            {showPassword ? <EyeIcon size={16} /> : <LockIcon size={16} />}
-          </button>
-        </div>
-        
-        {password && (
-          <div style={{ marginTop: '5px' }}>
-            <div style={{ height: '4px', background: 'rgba(var(--primary-color), 0.1)', overflow: 'hidden' }}>
-              <div 
-                style={{ height: '100%', width: strength.percent, background: strength.color, transition: 'width 0.3s ease' }}
-              />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px', fontSize: '0.65rem', fontWeight: 900 }}>
-              <span style={{ opacity: 0.5 }}>COMPLEXITY_METRIC</span>
-              <span style={{ color: strength.color }}>{strength.label}</span>
-            </div>
+      <div className="flex-col" style={{ gap: '16px' }}>
+        <div className="flex-col" style={{ gap: '4px' }}>
+          <label className="station-label">{t('settings.password')}</label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <input
+              id="master-pwd"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Introduce clave maestra..."
+              className="station-input"
+              style={{ paddingRight: '44px' }}
+            />
+            <button 
+              onClick={() => setShowPassword(!showPassword)}
+              className="station-btn"
+              style={{ position: 'absolute', right: '4px', height: '32px', width: '32px', padding: 0, border: 'none' }}
+            >
+              {showPassword ? <EyeIcon size={16} /> : <LockIcon size={16} />}
+            </button>
           </div>
-        )}
-      </div>
-
-      <div className="grid-2" style={{ marginTop: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-           <input
-            type="checkbox"
-            id="batchMode"
-            checked={batchMode}
-            onChange={(e) => setBatchMode(e.target.checked)}
-            style={{ accentColor: 'var(--border-color)', width: '18px', height: '18px' }}
-          />
-           <label htmlFor="batchMode" className="station-label" style={{ cursor: 'pointer' }}>{t('settings.batch_mode').toUpperCase()}</label>
+          
+          {password && (
+            <div style={{ marginTop: '8px' }}>
+              <div style={{ height: '4px', background: 'var(--bg-color)', borderRadius: '2px', overflow: 'hidden' }}>
+                <div 
+                  style={{ height: '100%', width: strength.percent, background: strength.color, transition: 'width 0.3s ease' }}
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.65rem' }}>
+                <span style={{ opacity: 0.5 }}>SEGURIDAD DE CLAVE</span>
+                <span style={{ color: strength.color, fontWeight: 700 }}>{strength.label.toUpperCase()}</span>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="flex-col" style={{ gap: '5px' }}>
-          <label className="station-label">{t('settings.suffix').toUpperCase()}</label>
-          <input
-            id="suffix-input"
-            type="text"
-            value={outputSuffix}
-            onChange={(e) => setOutputSuffix(e.target.value)}
-            className="station-input"
-            style={{ fontSize: '0.8rem', padding: '5px 10px' }}
-          />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '8px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+             <input
+              type="checkbox"
+              id="batchMode"
+              checked={batchMode}
+              onChange={(e) => setBatchMode(e.target.checked)}
+              style={{ width: '18px', height: '18px' }}
+            />
+             <label htmlFor="batchMode" className="station-label" style={{ marginBottom: 0, cursor: 'pointer' }}>{t('settings.batch_mode')}</label>
+          </div>
+
+          <div className="flex-col" style={{ gap: '4px' }}>
+            <label className="station-label">{t('settings.suffix')}</label>
+            <input
+              id="suffix-input"
+              type="text"
+              value={outputSuffix}
+              onChange={(e) => setOutputSuffix(e.target.value)}
+              className="station-input"
+              style={{ fontSize: '0.85rem' }}
+            />
+          </div>
         </div>
       </div>
     </div>

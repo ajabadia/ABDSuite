@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
+import { XIcon } from '@/components/common/Icons';
 
 interface DataPreviewModalProps {
   file: File;
@@ -33,18 +34,24 @@ const DataPreviewModal: React.FC<DataPreviewModalProps> = ({ file, onClose }) =>
   }, [file]);
 
   return (
-    <div className="station-modal-overlay">
-      <div className="station-modal" style={{ maxWidth: '90%', width: '1000px', height: '80%' }}>
-        <header className="station-console-header" style={{ padding: '15px 25px' }}>
-          <div style={{ fontWeight: 900, fontSize: '0.9rem' }}>VISTA_PREVIA_DE_DATOS: {file.name}</div>
-          <button className="station-btn" style={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: '0', fontSize: '1.5rem' }} onClick={onClose}>&times;</button>
+    <div className="station-modal-overlay" onClick={onClose}>
+      <div 
+        className="station-modal" 
+        style={{ maxWidth: '90%', width: '1000px', height: '80%', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <header style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: '1rem', fontWeight: 800 }}>VISTA PREVIA: {file.name}</h2>
+          <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={onClose}>
+            <XIcon size={20} />
+          </button>
         </header>
 
-        <div style={{ flex: 1, overflow: 'auto', padding: '0', background: 'var(--bg-color)' }}>
+        <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-color)' }}>
           {loading ? (
-            <div style={{ padding: '40px', textAlign: 'center', fontWeight: 900, opacity: 0.5 }}>ANALYZING_DATA_STREAM...</div>
+            <div style={{ padding: '48px', textAlign: 'center', opacity: 0.5 }}>Analizando flujo de datos...</div>
           ) : (
-            <div className="station-table-container" style={{ border: 'none' }}>
+            <div className="station-table-container" style={{ border: 'none', borderRadius: 0 }}>
               <table className="station-table">
                 <thead>
                   <tr>
@@ -54,7 +61,7 @@ const DataPreviewModal: React.FC<DataPreviewModalProps> = ({ file, onClose }) =>
                 <tbody>
                   {rows.map((row, ri) => (
                     <tr key={ri}>
-                      {row.map((cell, ci) => <td key={ci} style={{ fontSize: '0.8rem' }}>{cell}</td>)}
+                      {row.map((cell, ci) => <td key={ci}>{cell}</td>)}
                     </tr>
                   ))}
                 </tbody>
@@ -63,9 +70,9 @@ const DataPreviewModal: React.FC<DataPreviewModalProps> = ({ file, onClose }) =>
           )}
         </div>
 
-        <footer style={{ padding: '15px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: 'var(--border-thick) solid var(--border-color)' }}>
-          <span style={{ fontSize: '0.7rem', opacity: 0.6, fontWeight: 900 }}>{rows.length} FILAS MOSTRADAS DE {file.size} BYTES</span>
-          <button className="station-btn" onClick={onClose}>CERRAR</button>
+        <footer style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', background: 'var(--surface-color)' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Muestra de 10 filas • {file.size} bytes</span>
+          <button className="station-btn" onClick={onClose}>Cerrar</button>
         </footer>
       </div>
     </div>

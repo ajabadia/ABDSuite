@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
+import { DownloadIcon, TrashIcon } from '@/components/common/Icons';
 
 export interface LogEntry {
   id: string;
@@ -28,27 +29,32 @@ const LogConsole: React.FC<LogConsoleProps> = ({ logs, onClear, onSave }) => {
   }, [logs]);
 
   return (
-    <div className="station-card" style={{ display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
-      <div className="station-card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span>TELEMETRY_STREAM</span>
+    <div className="station-card" style={{ flex: 1, padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <header style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-color)' }}>
+        <h3 style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.6, textTransform: 'uppercase' }}>Consola de Eventos</h3>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={onSave} className="station-btn" style={{ padding: '2px 10px', fontSize: '0.65rem', boxShadow: 'none' }}>SAVE_LOG</button>
-          <button onClick={onClear} className="station-btn" style={{ padding: '2px 10px', fontSize: '0.65rem', boxShadow: 'none' }}>CLEAR</button>
+          <button onClick={onSave} className="station-btn" style={{ padding: '4px 8px', fontSize: '0.7rem' }} title="Guardar Log"><DownloadIcon size={14} /></button>
+          <button onClick={onClear} className="station-btn" style={{ padding: '4px 8px', fontSize: '0.7rem' }} title="Limpiar"><TrashIcon size={14} /></button>
         </div>
-      </div>
+      </header>
       
-      <div className="station-console" ref={scrollRef}>
+      <div 
+        ref={scrollRef}
+        style={{ flex: 1, overflowY: 'auto', padding: '16px', fontSize: '0.85rem', background: 'var(--bg-color)', scrollBehavior: 'smooth' }}
+      >
         {logs.length === 0 ? (
-          <div style={{ opacity: 0.2, fontWeight: 900, textAlign: 'center', padding: '20px' }}>WAITING_FOR_DATA_STREAM...</div>
+          <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.2, fontSize: '0.8rem' }}>
+            ESPERANDO ACTIVIDAD...
+          </div>
         ) : (
           logs.map((log) => (
-            <div key={log.id} style={{ display: 'flex', gap: '8px', marginBottom: '2px' }}>
-              <span style={{ opacity: 0.4, fontSize: '0.9em' }}>[{log.timestamp.toLocaleTimeString()}]</span>
-              <span className={`txt-${log.type === 'success' ? 'ok' : log.type === 'error' ? 'err' : 'warn'}`} style={{ fontWeight: 900 }}>
-                [{log.type.toUpperCase()}]
+            <div key={log.id} style={{ display: 'flex', gap: '12px', marginBottom: '4px', lineHeight: '1.4' }}>
+              <span style={{ opacity: 0.4, fontSize: '0.8em', minWidth: '70px' }}>{log.timestamp.toLocaleTimeString()}</span>
+              <span className={`txt-${log.type === 'success' ? 'ok' : log.type === 'error' ? 'err' : 'warn'}`} style={{ fontWeight: 700, minWidth: '60px' }}>
+                {log.type.toUpperCase()}
               </span>
-              <span style={{ flex: 1 }}>
-                {log.fileName && <span style={{ opacity: 0.6 }}>{log.fileName}: </span>}
+              <span style={{ flex: 1, color: log.type === 'error' ? 'var(--status-err)' : 'var(--text-primary)' }}>
+                {log.fileName && <span style={{ opacity: 0.5, fontWeight: 700 }}>{log.fileName}: </span>}
                 {log.message}
               </span>
             </div>

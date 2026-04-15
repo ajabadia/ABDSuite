@@ -221,3 +221,17 @@ export const SearchIcon: React.FC<IconProps> = ({ size = 24, className }) => (
     <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
+
+export const UnlockIcon: React.FC<IconProps> = ({ size = 24, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={className}>
+    <rect x="3" y="11" width="18" height="11" />
+    <path d="M7 11V7a5 5 0 0 1 10 0" />
+  </svg>
+);
+
+export const UndoIcon: React.FC<IconProps> = ({ size = 24, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" className={className}>
+    <path d="M3 7v6h6" />
+    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+  </svg>
+);

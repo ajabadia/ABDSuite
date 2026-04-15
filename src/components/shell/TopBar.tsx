@@ -18,35 +18,36 @@ export const TopBar: React.FC = () => {
     if (pathname.includes('/etl')) return t('shell.etl');
     if (pathname.includes('/letter')) return t('shell.letter');
     if (pathname.includes('/audit')) return t('shell.audit');
-    return 'UNKNOWN_STATION';
+    return 'STATION';
   };
 
   return (
     <header className="shell-topbar">
       <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-        <span style={{ color: 'var(--border-color)', fontWeight: 800, fontSize: '0.9rem' }}>
-          NODE-ID: 0x8F2A / ABDFN / {getModuleTitle().toUpperCase().replace(/ /g, '_')}&gt;
-        </span>
-        <div className="blink" style={{ width: '8px', height: '18px', background: 'var(--border-color)' }}></div>
+        <h1 style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)', textTransform: 'uppercase' }}>
+          {getModuleTitle()}
+        </h1>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <nav style={{ display: 'flex', gap: '15px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+        <nav style={{ display: 'flex', gap: '20px' }}>
            <a 
              href="/DOC/USER_MANUAL.txt" 
              target="_blank" 
-             style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textDecoration: 'none', borderBottom: '1px solid currentColor' }}
+             className="station-btn"
+             style={{ fontSize: '0.75rem', padding: '4px 12px', boxShadow: 'none' }}
            >
-             [MANUAL]
+             Manual
            </a>
            <button 
              onClick={() => setIsAboutOpen(true)}
-             style={{ fontSize: '0.7rem', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', borderBottom: '1px solid currentColor' }}
+             className="station-btn"
+             style={{ fontSize: '0.75rem', padding: '4px 12px', boxShadow: 'none' }}
            >
-             [INFO]
+             Info
            </button>
         </nav>
-        <div style={{ display: 'flex', gap: '10px', paddingLeft: '20px', borderLeft: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', gap: '12px', paddingLeft: '24px', borderLeft: '1px solid var(--border-color)' }}>
           <LanguageSwitcher />
           <ThemeSwitcher />
         </div>
