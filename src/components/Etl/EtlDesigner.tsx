@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { EtlPreset, EtlRecordType, EtlField, EtlRecordBehavior } from '@/lib/types/etl.types';
 import { SamplePreview } from './SamplePreview';
-import { CogIcon, EyeIcon, TrashIcon, ListIcon, XIcon, SaveIcon, UndoIcon } from '@/components/common/Icons';
+import { CogIcon, EyeIcon, TrashIcon, ListIcon, XIcon, SaveIcon, UndoIcon, PlayIcon } from '@/components/common/Icons';
+import { useRouter } from 'next/navigation';
 
 interface EtlDesignerProps {
   preset: EtlPreset;
@@ -14,6 +15,7 @@ interface EtlDesignerProps {
 
 export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSave }) => {
   const { t } = useLanguage();
+  const router = useRouter();
   const [activeRTIndex, setActiveRTIndex] = useState(0);
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -21,6 +23,11 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
   const [showSampleModal, setShowSampleModal] = useState(false);
 
   const activeRT = preset.recordTypes[activeRTIndex] || null;
+
+  const handleLaunchExecutor = () => {
+    onSave(); // Auto-save before jumping
+    router.push(`/etl?view=executor&id=${preset.id}`);
+  };
 
   const snapshot = () => {
     setUndoStack(prev => [...prev.slice(-19), JSON.stringify(preset)]);
@@ -105,6 +112,9 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
             <button className="station-btn" onClick={undo} disabled={undoStack.length === 0} title="Deshacer"><UndoIcon size={16} /></button>
             <button className="station-btn" onClick={() => setShowConfigModal(true)}><CogIcon size={16} /> Configuración</button>
             <button className="station-btn station-btn-primary" onClick={onSave}><SaveIcon size={16} /> Guardar Cambios</button>
+            <button className="station-btn station-btn-primary" onClick={handleLaunchExecutor} style={{ background: 'var(--status-ok)', border: 'none' }}>
+              <PlayIcon size={16} /> EJECUTAR PRESET
+            </button>
           </div>
         </div>
 

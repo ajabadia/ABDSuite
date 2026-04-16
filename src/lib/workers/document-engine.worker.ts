@@ -42,11 +42,68 @@ self.onmessage = async (e) => {
     const auditLines: string[] = ['INDICE;DOC_NAME;SHA256;TIMESTAMP'];
     
     // Prepare engines
+    Handlebars.registerHelper('currency', (val) => {
+      const num = parseFloat(val);
+      return isNaN(num) ? val : new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(num);
+    });
+
+    Handlebars.registerHelper('date', (val, format) => {
+      if (!val) return '';
+      // Simple AAAAMMDD to DD/MM/YYYY
+      if (val.length === 8 && /^\d+$/.test(val)) {
+        return `${val.substring(6,8)}/${val.substring(4,6)}/${val.substring(0,4)}`;
+      }
+      return val;
+    });
+
     let hbsTemplate: any = null;
     let docxTemplate: ArrayBuffer | null = null;
     
     if (template.type === 'HTML' && template.content) {
-      hbsTemplate = Handlebars.compile(template.content);
+      // Professional Wrapper for HTML
+      const config = template.config;
+      const fullHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            @page { margin: 0; size: A4; }
+            body { 
+              margin: 0; padding: 0; 
+              font-family: "${config?.fontFamily || 'Space Mono'}", sans-serif;
+              font-size: ${config?.fontSize || 11}pt;
+              line-height: 1.5;
+            }
+            .page-container {
+              width: 210mm; min-height: 297mm;
+              padding: ${config?.marginTop || 20}mm ${config?.marginRight || 20}mm ${config?.marginBottom || 20}mm ${config?.marginLeft || 20}mm;
+              position: relative;
+              box-sizing: border-box;
+            }
+            .header { position: absolute; top: 10mm; left: ${config?.marginLeft || 20}mm; width: calc(100% - ${(config?.marginLeft || 20) + (config?.marginRight || 20)}mm); }
+            .footer { position: absolute; bottom: 10mm; left: ${config?.marginLeft || 20}mm; width: calc(100% - ${(config?.marginLeft || 20) + (config?.marginRight || 20)}mm); }
+            .address-block {
+              position: absolute;
+              left: ${config?.windowX || 20}mm;
+              top: ${config?.windowY || 45}mm;
+              width: ${config?.windowWidth || 90}mm;
+              height: ${config?.windowHeight || 40}mm;
+              overflow: hidden;
+            }
+            #letter-content { margin-top: 30mm; }
+          </style>
+        </head>
+        <body>
+          <div class="page-container">
+            <div class="header">${config?.headerHtml || ''}</div>
+            <div id="letter-content">${template.content}</div>
+            <div class="footer">${config?.footerHtml || ''}</div>
+          </div>
+        </body>
+        </html>
+      `;
+      hbsTemplate = Handlebars.compile(fullHtml);
     } else if (template.type === 'DOCX' && template.binaryContent) {
       docxTemplate = template.binaryContent;
     }

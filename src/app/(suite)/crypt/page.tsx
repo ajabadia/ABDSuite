@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import SettingsPanel from '@/components/SettingsPanel';
 import FileProcessor from '@/components/FileProcessor';
-import LogConsole from '@/components/LogConsole';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useFileBatchProcessor } from '@/lib/hooks/useFileBatchProcessor';
 import { useInactivityPurge } from '@/lib/hooks/useInactivityPurge';
@@ -22,11 +21,9 @@ export default function Home() {
 
   // Business Logic Hooks
   const { 
-    logs, 
     isProcessing, 
     processFiles, 
     clearLogs, 
-    saveLogs, 
     addLog,
     stats
   } = useFileBatchProcessor({ 
@@ -64,14 +61,6 @@ export default function Home() {
           setBatchMode={setBatchMode}
           outputSuffix={outputSuffix}
           setOutputSuffix={setOutputSuffix}
-        />
-        <LogConsole
-          logs={logs}
-          onClear={() => {
-            clearLogs();
-            addLog('error', 'logs.history_cleared');
-          }}
-          onSave={saveLogs}
         />
       </section>
     </div>

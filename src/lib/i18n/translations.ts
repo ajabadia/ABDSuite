@@ -25,6 +25,8 @@ export const translations = {
       status_busy: 'PROCESANDO DATOS',
     },
     etl: {
+      app_designer: 'ETL DESIGNER',
+      app_executor: 'ETL EXECUTOR',
       designer: 'DISEÑADOR',
       runner: 'EJECUTOR',
       new_preset: 'NUEVO PRESET',

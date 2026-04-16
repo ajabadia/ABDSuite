@@ -1,11 +1,27 @@
 import { z } from 'zod';
 
+export interface TemplateComposition {
+  fontFamily: 'Space Mono' | 'Helvetica' | 'Times New Roman' | 'Arial' | 'Courier New';
+  fontSize: number;
+  windowX: number;     // mm from left
+  windowY: number;     // mm from top
+  windowWidth: number;  // mm
+  windowHeight: number; // mm
+  headerHtml?: string;
+  footerHtml?: string;
+  marginTop: number;    // mm
+  marginBottom: number; // mm
+  marginLeft: number;   // mm
+  marginRight: number;  // mm
+}
+
 export interface LetterTemplate {
   id?: number;
   name: string;
   type: 'HTML' | 'DOCX';
   content?: string; // HTML with {{variables}}
   binaryContent?: ArrayBuffer; // Binary .docx
+  config?: TemplateComposition;
   updatedAt: number;
 }
 

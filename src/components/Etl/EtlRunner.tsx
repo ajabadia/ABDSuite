@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { EtlPreset } from '@/lib/types/etl.types';
 import { EtlProcessorOptions, ProcessorLogEntry } from '@/lib/types/etl-processor.types';
-import { RefreshIcon, FolderIcon, PlayIcon, SquareIcon } from '@/components/common/Icons';
-import LogConsole, { LogEntry } from '@/components/LogConsole';
+import { RefreshIcon, FolderIcon, PlayIcon, SquareIcon, CogIcon } from '@/components/common/Icons';
+import { useLog } from '@/lib/context/LogContext';
+import { LogLevel } from '@/lib/types/log.types';
 
 interface EtlRunnerProps {
   presets: EtlPreset[];
@@ -15,6 +17,8 @@ interface EtlRunnerProps {
 
 const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelectPreset }) => {
   const { t } = useLanguage();
+  const router = useRouter();
+  const { addLog: globalAddLog } = useLog();
   const [inputFile, setInputFile] = useState<File | null>(null);
   const [outputHandle, setOutputHandle] = useState<FileSystemDirectoryHandle | null>(null);
   const [options, setOptions] = useState<EtlProcessorOptions>({
@@ -25,7 +29,6 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
     encoding: 'utf-8',
   });
   
-  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const workerRef = useRef<Worker | null>(null);
   const outputStreamsRef = useRef<Map<string, { stream: FileSystemWritableFileStream, count: number, part: number }>>(new Map());
@@ -36,15 +39,13 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
     };
   }, []);
 
-  const addLog = (entry: Omit<LogEntry, 'id' | 'timestamp'>) => {
-    setLogs(prev => [
-      ...prev,
-      {
-        ...entry,
-        id: Math.random().toString(36).substring(2, 9),
-        timestamp: new Date(),
-      }
-    ]);
+  const addLog = (entry: any) => {
+    let level: LogLevel = 'info';
+    if (entry.type === 'success') level = 'success';
+    if (entry.type === 'error') level = 'error';
+    if (entry.type === 'warn') level = 'warn';
+    
+    globalAddLog('ETL', entry.message, level);
   };
 
   const handlePickOutput = async () => {
@@ -54,11 +55,16 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
     } catch (err) { }
   };
 
+  const handleEditDesign = () => {
+    if (selectedPreset) {
+      router.push(`/etl?view=designer&id=${selectedPreset.id}`);
+    }
+  };
+
   const startProcess = async () => {
     if (!inputFile || !selectedPreset || !outputHandle) return;
 
     setIsProcessing(true);
-    setLogs([]);
     outputStreamsRef.current = new Map();
 
     addLog({ type: 'info', message: `Iniciando motor ETL: ${selectedPreset.name}` });
@@ -130,41 +136,33 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
     <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
       
       <div className="station-card">
-        <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '8px' }}>Control de Ejecución</h3>
-        
-        <div className="grid-2" style={{ gap: '24px' }}>
-          <div className="flex-col" style={{ gap: '4px' }}>
-            <label className="station-label">Archivo de Entrada</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input className="station-input" readOnly value={inputFile?.name || ''} placeholder="Seleccionar CSV/TXT..." />
-              <input type="file" id="etl-run-in" style={{ display: 'none' }} onChange={e => setInputFile(e.target.files?.[0] || null)} />
-              <button className="station-btn" onClick={() => document.getElementById('etl-run-in')?.click()}>...</button>
-            </div>
-          </div>
-          <div className="flex-col" style={{ gap: '4px' }}>
-            <label className="station-label">Carpeta de Salida</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input className="station-input" readOnly value={outputHandle?.name || ''} placeholder="Seleccionar destino..." />
-              <button className="station-btn" onClick={handlePickOutput}>...</button>
-            </div>
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase' }}>Control de Ejecución</h3>
+          {selectedPreset && (
+            <button className="station-btn" onClick={handleEditDesign} title="Modificar Diseño del Preset">
+              <CogIcon size={16} /> EDITAR DISEÑO
+            </button>
+          )}
         </div>
 
-        <div className="flex-col" style={{ gap: '4px', marginTop: '16px' }}>
-          <label className="station-label">Configuración del Preset</label>
-          <select 
-            className="station-select"
-            value={selectedPreset?.id || ''}
-            onChange={(e) => {
-              const p = presets.find(p => p.id === parseInt(e.target.value));
-              if (p) onSelectPreset(p);
-            }}
-          >
-            <option value="">-- Seleccionar Preset --</option>
-            {presets.map(p => (
-              <option key={p.id} value={p.id}>{p.name} (v{p.version})</option>
-            ))}
-          </select>
+        <div className="flex-col" style={{ gap: '16px' }}>
+          <div className="grid-2" style={{ gap: '24px' }}>
+            <div className="flex-col" style={{ gap: '4px' }}>
+              <label className="station-label">Archivo de Entrada</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input className="station-input" readOnly value={inputFile?.name || ''} placeholder="Seleccionar CSV/TXT..." />
+                <input type="file" id="etl-run-in" style={{ display: 'none' }} onChange={e => setInputFile(e.target.files?.[0] || null)} />
+                <button className="station-btn" onClick={() => document.getElementById('etl-run-in')?.click()}>...</button>
+              </div>
+            </div>
+            <div className="flex-col" style={{ gap: '4px' }}>
+              <label className="station-label">Carpeta de Salida</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input className="station-input" readOnly value={outputHandle?.name || ''} placeholder="Seleccionar destino..." />
+                <button className="station-btn" onClick={handlePickOutput}>...</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -203,14 +201,6 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
       >
         <PlayIcon size={20} /> {isProcessing ? 'PROCESANDO LOTE...' : 'INICIAR PROCESAMIENTO'}
       </button>
-
-      <div style={{ flex: 1, minHeight: '300px', display: 'flex' }}>
-        <LogConsole 
-          logs={logs} 
-          onClear={() => setLogs([])} 
-          onSave={() => {}} 
-        />
-      </div>
     </div>
   );
 };

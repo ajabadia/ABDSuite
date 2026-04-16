@@ -5,11 +5,14 @@ import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
+import { useLog } from '@/lib/context/LogContext';
+import { TerminalIcon } from '@/components/common/Icons';
 import { AboutDialog } from './AboutDialog';
 
 export const TopBar: React.FC = () => {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const { isOpen, setIsOpen } = useLog();
   const [isAboutOpen, setIsAboutOpen] = useState(false);
 
   const getModuleTitle = () => {
@@ -47,7 +50,15 @@ export const TopBar: React.FC = () => {
              Info
            </button>
         </nav>
-        <div style={{ display: 'flex', gap: '12px', paddingLeft: '24px', borderLeft: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', gap: '12px', paddingLeft: '24px', borderLeft: '1px solid var(--border-color)', alignItems: 'center' }}>
+          <button 
+            onClick={() => setIsOpen(!isOpen)}
+            className={`station-btn ${isOpen ? 'station-btn-primary' : ''}`}
+            style={{ padding: '6px', minWidth: 'auto', boxShadow: 'none' }}
+            title="Consola de Sistema"
+          >
+            <TerminalIcon size={18} />
+          </button>
           <LanguageSwitcher />
           <ThemeSwitcher />
         </div>

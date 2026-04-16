@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { db } from '@/lib/db/db';
 import { EtlPreset } from '@/lib/types/etl.types';
 import { normalizeEtlPreset } from '@/lib/utils/etl-importer';
 import { EtlSidebar } from '@/components/Etl/EtlSidebar';
 import { EtlDesigner } from '@/components/Etl/EtlDesigner';
-import { CogIcon } from '@/components/common/Icons';
+import { CogIcon, MapIcon, PlayIcon } from '@/components/common/Icons';
 import EtlSettingsModal from '@/components/Etl/EtlSettingsModal';
 import { EtlGlobalSettings } from '@/lib/types/etl.types';
 import EtlRunner from '@/components/Etl/EtlRunner';
@@ -22,12 +23,20 @@ const DEFAULT_SETTINGS: EtlGlobalSettings = {
   defaultChunkSize: 900000
 };
 
-export default function EtlPage() {
+function EtlPageContent() {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'designer' | 'runner'>('designer');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  const activeTab = (searchParams.get('view') === 'executor' || searchParams.get('view') === 'runner') ? 'runner' : 'designer';
+  const idParam = searchParams.get('id');
+  
   const [selectedPreset, setSelectedPreset] = useState<EtlPreset | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [etlSettings, setEtlSettings] = useState<EtlGlobalSettings>(DEFAULT_SETTINGS);
+
+  // Persistence (Dexie)
+  const presets = useLiveQuery(() => db.presets.toArray()) || [];
 
   // Load Global Settings
   useEffect(() => {
@@ -41,13 +50,21 @@ export default function EtlPage() {
     }
   }, []);
 
+  // Sync selectedPreset with URL ID param
+  useEffect(() => {
+    if (idParam && presets.length > 0) {
+      const pid = parseInt(idParam);
+      if (selectedPreset?.id !== pid) {
+        const p = presets.find(x => x.id === pid);
+        if (p) setSelectedPreset(p);
+      }
+    }
+  }, [idParam, presets, selectedPreset?.id]);
+
   const saveGlobalSettings = (newSettings: EtlGlobalSettings) => {
     setEtlSettings(newSettings);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newSettings));
   };
-
-  // Persistence (Dexie)
-  const presets = useLiveQuery(() => db.presets.toArray()) || [];
 
   const handleNew = async () => {
     const newPreset: EtlPreset = {
@@ -66,19 +83,21 @@ export default function EtlPage() {
       updatedAt: Date.now()
     };
     const id = await db.presets.add(newPreset);
-    setSelectedPreset({ ...newPreset, id: id as number });
+    router.push(`/etl?view=${activeTab}&id=${id}`);
   };
 
   const handleSave = async () => {
     if (!selectedPreset || !selectedPreset.id) return;
     await db.presets.update(selectedPreset.id, selectedPreset);
-    // Explicit save feedback could be added in StatusBar
   };
 
   const handleDelete = async (id: number) => {
     if (confirm(t('common.confirm_delete') || 'DELETE?')) {
       await db.presets.delete(id);
-      if (selectedPreset?.id === id) setSelectedPreset(null);
+      if (selectedPreset?.id === id) {
+        setSelectedPreset(null);
+        router.push(`/etl?view=${activeTab}`);
+      }
     }
   };
 
@@ -105,7 +124,6 @@ export default function EtlPage() {
   };
 
   const handleImport = async () => {
-    // Basic Import logic for B2
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
@@ -117,7 +135,7 @@ export default function EtlPage() {
           const rawData = JSON.parse(text);
           const normalized = normalizeEtlPreset(rawData);
           const id = await db.presets.add(normalized);
-          setSelectedPreset({ ...normalized, id: id as number });
+          router.push(`/etl?view=${activeTab}&id=${id}`);
         } catch (err) {
           console.error('FAILED_TO_IMPORT_Preset', err);
         }
@@ -126,80 +144,86 @@ export default function EtlPage() {
     input.click();
   };
 
+  const handleSelectPreset = (p: EtlPreset) => {
+    setSelectedPreset(p);
+    router.push(`/etl?view=${activeTab}&id=${p.id}`);
+  };
+
   return (
-    <div className="module-grid" style={{ gridTemplateColumns: '350px 1fr' }}>
-      <section className="module-col-side">
-        <EtlSidebar 
-          presets={presets}
-          activePresetId={selectedPreset?.id}
-          onSelect={setSelectedPreset}
-          onDelete={handleDelete}
-          onExport={handleExport}
-          onNew={handleNew}
-          onImport={handleImport}
-          onExportAll={handleExportAll}
-        />
-      </section>
-
-      <section className="module-col-main" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-          <div className="station-tabs" style={{ background: 'transparent', borderBottom: 'none' }}>
-            <button 
-              className={`tab-item ${activeTab === 'designer' ? 'active' : ''}`}
-              onClick={() => setActiveTab('designer')}
-              style={{ padding: '8px 25px', boxShadow: activeTab === 'designer' ? 'none' : 'inset 0 -5px 0 rgba(0,0,0,0.2)' }}
-            >
-              {t('etl.designer')}
-            </button>
-            <button 
-              className={`tab-item ${activeTab === 'runner' ? 'active' : ''}`}
-              onClick={() => setActiveTab('runner')}
-              style={{ padding: '8px 25px', boxShadow: activeTab === 'runner' ? 'none' : 'inset 0 -5px 0 rgba(0,0,0,0.2)' }}
-            >
-              {t('etl.runner')}
-            </button>
-          </div>
-          
-          <button 
-            className="station-btn"
-            onClick={() => setIsSettingsOpen(true)}
-            title={t('etl.preferences')}
-            style={{ padding: '8px', boxShadow: 'none' }}
-          >
-            <CogIcon size={18} />
-          </button>
-        </div>
-
-        <EtlSettingsModal 
-          isOpen={isSettingsOpen}
-          initialSettings={etlSettings}
-          onClose={() => setIsSettingsOpen(false)}
-          onSave={saveGlobalSettings}
-        />
-
-        <div style={{ flex: 1, minHeight: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%' }}>
+      <header className="module-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '1.2rem', fontWeight: 800 }}>
           {activeTab === 'designer' ? (
-            selectedPreset ? (
-              <EtlDesigner 
-                preset={selectedPreset} 
-                onUpdate={setSelectedPreset} 
-                onSave={handleSave}
-              />
-            ) : (
-              <div className="station-card" style={{ height: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.1 }}>
-                 <CogIcon size={80} />
-                 <p style={{ fontWeight: 900, marginTop: '20px' }}>SELECT_ETL_PRESET_TO_INITIALIZE</p>
-              </div>
-            )
+            <>
+              <MapIcon size={24} style={{ opacity: 0.6 }} />
+              {t('etl.app_designer')}
+            </>
           ) : (
-            <EtlRunner 
-              presets={presets}
-              selectedPreset={selectedPreset}
-              onSelectPreset={setSelectedPreset}
-            />
+            <>
+              <PlayIcon size={24} style={{ opacity: 0.6 }} />
+              {t('etl.app_executor')}
+            </>
           )}
         </div>
-      </section>
+        <button 
+          className="station-btn"
+          onClick={() => setIsSettingsOpen(true)}
+          title={t('etl.preferences')}
+          style={{ padding: '4px', boxShadow: 'none', background: 'transparent', border: 'none' }}
+        >
+          <CogIcon size={20} />
+        </button>
+      </header>
+      
+      <EtlSettingsModal 
+        isOpen={isSettingsOpen}
+        initialSettings={etlSettings}
+        onClose={() => setIsSettingsOpen(false)}
+        onSave={saveGlobalSettings}
+      />
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '64px', flex: 1, minHeight: 0 }}>
+        <section style={{ display: 'flex', flexDirection: 'column' }}>
+          <EtlSidebar 
+            presets={presets}
+            activePresetId={selectedPreset?.id}
+            onSelect={handleSelectPreset}
+            onDelete={handleDelete}
+            onExport={handleExport}
+            onNew={handleNew}
+            onImport={handleImport}
+            onExportAll={handleExportAll}
+          />
+        </section>
+
+        {selectedPreset && (
+          <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ flex: 1, minHeight: 0 }}>
+              {activeTab === 'designer' ? (
+                <EtlDesigner 
+                  preset={selectedPreset} 
+                  onUpdate={setSelectedPreset} 
+                  onSave={handleSave}
+                />
+              ) : (
+                <EtlRunner 
+                  presets={presets}
+                  selectedPreset={selectedPreset}
+                  onSelectPreset={handleSelectPreset}
+                />
+              )}
+            </div>
+          </section>
+        )}
+      </div>
     </div>
+  );
+}
+
+export default function EtlPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EtlPageContent />
+    </Suspense>
   );
 }

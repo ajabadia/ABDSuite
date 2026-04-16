@@ -7,12 +7,12 @@ import { auditPackageIntegrity, PackageAuditResult } from '@/lib/logic/package-a
 import { sanitizeFilename } from '@/lib/utils/filename.utils';
 import { FileIcon, ShieldCheckIcon, AlertTriangleIcon, SearchIcon, DownloadIcon, FolderIcon, XIcon, FileTextIcon } from '@/components/common/Icons';
 
-interface AuditStationProps {
-  onAddLog: (type: 'info' | 'success' | 'error' | 'skip', messageKey: string, fileName?: string, params?: any) => void;
-}
+import { useLog } from '@/lib/context/LogContext';
+import { LogLevel } from '@/lib/types/log.types';
 
-const AuditStation: React.FC<AuditStationProps> = ({ onAddLog }) => {
+const AuditStation: React.FC = () => {
   const { t } = useLanguage();
+  const { addLog: globalAddLog } = useLog();
   
   const [indexFile, setIndexFile] = useState<File | null>(null);
   const [archiveFile, setArchiveFile] = useState<File | null>(null);
@@ -43,7 +43,7 @@ const AuditStation: React.FC<AuditStationProps> = ({ onAddLog }) => {
     if (!indexFile) return;
     setIsValidating(true);
     resetResults();
-    onAddLog('info', 'audit.logs.start', indexFile.name, { file: indexFile.name });
+    globalAddLog('AUDIT', t('audit.logs.start', { file: indexFile.name }), 'info', { fileName: indexFile.name });
     
     await new Promise(r => setTimeout(r, 600));
 
@@ -68,10 +68,10 @@ const AuditStation: React.FC<AuditStationProps> = ({ onAddLog }) => {
       }
 
       setResult(auditResult);
-      onAddLog(auditResult.errors.length > 0 ? 'error' : 'success', 'audit.logs.success', indexFile.name, { n: auditResult.errors.length });
+      globalAddLog('AUDIT', t('audit.logs.success', { n: auditResult.errors.length }), auditResult.errors.length > 0 ? 'error' : 'success', { fileName: indexFile.name });
       setActiveTab(auditResult.errors.length > 0 ? 'ERRORS' : 'DATA');
     } catch (err: any) {
-      onAddLog('error', 'logs.error', indexFile.name);
+      globalAddLog('AUDIT', t('logs.error'), 'error', { fileName: indexFile.name });
     } finally {
       setIsValidating(false);
     }
