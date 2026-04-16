@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { FolderIcon, ArrowUpIcon, ArrowDownIcon, XIcon, ShieldCheckIcon, LockIcon, UnlockIcon } from '@/components/common/Icons';
 import { useLanguage } from '@/lib/context/LanguageContext';
+import styles from './FileProcessor.module.css';
 
 interface SelectedFile {
   file: File;
@@ -10,24 +11,23 @@ interface SelectedFile {
 }
 
 interface FileProcessorProps {
-  onProcess: (files: File[], mode: 'encrypt' | 'decrypt') => void;
+  files: SelectedFile[];
+  setFiles: React.Dispatch<React.SetStateAction<SelectedFile[]>>;
   onClear?: (count: number) => void;
   onSort?: (asc: boolean) => void;
   isProcessing: boolean;
-  clearOnFinish: boolean;
   stats?: { success: number; error: number; skip: number };
 }
 
 const FileProcessor: React.FC<FileProcessorProps> = ({ 
-  onProcess, 
+  files,
+  setFiles,
   onClear,
   onSort,
   isProcessing,
-  clearOnFinish,
   stats = { success: 0, error: 0, skip: 0 }
 }) => {
   const { t } = useLanguage();
-  const [files, setFiles] = useState<SelectedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
   const addFiles = useCallback((newFiles: FileList | File[]) => {
@@ -124,8 +124,8 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
         </header>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {files.length === 0 ? (
-            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3, fontSize: '0.85rem' }}>
-              ESPERANDO FICHEROS...
+            <div className={styles.emptyList}>
+              <span className={styles.shimmerText}>ESPERANDO FICHEROS...</span>
             </div>
           ) : (
             <div className="flex-col" style={{ gap: '0' }}>
@@ -147,30 +147,6 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
         </div>
       </div>
 
-      <div className="grid-2" style={{ gap: '16px' }}>
-        <button 
-          className="station-btn station-btn-primary"
-          style={{ height: '56px', fontSize: '1rem' }}
-          disabled={files.length === 0 || isProcessing}
-          onClick={() => {
-            onProcess(files.map(f => f.file), 'encrypt');
-            if (clearOnFinish) setFiles([]);
-          }}
-        >
-          <LockIcon size={18} /> {isProcessing ? 'Procesando...' : 'Cifrar Archivos'}
-        </button>
-        <button 
-          className="station-btn"
-          style={{ height: '56px', fontSize: '1rem' }}
-          disabled={files.length === 0 || isProcessing}
-          onClick={() => {
-            onProcess(files.map(f => f.file), 'decrypt');
-            if (clearOnFinish) setFiles([]);
-          }}
-        >
-          <UnlockIcon size={18} /> {isProcessing ? 'Procesando...' : 'Descifrar Archivos'}
-        </button>
-      </div>
     </div>
   );
 };

@@ -81,7 +81,8 @@ export const useFileBatchProcessor = ({
 
         if (mode === 'encrypt') {
           resultBlob = await CryptoService.encryptFile(file, password);
-          finalName = `${file.name}.enc`;
+          const safeSuffix = sanitizeFileName(outputSuffix);
+          finalName = `${file.name}${safeSuffix}`;
         } else {
           resultBlob = await CryptoService.decryptFile(file, password);
           const baseName = file.name.replace(/\.enc$/, '');

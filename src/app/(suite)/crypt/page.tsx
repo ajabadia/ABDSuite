@@ -1,23 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import SettingsPanel from '@/components/SettingsPanel';
 import FileProcessor from '@/components/FileProcessor';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useFileBatchProcessor } from '@/lib/hooks/useFileBatchProcessor';
 import { useInactivityPurge } from '@/lib/hooks/useInactivityPurge';
+import { ShieldCheckIcon, UnlockIcon } from '@/components/common/Icons';
 
-/**
- * ABDFN Encryptor - Main Orchestrator
- * Refactored using SOLID principles and Custom Hooks.
- */
-export default function Home() {
+interface SelectedFile {
+  file: File;
+  id: string;
+}
+
+function CryptPageContent() {
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
+  const mode = (searchParams.get('view') === 'decrypt') ? 'decrypt' : 'encrypt';
+  
+  // Elevated state from FileProcessor
+  const [files, setFiles] = useState<SelectedFile[]>([]);
   
   // Local Settings State
   const [password, setPassword] = useState('');
   const [batchMode, setBatchMode] = useState(false);
-  const [outputSuffix, setOutputSuffix] = useState('_decrypted');
+  const [outputSuffix, setOutputSuffix] = useState(mode === 'encrypt' ? '.enc' : '_decrypted');
+
+  // Reset suffix when mode changes (optional, but requested behavior implies defaults)
+  useEffect(() => {
+    setOutputSuffix(mode === 'encrypt' ? '.enc' : '_decrypted');
+  }, [mode]);
 
   // Business Logic Hooks
   const { 
@@ -40,29 +53,66 @@ export default function Home() {
     }
   });
 
-  return (
-    <div className="module-grid">
-      <section className="module-col-main">
-        <FileProcessor
-          onProcess={processFiles}
-          onClear={(n) => addLog('error', 'logs.list_cleared', undefined, { n })}
-          onSort={() => addLog('info', 'logs.sort_applied')}
-          isProcessing={isProcessing}
-          clearOnFinish={!batchMode}
-          stats={stats}
-        />
-      </section>
+  const handleProcess = () => {
+    processFiles(files.map(f => f.file), mode);
+    if (!batchMode) setFiles([]);
+  };
 
-      <section className="module-col-side">
-        <SettingsPanel
-          password={password}
-          setPassword={setPassword}
-          batchMode={batchMode}
-          setBatchMode={setBatchMode}
-          outputSuffix={outputSuffix}
-          setOutputSuffix={setOutputSuffix}
-        />
-      </section>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%' }}>
+      <header className="module-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '1.2rem', fontWeight: 800 }}>
+          {mode === 'encrypt' ? (
+            <>
+              <ShieldCheckIcon size={28} style={{ opacity: 0.6 }} />
+              {t('crypt.shield_vault')}
+            </>
+          ) : (
+            <>
+              <UnlockIcon size={28} style={{ opacity: 0.6 }} />
+              {t('crypt.open_key')}
+            </>
+          )}
+        </div>
+      </header>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '64px', flex: 1, minHeight: 0 }}>
+        <section style={{ display: 'flex', flexDirection: 'column' }}>
+          <FileProcessor
+            files={files}
+            setFiles={setFiles}
+            onClear={(n) => addLog('error', 'logs.list_cleared', undefined, { n })}
+            onSort={() => addLog('info', 'logs.sort_applied')}
+            isProcessing={isProcessing}
+            stats={stats}
+          />
+        </section>
+
+        {files.length > 0 && (
+          <section style={{ display: 'flex', flexDirection: 'column' }}>
+            <SettingsPanel
+              mode={mode}
+              password={password}
+              setPassword={setPassword}
+              batchMode={batchMode}
+              setBatchMode={setBatchMode}
+              outputSuffix={outputSuffix}
+              setOutputSuffix={setOutputSuffix}
+              onProcess={handleProcess}
+              isProcessing={isProcessing}
+              canProcess={files.length > 0 && password.trim().length > 0}
+            />
+          </section>
+        )}
+      </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CryptPageContent />
+    </Suspense>
   );
 }

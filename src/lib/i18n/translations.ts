@@ -24,6 +24,14 @@ export const translations = {
       status_ready: 'SISTEMA LISTO',
       status_busy: 'PROCESANDO DATOS',
     },
+    crypt: {
+      shield_vault: 'SHIELD VAULT',
+      open_key: 'OPEN KEY',
+      cipher_action: 'CIFRAR',
+      decipher_action: 'DESCIFRAR',
+      suffix_encrypt: 'SUFIJO ENCRIP.',
+      suffix_decrypt: 'SUFIJO DESENCRIP.',
+    },
     etl: {
       app_designer: 'ETL DESIGNER',
       app_executor: 'ETL EXECUTOR',
@@ -249,6 +257,14 @@ export const translations = {
       audit: 'SYSTEM AUDIT',
       status_ready: 'SYSTEM READY',
       status_busy: 'PROCESSING DATA',
+    },
+    crypt: {
+      shield_vault: 'SHIELD VAULT',
+      open_key: 'OPEN KEY',
+      cipher_action: 'ENCRYPT',
+      decipher_action: 'DECRYPT',
+      suffix_encrypt: 'ENCRYPT SUFFIX',
+      suffix_decrypt: 'DECRYPT SUFFIX',
     },
     etl: {
       designer: 'DESIGNER',

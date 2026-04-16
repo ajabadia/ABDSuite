@@ -9,9 +9,10 @@ import {
   LockIcon, 
   ListIcon, 
   FileTextIcon, 
-  ShieldIcon,
+  ShieldCheckIcon,
   CogIcon,
-  PlayIcon
+  PlayIcon,
+  UnlockIcon
 } from '@/components/common/Icons';
 
 export const Sidebar: React.FC = () => {
@@ -19,34 +20,57 @@ export const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const { t } = useLanguage();
   
-  // ETL Accordion state
+  // Accordion state
   const [etlExpanded, setEtlExpanded] = useState(pathname.startsWith('/etl'));
+  const [cryptExpanded, setCryptExpanded] = useState(pathname.startsWith('/crypt'));
 
-  // Auto-collapse logic when navigating away from ETL
+  // Auto-collapse logic
   useEffect(() => {
+    // ETL
     if (!pathname.startsWith('/etl')) {
       setEtlExpanded(false);
     } else if (!etlExpanded && pathname.startsWith('/etl')) {
-       // Expand if we are in ETL but it was closed (e.g. initial load)
        setEtlExpanded(true);
+    }
+
+    // Crypt
+    if (!pathname.startsWith('/crypt')) {
+      setCryptExpanded(false);
+    } else if (!cryptExpanded && pathname.startsWith('/crypt')) {
+      setCryptExpanded(true);
     }
   }, [pathname]);
 
   const navItems = [
     { href: '/', icon: <SystemIcon size={20} />, label: t('shell.home'), id: 'home' },
-    { href: '/crypt', icon: <LockIcon size={20} />, label: t('shell.crypt'), id: 'crypt' },
+    { 
+      id: 'crypt', 
+      icon: <LockIcon size={20} />, 
+      label: t('shell.crypt'),
+      isAccordion: true,
+      expanded: cryptExpanded,
+      setExpanded: setCryptExpanded,
+      activePath: '/crypt',
+      subItems: [
+        { href: '/crypt?view=encrypt', icon: <ShieldCheckIcon size={14} />, label: t('crypt.shield_vault'), id: 'crypt-encrypt' },
+        { href: '/crypt?view=decrypt', icon: <UnlockIcon size={14} />, label: t('crypt.open_key'), id: 'crypt-decrypt' },
+      ]
+    },
     { 
       id: 'etl', 
       icon: <ListIcon size={20} />, 
       label: t('shell.etl'),
       isAccordion: true,
+      expanded: etlExpanded,
+      setExpanded: setEtlExpanded,
+      activePath: '/etl',
       subItems: [
         { href: '/etl?view=designer', icon: <CogIcon size={14} />, label: t('etl.app_designer'), id: 'etl-designer' },
         { href: '/etl?view=executor', icon: <PlayIcon size={14} />, label: t('etl.app_executor'), id: 'etl-executor' },
       ]
     },
     { href: '/letter', icon: <FileTextIcon size={20} />, label: t('shell.letter'), id: 'letter' },
-    { href: '/audit', icon: <ShieldIcon size={20} />, label: t('shell.audit'), id: 'audit' },
+    { href: '/audit', icon: <ShieldCheckIcon size={20} />, label: t('shell.audit'), id: 'audit' },
   ];
 
   return (
@@ -65,12 +89,13 @@ export const Sidebar: React.FC = () => {
       <nav style={{ flex: 1, paddingTop: '12px', overflowY: 'auto' }}>
         {navItems.map((item) => {
           if (item.isAccordion) {
-            const isAnySubActive = pathname.startsWith('/etl');
+            const isAnySubActive = pathname.startsWith(item.activePath || '');
+            const isExpanded = item.expanded;
             return (
               <div key={item.id} className="flex-col">
                 <button 
                   className={`nav-item ${isAnySubActive ? 'active' : ''}`}
-                  onClick={() => !isCollapsed && setEtlExpanded(!etlExpanded)}
+                  onClick={() => !isCollapsed && item.setExpanded?.(!isExpanded)}
                   style={{ 
                     width: '100%', 
                     textAlign: 'left', 
@@ -86,17 +111,14 @@ export const Sidebar: React.FC = () => {
                   {!isCollapsed && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', flex: 1, alignItems: 'center' }}>
                       <span className="nav-label">{item.label}</span>
-                      <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>{etlExpanded ? '▼' : '▶'}</span>
+                      <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>{isExpanded ? '▼' : '▶'}</span>
                     </div>
                   )}
                 </button>
                 
-                {etlExpanded && !isCollapsed && (
+                {isExpanded && !isCollapsed && (
                   <div className="flex-col" style={{ paddingLeft: '16px', background: 'rgba(255,255,255,0.02)' }}>
                     {item.subItems?.map(sub => {
-                       // Correct isActive check for query params would be more complex, 
-                       // but here we check if pathname is /etl and searchParams matches.
-                       // For simplicity in Sidebar, we'll just styles them as nav-items.
                        return (
                         <Link 
                           key={sub.id}

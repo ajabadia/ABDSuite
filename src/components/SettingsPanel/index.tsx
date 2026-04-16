@@ -1,25 +1,33 @@
 'use client';
 
 import React, { useState } from 'react';
-import { EyeIcon, LockIcon } from '@/components/common/Icons';
+import { EyeIcon, LockIcon, ShieldCheckIcon, UnlockIcon } from '@/components/common/Icons';
 import { useLanguage } from '@/lib/context/LanguageContext';
 
 interface SettingsPanelProps {
+  mode: 'encrypt' | 'decrypt';
   password: string;
   setPassword: (val: string) => void;
   batchMode: boolean;
   setBatchMode: (val: boolean) => void;
   outputSuffix: string;
   setOutputSuffix: (val: string) => void;
+  onProcess: () => void;
+  isProcessing: boolean;
+  canProcess: boolean;
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
+  mode,
   password,
   setPassword,
   batchMode,
   setBatchMode,
   outputSuffix,
-  setOutputSuffix
+  setOutputSuffix,
+  onProcess,
+  isProcessing,
+  canProcess
 }) => {
   const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
@@ -34,17 +42,17 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     if (/[0-9]/.test(pwd)) score++;
     if (/[^A-Za-z0-9]/.test(pwd)) score++;
 
-    if (score <= 2) return { score, label: 'Débil', color: 'var(--status-err)', percent: '25%' };
-    if (score <= 4) return { score, label: 'Media', color: 'var(--status-warn)', percent: '50%' };
-    if (score === 5) return { score, label: 'Fuerte', color: 'var(--status-ok)', percent: '75%' };
-    return { score, label: 'Óptima', color: 'var(--status-ok)', percent: '100%' };
+    if (score <= 2) return { score, label: t('settings.weak'), color: 'var(--status-err)', percent: '25%' };
+    if (score <= 4) return { score, label: t('settings.medium'), color: 'var(--status-warn)', percent: '50%' };
+    if (score === 5) return { score, label: t('settings.strong'), color: 'var(--status-ok)', percent: '75%' };
+    return { score, label: t('settings.very_strong'), color: 'var(--status-ok)', percent: '100%' };
   };
 
   const strength = getStrength(password);
 
   return (
-    <div className="station-card">
-      <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '16px' }}>Parámetros de Seguridad</h3>
+    <div className="station-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '8px' }}>Parámetros de Seguridad</h3>
       
       <div className="flex-col" style={{ gap: '16px' }}>
         <div className="flex-col" style={{ gap: '4px' }}>
@@ -96,7 +104,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </div>
 
           <div className="flex-col" style={{ gap: '4px' }}>
-            <label className="station-label">{t('settings.suffix')}</label>
+            <label className="station-label">{mode === 'encrypt' ? t('crypt.suffix_encrypt') : t('crypt.suffix_decrypt')}</label>
             <input
               id="suffix-input"
               type="text"
@@ -107,6 +115,35 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             />
           </div>
         </div>
+
+        {canProcess && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
+            <button 
+              className={`station-btn ${mode === 'encrypt' ? 'station-btn-primary' : ''}`}
+              style={{ 
+                height: '48px', 
+                padding: '0 32px', 
+                fontSize: '0.9rem', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '12px',
+                minWidth: '180px',
+                justifyContent: 'center'
+              }}
+              disabled={isProcessing}
+              onClick={onProcess}
+            >
+              {isProcessing ? (
+                t('processor.processing')
+              ) : (
+                <>
+                  {mode === 'encrypt' ? <ShieldCheckIcon size={18} /> : <UnlockIcon size={18} />}
+                  {mode === 'encrypt' ? t('crypt.cipher_action') : t('crypt.decipher_action')}
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
