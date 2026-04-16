@@ -12,7 +12,8 @@ import {
   ShieldCheckIcon,
   CogIcon,
   PlayIcon,
-  UnlockIcon
+  UnlockIcon,
+  MapIcon
 } from '@/components/common/Icons';
 
 export const Sidebar: React.FC = () => {
@@ -20,24 +21,31 @@ export const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const { t } = useLanguage();
   
-  // Accordion state
   const [etlExpanded, setEtlExpanded] = useState(pathname.startsWith('/etl'));
   const [cryptExpanded, setCryptExpanded] = useState(pathname.startsWith('/crypt'));
-
+  const [letterExpanded, setLetterExpanded] = useState(pathname.startsWith('/letter'));
+  
   // Auto-collapse logic
   useEffect(() => {
     // ETL
     if (!pathname.startsWith('/etl')) {
       setEtlExpanded(false);
     } else if (!etlExpanded && pathname.startsWith('/etl')) {
-       setEtlExpanded(true);
+      setEtlExpanded(true);
     }
-
+    
     // Crypt
     if (!pathname.startsWith('/crypt')) {
       setCryptExpanded(false);
     } else if (!cryptExpanded && pathname.startsWith('/crypt')) {
       setCryptExpanded(true);
+    }
+
+    // Letter
+    if (!pathname.startsWith('/letter')) {
+      setLetterExpanded(false);
+    } else if (!letterExpanded && pathname.startsWith('/letter')) {
+      setLetterExpanded(true);
     }
   }, [pathname]);
 
@@ -69,8 +77,22 @@ export const Sidebar: React.FC = () => {
         { href: '/etl?view=executor', icon: <PlayIcon size={14} />, label: t('etl.app_executor'), id: 'etl-executor' },
       ]
     },
-    { href: '/letter', icon: <FileTextIcon size={20} />, label: t('shell.letter'), id: 'letter' },
-    { href: '/audit', icon: <ShieldCheckIcon size={20} />, label: t('shell.audit'), id: 'audit' },
+    { 
+      id: 'letter', 
+      icon: <FileTextIcon size={20} />, 
+      label: t('shell.letter'),
+      isAccordion: true,
+      expanded: letterExpanded,
+      setExpanded: setLetterExpanded,
+      activePath: '/letter',
+      subItems: [
+        { href: '/letter?view=templates', icon: <FileTextIcon size={14} />, label: t('shell.letter_templates'), id: 'letter-templates' },
+        { href: '/letter?view=config', icon: <CogIcon size={14} />, label: t('shell.letter_config') || 'CONFIGURACIÓN', id: 'letter-config' },
+        { href: '/letter?view=mapping', icon: <MapIcon size={14} />, label: t('shell.letter_mapping'), id: 'letter-mapping' },
+        { href: '/letter?view=generation', icon: <PlayIcon size={14} />, label: t('shell.letter_generation'), id: 'letter-generation' },
+        { href: '/letter?view=audit', icon: <ShieldCheckIcon size={14} />, label: t('shell.letter_audit'), id: 'letter-audit' },
+      ]
+    },
   ];
 
   return (

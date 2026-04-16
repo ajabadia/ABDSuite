@@ -1,76 +1,76 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/lib/context/LanguageContext';
-
 import LetterStation from '@/components/LetterStation/LetterStation';
 import TemplateEditor from '@/components/LetterStation/TemplateEditor';
 import MappingMatrix from '@/components/LetterStation/MappingMatrix';
+import LetterPresetEditor from '@/components/LetterStation/LetterPresetEditor';
+import AuditStation from '@/components/AuditStation/AuditStation';
+import { FileTextIcon, MapIcon, PlayIcon, ShieldCheckIcon, CogIcon } from '@/components/common/Icons';
 
-export default function LetterPage() {
+function LetterPageContent() {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'templates' | 'mapping' | 'generation'>('generation');
+  const searchParams = useSearchParams();
+  const view = searchParams.get('view') || 'templates';
+
+  const renderView = () => {
+    switch (view) {
+      case 'mapping':
+        return <MappingMatrix />;
+      case 'config':
+        return <LetterPresetEditor />;
+      case 'generation':
+        return <LetterStation onOpenMapping={() => {}} />; // mapping is now a separate view
+      case 'audit':
+        return <AuditStation />;
+      case 'templates':
+      default:
+        return <TemplateEditor />;
+    }
+  };
+
+  const getHeaderInfo = () => {
+    switch (view) {
+      case 'mapping':
+        return { title: t('shell.letter_mapping'), icon: <MapIcon size={28} style={{ opacity: 0.6 }} /> };
+      case 'config':
+        return { title: t('shell.letter_config'), icon: <CogIcon size={28} style={{ opacity: 0.6 }} /> };
+      case 'generation':
+        return { title: t('shell.letter_generation'), icon: <PlayIcon size={28} style={{ opacity: 0.6 }} /> };
+      case 'audit':
+        return { title: t('shell.letter_audit'), icon: <ShieldCheckIcon size={28} style={{ opacity: 0.6 }} /> };
+      case 'templates':
+      default:
+        return { title: t('shell.letter_templates'), icon: <FileTextIcon size={28} style={{ opacity: 0.6 }} /> };
+    }
+  };
+
+  const { title, icon } = getHeaderInfo();
 
   return (
-    <main className="module-container">
-      <header className="module-header glass">
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '16px' }}>
-          <h1 className="module-title" style={{ fontSize: '1.8rem' }}>
-            {t('shell.letter').toUpperCase()}
-          </h1>
-          <span className="terminal-prompt" style={{ fontSize: '0.8rem', opacity: 0.8 }}>
-            A:\ABDFN\LETTER_STATION&gt;
-          </span>
-        </div>
-        <div className="tab-group" style={{ marginLeft: 'auto', display: 'flex', gap: '1px', background: 'var(--border-color)', border: '1px solid var(--border-color)' }}>
-          <button 
-            className={`tab-btn ${activeTab === 'templates' ? 'active' : ''}`}
-            onClick={() => setActiveTab('templates')}
-          >
-            1_PLANTILLAS
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'mapping' ? 'active' : ''}`}
-            onClick={() => setActiveTab('mapping')}
-          >
-            2_MAPEADO
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'generation' ? 'active' : ''}`}
-            onClick={() => setActiveTab('generation')}
-          >
-            3_GENERACIÓN
-          </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%' }}>
+      <header className="module-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '1.2rem', fontWeight: 800 }}>
+          {icon}
+          {title}
         </div>
       </header>
 
-     <section className="module-grid" style={{ flex: 1 }}>
+      <section className="module-grid" style={{ flex: 1, minHeight: 0 }}>
         <div className="module-col-main" style={{ gridColumn: 'span 12', height: '100%', overflow: 'hidden' }}>
-           {activeTab === 'generation' && <LetterStation onOpenMapping={() => setActiveTab('mapping')} />}
-           {activeTab === 'templates' && <TemplateEditor />}
-           {activeTab === 'mapping' && <MappingMatrix />}
+          {renderView()}
         </div>
       </section>
+    </div>
+  );
+}
 
-      <style jsx>{`
-        .tab-btn {
-          padding: 8px 16px;
-          border: none;
-          background: var(--bg-color);
-          color: var(--text-secondary);
-          cursor: pointer;
-          font-weight: 800;
-          font-size: 0.8rem;
-          transition: all 0.2s;
-        }
-        .tab-btn:hover {
-          background: rgba(255,255,255,0.05);
-        }
-        .tab-btn.active {
-          background: var(--border-color);
-          color: var(--bg-color);
-        }
-      `}</style>
-    </main>
+export default function LetterPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LetterPageContent />
+    </Suspense>
   );
 }

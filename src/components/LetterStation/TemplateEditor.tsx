@@ -5,7 +5,7 @@ import { useLanguage } from '@/lib/context/LanguageContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db/db';
 import { LetterTemplate, TemplateComposition } from '@/lib/types/letter.types';
-import { TrashIcon, CogIcon, FileTextIcon, SaveIcon } from '@/components/common/Icons';
+import { TrashIcon, CogIcon, FileTextIcon, SaveIcon, ArrowUpIcon, ArrowDownIcon, ListIcon, EyeIcon, DownloadIcon, UploadIcon } from '@/components/common/Icons';
 import styles from './TemplateEditor.module.css';
 
 const DEFAULT_COMPOSITION: TemplateComposition = {
@@ -29,6 +29,7 @@ const TemplateEditor: React.FC = () => {
   
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'content' | 'composition'>('content');
+  const [isRegistryExpanded, setIsRegistryExpanded] = useState(true);
   
   // Edit State
   const [editName, setEditName] = useState('');
@@ -56,6 +57,38 @@ const TemplateEditor: React.FC = () => {
     });
     setSelectedId(id as number);
     setActiveTab('content');
+    setIsRegistryExpanded(false); // Auto-collapse to focus on editing
+  };
+
+  const handleImport = async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e: any) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          if (data.type === 'abdfn_template' && data.payload) {
+            const id = await db.letter_templates.add({
+              ...data.payload,
+              name: data.name + '_IMPORTED',
+              type: 'HTML',
+              updatedAt: Date.now()
+            });
+            setSelectedId(id as number);
+            setIsRegistryExpanded(false);
+          } else {
+            alert('FORMATO DE PLANTILLA NO VÁLIDO');
+          }
+        } catch (err) {
+          console.error('FAILED_TO_IMPORT', err);
+          alert('ERROR AL LEER EL ARCHIVO');
+        }
+      }
+    };
+    input.click();
   };
 
   const handleSave = async () => {
@@ -66,7 +99,7 @@ const TemplateEditor: React.FC = () => {
       config: editConfig,
       updatedAt: Date.now()
     });
-    alert('PLANTILLA ACTUALIZADA CORRECTAMENTE');
+    // Visual feedback instead of alert would be better but keeping it for now
   };
 
   const handleDelete = async (id: number) => {
@@ -75,142 +108,227 @@ const TemplateEditor: React.FC = () => {
     if (selectedId === id) setSelectedId(null);
   };
 
+  const handleDownload = (tmpl: LetterTemplate) => {
+    const exportData = {
+      type: 'abdfn_template',
+      version: '1.0',
+      name: tmpl.name,
+      payload: {
+        content: tmpl.content,
+        config: tmpl.config
+      },
+      exportedAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${tmpl.name.toUpperCase()}_TEMPLATE.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const updateConfig = (key: keyof TemplateComposition, val: any) => {
     setEditConfig(prev => ({ ...prev, [key]: val }));
   };
 
   return (
     <div className={styles.container}>
-      <aside className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>
-          <button className="station-btn station-btn-primary" style={{ width: '100%' }} onClick={handleCreate}>
-            + NUEVA PLANTILLA
-          </button>
+      <section className="station-registry">
+        <div className="station-registry-header" onClick={() => setIsRegistryExpanded(!isRegistryExpanded)}>
+          <div className="station-registry-title">
+            <ListIcon size={18} />
+             TEMPLATES_REGISTRY ({templates.length})
+          </div>
+          {isRegistryExpanded ? <ArrowUpIcon size={20} /> : <ArrowDownIcon size={20} />}
         </div>
-        <div className={styles.list}>
-          {templates.filter(t => t.type === 'HTML').map(tmpl => (
-            <div 
-              key={tmpl.id} 
-              className={`${styles.item} ${selectedId === tmpl.id ? styles.active : ''}`}
-              onClick={() => setSelectedId(tmpl.id!)}
-            >
-              <span className={styles.itemName}>{tmpl.name}</span>
+
+        {isRegistryExpanded && (
+          <div className="station-registry-content">
+            <div style={{ display: 'flex', gap: '8px' }}>
               <button 
-                className={styles.deleteBtn}
-                onClick={(e) => { e.stopPropagation(); handleDelete(tmpl.id!); }}
+                className="station-btn station-btn-primary" 
+                style={{ flex: 1, height: '48px', fontWeight: 900 }} 
+                onClick={handleCreate}
               >
-                <TrashIcon size={14} />
+                [+] NUEVA PLANTILLA
+              </button>
+              <button 
+                className="station-btn" 
+                style={{ width: '64px', height: '48px', padding: 0 }} 
+                onClick={handleImport}
+                title="Importar Backup (.json)"
+              >
+                <UploadIcon size={18} />
               </button>
             </div>
-          ))}
-          {templates.length === 0 && <div className={styles.empty}>SIN PLANTILLAS</div>}
-        </div>
-      </aside>
-
-      <main className={styles.main}>
-        {selectedId ? (
-          <>
-            <div className={styles.editorArea}>
-              {/* Panel de Edición/Configuración */}
-              <div className={styles.leftPanel}>
-                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                   <div style={{ flex: 1 }}>
-                     <label className="station-label">NOMBRE DE PLANTILLA:</label>
-                     <input className="station-input" value={editName} onChange={e => setEditName(e.target.value)} />
-                   </div>
-                   <button className="station-btn station-btn-primary" style={{ marginLeft: '16px', height: '42px' }} onClick={handleSave}>
-                     <SaveIcon size={16} /> GUARDAR
-                   </button>
-                </header>
-
-                <div className={styles.tabs}>
-                  <button className={`${styles.tabBtn} ${activeTab === 'content' ? styles.active : ''}`} onClick={() => setActiveTab('content')}>
-                    <FileTextIcon size={14} /> EDITOR HTML
-                  </button>
-                  <button className={`${styles.tabBtn} ${activeTab === 'composition' ? styles.active : ''}`} onClick={() => setActiveTab('composition')}>
-                    <CogIcon size={14} /> CONFIG. PLIEGO
-                  </button>
+            
+            <div className="flex-col" style={{ gap: '8px' }}>
+              <div className="station-registry-sync-header">
+                <span className="station-registry-sync-title">SYNCHRONIZATION</span>
+                <div className="station-registry-sync-actions">
+                  <button className="station-registry-sync-btn">JSON↓</button>
+                  <button className="station-registry-sync-btn">ALL↑</button>
                 </div>
+              </div>
 
-                {activeTab === 'content' ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '12px' }}>
-                    <label className="station-label">CUERPO DEL DOCUMENTO (Handlebars):</label>
-                    <textarea 
-                      className={styles.monoEditor}
-                      value={editContent}
-                      onChange={e => setEditContent(e.target.value)}
-                      placeholder="Escriba aquí el contenido HTML de la carta..."
-                    />
-                    <div style={{ fontSize: '0.7rem', opacity: 0.5 }}>
-                      Sugerencia: Use {'{{VARIABLE}}'} para inyectar datos del Preset ETL activo.
+              <div className="station-registry-list">
+                {templates.filter(t => t.type === 'HTML').map(tmpl => (
+                  <div 
+                    key={tmpl.id} 
+                    className={`station-registry-item ${selectedId === tmpl.id ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedId(tmpl.id!);
+                      setIsRegistryExpanded(false);
+                    }}
+                  >
+                    <div className="station-registry-item-left">
+                       <div className="station-registry-item-icon"><ListIcon size={16} /></div>
+                       <div className="station-registry-item-info">
+                          <span className="station-registry-item-name">{tmpl.name}</span>
+                          <span className="station-registry-item-meta">
+                             v1.0 <span className="station-registry-item-status">ACTIVE</span>
+                          </span>
+                       </div>
+                    </div>
+
+                    <div className="station-registry-item-actions">
+                       <button 
+                         className="station-registry-action-btn"
+                         onClick={(e) => { e.stopPropagation(); handleDownload(tmpl); }}
+                         title="Descargar Plantilla"
+                       >
+                         <DownloadIcon size={16} />
+                       </button>
+                       <button 
+                         className="station-registry-action-btn err"
+                         onClick={(e) => { e.stopPropagation(); handleDelete(tmpl.id!); }}
+                         title="Eliminar"
+                       >
+                         <TrashIcon size={16} />
+                       </button>
                     </div>
                   </div>
-                ) : (
-                  <div className="flex-col" style={{ gap: '20px' }}>
-                     <div className={styles.propertyGroup}>
-                        <span className={styles.propertyTitle}>Ventanilla de Sobre (mm)</span>
-                        <div className={styles.configGrid}>
-                           <div className="flex-col" style={{ gap: '4px' }}>
-                              <label className="station-label">X (Derecha)</label>
-                              <input className="station-input" type="number" value={editConfig.windowX} onChange={e => updateConfig('windowX', parseInt(e.target.value))} />
-                           </div>
-                           <div className="flex-col" style={{ gap: '4px' }}>
-                              <label className="station-label">Y (Abajo)</label>
-                              <input className="station-input" type="number" value={editConfig.windowY} onChange={e => updateConfig('windowY', parseInt(e.target.value))} />
-                           </div>
-                           <div className="flex-col" style={{ gap: '4px' }}>
-                              <label className="station-label">Ancho</label>
-                              <input className="station-input" type="number" value={editConfig.windowWidth} onChange={e => updateConfig('windowWidth', parseInt(e.target.value))} />
-                           </div>
-                           <div className="flex-col" style={{ gap: '4px' }}>
-                              <label className="station-label">Alto</label>
-                              <input className="station-input" type="number" value={editConfig.windowHeight} onChange={e => updateConfig('windowHeight', parseInt(e.target.value))} />
-                           </div>
-                        </div>
-                     </div>
-
-                     <div className={styles.propertyGroup}>
-                        <span className={styles.propertyTitle}>Tipografía y Cuerpo</span>
-                        <div className={styles.configGrid}>
-                           <div className="flex-col" style={{ gap: '4px' }}>
-                              <label className="station-label">Familia</label>
-                              <select className="station-select" value={editConfig.fontFamily} onChange={e => updateConfig('fontFamily', e.target.value)}>
-                                 <option value="Space Mono">Space Mono (Technical)</option>
-                                 <option value="Helvetica">Helvetica (Clean)</option>
-                                 <option value="Arial">Arial (Standard)</option>
-                                 <option value="Times New Roman">Times New Roman (Formal)</option>
-                                 <option value="Courier New">Courier New (Legacy)</option>
-                              </select>
-                           </div>
-                           <div className="flex-col" style={{ gap: '4px' }}>
-                              <label className="station-label">Tamaño (pt)</label>
-                              <input className="station-input" type="number" value={editConfig.fontSize} onChange={e => updateConfig('fontSize', parseInt(e.target.value))} />
-                           </div>
-                        </div>
-                     </div>
-
-                     <div className={styles.propertyGroup}>
-                        <span className={styles.propertyTitle}>Elementos de Página</span>
-                        <div className="flex-col" style={{ gap: '12px' }}>
-                           <div className="flex-col" style={{ gap: '4px' }}>
-                              <label className="station-label">Cabecera (HTML)</label>
-                              <textarea className="station-input" style={{ height: '60px', fontSize: '0.8rem' }} value={editConfig.headerHtml} onChange={e => updateConfig('headerHtml', e.target.value)} />
-                           </div>
-                           <div className="flex-col" style={{ gap: '4px' }}>
-                              <label className="station-label">Pie de Página (HTML)</label>
-                              <textarea className="station-input" style={{ height: '60px', fontSize: '0.8rem' }} value={editConfig.footerHtml} onChange={e => updateConfig('footerHtml', e.target.value)} />
-                           </div>
-                        </div>
-                     </div>
+                ))}
+                {templates.length === 0 && (
+                  <div style={{ padding: '32px', textAlign: 'center', opacity: 0.3 }}>
+                    SIN PLANTILLAS REGISTRADAS
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+      </section>
 
-              {/* Panel de Previsualización A4 Real */}
-              <div className={styles.rightPanel}>
-                <span className="station-card-title" style={{ color: 'var(--text-secondary)' }}>Previsualización Pliego A4</span>
+      {/* Area de Edición Principal */}
+      <main className={styles.main}>
+        {selectedId ? (
+          <div className={styles.editorArea}>
+            {/* Panel de Configuración */}
+            <div className={styles.leftPanel}>
+               <div className="flex-col" style={{ gap: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-color)', padding: '16px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ flex: 1 }}>
+                      <label className="station-label">ETIQUETA DE PLANTILLA:</label>
+                      <input className="station-input" style={{ fontSize: '1rem', fontWeight: 800 }} value={editName} onChange={e => setEditName(e.target.value.toUpperCase())} />
+                    </div>
+                    <button className="station-btn station-btn-primary" style={{ marginLeft: '16px', height: '48px', padding: '0 24px' }} onClick={handleSave}>
+                      <SaveIcon size={18} /> GUARDAR
+                    </button>
+                  </div>
+
+                  <div className={styles.tabs}>
+                    <button className={`${styles.tabBtn} ${activeTab === 'content' ? styles.active : ''}`} onClick={() => setActiveTab('content')}>
+                      <FileTextIcon size={16} /> EDITOR ESTRUCTURAL
+                    </button>
+                    <button className={`${styles.tabBtn} ${activeTab === 'composition' ? styles.active : ''}`} onClick={() => setActiveTab('composition')}>
+                      <CogIcon size={16} /> COMPOSICIÓN A4
+                    </button>
+                  </div>
+
+                  {activeTab === 'content' ? (
+                    <div className="flex-col" style={{ flex: 1, gap: '12px', minHeight: '400px' }}>
+                      <label className="station-label">CUERPO HTML (MOTOR HANDLEBARS):</label>
+                      <textarea 
+                        className={styles.monoEditor}
+                        value={editContent}
+                        onChange={e => setEditContent(e.target.value)}
+                        placeholder="Escriba aquí el contenido de la carta..."
+                      />
+                      <div style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.05rem' }}>
+                        TIP: use {'{{CAMPO}}'} para inyectar datos del payload ETL.
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-col" style={{ gap: '20px' }}>
+                       <div className={styles.propertyGroup}>
+                          <span className={styles.propertyTitle}>Ventanilla de Sobre (Medidas en mm)</span>
+                          <div className={styles.configGrid}>
+                             <div className="flex-col" style={{ gap: '4px' }}>
+                                <label className="station-label">POS. X</label>
+                                <input className="station-input" type="number" value={editConfig.windowX} onChange={e => updateConfig('windowX', parseInt(e.target.value))} />
+                             </div>
+                             <div className="flex-col" style={{ gap: '4px' }}>
+                                <label className="station-label">POS. Y</label>
+                                <input className="station-input" type="number" value={editConfig.windowY} onChange={e => updateConfig('windowY', parseInt(e.target.value))} />
+                             </div>
+                             <div className="flex-col" style={{ gap: '4px' }}>
+                                <label className="station-label">ANCHO</label>
+                                <input className="station-input" type="number" value={editConfig.windowWidth} onChange={e => updateConfig('windowWidth', parseInt(e.target.value))} />
+                             </div>
+                             <div className="flex-col" style={{ gap: '4px' }}>
+                                <label className="station-label">ALTO</label>
+                                <input className="station-input" type="number" value={editConfig.windowHeight} onChange={e => updateConfig('windowHeight', parseInt(e.target.value))} />
+                             </div>
+                          </div>
+                       </div>
+
+                       <div className={styles.propertyGroup}>
+                          <span className={styles.propertyTitle}>Tipografía Técnica</span>
+                          <div className={styles.configGrid}>
+                             <div className="flex-col" style={{ gap: '4px' }}>
+                                <label className="station-label">FUENTE</label>
+                                <select className="station-select" value={editConfig.fontFamily} onChange={e => updateConfig('fontFamily', e.target.value)}>
+                                   <option value="Space Mono">SPACE MONO (DEFAULT)</option>
+                                   <option value="Helvetica">HELVETICA (SYS)</option>
+                                   <option value="Courier New">COURIER (RETRO)</option>
+                                </select>
+                             </div>
+                             <div className="flex-col" style={{ gap: '4px' }}>
+                                <label className="station-label">CUERPO (PT)</label>
+                                <input className="station-input" type="number" value={editConfig.fontSize} onChange={e => updateConfig('fontSize', parseInt(e.target.value))} />
+                             </div>
+                          </div>
+                       </div>
+
+                       <div className={styles.propertyGroup}>
+                          <span className={styles.propertyTitle}>Inyectores de Página</span>
+                          <div className="flex-col" style={{ gap: '12px' }}>
+                             <div className="flex-col" style={{ gap: '4px' }}>
+                                <label className="station-label">HEADER (HTML)</label>
+                                <textarea className="station-input" style={{ height: '60px', fontSize: '0.8rem' }} value={editConfig.headerHtml} onChange={e => updateConfig('headerHtml', e.target.value)} />
+                             </div>
+                             <div className="flex-col" style={{ gap: '4px' }}>
+                                <label className="station-label">FOOTER (HTML)</label>
+                                <textarea className="station-input" style={{ height: '60px', fontSize: '0.8rem' }} value={editConfig.footerHtml} onChange={e => updateConfig('footerHtml', e.target.value)} />
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                  )}
+               </div>
+            </div>
+
+            {/* Panel de Previsualización A4 Real */}
+            <div className={styles.rightPanel}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                 <EyeIcon size={14} style={{ opacity: 0.5 }} />
+                 <span style={{ fontSize: '0.75rem', fontWeight: 800, opacity: 0.5 }}>VISTA PREVIA DE SALIDA (A4 SCALE 1:1)</span>
+              </div>
+              
+              <div className="station-card" style={{ padding: '32px', background: 'var(--bg-color)', overflow: 'auto' }}>
                 <div className={styles.a4Sheet}>
-                  {/* Ventanilla de Sobre */}
                   <div 
                     className={styles.windowOverlay}
                     style={{
@@ -220,10 +338,9 @@ const TemplateEditor: React.FC = () => {
                       height: `${editConfig.windowHeight}mm`
                     }}
                   >
-                    Ventanilla
+                    ADDR_WINDOW
                   </div>
 
-                  {/* Hoja Física */}
                   <div 
                     className={styles.sheetContent}
                     style={{
@@ -240,15 +357,14 @@ const TemplateEditor: React.FC = () => {
                      <div dangerouslySetInnerHTML={{ __html: editConfig.footerHtml || '' }} />
                   </div>
                 </div>
-                <div style={{ fontSize: '0.75rem', opacity: 0.4 }}>Escala de previsualización 1:2 (Aprox)</div>
               </div>
             </div>
-          </>
+          </div>
         ) : (
           <div className={styles.emptyState}>
             <FileTextIcon size={64} style={{ marginBottom: '16px' }} />
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 900 }}>SELECCIONE UNA PLANTILLA</h2>
-            <p style={{ fontSize: '0.9rem', opacity: 0.6 }}>Cree o elija una plantilla HTML para empezar a maquetar.</p>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 900 }}>SISTEMA DE DISEÑO DE PLANTILLAS</h2>
+            <p style={{ fontSize: '0.9rem', opacity: 0.6 }}>Seleccione o cree una plantilla desde el registro superior para comenzar.</p>
           </div>
         )}
       </main>

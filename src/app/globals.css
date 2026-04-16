@@ -285,3 +285,182 @@ html, body {
 
 .flex-row { display: flex; gap: 16px; align-items: start; }
 .flex-col { display: flex; flex-direction: column; gap: 16px; }
+/* 7. Industrial Registry System (ASEPTIC v4) */
+.station-registry {
+  transition: all 0.3s ease;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-std);
+  overflow: hidden;
+}
+
+.station-registry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(var(--primary-color), 0.05);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  user-select: none;
+}
+
+.station-registry-header:hover {
+  background: rgba(var(--primary-color), 0.1);
+}
+
+.station-registry-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.1rem;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.station-registry-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.station-registry-sync-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 8px;
+}
+
+.station-registry-sync-title {
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.05rem;
+  opacity: 0.4;
+  text-transform: uppercase;
+}
+
+.station-registry-sync-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.station-registry-sync-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.6rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--snap);
+}
+
+.station-registry-sync-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.station-registry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.station-registry-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  background: var(--bg-color);
+  cursor: pointer;
+  transition: all var(--snap);
+}
+
+.station-registry-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.station-registry-item.active {
+  background: rgba(var(--primary-color), 0.08);
+  box-shadow: inset 4px 0 0 var(--primary-color);
+}
+
+.station-registry-item-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.station-registry-item-icon {
+  opacity: 0.4;
+  display: flex;
+  align-items: center;
+}
+
+.station-registry-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.station-registry-item-name {
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.station-registry-item-meta {
+  font-size: 0.65rem;
+  font-weight: 800;
+  opacity: 0.4;
+  letter-spacing: 0.02rem;
+}
+
+.station-registry-item-status {
+  color: var(--status-ok);
+  margin-left: 6px;
+}
+
+.station-registry-item-actions {
+  display: flex;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.station-registry-item:hover .station-registry-item-actions {
+  opacity: 1;
+}
+
+.station-registry-action-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.station-registry-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.station-registry-action-btn.err:hover {
+  background: rgba(var(--status-err), 0.15);
+  color: var(--status-err);
+}

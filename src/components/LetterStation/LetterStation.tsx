@@ -1,29 +1,20 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db/db';
 import { 
   LetterTemplate, 
-  LetterMapping, 
   LetterGenerationOptions 
 } from '@/lib/types/letter.types';
-import PresetEditorModal from './PresetEditorModal';
-import MappingMatrix from './MappingMatrix';
 import { 
   PlayIcon, 
-  SquareIcon, 
   FolderIcon, 
-  RefreshCwIcon,
   TagIcon,
-  MapIcon,
-  SearchIcon,
-  FileTextIcon,
-  CogIcon
 } from '@/components/common/Icons';
 import JSZip from 'jszip';
-import TemplateEditor from './TemplateEditor';
 
 import { useLog } from '@/lib/context/LogContext';
 import { LogLevel } from '@/lib/types/log.types';
@@ -31,6 +22,7 @@ import { LogLevel } from '@/lib/types/log.types';
 const LetterStation: React.FC = () => {
   const { t } = useLanguage();
   const { addLog: globalAddLog } = useLog();
+  const router = useRouter();
   
   // Resources
   const presets = useLiveQuery(() => db.presets.toArray()) || [];
@@ -42,9 +34,6 @@ const LetterStation: React.FC = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const [dataFile, setDataFile] = useState<File | null>(null);
   
-  // Modals
-  const [showPresetEditor, setShowPresetEditor] = useState(false);
-
   // Lote Options
   const [options, setOptions] = useState<LetterGenerationOptions>({
     lote: '0013',
@@ -133,6 +122,10 @@ const LetterStation: React.FC = () => {
     workerRef.current?.postMessage({ dataFile, template, mapping, etlPreset: preset, options });
   };
 
+  const navigateToConfig = () => {
+    router.push('/letter?view=config');
+  };
+
   return (
     <div className="flex-col" style={{ gap: '24px', padding: '24px' }}>
       {/* Paso 1: Configuración de Recursos */}
@@ -146,9 +139,9 @@ const LetterStation: React.FC = () => {
                       <option value="">-- Seleccionar --</option>
                       {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
-                    <button className="station-btn" onClick={() => setShowPresetEditor(true)}><FolderIcon size={14} /></button>
+                    <button className="station-btn" onClick={navigateToConfig} title="Gestionar Modelos"><FolderIcon size={14} /></button>
                   </div>
-                  <button className="station-btn" onClick={() => setShowPresetEditor(true)}>Editar</button>
+                  <button className="station-btn" onClick={navigateToConfig}>Editar</button>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 120px', gap: '16px', alignItems: 'center' }}>
@@ -240,13 +233,6 @@ const LetterStation: React.FC = () => {
                   <PlayIcon size={24} /> {isProcessing ? 'GENERANDO...' : 'INICIAR PROCESAMIENTO'}
                 </button>
             </div>
-
-      {showPresetEditor && (
-        <PresetEditorModal 
-          onSave={async (p) => { await db.presets.put(p); setShowPresetEditor(false); }} 
-          onClose={() => setShowPresetEditor(false)} 
-        />
-      )}
     </div>
   );
 };

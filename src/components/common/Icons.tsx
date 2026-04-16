@@ -255,3 +255,10 @@ export const TerminalIcon: React.FC<IconProps> = ({ size = 24, className }) => (
     <line x1="12" y1="19" x2="20" y2="19" />
   </svg>
 );
+export const UploadIcon: React.FC<IconProps> = ({ size = 24, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" className={className}>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);
