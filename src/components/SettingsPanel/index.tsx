@@ -51,13 +51,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const strength = getStrength(password);
 
   return (
-    <div className="station-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '8px' }}>Parámetros de Seguridad</h3>
+    <div className="station-card flex-col" style={{ gap: '20px' }}>
+      <span className="station-form-section-title">PARÁMETROS DE SEGURIDAD</span>
       
-      <div className="flex-col" style={{ gap: '16px' }}>
-        <div className="flex-col" style={{ gap: '4px' }}>
+      <div className="flex-col" style={{ gap: '20px' }}>
+        <div className="station-form-field full">
           <label className="station-label">{t('settings.password')}</label>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <div className="flex-row" style={{ position: 'relative' }}>
             <input
               id="master-pwd"
               type={showPassword ? 'text' : 'password'}
@@ -77,33 +77,34 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </div>
           
           {password && (
-            <div style={{ marginTop: '8px' }}>
-              <div style={{ height: '4px', background: 'var(--bg-color)', borderRadius: '2px', overflow: 'hidden' }}>
+            <div className="flex-col" style={{ gap: '4px' }}>
+              <div className="station-meter-container">
                 <div 
-                  style={{ height: '100%', width: strength.percent, background: strength.color, transition: 'width 0.3s ease' }}
+                  className="station-meter-bar"
+                  style={{ width: strength.percent, background: strength.color }}
                 />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.65rem' }}>
-                <span style={{ opacity: 0.5 }}>SEGURIDAD DE CLAVE</span>
-                <span style={{ color: strength.color, fontWeight: 700 }}>{strength.label.toUpperCase()}</span>
+              <div className="flex-row" style={{ justifyContent: 'space-between' }}>
+                <span style={{ opacity: 0.5, fontSize: '0.6rem', fontWeight: 700 }}>SEGURIDAD_CORE</span>
+                <span style={{ color: strength.color, fontWeight: 900, fontSize: '0.65rem' }}>{strength.label.toUpperCase()}</span>
               </div>
             </div>
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '8px', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="station-form-grid" style={{ paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
+          <div className="station-checkbox-group" style={{ height: '40px' }}>
              <input
               type="checkbox"
               id="batchMode"
+              className="station-checkbox"
               checked={batchMode}
               onChange={(e) => setBatchMode(e.target.checked)}
-              style={{ width: '18px', height: '18px' }}
             />
-             <label htmlFor="batchMode" className="station-label" style={{ marginBottom: 0, cursor: 'pointer' }}>{t('settings.batch_mode')}</label>
+             <label htmlFor="batchMode" className="station-label" style={{ margin: 0, cursor: 'pointer' }}>{t('settings.batch_mode')}</label>
           </div>
 
-          <div className="flex-col" style={{ gap: '4px' }}>
+          <div className="station-form-field">
             <label className="station-label">{mode === 'encrypt' ? t('crypt.suffix_encrypt') : t('crypt.suffix_decrypt')}</label>
             <input
               id="suffix-input"
@@ -111,25 +112,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               value={outputSuffix}
               onChange={(e) => setOutputSuffix(e.target.value)}
               className="station-input"
-              style={{ fontSize: '0.85rem' }}
             />
           </div>
         </div>
 
         {canProcess && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
+          <div className="flex-row" style={{ justifyContent: 'flex-end', marginTop: '12px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
             <button 
               className={`station-btn ${mode === 'encrypt' ? 'station-btn-primary' : ''}`}
-              style={{ 
-                height: '48px', 
-                padding: '0 32px', 
-                fontSize: '0.9rem', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px',
-                minWidth: '180px',
-                justifyContent: 'center'
-              }}
+              style={{ padding: '0 32px', height: '48px', minWidth: '200px' }}
               disabled={isProcessing}
               onClick={onProcess}
             >

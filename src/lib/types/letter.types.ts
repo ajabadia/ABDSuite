@@ -22,6 +22,8 @@ export interface LetterTemplate {
   content?: string; // HTML with {{variables}}
   binaryContent?: ArrayBuffer; // Binary .docx
   config?: TemplateComposition;
+  version?: string;
+  isActive?: boolean;
   updatedAt: number;
 }
 
@@ -122,6 +124,8 @@ export interface LetterMapping {
   templateId: number;
   etlPresetId: number;
   mappings: VariableMapping[];
+  version?: string;
+  isActive?: boolean;
   updatedAt: number;
 }
 

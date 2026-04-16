@@ -173,6 +173,13 @@ export const CheckIcon: React.FC<IconProps> = ({ size = 24, className }) => (
   </svg>
 );
 
+export const CheckCircleIcon: React.FC<IconProps> = ({ size = 24, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" className={className}>
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+    <polyline points="22 4 12 14.01 9 11.01" />
+  </svg>
+);
+
 export const FileIcon: React.FC<IconProps> = ({ size = 24, className }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" className={className}>
     <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
@@ -260,5 +267,24 @@ export const UploadIcon: React.FC<IconProps> = ({ size = 24, className }) => (
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
     <polyline points="17 8 12 3 7 8" />
     <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);
+
+export const ChevronDownIcon: React.FC<IconProps> = ({ size = 24, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" className={className}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
+export const ChevronUpIcon: React.FC<IconProps> = ({ size = 24, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" className={className}>
+    <path d="m18 15-6-6-6 6" />
+  </svg>
+);
+
+export const PlusIcon: React.FC<IconProps> = ({ size = 24, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="square" className={className}>
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );

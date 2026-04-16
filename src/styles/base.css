@@ -1,0 +1,30 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+}
+
+html, body {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: var(--font-mono) !important;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* CRT components DISABLED in Aseptic v4 */
+.crt-overlay {
+  display: none;
+}
+
+/* Text status utility classes */
+.txt-ok { color: var(--status-ok); }
+.txt-warn { color: var(--status-warn); }
+.txt-err { color: var(--status-err); }
+.txt-dim { opacity: 0.5; }
+.txt-bold { font-weight: 800; }

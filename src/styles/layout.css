@@ -1,0 +1,85 @@
+.shell-container {
+  display: grid;
+  grid-template-areas: 
+    "sidebar topbar"
+    "sidebar content"
+    "sidebar status";
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 64px 1fr 32px;
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg-color);
+}
+
+.shell-sidebar {
+  grid-area: sidebar;
+  width: 280px;
+  background: var(--surface-color);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--snap);
+  z-index: 1000;
+}
+
+.shell-sidebar.collapsed {
+  width: 80px;
+}
+
+.shell-topbar {
+  grid-area: topbar;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.shell-content {
+  grid-area: content;
+  overflow-y: auto;
+  padding: var(--panel-padding);
+  background: var(--bg-color);
+}
+
+.shell-status {
+  grid-area: status;
+  background: var(--surface-color);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+}
+
+/* --- SCROLLBAR SYSTEM (Universal) --- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}

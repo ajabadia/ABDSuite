@@ -26,10 +26,9 @@ import {
   UploadIcon,
   HelpCircleIcon,
   XIcon,
-  CogIcon
+  CogIcon,
+  UndoIcon
 } from '@/components/common/Icons';
-
-import styles from './LetterPresetEditor.module.css';
 
 const DEFAULT_CONFIG: GawebConfig = {
   active: true,
@@ -59,6 +58,8 @@ const LetterPresetEditor: React.FC = () => {
   
   const [formData, setFormData] = useState<EtlPreset | null>(null);
   const [helpTopic, setHelpTopic] = useState<{title: string, content: string} | null>(null);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [undoStack, setUndoStack] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Sync selection to form
@@ -110,6 +111,17 @@ const LetterPresetEditor: React.FC = () => {
     }
   };
 
+  const recordSnapshot = () => {
+    if (formData) setUndoStack(prev => [...prev.slice(-19), JSON.stringify(formData)]);
+  };
+
+  const undo = () => {
+    if (undoStack.length === 0) return;
+    const last = undoStack[undoStack.length - 1];
+    setUndoStack(prev => prev.slice(0, -1));
+    setFormData(JSON.parse(last));
+  };
+
   const handleSave = async () => {
     if (!formData) return;
     
@@ -122,11 +134,56 @@ const LetterPresetEditor: React.FC = () => {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
+    recordSnapshot();
     await db.presets.put({
       ...formData,
       updatedAt: Date.now()
     });
     alert('MODELO GUARDADO CON ÉXITO.');
+  };
+
+  const handleExportAll = async () => {
+    const data = await db.presets.toArray();
+    const exportPath = {
+      type: 'abdfn_presets_backup',
+      payload: data,
+      exportedAt: Date.now()
+    };
+    const blob = new Blob([JSON.stringify(exportPath, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ABDFN_PRESETS_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e: any) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          if (data.type === 'abdfn_presets_backup' && Array.isArray(data.payload)) {
+            for (const p of data.payload) {
+              const { id, ...cleanPreset } = p;
+              await db.presets.add(cleanPreset);
+            }
+            alert('MODELOS IMPORTADOS CON ÉXITO.');
+          } else {
+            alert('FORMATO DE ARCHIVO NO VÁLIDO.');
+          }
+        } catch (err) {
+          console.error('IMPORT_ERROR', err);
+          alert('ERROR AL IMPORTAR ARCHIVO.');
+        }
+      }
+    };
+    input.click();
   };
 
   const updateGaweb = (field: keyof GawebConfig, value: any) => {
@@ -141,14 +198,14 @@ const LetterPresetEditor: React.FC = () => {
     });
   };
 
-  const renderField = (label: string, helpKey: string | null, children: React.ReactNode, errorKey?: string, className?: string) => (
-    <div className={`flex-col ${className || ''}`} style={{ gap: '4px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between' }}>
-        <label className="station-label" style={{ marginBottom: 0 }}>{label}</label>
+  const renderField = (label: string, helpKey: string | null, children: React.ReactNode, errorKey?: string, className: string = "") => (
+    <div className={`station-form-field ${className}`}>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <label className="station-label">{label}</label>
         {helpKey && (
           <button 
             type="button"
-            className={styles.helpBtn}
+            className="station-help-btn"
             onClick={() => setHelpTopic({ title: label, content: GAWEB_HELP[helpKey] || t(`letter.help.${helpKey}`) })}
           >
             ?
@@ -166,7 +223,7 @@ const LetterPresetEditor: React.FC = () => {
   const filteredFormatos = FORMATOS_GAWEB.filter(f => f.extra === currentSoporte);
 
   return (
-    <div className={styles.container}>
+    <div className="flex-col" style={{ gap: '24px' }}>
       {/* 1. Registro Técnico (Unified Style) */}
       <section className="station-registry">
         <div className="station-registry-header" onClick={() => setIsRegistryExpanded(!isRegistryExpanded)}>
@@ -177,138 +234,176 @@ const LetterPresetEditor: React.FC = () => {
           {isRegistryExpanded ? <ArrowUpIcon size={20} /> : <ArrowDownIcon size={20} />}
         </div>
 
-        {isRegistryExpanded && (
-          <div className="station-registry-content">
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button className="station-btn station-btn-primary" style={{ flex: 1, height: '48px', fontWeight: 900 }} onClick={handleCreate}>
-                [+] NUEVO MODELO CARTA
-              </button>
-              <button className="station-btn" style={{ width: '64px' }} title="Importar Backup"><UploadIcon size={18} /></button>
-            </div>
-            
-            <div className="flex-col" style={{ gap: '8px' }}>
-              <div className="station-registry-sync-header">
-                <span className="station-registry-sync-title">SYNCHRONIZATION</span>
-                <div className="station-registry-sync-actions">
-                  <button className="station-registry-sync-btn">JSON↓</button>
-                  <button className="station-registry-sync-btn">ALL↑</button>
-                </div>
-              </div>
+        <div className={`station-registry-anim-container ${isRegistryExpanded ? 'expanded' : ''}`}>
+          <div className="station-registry-anim-content">
+            <div className="station-registry-content" style={{ gap: '16px' }}>
+              <div className="station-registry-actions" style={{ justifyContent: 'space-between' }}>
+                 <div className="flex-row" style={{ gap: '8px' }}>
+                   <button 
+                      className="station-btn station-registry-btn-side" 
+                      onClick={handleExportAll}
+                      title="Exportar Modelos (JSON↓)"
+                   >
+                      <DownloadIcon size={14} /> <span style={{fontSize: '0.65rem', fontWeight: 800}}>JSON↓</span>
+                   </button>
+                   <button 
+                      className="station-btn station-registry-btn-side" 
+                      onClick={handleImport}
+                      title="Importar Modelos (ALL↑)"
+                   >
+                      <UploadIcon size={14} /> <span style={{fontSize: '0.65rem', fontWeight: 800}}>ALL↑</span>
+                   </button>
+                 </div>
 
-              <div className="station-registry-list">
-                {presets.map(p => (
-                  <div 
-                    key={p.id} 
-                    className={`station-registry-item ${selectedId === p.id ? 'active' : ''}`}
-                    onClick={() => { setSelectedId(p.id!); setIsRegistryExpanded(false); }}
-                  >
-                    <div className="station-registry-item-left">
-                       <div className="station-registry-item-icon"><ListIcon size={16} /></div>
-                       <div className="station-registry-item-info">
-                          <span className="station-registry-item-name">{p.name}</span>
-                          <span className="station-registry-item-meta">
-                             v{p.version} <span className="station-registry-item-status">ACTIVE</span>
-                          </span>
-                       </div>
+                 <button 
+                    className="station-btn station-btn-primary station-registry-btn-main" 
+                    onClick={handleCreate}
+                    style={{ flex: 1, maxWidth: '300px' }}
+                 >
+                    [+] NUEVO MODELO
+                 </button>
+              </div>
+              
+              <div className="flex-col" style={{ gap: '8px' }}>
+                <div className="station-registry-list">
+                  {presets.length === 0 && (
+                    <div className="station-empty-state" style={{ minHeight: '120px' }}>
+                      <span className="station-shimmer-text">SIN MODELOS REGISTRADOS</span>
                     </div>
-                    <div className="station-registry-item-actions">
-                       <button className="station-registry-action-btn" onClick={(e) => { e.stopPropagation(); handleDelete(p.id!); }}><TrashIcon size={16} /></button>
+                  )}
+                  {presets.map(p => (
+                    <div 
+                      key={p.id} 
+                      className={`station-registry-item ${selectedId === p.id ? 'active' : ''}`}
+                      onClick={() => { setSelectedId(p.id!); setIsRegistryExpanded(false); }}
+                    >
+                      <div className="station-registry-item-left">
+                         <div className="station-registry-item-icon"><ListIcon size={16} /></div>
+                         <div className="station-registry-item-info">
+                            <span className="station-registry-item-name">{p.name}</span>
+                            <span className="station-registry-item-meta">
+                               v{p.version} • {p.isActive ? 'ACTIVE' : 'DRAFT'}
+                            </span>
+                         </div>
+                      </div>
+                      <div className="station-registry-item-actions">
+                         <button className="station-registry-action-btn" onClick={(e) => { e.stopPropagation(); handleDelete(p.id!); }}>
+                            <TrashIcon size={16} style={{ color: 'var(--status-err)' }} />
+                         </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        )}
+        </div>
       </section>
 
       {/* 2. Zona de Edición Industrial */}
       {formData ? (
-        <div className={styles.mainEditor}>
-          <div className={styles.configGrid}>
-            
-            {/* Bloque: Identificación */}
-            <span className={styles.sectionTitle}>IDENTIFICACIÓN</span>
-            <section className="station-card">
-              <div className={styles.cardContent}>
-                {renderField('Nombre del Preset', null, 
-                  <input className="station-input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value.toUpperCase()})} />, 'name', styles.fieldMedium)}
-                {renderField('Descripción', null,
-                  <input className="station-input" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />, undefined, styles.fieldLarge)}
-                <div className={`${styles.fieldSmall} flex-row`} style={{ alignItems: 'center', marginTop: '24px' }}>
-                  <input type="checkbox" id="chk-active" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} />
-                  <label htmlFor="chk-active" className="station-label" style={{ marginBottom: 0 }}>Modelo visible</label>
+        <div className="flex-col fade-in" style={{ gap: '24px' }}>
+          
+          {/* 1. Cabecera Industrial Aseptic v4 */}
+          <header className="station-card">
+            <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
+              <div className="flex-col" style={{ gap: '4px' }}>
+                <h2 className="station-title-main" style={{ margin: 0 }}>{formData.name}</h2>
+                <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
+                   <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>V{formData.version}</span>
+                   <span className={`station-badge ${formData.isActive ? 'station-badge-green' : 'station-badge-orange'}`}>
+                      {formData.isActive ? 'ACTIVO' : 'DRAFT'}
+                   </span>
                 </div>
               </div>
-            </section>
+
+              <div className="flex-row" style={{ gap: '12px' }}>
+                <button className="station-btn" onClick={undo} disabled={undoStack.length === 0} title="Deshacer"><UndoIcon size={16} /></button>
+                <button className="station-btn" onClick={() => setShowConfigModal(true)} title="Configuración de Modelo">
+                  <CogIcon size={16} /> CONFIGURACIÓN
+                </button>
+                <button className="station-btn station-btn-primary" onClick={handleSave}>
+                  <SaveIcon size={16} /> GUARDAR MODELO
+                </button>
+              </div>
+            </div>
+
+            <div className="station-tech-summary" style={{ marginTop: '16px' }}>
+              <div className="station-tech-item"><span className="station-tech-label">Soporte:</span> {formData.gawebConfig?.tipoSoporte}</div>
+              <div className="station-tech-item"><span className="station-tech-label">Formato:</span> {formData.gawebConfig?.formatoCarta}</div>
+              <div className="station-tech-item"><span className="station-tech-label">Entorno:</span> {formData.gawebConfig?.codigoEntorno}</div>
+              <div className="station-tech-item"><span className="station-tech-label">Cód. Doc:</span> {formData.gawebConfig?.codigoDocumento}</div>
+            </div>
+          </header>
+
+          <div className="flex-col" style={{ gap: '32px' }}>
 
             {/* Bloque: Técnica */}
-            <span className={styles.sectionTitle}>CONFIGURACIÓN TÉCNICA</span>
+            <span className="station-form-section-title">CONFIGURACIÓN TÉCNICA</span>
             <section className="station-card">
-              <div className={styles.cardContent}>
+              <div className="station-form-grid">
                 {renderField('Tipo Soporte', 'soporte',
                   <select className="station-select" value={formData.gawebConfig?.tipoSoporte} onChange={e => updateGaweb('tipoSoporte', e.target.value)}>
                     {SOPORTES_GAWEB.map(s => <option key={s.globalId} value={s.globalId}>{s.label}</option>)}
-                  </select>, undefined, styles.fieldSmall)}
+                  </select>, undefined, 'small')}
                 
                 {renderField('Formato GAWEB', 'formato',
                   <select className="station-select" value={formData.gawebConfig?.formatoCarta} onChange={e => updateGaweb('formatoCarta', e.target.value)}>
                     {filteredFormatos.map(f => <option key={f.globalId} value={f.globalId}>{f.label}</option>)}
-                  </select>, undefined, styles.fieldMedium)}
+                  </select>, undefined, 'medium')}
 
                 {renderField('Método de Envío', null,
                   <select className="station-select" value={formData.gawebConfig?.forzarMetodo} onChange={e => updateGaweb('forzarMetodo', e.target.value)}>
                     {METODOS_ENVIO.map(m => <option key={m.globalId} value={m.globalId}>{m.label}</option>)}
-                  </select>, undefined, styles.fieldMedium)}
+                  </select>, undefined, 'medium')}
               </div>
             </section>
 
             {/* Bloque: Segmentación */}
-            <span className={styles.sectionTitle}>SEGMENTACIÓN Y HOST</span>
+            <span className="station-form-section-title">SEGMENTACIÓN Y HOST</span>
             <section className="station-card">
-              <div className={styles.cardContent}>
+              <div className="station-form-grid">
                 {renderField('Tipo Destinatario', null,
                   <select className="station-select" value={formData.gawebConfig?.tipoDestino} onChange={e => updateGaweb('tipoDestino', e.target.value)}>
                     {DESTINOS_GAWEB.map(d => <option key={d.globalId} value={d.globalId}>{d.label}</option>)}
-                  </select>, undefined, styles.fieldSmall)}
+                  </select>, undefined, 'small')}
                 {renderField('Indicador Destino', null,
                   <select className="station-select" value={formData.gawebConfig?.indicadorDestino} onChange={e => updateGaweb('indicadorDestino', e.target.value)}>
                     {INDICADORES_DESTINO.map(i => <option key={i.globalId} value={i.globalId}>{i.label}</option>)}
-                  </select>, undefined, styles.fieldSmall)}
+                  </select>, undefined, 'small')}
                 {renderField('Entorno Host', 'entorno',
-                  <input className="station-input" value={formData.gawebConfig?.codigoEntorno} onChange={e => updateGaweb('codigoEntorno', e.target.value.toUpperCase())} />, undefined, styles.fieldMedium)}
+                  <input className="station-input" value={formData.gawebConfig?.codigoEntorno} onChange={e => updateGaweb('codigoEntorno', e.target.value.toUpperCase())} />, undefined, 'medium')}
                 
                 {renderField('F. Generación (Default)', 'fechas',
-                  <input className="station-input" value={formData.gawebConfig?.fechaGeneracion} onChange={e => updateGaweb('fechaGeneracion', e.target.value)} />, undefined, styles.fieldSmall)}
+                  <input className="station-input" value={formData.gawebConfig?.fechaGeneracion} onChange={e => updateGaweb('fechaGeneracion', e.target.value)} />, undefined, 'small')}
                 {renderField('F. Carta (Default)', 'fechas',
-                  <input className="station-input" value={formData.gawebConfig?.fechaCarta} onChange={e => updateGaweb('fechaCarta', e.target.value)} />, undefined, styles.fieldSmall)}
+                  <input className="station-input" value={formData.gawebConfig?.fechaCarta} onChange={e => updateGaweb('fechaCarta', e.target.value)} />, undefined, 'small')}
               </div>
             </section>
-
             {/* Bloque: Opcionales */}
-            <span className={styles.sectionTitle}>OPCIONALES GAWEB</span>
+            <span className="station-form-section-title">OPCIONALES GAWEB</span>
             <section className="station-card">
-              <div className={styles.cardContent}>
+              <div className="station-form-grid">
                 {renderField('Idioma (ISO)', 'idioma',
                   <select className="station-select" value={formData.gawebConfig?.idioma} onChange={e => updateGaweb('idioma', e.target.value)}>
                     {IDIOMAS_ISO.map(i => <option key={i.globalId} value={i.globalId}>{i.label}</option>)}
-                  </select>, undefined, styles.fieldSmall)}
+                  </select>, undefined, 'small')}
                 {renderField('Vía Reparto', 'viaReparto',
                   <select className="station-select" value={formData.gawebConfig?.viaReparto} onChange={e => updateGaweb('viaReparto', e.target.value)}>
                     {VIAS_REPARTO.map(v => <option key={v.globalId} value={v.globalId}>{v.label}</option>)}
-                  </select>, undefined, styles.fieldSmall)}
+                  </select>, undefined, 'small')}
                 {renderField('Cód. Doc', 'codDoc',
-                  <input className="station-input" maxLength={6} value={formData.gawebConfig?.codigoDocumento} onChange={e => updateGaweb('codigoDocumento', e.target.value.toUpperCase())} />, 'codDoc', styles.fieldSmall)}
+                  <input className="station-input" maxLength={6} value={formData.gawebConfig?.codigoDocumento} onChange={e => updateGaweb('codigoDocumento', e.target.value.toUpperCase())} />, 'codDoc', 'small')}
                 {renderField('Oficina', 'oficina',
-                  <input className="station-input" maxLength={5} value={formData.gawebConfig?.oficina} onChange={e => updateGaweb('oficina', e.target.value)} />, 'oficina', styles.fieldSmall)}
+                  <input className="station-input" maxLength={5} value={formData.gawebConfig?.oficina} onChange={e => updateGaweb('oficina', e.target.value)} />, 'oficina', 'small')}
                 {renderField('Páginas', 'paginas',
-                  <input className="station-input" value={formData.gawebConfig?.paginasDefecto} onChange={e => updateGaweb('paginasDefecto', Number(e.target.value))} />, undefined, styles.fieldSmall)}
+                  <input className="station-input" value={formData.gawebConfig?.paginasDefecto} onChange={e => updateGaweb('paginasDefecto', Number(e.target.value))} />, undefined, 'small')}
               </div>
             </section>
 
           </div>
 
-          <footer className={styles.footer}>
+          <footer className="station-modal-footer" style={{ border: 'none', background: 'transparent', padding: 0, marginTop: '24px' }}>
             <button className="station-btn" onClick={() => setSelectedId(null)}>CANCELAR CAMBIOS</button>
             <button className="station-btn station-btn-primary" style={{ padding: '0 32px', height: '48px' }} onClick={handleSave}>
               <SaveIcon size={18} /> GUARDAR CONFIGURACION DEL MODELO
@@ -322,18 +417,56 @@ const LetterPresetEditor: React.FC = () => {
         </div>
       )}
 
-      {/* Ayuda Técnica Contextual */}
+      {/* Modal de Configuración de Modelo */}
+      {showConfigModal && (
+        <div className="station-modal-overlay" onClick={() => setShowConfigModal(false)}>
+          <div className="station-modal" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <header className="station-modal-header">
+              <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem' }}>CONFIGURACIÓN DEL MODELO</h3>
+              <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={() => setShowConfigModal(false)}><XIcon size={20} /></button>
+            </header>
+            <div className="station-modal-content">
+              <div className="station-form-grid">
+                <div className="station-form-field full">
+                  <label className="station-label">Nombre del Modelo</label>
+                  <input className="station-input" value={formData?.name} onChange={e => setFormData({...formData!, name: e.target.value.toUpperCase()})} />
+                </div>
+                <div className="station-form-field">
+                  <label className="station-label">Versión</label>
+                  <input className="station-input" value={formData?.version} onChange={e => setFormData({...formData!, version: e.target.value})} />
+                </div>
+                <div className="station-form-field full">
+                  <label className="station-label">Descripción</label>
+                  <input className="station-input" value={formData?.description} onChange={e => setFormData({...formData!, description: e.target.value})} />
+                </div>
+                <div className="station-form-field full">
+                   <div className="flex-row" style={{ gap: '12px', marginTop: '8px' }}>
+                    <input type="checkbox" id="model-active" checked={formData?.isActive} onChange={e => setFormData({...formData!, isActive: e.target.checked})} />
+                    <label htmlFor="model-active" className="station-label" style={{ marginBottom: 0 }}>Modelo activo para producción</label>
+                   </div>
+                </div>
+              </div>
+            </div>
+            <footer className="station-modal-footer">
+               <button className="station-btn station-btn-primary" style={{ width: '100%' }} onClick={() => setShowConfigModal(false)}>ACEPTAR Y CERRAR</button>
+            </footer>
+          </div>
+        </div>
+      )}
+
       {helpTopic && (
-        <div className="station-modal-overlay" style={{ zIndex: 6000 }} onClick={() => setHelpTopic(null)}>
+        <div className="station-modal-overlay" onClick={() => setHelpTopic(null)}>
            <div className="station-modal" style={{ maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
-              <header style={{ paddingBottom: '16px', borderBottom: '1px solid var(--border-color)', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                 <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>AYUDA / {helpTopic.title}</span>
+              <header className="station-modal-header">
+                 <h3 className="station-registry-item-name" style={{ fontSize: '1rem' }}>AYUDA / {helpTopic.title}</h3>
                  <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={() => setHelpTopic(null)}><XIcon size={18} /></button>
               </header>
-              <div style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: '1.5', whiteSpace: 'pre-line' }}>
+              <div className="station-modal-content" style={{ fontSize: '0.9rem', lineHeight: '1.5', whiteSpace: 'pre-line' }}>
                  {helpTopic.content}
               </div>
-              <button className="station-btn station-btn-primary" style={{ marginTop: '24px', width: '100%' }} onClick={() => setHelpTopic(null)}>ENTENDIDO</button>
+              <footer className="station-modal-footer">
+                <button className="station-btn station-btn-primary" style={{ width: '100%' }} onClick={() => setHelpTopic(null)}>ENTENDIDO</button>
+              </footer>
            </div>
         </div>
       )}

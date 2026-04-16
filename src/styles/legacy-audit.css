@@ -1,0 +1,27 @@
+/* 
+   LEGACY AUDIT SYSTEM (Phase F Integration)
+   Usa estos colores estrambóticos para detectar qué partes de la App 
+   aún usan clases antiguas que deben ser refactorizadas.
+*/
+
+.station-registry-sync-header,
+.station-registry-sync-title,
+.station-registry-sync-actions,
+.station-registry-sync-btn,
+.station-registry-item,
+.station-registry-item-left,
+.station-registry-item-icon,
+.station-registry-item-info,
+.station-registry-item-name,
+.station-registry-item-meta,
+.station-registry-item-status,
+.station-registry-item-actions,
+.station-registry-action-btn {
+  outline: 2px dashed #f0f !important; /* Magenta neón para identificar componentes de registro aún no centralizados o marcados para revisión */
+}
+
+/* Clases que van a desaparecer pronto */
+.station-tabs,
+.tab-item {
+  border-bottom: 2px solid #0ff !important; /* Cian neón */
+}

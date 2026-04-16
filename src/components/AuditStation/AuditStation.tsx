@@ -93,61 +93,59 @@ const AuditStation: React.FC = () => {
   return (
     <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
       
-      <div className="station-card">
-        <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '8px' }}>Control de Auditoría</h3>
+      <div className="station-card flex-col" style={{ gap: '20px' }}>
+        <span className="station-form-section-title">CONTROL DE AUDITORÍA TÉCNICA</span>
         
-        <div className="flex-col" style={{ gap: '16px' }}>
-          <div className="grid-2" style={{ gap: '24px' }}>
-            <div className="flex-col" style={{ gap: '4px' }}>
-              <label className="station-label">{t('audit.select_file')}</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input className="station-input" readOnly value={indexFile?.name || ''} placeholder="Esperando fichero .TXT..." />
-                <input type="file" id="index-input" style={{ display: 'none' }} onChange={(e) => handleFileChange(e, 'index')} />
-                <button className="station-btn" onClick={() => document.getElementById('index-input')?.click()}>...</button>
-              </div>
-            </div>
-
-            <div className="flex-col" style={{ gap: '4px' }}>
-              <label className="station-label">{t('audit.select_archive')}</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input className="station-input" readOnly value={archiveFile?.name || ''} placeholder="Esperando paquete .ZIP..." />
-                <input type="file" id="archive-input" style={{ display: 'none' }} accept=".zip" onChange={(e) => handleFileChange(e, 'archive')} />
-                <button className="station-btn" onClick={() => document.getElementById('archive-input')?.click()}>...</button>
-              </div>
+        <div className="station-form-grid">
+          <div className="station-form-field">
+            <label className="station-label">{t('audit.select_file')}</label>
+            <div className="flex-row" style={{ gap: '8px' }}>
+              <input className="station-input" readOnly value={indexFile?.name || ''} placeholder="ESPERANDO .TXT..." />
+              <input type="file" id="index-input" style={{ display: 'none' }} onChange={(e) => handleFileChange(e, 'index')} />
+              <button className="station-btn" style={{ minWidth: '40px' }} onClick={() => document.getElementById('index-input')?.click()}>...</button>
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-color)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', gap: '24px', fontSize: '0.8rem' }}>
-              {result ? (
-                <>
-                  <span>Registros: <b className="txt-ok">{result.lines}</b></span>
-                  <span>Anomalías: <b className={result.errors.length > 0 ? 'txt-err' : 'txt-ok'}>{result.errors.length}</b></span>
-                </>
-              ) : (
-                <span style={{ opacity: 0.5 }}>Estado: LISTO PARA VALIDACIÓN</span>
-              )}
+          <div className="station-form-field">
+            <label className="station-label">{t('audit.select_archive')}</label>
+            <div className="flex-row" style={{ gap: '8px' }}>
+              <input className="station-input" readOnly value={archiveFile?.name || ''} placeholder="ESPERANDO .ZIP..." />
+              <input type="file" id="archive-input" style={{ display: 'none' }} accept=".zip" onChange={(e) => handleFileChange(e, 'archive')} />
+              <button className="station-btn" style={{ minWidth: '40px' }} onClick={() => document.getElementById('archive-input')?.click()}>...</button>
             </div>
-            
-            <button 
-              className="station-btn station-btn-primary" 
-              disabled={!indexFile || isValidating}
-              onClick={runValidation}
-              style={{ width: '200px' }}
-            >
-              {isValidating ? 'Validando...' : t('audit.validate')}
-            </button>
           </div>
+        </div>
+
+        <div className="station-registry-sync-header" style={{ padding: '16px', borderRadius: '4px', marginTop: '8px' }}>
+          <div className="flex-row" style={{ gap: '24px', fontSize: '0.75rem', fontWeight: 800 }}>
+            {result ? (
+              <>
+                <span>REGISTROS: <span className="station-badge station-badge-blue">{result.lines}</span></span>
+                <span>ANOMALÍAS: <span className={`station-badge ${result.errors.length > 0 ? 'station-badge-orange' : 'station-badge-blue'}`}>{result.errors.length}</span></span>
+              </>
+            ) : (
+              <span style={{ opacity: 0.5 }}>STATUS_READY: WAITING_FOR_PAYLOAD</span>
+            )}
+          </div>
+          
+          <button 
+            className="station-btn station-btn-primary" 
+            disabled={!indexFile || isValidating}
+            onClick={runValidation}
+            style={{ width: '220px', height: '40px' }}
+          >
+            {isValidating ? 'VALIDANDO...' : t('audit.validate').toUpperCase()}
+          </button>
         </div>
       </div>
 
-      <div className="flex-col" style={{ flex: 1, minHeight: 0, border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--surface-color)', overflow: 'hidden' }}>
-        <div className="station-tabs">
-          <button className={`tab-item ${activeTab === 'DATA' ? 'active' : ''}`} onClick={() => setActiveTab('DATA')}>
-            {t('audit.tab_data')}
+      <div className="flex-col" style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        <div className="station-tabs" style={{ background: 'var(--surface-color)', borderBottom: '1px solid var(--border-color)', borderRadius: '8px 8px 0 0' }}>
+          <button className={`station-tab-btn ${activeTab === 'DATA' ? 'active' : ''}`} onClick={() => setActiveTab('DATA')}>
+            <FileTextIcon size={14} /> {t('audit.tab_data').toUpperCase()}
           </button>
-          <button className={`tab-item ${activeTab === 'ERRORS' ? 'active' : ''}`} onClick={() => setActiveTab('ERRORS')}>
-            {t('audit.tab_errors')}
+          <button className={`station-tab-btn ${activeTab === 'ERRORS' ? 'active' : ''}`} onClick={() => setActiveTab('ERRORS')}>
+            <AlertTriangleIcon size={14} /> {t('audit.tab_errors').toUpperCase()}
           </button>
         </div>
 
@@ -182,26 +180,31 @@ const AuditStation: React.FC = () => {
               <table className="station-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '50px' }}>Lín.</th>
-                    <th style={{ width: '120px' }}>Campo</th>
-                    <th style={{ width: '80px' }}>Severidad</th>
-                    <th>Mensaje de Auditoría</th>
+                    <th style={{ width: '50px' }}>LÍN.</th>
+                    <th style={{ width: '120px' }}>CAMPO</th>
+                    <th style={{ width: '80px' }}>SEVERIDAD</th>
+                    <th>MENSAJE DE AUDITORÍA</th>
                   </tr>
                 </thead>
                 <tbody>
                   {result.errors.map((err, idx) => (
-                    <tr key={idx} style={{ background: err.severity === 'ERROR' ? 'rgba(var(--status-err), 0.05)' : 'transparent' }}>
-                      <td style={{ fontWeight: 700 }}>{err.line || '-'}</td>
-                      <td>{err.field}</td>
-                      <td className={err.severity === 'ERROR' ? 'txt-err' : 'txt-warn'} style={{ fontWeight: 700 }}>{err.severity}</td>
-                      <td style={{ whiteSpace: 'normal', opacity: 0.8 }}>{t(err.messageKey, { file: err.value })}</td>
+                    <tr key={idx} style={{ background: err.severity === 'ERROR' ? 'rgba(239, 68, 68, 0.05)' : 'transparent' }}>
+                      <td style={{ fontWeight: 800 }}>{err.line || '-'}</td>
+                      <td style={{ fontSize: '0.75rem', opacity: 0.7 }}>{err.field}</td>
+                      <td>
+                        <span className={`station-badge ${err.severity === 'ERROR' ? 'station-badge-orange' : 'station-badge-blue'}`}>{err.severity}</span>
+                      </td>
+                      <td style={{ whiteSpace: 'normal', opacity: 0.9, fontSize: '0.85rem' }}>{t(err.messageKey, { file: err.value })}</td>
                     </tr>
                   ))}
                   {result.errors.length === 0 && (
                     <tr>
-                      <td colSpan={4} style={{ textAlign: 'center', padding: '64px', opacity: 0.4 }}>
-                        <ShieldCheckIcon size={40} style={{ color: 'var(--status-ok)', marginBottom: '16px' }} />
-                        <div style={{ fontWeight: 700 }}>INTEGRIDAD VERIFICADA</div>
+                      <td colSpan={4}>
+                        <div className="station-empty-state" style={{ minHeight: '200px' }}>
+                          <ShieldCheckIcon size={48} style={{ color: 'var(--status-ok)', marginBottom: '16px' }} />
+                          <div style={{ fontWeight: 900, letterSpacing: '0.1rem' }}>INTEGRIDAD_VERIFICADA</div>
+                          <p style={{ opacity: 0.5, fontSize: '0.8rem' }}>No se han detectado anomalías estructurales en el flujo.</p>
+                        </div>
                       </td>
                     </tr>
                   )}
@@ -211,18 +214,18 @@ const AuditStation: React.FC = () => {
           )}
           
           {!result && (
-            <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.2 }}>
-              <FileIcon size={64} style={{ marginBottom: '16px' }} />
-              <p style={{ fontWeight: 600 }}>ESPERANDO FLUJO DE DATOS</p>
+            <div className="station-empty-state" style={{ height: '100%' }}>
+              <SearchIcon size={64} style={{ marginBottom: '16px', opacity: 0.2 }} />
+              <p style={{ fontWeight: 900, letterSpacing: '0.2rem', opacity: 0.3 }}>WAITING_FOR_DATA_STREAM</p>
             </div>
           )}
         </div>
       </div>
 
       {result && result.errors.length > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button className="station-btn" onClick={exportCsv}>
-            <DownloadIcon size={16} /> Exportar Reporte de Anomalías
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <button className="station-btn" style={{ padding: '0 24px', height: '40px', fontWeight: 800 }} onClick={exportCsv}>
+            <DownloadIcon size={16} /> EXPORTAR REPORTE DE ANOMALÍAS (.CSV)
           </button>
         </div>
       )}

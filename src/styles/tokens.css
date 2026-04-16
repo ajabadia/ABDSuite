@@ -1,0 +1,46 @@
+:root {
+  /* Common Design Tokens (Uncodixy Standard) */
+  --font-mono: 'Space Mono', 'Roboto Mono', monospace;
+  --panel-padding: 30px;
+  --border-thick: 1px;
+  --border-thin: 1px;
+  --radius-std: 8px;
+  --shadow-std: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --snap: 0.1s ease;
+}
+
+/* DARK: Slate Noir */
+[data-theme='dark'] {
+  --bg-color: #0f172a;
+  --surface-color: #1e293b;
+  --border-color: #334155;
+  --primary-color: #38bdf8;
+  --secondary-color: #818cf8;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent-color: #f43f5e;
+  --status-ok: #10b981;
+  --status-warn: #f59e0b;
+  --status-err: #ef4444;
+  --header-bg: #1e293b;
+  --header-text: #f8fafc;
+  --input-bg: #0f172a;
+}
+
+/* LIGHT: Cloud Canvas */
+[data-theme='light'] {
+  --bg-color: #fafafa;
+  --surface-color: #ffffff;
+  --border-color: #e2e8f0;
+  --primary-color: #2563eb;
+  --secondary-color: #7c3aed;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --accent-color: #d33;
+  --status-ok: #059669;
+  --status-warn: #d97706;
+  --status-err: #dc2626;
+  --header-bg: #ffffff;
+  --header-text: #0f172a;
+  --input-bg: #ffffff;
+}

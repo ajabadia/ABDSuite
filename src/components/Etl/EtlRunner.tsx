@@ -136,58 +136,54 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
     <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
       
       <div className="station-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase' }}>Control de Ejecución</h3>
+        <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
+          <span className="station-form-section-title">CONTROL DE EJECUCIÓN</span>
           {selectedPreset && (
-            <button className="station-btn" onClick={handleEditDesign} title="Modificar Diseño del Preset">
+            <button className="station-btn station-btn-gear" onClick={handleEditDesign} title="Modificar Diseño del Preset">
               <CogIcon size={16} /> EDITAR DISEÑO
             </button>
           )}
         </div>
 
-        <div className="flex-col" style={{ gap: '16px' }}>
-          <div className="grid-2" style={{ gap: '24px' }}>
-            <div className="flex-col" style={{ gap: '4px' }}>
-              <label className="station-label">Archivo de Entrada</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input className="station-input" readOnly value={inputFile?.name || ''} placeholder="Seleccionar CSV/TXT..." />
-                <input type="file" id="etl-run-in" style={{ display: 'none' }} onChange={e => setInputFile(e.target.files?.[0] || null)} />
-                <button className="station-btn" onClick={() => document.getElementById('etl-run-in')?.click()}>...</button>
-              </div>
+        <div className="station-form-grid" style={{ marginTop: '16px' }}>
+          <div className="station-form-field medium">
+            <label className="station-label">Archivo de Entrada</label>
+            <div className="flex-row" style={{ gap: '8px' }}>
+              <input className="station-input" readOnly value={inputFile?.name || ''} placeholder="Seleccionar CSV/TXT..." />
+              <input type="file" id="etl-run-in" style={{ display: 'none' }} onChange={e => setInputFile(e.target.files?.[0] || null)} />
+              <button className="station-btn" onClick={() => document.getElementById('etl-run-in')?.click()}>...</button>
             </div>
-            <div className="flex-col" style={{ gap: '4px' }}>
-              <label className="station-label">Carpeta de Salida</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input className="station-input" readOnly value={outputHandle?.name || ''} placeholder="Seleccionar destino..." />
-                <button className="station-btn" onClick={handlePickOutput}>...</button>
-              </div>
+          </div>
+          <div className="station-form-field medium">
+            <label className="station-label">Carpeta de Salida</label>
+            <div className="flex-row" style={{ gap: '8px' }}>
+              <input className="station-input" readOnly value={outputHandle?.name || ''} placeholder="Seleccionar destino..." />
+              <button className="station-btn" onClick={handlePickOutput}>...</button>
             </div>
           </div>
         </div>
       </div>
 
       <div className="station-card">
-        <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '8px' }}>Parámetros del Motor</h3>
-        <div className="grid-2" style={{ gap: '24px' }}>
-           <div className="flex-col" style={{ gap: '4px' }}>
+        <span className="station-form-section-title">PARÁMETROS DEL MOTOR</span>
+        <div className="station-form-grid" style={{ marginTop: '16px' }}>
+           <div className="station-form-field">
              <label className="station-label">Tamaño Partición</label>
              <input type="number" className="station-input" value={options.chunkSize} onChange={e => setOptions({...options, chunkSize: parseInt(e.target.value) || 0})} />
            </div>
-           <div className="flex-col" style={{ gap: '4px' }}>
+           <div className="station-form-field medium">
              <label className="station-label">Formato Salida</label>
              <select className="station-select" value={options.outputFormat} onChange={e => setOptions({...options, outputFormat: e.target.value as any})}>
                 <option value="CSV">Valores Separados por Punto y Coma (CSV)</option>
                 <option value="JSON">Estructura de Datos JSON</option>
              </select>
            </div>
-        </div>
-        <div className="grid-2" style={{ gap: '24px', marginTop: '12px' }}>
-           <div className="flex-col" style={{ gap: '4px' }}>
+           <div className="station-form-field">
              <label className="station-label">Fila de Inicio</label>
              <input type="number" className="station-input" value={options.startRow} onChange={e => setOptions({...options, startRow: parseInt(e.target.value) || 1})} />
            </div>
-           <div className="flex-col" style={{ gap: '4px' }}>
-             <label className="station-label">Fila Final (0 = Fin de Archivo)</label>
+           <div className="station-form-field">
+             <label className="station-label">Fila Final (0 = AUTO)</label>
              <input type="number" className="station-input" value={options.endRow} onChange={e => setOptions({...options, endRow: parseInt(e.target.value) || 0})} />
            </div>
         </div>

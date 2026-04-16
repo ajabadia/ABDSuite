@@ -88,14 +88,13 @@ const PresetEditorModal: React.FC<PresetEditorModalProps> = ({ preset, onSave, o
   const filteredFormatos = FORMATOS_GAWEB.filter(f => f.extra === currentSoporte);
 
   const renderField = (label: string, helpKey: string | null, children: React.ReactNode, errorKey?: string) => (
-    <div className="flex-col" style={{ gap: '4px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <label className="station-label" style={{ marginBottom: 0 }}>{label}</label>
+    <div className="station-form-field">
+      <div className="flex-row" style={{ alignItems: 'center', gap: '8px' }}>
+        <label className="station-label">{label}</label>
         {helpKey && (
           <button 
             type="button"
-            className="station-btn" 
-            style={{ padding: '2px 6px', fontSize: '0.65rem', minWidth: 'auto', boxShadow: 'none' }}
+            className="station-help-btn"
             onClick={() => setHelpTopic({ title: label, content: t(`letter.help.${helpKey}`) })}
           >
             ?
@@ -104,7 +103,7 @@ const PresetEditorModal: React.FC<PresetEditorModalProps> = ({ preset, onSave, o
       </div>
       {children}
       {errorKey && errors[errorKey] && (
-        <span className="txt-err" style={{ fontSize: '0.7rem' }}>{errors[errorKey].toUpperCase()}</span>
+        <span className="txt-err" style={{ fontSize: '0.7rem', fontWeight: 900 }}>{errors[errorKey].toUpperCase()}</span>
       )}
     </div>
   );
@@ -113,21 +112,21 @@ const PresetEditorModal: React.FC<PresetEditorModalProps> = ({ preset, onSave, o
     <div className="station-modal-overlay" onClick={onClose}>
       <div 
         className="station-modal" 
-        style={{ maxWidth: '900px', height: '90vh', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+        style={{ maxWidth: '900px' }}
         onClick={e => e.stopPropagation()}
       >
-        <header style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1rem', fontWeight: 800 }}>{t('letter.config_title')}</h2>
-          <button className="station-btn" style={{ padding: '4px', border: 'none' }} onClick={onClose}>
+        <header className="station-modal-header">
+          <h2 className="station-registry-item-name" style={{ fontSize: '1rem' }}>{t('letter.config_title')}</h2>
+          <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={onClose}>
             <XIcon size={20} />
           </button>
         </header>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div className="station-modal-content" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
           
-          <div className="flex-col">
-            <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase' }}>Identificación</h3>
-            <section className="station-card">
+          <div className="flex-col" style={{ gap: '20px' }}>
+            <span className="station-form-section-title">IDENTIFICACIÓN</span>
+            <section className="station-card flex-col" style={{ gap: '16px' }}>
               {renderField('Nombre del Preset', null, 
                 <input 
                   className="station-input" 
@@ -141,19 +140,20 @@ const PresetEditorModal: React.FC<PresetEditorModalProps> = ({ preset, onSave, o
                   value={formData.description} 
                   onChange={e => setFormData({...formData, description: e.target.value})} 
                 />)}
-              <div className="flex-row" style={{ alignItems: 'center', marginTop: '8px' }}>
+              <div className="station-checkbox-group" style={{ marginTop: '8px' }}>
                 <input 
                   type="checkbox" 
                   id="chk-active"
+                  className="station-checkbox"
                   checked={formData.isActive} 
                   onChange={e => setFormData({...formData, isActive: e.target.checked})} 
                 />
-                <label htmlFor="chk-active" className="station-label" style={{ marginBottom: 0 }}>Visible para los operadores</label>
+                <label htmlFor="chk-active" className="station-label" style={{ margin: 0, cursor: 'pointer' }}>Visible para los operadores</label>
               </div>
             </section>
 
-            <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginTop: '12px' }}>Configuración Técnica</h3>
-            <section className="station-card">
+            <span className="station-form-section-title" style={{ marginTop: '12px' }}>CONFIGURACIÓN TÉCNICA</span>
+            <section className="station-card flex-col" style={{ gap: '16px' }}>
               {renderField('Tipo Soporte', null,
                 <select className="station-select" value={formData.gawebConfig?.tipoSoporte} onChange={e => updateGaweb('tipoSoporte', e.target.value)}>
                   {SOPORTES_GAWEB.map(s => <option key={s.globalId} value={s.globalId}>{s.label}</option>)}
@@ -171,10 +171,10 @@ const PresetEditorModal: React.FC<PresetEditorModalProps> = ({ preset, onSave, o
             </section>
           </div>
 
-          <div className="flex-col">
-            <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase' }}>Segmentación y Host</h3>
-            <section className="station-card">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="flex-col" style={{ gap: '20px' }}>
+            <span className="station-form-section-title">SEGMENTACIÓN Y HOST</span>
+            <section className="station-card flex-col" style={{ gap: '16px' }}>
+              <div className="station-form-grid">
                 {renderField('Tipo Destinatario', null,
                   <select className="station-select" value={formData.gawebConfig?.tipoDestino} onChange={e => updateGaweb('tipoDestino', e.target.value)}>
                     {DESTINOS_GAWEB.map(d => <option key={d.globalId} value={d.globalId}>{d.label}</option>)}
@@ -188,7 +188,7 @@ const PresetEditorModal: React.FC<PresetEditorModalProps> = ({ preset, onSave, o
               {renderField('Entorno Host', 'entorno',
                 <input className="station-input" value={formData.gawebConfig?.codigoEntorno} onChange={e => updateGaweb('codigoEntorno', e.target.value)} />)}
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="station-form-grid">
                 {renderField('F. Generación (Default)', 'fechas',
                   <input className="station-input" value={formData.gawebConfig?.fechaGeneracion} onChange={e => updateGaweb('fechaGeneracion', e.target.value.replace(/\D/g, ''))} />)}
                 {renderField('F. Carta (Default)', 'fechas',
@@ -196,9 +196,9 @@ const PresetEditorModal: React.FC<PresetEditorModalProps> = ({ preset, onSave, o
               </div>
             </section>
 
-            <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase', marginTop: '12px' }}>Opcionales GAWEB</h3>
-            <section className="station-card">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <span className="station-form-section-title" style={{ marginTop: '12px' }}>OPCIONALES GAWEB</span>
+            <section className="station-card flex-col" style={{ gap: '16px' }}>
+              <div className="station-form-grid">
                 {renderField('Idioma (ISO)', 'idioma',
                   <select className="station-select" value={formData.gawebConfig?.idioma} onChange={e => updateGaweb('idioma', e.target.value)}>
                     {IDIOMAS_ISO.map(i => <option key={i.globalId} value={i.globalId}>{i.label}</option>)}
@@ -209,20 +209,20 @@ const PresetEditorModal: React.FC<PresetEditorModalProps> = ({ preset, onSave, o
                   </select>)}
               </div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+              <div className="station-form-grid">
                  {renderField('Cód. Doc', 'codDoc',
                    <input className="station-input" maxLength={6} value={formData.gawebConfig?.codigoDocumento} onChange={e => updateGaweb('codigoDocumento', e.target.value.toUpperCase())} />, 'codDoc')}
                  {renderField('Oficina', 'oficina',
                    <input className="station-input" maxLength={5} value={formData.gawebConfig?.oficina} onChange={e => updateGaweb('oficina', e.target.value.replace(/\D/g, ''))} />, 'oficina')}
                  {renderField('Páginas', 'paginas',
-                   <input className="station-input" maxLength={4} value={formData.gawebConfig?.paginasDefecto} onChange={e => updateGaweb('paginasDefecto', Number(e.target.value.replace(/\D/g, '')))} />)}
+                   <input className="station-input" type="number" value={formData.gawebConfig?.paginasDefecto} onChange={e => updateGaweb('paginasDefecto', Number(e.target.value))} />)}
               </div>
             </section>
           </div>
 
         </div>
 
-        <footer style={{ padding: '24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
+        <footer className="station-modal-footer">
           <button className="station-btn" onClick={onClose}>Cancelar</button>
           <button className="station-btn station-btn-primary" onClick={() => validate() && onSave(formData)}>
             <SaveIcon size={16} /> GUARDAR CONFIGURACIÓN

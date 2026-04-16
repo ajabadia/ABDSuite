@@ -38,25 +38,25 @@ export const LogDrawer: React.FC = () => {
     alert('Logs copiados al portapapeles');
   };
 
-  if (!isOpen) return null;
-
   return (
     <div 
-      className="log-drawer" 
+      className={`log-drawer station-terminal station-console-anim-container ${isOpen ? 'open' : ''}`}
       style={{
         position: 'fixed',
-        bottom: '32px', // Above StatusBar
-        left: '250px', // Sidebar width or auto
+        bottom: '32px',
+        left: '250px',
         right: '0',
         height: isMaximized ? '60vh' : '250px',
         background: 'var(--surface-color)',
-        borderTop: '1px solid var(--border-color)',
+        borderTop: '4px solid var(--border-color)',
         zIndex: 2000,
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 -10px 15px -3px rgba(0, 0, 0, 0.1)',
-        transition: 'height 0.3s ease',
+        boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.5)',
         borderLeft: '1px solid var(--border-color)',
+        transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
+        opacity: isOpen ? 1 : 0,
+        pointerEvents: isOpen ? 'auto' : 'none',
       }}
     >
       {/* Toolbar */}
@@ -69,54 +69,53 @@ export const LogDrawer: React.FC = () => {
         background: 'rgba(0,0,0,0.1)'
       }}>
         {/* Left: Filters */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <SearchIcon size={14} style={{ position: 'absolute', left: '8px', opacity: 0.5 }} />
-            <input 
-              type="text" 
-              placeholder="Buscar en logs..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+        <div className="flex-row" style={{ alignItems: 'center', gap: '16px', flex: 1 }}>
+          <div className="station-registry-sync-actions" style={{ gap: '8px' }}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <SearchIcon size={14} style={{ position: 'absolute', left: '12px', opacity: 0.5 }} />
+              <input 
+                type="text" 
+                className="station-input"
+                placeholder="FILTRAR REGISTROS..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{
+                  paddingLeft: '32px',
+                  fontSize: '0.7rem',
+                  width: '200px',
+                  height: '32px'
+                }}
+              />
+            </div>
+            
+            <select 
+              className="station-select"
+              value={appFilter}
+              onChange={(e) => setAppFilter(e.target.value)}
               style={{
-                background: 'var(--input-bg)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                padding: '4px 8px 4px 28px',
-                fontSize: '0.75rem',
-                color: 'var(--text-primary)',
-                width: '180px'
+                fontSize: '0.7rem',
+                height: '32px',
+                padding: '0 12px'
               }}
-            />
+            >
+              <option value="">TODAS LAS APPS</option>
+              {uniqueApps.map(app => <option key={app} value={app}>{app.toUpperCase()}</option>)}
+            </select>
           </div>
-          
-          <select 
-            value={appFilter}
-            onChange={(e) => setAppFilter(e.target.value)}
-            style={{
-              background: 'var(--input-bg)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '4px',
-              padding: '4px 8px',
-              fontSize: '0.75rem',
-              color: 'var(--text-primary)'
-            }}
-          >
-            <option value="">Todas las Apps</option>
-            {uniqueApps.map(app => <option key={app} value={app}>{app}</option>)}
-          </select>
 
           <button 
+            className="station-btn"
             onClick={clearLogs}
             style={{ 
-              background: 'none', 
-              border: 'none', 
               color: 'var(--status-err)', 
-              fontSize: '0.7rem', 
-              cursor: 'pointer',
-              fontWeight: 700 
+              fontSize: '0.65rem',
+              fontWeight: 900,
+              padding: '4px 12px',
+              border: 'none',
+              background: 'rgba(239, 68, 68, 0.1)'
             }}
           >
-            LIMPIAR
+            LIMPIAR CONSOLA
           </button>
         </div>
 
@@ -135,30 +134,32 @@ export const LogDrawer: React.FC = () => {
       </header>
 
       {/* Log Entries */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>
+      <div className="station-shell-content" style={{ flex: 1, overflowY: 'auto', padding: '16px', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', background: 'rgba(0,0,0,0.05)' }}>
         {filteredLogs.map((log) => (
           <div key={log.id} style={{ 
             display: 'flex', 
-            gap: '12px', 
-            marginBottom: '4px',
+            gap: '16px', 
+            marginBottom: '6px',
             color: log.level === 'error' ? 'var(--status-err)' : 
                    log.level === 'warn' ? 'var(--status-warn)' : 
                    log.level === 'success' ? 'var(--status-ok)' : 'var(--text-primary)',
-            padding: '2px 0'
+            padding: '4px 0',
+            borderBottom: '1px solid rgba(255,255,255,0.03)'
           }}>
-            <span style={{ opacity: 0.5, whiteSpace: 'nowrap' }}>[{log.timestamp.split('T')[1].split('.')[0]}]</span>
+            <span style={{ opacity: 0.4, whiteSpace: 'nowrap', fontSize: '0.7rem' }}>[{log.timestamp.split('T')[1].split('.')[0]}]</span>
             <span style={{ 
-              fontWeight: 800, 
-              minWidth: '60px', 
+              fontWeight: 900, 
+              minWidth: '70px', 
               color: 'var(--primary-color)',
-              opacity: 0.8 
-            }}>{log.app}</span>
-            <span style={{ flex: 1, wordBreak: 'break-all' }}>{log.message}</span>
+              fontSize: '0.7rem',
+              letterSpacing: '0.05rem'
+            }}>{log.app.toUpperCase()}</span>
+            <span style={{ flex: 1, wordBreak: 'break-all', opacity: 0.9 }}>{log.message}</span>
           </div>
         ))}
         {filteredLogs.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '20px', opacity: 0.3 }}>
-             SIN REGISTROS DISPONIBLES
+          <div className="station-empty-state" style={{ minHeight: '100px' }}>
+             <span className="station-shimmer-text">SIN STREAM DE DATOS ACTIVO</span>
           </div>
         )}
       </div>

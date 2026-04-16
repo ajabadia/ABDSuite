@@ -59,7 +59,7 @@ function LetterPageContent() {
       </header>
 
       <section className="module-grid" style={{ flex: 1, minHeight: 0 }}>
-        <div className="module-col-main" style={{ gridColumn: 'span 12', height: '100%', overflow: 'hidden' }}>
+        <div className="module-col-main" style={{ gridColumn: 'span 12' }}>
           {renderView()}
         </div>
       </section>

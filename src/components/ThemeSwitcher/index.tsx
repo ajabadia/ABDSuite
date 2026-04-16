@@ -37,36 +37,11 @@ const ThemeSwitcher: React.FC = () => {
             style={{ position: 'fixed', inset: 0, zIndex: 1000 }} 
             onClick={() => setIsOpen(false)} 
           />
-          <div style={{ 
-            position: 'absolute', 
-            top: 'calc(100% + 10px)', 
-            right: 0, 
-            background: 'var(--bg-color)', 
-            border: 'var(--border-thick) solid var(--border-color)',
-            boxShadow: '8px 8px 0 rgba(0,0,0,0.5)',
-            zIndex: 1001,
-            width: '220px'
-          }}>
+          <div className="station-dropdown" style={{ width: '220px' }}>
             {options.map((opt) => (
               <button
                 key={opt.mode}
-                style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '12px 15px',
-                  background: mode === opt.mode ? 'var(--border-color)' : 'transparent',
-                  color: mode === opt.mode ? 'var(--bg-color)' : 'var(--text-primary)',
-                  border: 'none',
-                  borderBottom: '1px solid var(--border-color)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  cursor: 'pointer',
-                  fontWeight: 900,
-                  fontSize: '0.75rem',
-                  textTransform: 'uppercase',
-                  fontFamily: 'inherit'
-                }}
+                className={`station-dropdown-item ${mode === opt.mode ? 'active' : ''}`}
                 onClick={() => {
                   setMode(opt.mode);
                   setIsOpen(false);
@@ -74,7 +49,7 @@ const ThemeSwitcher: React.FC = () => {
               >
                 <span>{opt.icon}</span>
                 <span>{t(opt.labelKey)}</span>
-                {opt.mode === 'auto' && <small style={{ opacity: 0.5, marginLeft: 'auto', fontSize: '0.6rem' }}>(8-20h)</small>}
+                {opt.mode === 'auto' && <span className="station-hint" style={{ marginLeft: 'auto', fontSize: '0.6rem', opacity: 0.5 }}>(8-20H)</span>}
               </button>
             ))}
           </div>

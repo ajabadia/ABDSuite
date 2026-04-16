@@ -129,38 +129,40 @@ const LetterStation: React.FC = () => {
   return (
     <div className="flex-col" style={{ gap: '24px', padding: '24px' }}>
       {/* Paso 1: Configuración de Recursos */}
-      <section className="station-card">
-        <h2 style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '8px' }}>Paso 1: Selección de Recursos</h2>
-              <div className="flex-col" style={{ gap: '12px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 120px', gap: '16px', alignItems: 'center' }}>
+      <section className="station-card flex-col" style={{ gap: '20px' }}>
+        <span className="station-form-section-title">PASO 1: SELECCIÓN DE RECURSOS</span>
+              <div className="station-form-grid">
+                <div className="station-form-field medium">
                   <label className="station-label">Preset GAWEB</label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="flex-row" style={{ gap: '8px' }}>
                     <select className="station-select" style={{ flex: 1 }} value={selectedPresetId || ''} onChange={e => setSelectedPresetId(Number(e.target.value))}>
                       <option value="">-- Seleccionar --</option>
                       {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                     <button className="station-btn" onClick={navigateToConfig} title="Gestionar Modelos"><FolderIcon size={14} /></button>
+                    <button className="station-btn" onClick={navigateToConfig}>Editar</button>
                   </div>
-                  <button className="station-btn" onClick={navigateToConfig}>Editar</button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 120px', gap: '16px', alignItems: 'center' }}>
-                  <label className="station-label">Archivo de Datos</label>
-                  <input className="station-input" readOnly value={dataFile?.name || ''} placeholder="Seleccione archivo..." />
-                  <label className="station-btn">
-                    Explorar..
-                    <input type="file" hidden onChange={e => setDataFile(e.target.files?.[0] || null)} />
-                  </label>
+                <div className="station-form-field large">
+                  <label className="station-label">Archivo de Datos (ETL Output)</label>
+                  <div className="flex-row" style={{ gap: '8px' }}>
+                    <input className="station-input" style={{ flex: 1 }} readOnly value={dataFile?.name || ''} placeholder="Seleccione archivo..." />
+                    <label className="station-btn">
+                      Explorar..
+                      <input type="file" hidden onChange={e => setDataFile(e.target.files?.[0] || null)} />
+                    </label>
+                  </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 120px', gap: '16px', alignItems: 'center' }}>
-                  <label className="station-label">Plantilla Principal</label>
-                  <select className="station-select" value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(Number(e.target.value))}>
-                    <option value="">-- Seleccionar --</option>
-                    {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                  </select>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <label className="station-btn" style={{ flex: 1 }}>
+                <div className="station-form-field full">
+                  <label className="station-label">Plantilla Principal (DOCX/HTML)</label>
+                  <div className="flex-row" style={{ gap: '8px' }}>
+                    <select className="station-select" style={{ flex: 1 }} value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(Number(e.target.value))}>
+                      <option value="">-- Seleccionar --</option>
+                      {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                    <label className="station-btn">
                       Subir
                       <input type="file" hidden onChange={e => e.target.files?.[0] && handleTemplateUpload(e.target.files?.[0])} />
                     </label>
@@ -171,37 +173,35 @@ const LetterStation: React.FC = () => {
             </section>
 
             {/* Paso 2: Parámetros */}
-            <section className="station-card">
-              <h2 style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '8px' }}>Paso 2: Parámetros del Lote</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-                <div className="flex-col" style={{ gap: '12px' }}>
-                  <div className="flex-col" style={{ gap: '4px' }}>
-                    <label className="station-label">Fecha Generación</label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input className="station-input" value={options.fechaGeneracion} onChange={e => setOptions({...options, fechaGeneracion: e.target.value})} />
-                      <button className="station-btn" onClick={() => setOptions({...options, fechaGeneracion: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button>
-                    </div>
-                  </div>
-                  <div className="flex-col" style={{ gap: '4px' }}>
-                    <label className="station-label">Lote</label>
-                    <input className="station-input" value={options.lote} onChange={e => setOptions({...options, lote: e.target.value})} />
+            <section className="station-card flex-col" style={{ gap: '20px' }}>
+              <span className="station-form-section-title">PASO 2: PARÁMETROS DEL LOTE</span>
+              <div className="station-form-grid">
+                <div className="station-form-field">
+                  <label className="station-label">Fecha Generación</label>
+                  <div className="flex-row" style={{ gap: '8px' }}>
+                    <input className="station-input" style={{ flex: 1 }} value={options.fechaGeneracion} onChange={e => setOptions({...options, fechaGeneracion: e.target.value})} />
+                    <button className="station-btn" onClick={() => setOptions({...options, fechaGeneracion: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button>
                   </div>
                 </div>
-                <div className="flex-col" style={{ gap: '12px' }}>
-                  <div className="flex-col" style={{ gap: '4px' }}>
-                    <label className="station-label">Fecha Carta</label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input className="station-input" value={options.fechaCarta} onChange={e => setOptions({...options, fechaCarta: e.target.value})} />
-                      <button className="station-btn" onClick={() => setOptions({...options, fechaCarta: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button>
-                    </div>
+                <div className="station-form-field">
+                  <label className="station-label">ID Lote</label>
+                  <input className="station-input" value={options.lote} onChange={e => setOptions({...options, lote: e.target.value})} />
+                </div>
+                <div className="station-form-field">
+                  <label className="station-label">Fecha Carta</label>
+                  <div className="flex-row" style={{ gap: '8px' }}>
+                    <input className="station-input" style={{ flex: 1 }} value={options.fechaCarta} onChange={e => setOptions({...options, fechaCarta: e.target.value})} />
+                    <button className="station-btn" onClick={() => setOptions({...options, fechaCarta: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div className="flex-col" style={{ gap: '4px' }}>
+                </div>
+                <div className="station-form-field">
+                  <div className="station-form-grid" style={{ gap: '16px' }}>
+                    <div className="station-form-field">
                       <label className="station-label">Oficina</label>
                       <input className="station-input" value={options.oficina} onChange={e => setOptions({...options, oficina: e.target.value})} />
                     </div>
-                    <div className="flex-col" style={{ gap: '4px' }}>
-                      <label className="station-label">Cód. Documento</label>
+                    <div className="station-form-field">
+                      <label className="station-label">Cód. Docto.</label>
                       <input className="station-input" value={options.codDocumento} onChange={e => setOptions({...options, codDocumento: e.target.value})} />
                     </div>
                   </div>
@@ -210,27 +210,27 @@ const LetterStation: React.FC = () => {
             </section>
 
             {/* Paso 3: Salida */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 2fr', gap: '16px', alignItems: 'end' }}>
-               <section className="station-card" style={{ flex: 1 }}>
-                  <h2 style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '8px' }}>Rango</h2>
-                  <div style={{ display: 'flex', gap: '16px' }}>
-                    <input className="station-input" type="number" placeholder="Desde" value={options.rangeFrom} onChange={e => setOptions({...options, rangeFrom: Number(e.target.value)})} />
-                    <input className="station-input" type="number" placeholder="Hasta" value={options.rangeTo} onChange={e => setOptions({...options, rangeTo: Number(e.target.value)})} />
+            <div className="flex-row" style={{ gap: '16px', alignItems: 'stretch' }}>
+               <section className="station-card flex-col" style={{ flex: 2, gap: '12px' }}>
+                  <span className="station-form-section-title">CONTROL DE RANGO Y SALIDA</span>
+                  <div className="flex-row" style={{ gap: '16px', flex: 1, alignItems: 'center' }}>
+                    <div className="flex-row" style={{ gap: '8px', flex: 1 }}>
+                      <input className="station-input" style={{ width: '80px' }} type="number" placeholder="De" value={options.rangeFrom} onChange={e => setOptions({...options, rangeFrom: Number(e.target.value)})} />
+                      <input className="station-input" style={{ width: '80px' }} type="number" placeholder="A" value={options.rangeTo} onChange={e => setOptions({...options, rangeTo: Number(e.target.value)})} />
+                    </div>
+                    <select className="station-select" style={{ width: '120px' }} value={options.outputType} onChange={e => setOptions({...options, outputType: e.target.value as any})}>
+                      <option value="PDF_GAWEB">GAWEB</option>
+                      <option value="ZIP">ZIP</option>
+                    </select>
                   </div>
                </section>
-               <div style={{ textAlign: 'center' }}>
-                  <select className="station-select" value={options.outputType} onChange={e => setOptions({...options, outputType: e.target.value as any})}>
-                    <option value="PDF_GAWEB">GAWEB</option>
-                    <option value="ZIP">ZIP</option>
-                  </select>
-               </div>
                <button 
                   className="station-btn station-btn-primary" 
                   disabled={isProcessing}
-                  style={{ height: '64px', fontSize: '1.1rem' }}
+                  style={{ flex: 1, fontSize: '1.2rem', fontWeight: 900 }}
                   onClick={handleStart}
                 >
-                  <PlayIcon size={24} /> {isProcessing ? 'GENERANDO...' : 'INICIAR PROCESAMIENTO'}
+                  <PlayIcon size={24} /> {isProcessing ? 'GENERANDO...' : 'INICIAR MOTOR'}
                 </button>
             </div>
     </div>

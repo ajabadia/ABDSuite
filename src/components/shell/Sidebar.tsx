@@ -116,45 +116,37 @@ export const Sidebar: React.FC = () => {
             return (
               <div key={item.id} className="flex-col">
                 <button 
-                  className={`nav-item ${isAnySubActive ? 'active' : ''}`}
+                  className={`station-nav-item ${isAnySubActive ? 'active' : ''}`}
                   onClick={() => !isCollapsed && item.setExpanded?.(!isExpanded)}
-                  style={{ 
-                    width: '100%', 
-                    textAlign: 'left', 
-                    border: 'none', 
-                    background: 'transparent', 
-                    cursor: isCollapsed ? 'default' : 'pointer',
-                    fontSize: 'inherit',
-                    fontWeight: 'inherit',
-                    fontFamily: 'inherit'
-                  }}
                 >
-                  <span className="nav-icon">{item.icon}</span>
+                  <span className="station-nav-icon">{item.icon}</span>
                   {!isCollapsed && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', flex: 1, alignItems: 'center' }}>
-                      <span className="nav-label">{item.label}</span>
+                      <span className="station-nav-label">{item.label}</span>
                       <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>{isExpanded ? '▼' : '▶'}</span>
                     </div>
                   )}
                 </button>
                 
-                {isExpanded && !isCollapsed && (
-                  <div className="flex-col" style={{ paddingLeft: '16px', background: 'rgba(255,255,255,0.02)' }}>
-                    {item.subItems?.map(sub => {
-                       return (
-                        <Link 
-                          key={sub.id}
-                          href={sub.href}
-                          className="nav-item sub-item"
-                          style={{ padding: '8px 16px' }}
-                        >
-                          <span className="nav-icon" style={{ opacity: 0.6 }}>{sub.icon}</span>
-                          <span className="nav-label" style={{ fontWeight: 500 }}>{sub.label}</span>
-                        </Link>
-                       );
-                    })}
+                <div className={`station-nav-anim-container ${isExpanded && !isCollapsed ? 'expanded' : ''}`}>
+                  <div className="station-nav-anim-content">
+                    <div className="station-nav-sub-container">
+                      {item.subItems?.map(sub => {
+                         const isSubActive = pathname === sub.href;
+                         return (
+                          <Link 
+                            key={sub.id}
+                            href={sub.href}
+                            className={`station-nav-item station-nav-sub-item ${isSubActive ? 'active' : ''}`}
+                          >
+                            <span className="station-nav-icon">{sub.icon}</span>
+                            <span className="station-nav-label">{sub.label}</span>
+                          </Link>
+                         );
+                      })}
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           }
@@ -164,10 +156,10 @@ export const Sidebar: React.FC = () => {
             <Link 
               key={item.id}
               href={item.href || '#'}
-              className={`nav-item ${isActive ? 'active' : ''}`}
+              className={`station-nav-item ${isActive ? 'active' : ''}`}
             >
-              <span className="nav-icon">{item.icon}</span>
-              {!isCollapsed && <span className="nav-label">{item.label}</span>}
+              <span className="station-nav-icon">{item.icon}</span>
+              {!isCollapsed && <span className="station-nav-label">{item.label}</span>}
             </Link>
           );
         })}
