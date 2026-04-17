@@ -83,7 +83,7 @@ const parseLine = (line: string, fields: EtlField[]): Record<string, string> => 
       const length = Math.min(field.length, line.length - field.start);
       val = line.substring(field.start, field.start + length).trim();
     }
-    result[field.Name || (field as any).name] = val; // Check property name from types
+    result[field.name] = val;
   }
   return result;
 };
@@ -130,7 +130,7 @@ self.onmessage = async (e) => {
               typeName: rt.name, 
               data, 
               presetName: preset.name,
-              headers: rt.fields.sort((a,b) => a.start - b.start).map(f => f.Name || (f as any).name)
+              headers: rt.fields.sort((a,b) => a.start - b.start).map(f => f.name)
             } 
           });
         }

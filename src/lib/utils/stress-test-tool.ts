@@ -17,9 +17,9 @@ export const STRESS_PRESET_DATA = {
       triggerStart: 0,
       range: "1",
       fields: [
-        { id: "h1", Name: "ETIQUETA", Start: 0, Length: 4 },
-        { id: "h2", Name: "FECHA", Start: 5, Length: 10 },
-        { id: "h3", Name: "LOTE_ID", Start: 16, Length: 16 }
+        { id: "h1", name: "ETIQUETA", start: 0, length: 4 },
+        { id: "h2", name: "FECHA", start: 5, length: 10 },
+        { id: "h3", name: "LOTE_ID", start: 16, length: 16 }
       ]
     },
     {
@@ -28,11 +28,11 @@ export const STRESS_PRESET_DATA = {
       trigger: "DATA",
       triggerStart: 0,
       fields: [
-        { id: "d1", name: "ETIQUETA", Name: "ETIQUETA", Start: 0, Length: 4 },
-        { id: "d2", name: "ID_CLIENTE", Name: "ID_CLIENTE", Start: 5, Length: 6 },
-        { id: "d3", name: "NOMBRE_COMPLETO", Name: "NOMBRE_COMPLETO", Start: 12, Length: 25 },
-        { id: "d4", name: "IBAN", Name: "IBAN", Start: 38, Length: 22 },
-        { id: "d5", name: "IMPORTE_CENT", Name: "IMPORTE_CENT", Start: 61, Length: 10 }
+        { id: "d1", name: "ETIQUETA", start: 0, length: 4 },
+        { id: "d2", name: "ID_CLIENTE", start: 5, length: 6 },
+        { id: "d3", name: "NOMBRE_COMPLETO", start: 12, length: 25 },
+        { id: "d4", name: "IBAN", start: 38, length: 22 },
+        { id: "d5", name: "IMPORTE_CENT", start: 61, length: 10 }
       ]
     },
     {
@@ -41,9 +41,9 @@ export const STRESS_PRESET_DATA = {
       trigger: "FOOT",
       triggerStart: 0,
       fields: [
-        { id: "f1", Name: "ETIQUETA", Start: 0, Length: 4 },
-        { id: "f2", Name: "TOTAL_REGS", Start: 5, Length: 6 },
-        { id: "f3", Name: "SUMA_IMPORTE", Start: 12, Length: 12 }
+        { id: "f1", name: "ETIQUETA", start: 0, length: 4 },
+        { id: "f2", name: "TOTAL_REGS", start: 5, length: 6 },
+        { id: "f3", name: "SUMA_IMPORTE", start: 12, length: 12 }
       ]
     }
   ],
@@ -79,7 +79,7 @@ export async function seedStressEnvironment() {
   } else {
     presetId = existingPreset.id!;
     // UPDATE fields to ensure they match our logic
-    await db.presets.update(presetId, { recordTypes: STRESS_PRESET_DATA.recordTypes });
+    await db.presets.update(presetId, { recordTypes: STRESS_PRESET_DATA.recordTypes as any });
   }
 
   // 2. Seed Template
@@ -98,7 +98,7 @@ export async function seedStressEnvironment() {
     .filter(m => m.etlPresetId === presetId)
     .first();
 
-  const mappingDefinition = [
+  const mappingDefinition: any[] = [
     { templateVar: "NOMBRE_COMPLETO", sourceType: "TEMPLATE", sourceField: "NOMBRE_COMPLETO" },
     { templateVar: "ID_CLIENTE", sourceType: "TEMPLATE", sourceField: "ID_CLIENTE" },
     { templateVar: "IBAN", sourceType: "TEMPLATE", sourceField: "IBAN" },

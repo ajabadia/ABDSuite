@@ -18,6 +18,7 @@ export function normalizeEtlPreset(data: any): EtlPreset {
     headerTypeId: data.headerTypeId ?? data.id_tipo_cabecera ?? '',
 
     recordTypes: [],
+    isActive: true,
     createdAt: data.createdAt || Date.now(),
     updatedAt: Date.now()
   };

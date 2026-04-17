@@ -3,6 +3,11 @@
  * Unified Industrial Edition - Agnostic Engine v18.7
  */
 
+/// <reference lib="webworker" />
+
+declare const JSZip: any;
+declare const Handlebars: any;
+
 /* global importScripts, JSZip, Handlebars, Docxtemplater, self */
 
 try {
@@ -18,7 +23,7 @@ try {
 
 // --- UTILIDADES INTEGRADAS (Agnósticas) ---
 
-function md5_mini(str) {
+function md5_mini(str: string) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = ((hash << 5) - hash) + str.charCodeAt(i);
@@ -28,7 +33,7 @@ function md5_mini(str) {
 }
 
 const GawebUtility = {
-  generateDocName: (baseHash, index) => {
+  generateDocName: (baseHash: string, index: number) => {
     const idxStr = (index + 1).toString().padStart(7, '0');
     return `${baseHash.substring(0, 11)}${idxStr}`;
   },
@@ -37,9 +42,9 @@ const GawebUtility = {
    * SERIALIZADOR AGNOSTICO
    * Construye el registro basado en las reglas inyectadas desde el hilo principal.
    */
-  serializeDynamic: (fields, data) => {
+  serializeDynamic: (fields: any[], data: any) => {
     let body = "";
-    fields.forEach(field => {
+    fields.forEach((field: any) => {
       let val = data[field.name] || "";
       if (field.isNumeric) {
         body += val.toString().replace(/\D/g, '').substring(0, field.length).padStart(field.length, '0');
@@ -51,7 +56,7 @@ const GawebUtility = {
   }
 };
 
-async function calculateSha256(data) {
+async function calculateSha256(data: any) {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -59,7 +64,7 @@ async function calculateSha256(data) {
 
 // --- MANEJADOR PRINCIPAL ---
 
-self.onmessage = async (e) => {
+self.onmessage = async (e: MessageEvent) => {
   const { dataFile, template, mapping, etlPreset, options, isStreaming = false, gawebFields = [] } = e.data;
 
   self.postMessage({ type: 'HEARTBEAT' });
@@ -102,7 +107,7 @@ self.onmessage = async (e) => {
         if (lineCount === 1) continue; 
 
         let rt = null;
-        let mergeData = {
+        let mergeData: Record<string, any> = {
           _INDEX: (lineCount - 1).toString(),
           _LOTE: options.lote,
           _OFICINA: options.oficina,
@@ -121,8 +126,8 @@ self.onmessage = async (e) => {
 
         if (rt) {
           // 2. Mapeo
-          mapping.mappings.forEach(m => {
-            const field = rt.fields.find(f => 
+          mapping.mappings.forEach((m: any) => {
+            const field = rt.fields.find((f: any) => 
               (f.Name || f.name) === m.sourceField || f.id === m.sourceField
             );
             
@@ -208,7 +213,7 @@ self.onmessage = async (e) => {
                   self.postMessage({ type: 'LOG', payload: { type: 'info', message: `PROGRESO: [${processedCount}] generados...` } });
                }
              } catch (renderErr) {
-               self.postMessage({ type: 'LOG', payload: { type: 'error', message: `RENDER ERROR (L ${lineCount}): ${renderErr.message}` } });
+               self.postMessage({ type: 'LOG', payload: { type: 'error', message: `RENDER ERROR (L ${lineCount}): ${(renderErr as any).message}` } });
              }
           }
         }
@@ -236,6 +241,6 @@ self.onmessage = async (e) => {
     }
 
   } catch (err) {
-    self.postMessage({ type: 'LOG', payload: { type: 'error', message: `ERROR CRÍTICO: ${err.message}` } });
+    self.postMessage({ type: 'LOG', payload: { type: 'error', message: `ERROR CRÍTICO: ${(err as any).message}` } });
   }
 };
