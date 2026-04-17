@@ -68,14 +68,14 @@ export default function Dashboard() {
             desc={t('dashboard.dash_crypt_desc')}
             icon={<LockIcon size={32} />}
             href="/crypt"
-            color="var(--accent-color)"
+            color="var(--primary-color)"
           />
           <ModuleCard 
             title={t('shell.etl')} 
             desc={t('dashboard.dash_etl_desc')}
             icon={<DatabaseIcon size={32} />}
             href="/etl"
-            color="var(--secondary-color)"
+            color="var(--primary-color)"
           />
           <ModuleCard 
             title={t('shell.letter')} 
@@ -89,7 +89,7 @@ export default function Dashboard() {
             desc={t('dashboard.dash_audit_desc')}
             icon={<ShieldCheckIcon size={32} />}
             href="/letter?view=audit"
-            color="var(--status-ok)"
+            color="var(--primary-color)"
           />
         </section>
 
@@ -254,8 +254,8 @@ export default function Dashboard() {
         .tel-item { display: flex; justify-content: space-between; }
         .tel-val { font-weight: 900; }
         .tel-val.mono { letter-spacing: 1px; }
-        .tel-val.gapped { color: var(--accent-color); }
-        .tel-val.ok { color: var(--status-ok); }
+        .tel-val.gapped { color: var(--primary-color); }
+        .tel-val.ok { color: var(--primary-color); }
 
         .core-monitor { margin-top: 12px; }
         .sub-title { font-size: 0.75rem; margin-bottom: 12px; opacity: 0.6; display: flex; gap: 6px; align-items: center; }
@@ -281,7 +281,7 @@ export default function Dashboard() {
           border-radius: 1px;
         }
         .segment.active { background: var(--primary-color); box-shadow: 0 0 5px var(--primary-color); }
-        .segment.hot.active { background: var(--accent-color); box-shadow: 0 0 5px var(--accent-color); }
+        .segment.hot.active { background: var(--primary-color); box-shadow: 0 0 5px var(--primary-color); }
 
         .core-percent { font-size: 0.65rem; font-weight: 900; width: 35px; text-align: right; }
 
@@ -298,15 +298,15 @@ export default function Dashboard() {
         .pulse-circle {
           width: 8px;
           height: 8px;
-          background: var(--status-ok);
+          background: var(--primary-color);
           border-radius: 50%;
           animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--status-ok-rgb), 0.7); }
-          70% { transform: scale(1.2); box-shadow: 0 0 0 6px rgba(var(--status-ok-rgb), 0); }
-          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--status-ok-rgb), 0); }
+          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb), 0.7); }
+          70% { transform: scale(1.2); box-shadow: 0 0 0 6px rgba(var(--primary-color-rgb), 0); }
+          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--primary-color-rgb), 0); }
         }
 
         .system-logs-preview {

@@ -5,6 +5,7 @@ import { useLanguage } from '@/lib/context/LanguageContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db/db';
 import { LetterTemplate, TemplateComposition } from '@/lib/types/letter.types';
+import JSZip from 'jszip';
 import { TrashIcon, CogIcon, FileTextIcon, SaveIcon, ArrowUpIcon, ArrowDownIcon, ListIcon, EyeIcon, DownloadIcon, UploadIcon, RefreshCwIcon, XIcon, UndoIcon } from '@/components/common/Icons';
 
 const DEFAULT_COMPOSITION: TemplateComposition = {
