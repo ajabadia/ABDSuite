@@ -24,7 +24,7 @@ import {
   TrashIcon, 
   DownloadIcon, 
   UploadIcon,
-  HelpCircleIcon,
+  HelpIcon,
   XIcon,
   CogIcon,
   UndoIcon
