@@ -21,6 +21,8 @@ import {
 import { seedStressEnvironment, generateIndustrialStressData } from '@/lib/utils/stress-test-tool';
 import JSZip from 'jszip';
 
+import { RendererHost } from '@/components/common/RendererHost';
+
 import { useLog } from '@/lib/context/LogContext';
 import { LogLevel } from '@/lib/types/log.types';
 
@@ -41,6 +43,7 @@ const LetterStation: React.FC = () => {
   const [dataFile, setDataFile] = useState<File | null>(null);
   const [outputHandle, setOutputHandle] = useState<any>(null);
   const outputHandleRef = useRef<any>(null);
+  const [rendererEngine, setRendererEngine] = useState<any>(null);
   
   // Sincronizar Ref para el manejador del Worker (Evita Stale Closure)
   useEffect(() => {
@@ -123,11 +126,27 @@ const LetterStation: React.FC = () => {
         }
         if (type === 'DOCUMENT_READY' && outputHandleRef.current) {
           try {
-            const fileHandle = await (outputHandleRef.current as any).getFileHandle(payload.name, { create: true });
+            let finalContent = payload.content;
+            let finalName = payload.name;
+
+            // CONVERSIÓN DE ALTA FIDELIDAD (MANTENIENDO COMPLEJIDAD)
+            if (options.outputType.startsWith('PDF') && finalName.endsWith('.docx') && rendererEngine) {
+               addLog(t('letter.motor.converting_pdf', { file: finalName }), 'info');
+               try {
+                  const docxBlob = new Blob([finalContent], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                  const pdfBlob = await rendererEngine.renderToPdf(docxBlob, finalName);
+                  finalContent = await pdfBlob.arrayBuffer();
+                  finalName = finalName.replace('.docx', '.pdf');
+               } catch (convErr) {
+                  addLog(`ERROR CONVERSIÓN PDF: ${convErr}. SE MANTENDRÁ DOCX.`, 'warning');
+               }
+            }
+
+            const fileHandle = await (outputHandleRef.current as any).getFileHandle(finalName, { create: true });
             const writable = await fileHandle.createWritable();
-            await writable.write(payload.content);
+            await writable.write(finalContent);
             await writable.close();
-            addLog(t('letter.motor.physical_save', { file: payload.name }), 'info');
+            addLog(t('letter.motor.physical_save', { file: finalName }), 'info');
           } catch (err: any) {
             addLog(t('letter.motor.write_error', { file: payload.name, err: err.message }), 'error');
             addLog(t('letter.motor.write_suggest'), 'warning');
@@ -136,7 +155,7 @@ const LetterStation: React.FC = () => {
       };
     }
     return () => workerRef.current?.terminate();
-  }, [options.lote]);
+  }, [options.lote, rendererEngine, options.outputType]);
 
   // Handlers
   const handleTemplateUpload = async (file: File) => {
@@ -415,7 +434,7 @@ const LetterStation: React.FC = () => {
               <div className="station-form-field"><label className="station-label">{t('letter.ui.doc_code')}</label><input className="station-input" value={options.codDocumento} onChange={e => setOptions({...options, codDocumento: e.target.value})} /></div>
               <div className="station-form-field"><label className="station-label">{t('letter.ui.office')}</label><input className="station-input" style={{ textAlign: 'center' }} value={options.oficina} onChange={e => setOptions({...options, oficina: e.target.value})} /></div>
               <div className="station-form-field"><label className="station-label">{t('letter.ui.range')}</label><div className="flex-row" style={{ gap: 8 }}><input className="station-input" style={{ width: '50%', textAlign: 'center' }} type="number" value={options.rangeFrom} onChange={e => setOptions({...options, rangeFrom: Number(e.target.value)})} /><input className="station-input" style={{ width: '50%', textAlign: 'center' }} type="number" value={options.rangeTo} onChange={e => setOptions({...options, rangeTo: Number(e.target.value)})} /></div></div>
-              <div className="station-form-field"><label className="station-label">{t('letter.ui.output_format')}</label><select className="station-select" style={{ width: '100%' }} value={options.outputType} onChange={e => setOptions({...options, outputType: e.target.value as any})}><option value="PDF_GAWEB">GAWEB (MASTER)</option><option value="ZIP">ZIP (AUDIT)</option></select></div>
+              <div className="station-form-field"><label className="station-label">{t('letter.ui.output_format')}</label><select className="station-select" style={{ width: '100%' }} value={options.outputType} onChange={e => setOptions({...options, outputType: e.target.value as any})}><option value="PDF_GAWEB">GAWEB (MASTER + PDF)</option><option value="PDF">PDF (INDIVIDUALS)</option><option value="ZIP">ZIP (DOCX SOURCE)</option></select></div>
             </div>
           </section>
         )}
@@ -446,6 +465,8 @@ const LetterStation: React.FC = () => {
            <FileTextIcon size={14} />
            <span>ESTÁNDAR GAWEB v.1</span>
         </div>
+
+        <RendererHost onReady={setRendererEngine} />
       </div>
     );
   };
