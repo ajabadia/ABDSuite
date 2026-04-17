@@ -62,7 +62,7 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({ settings, onSave, o
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                    <div className="flex-col" style={{ gap: '4px' }}>
                      <label className="station-label">Codificación:</label>
-                     <select className="station-select" value={formData.encoding} onChange={e => setFormData({...formData, encoding: e.target.value})}>
+                     <select className="station-select" value={formData.defaultEncoding} onChange={e => setFormData({...formData, defaultEncoding: e.target.value})}>
                        <option value="utf-8">UTF-8</option>
                        <option value="iso-8859-1">ISO-8859-1</option>
                      </select>
