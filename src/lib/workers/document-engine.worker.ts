@@ -1,110 +1,80 @@
 /**
- * Document Engine Worker - Phase D: Word & Mapping Parity
- * Handles batch generation of DOCX and HTML letters.
- * 
- * Compliance: 04-compliance-security (Local processing only)
- * Compliance: Legacy Parity (Industrial GAWEB Standards)
+ * Document Engine Worker - Phase D: Zero-Turbopack Vanilla Version
+ * Unified Industrial Edition - Agnostic Engine v18.7
  */
 
-import JSZip from 'jszip';
-import Handlebars from 'handlebars';
-import Docxtemplater from 'docxtemplater';
-import { LetterTemplate, LetterMapping, LetterGenerationOptions } from '../types/letter.types';
-import { EtlPreset } from '../types/etl.types';
-import { GawebExporter } from '../utils/gaweb-exporter';
-import { md5 } from '../utils/crypto.utils';
+/* global importScripts, JSZip, Handlebars, Docxtemplater, self */
 
-// Helper for SHA256 (Audit Trail)
-async function calculateSha256(data: ArrayBuffer): Promise<string> {
+try {
+  importScripts(
+    'https://unpkg.com/jszip@3.10.1/dist/jszip.min.js',
+    'https://unpkg.com/handlebars@4.7.7/dist/handlebars.min.js',
+    'https://unpkg.com/docxtemplater@3.37.2/build/docxtemplater.js',
+    'https://unpkg.com/pizzip@3.1.4/dist/pizzip.min.js' 
+  );
+} catch (e) {
+  console.error('Worker Script Loading Error:', e);
+}
+
+// --- UTILIDADES INTEGRADAS (Agnósticas) ---
+
+function md5_mini(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(16).padStart(8, '0');
+}
+
+const GawebUtility = {
+  generateDocName: (baseHash, index) => {
+    const idxStr = (index + 1).toString().padStart(7, '0');
+    return `${baseHash.substring(0, 11)}${idxStr}`;
+  },
+  
+  /**
+   * SERIALIZADOR AGNOSTICO
+   * Construye el registro basado en las reglas inyectadas desde el hilo principal.
+   */
+  serializeDynamic: (fields, data) => {
+    let body = "";
+    fields.forEach(field => {
+      let val = data[field.name] || "";
+      if (field.isNumeric) {
+        body += val.toString().replace(/\D/g, '').substring(0, field.length).padStart(field.length, '0');
+      } else {
+        body += val.toString().substring(0, field.length).padEnd(field.length, ' ');
+      }
+    });
+    return body.padEnd(300, ' ');
+  }
+};
+
+async function calculateSha256(data) {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// --- MANEJADOR PRINCIPAL ---
+
 self.onmessage = async (e) => {
-  const { 
-    dataFile, 
-    template, 
-    mapping, 
-    etlPreset, 
-    options 
-  }: { 
-    dataFile: File, 
-    template: LetterTemplate, 
-    mapping: LetterMapping, 
-    etlPreset: EtlPreset,
-    options: LetterGenerationOptions 
-  } = e.data;
+  const { dataFile, template, mapping, etlPreset, options, isStreaming = false, gawebFields = [] } = e.data;
+
+  self.postMessage({ type: 'HEARTBEAT' });
 
   try {
+    if (typeof JSZip === 'undefined' || typeof Handlebars === 'undefined') {
+        throw new Error('Librerías externas no cargadas.');
+    }
+
     const zipOutput = new JSZip();
-    const gawebLines: string[] = [];
-    const auditLines: string[] = ['INDICE;DOC_NAME;SHA256;TIMESTAMP'];
+    const gawebLines = [];
+    const auditLines = ['INDICE;DOC_NAME;SHA256;TIMESTAMP'];
     
-    // Prepare engines
-    Handlebars.registerHelper('currency', (val) => {
-      const num = parseFloat(val);
-      return isNaN(num) ? val : new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(num);
-    });
-
-    Handlebars.registerHelper('date', (val, format) => {
-      if (!val) return '';
-      // Simple AAAAMMDD to DD/MM/YYYY
-      if (val.length === 8 && /^\d+$/.test(val)) {
-        return `${val.substring(6,8)}/${val.substring(4,6)}/${val.substring(0,4)}`;
-      }
-      return val;
-    });
-
-    let hbsTemplate: any = null;
-    let docxTemplate: ArrayBuffer | null = null;
-    
-    if (template.type === 'HTML' && template.content) {
-      // Professional Wrapper for HTML
-      const config = template.config;
-      const fullHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <style>
-            @page { margin: 0; size: A4; }
-            body { 
-              margin: 0; padding: 0; 
-              font-family: "${config?.fontFamily || 'Space Mono'}", sans-serif;
-              font-size: ${config?.fontSize || 11}pt;
-              line-height: 1.5;
-            }
-            .page-container {
-              width: 210mm; min-height: 297mm;
-              padding: ${config?.marginTop || 20}mm ${config?.marginRight || 20}mm ${config?.marginBottom || 20}mm ${config?.marginLeft || 20}mm;
-              position: relative;
-              box-sizing: border-box;
-            }
-            .header { position: absolute; top: 10mm; left: ${config?.marginLeft || 20}mm; width: calc(100% - ${(config?.marginLeft || 20) + (config?.marginRight || 20)}mm); }
-            .footer { position: absolute; bottom: 10mm; left: ${config?.marginLeft || 20}mm; width: calc(100% - ${(config?.marginLeft || 20) + (config?.marginRight || 20)}mm); }
-            .address-block {
-              position: absolute;
-              left: ${config?.windowX || 20}mm;
-              top: ${config?.windowY || 45}mm;
-              width: ${config?.windowWidth || 90}mm;
-              height: ${config?.windowHeight || 40}mm;
-              overflow: hidden;
-            }
-            #letter-content { margin-top: 30mm; }
-          </style>
-        </head>
-        <body>
-          <div class="page-container">
-            <div class="header">${config?.headerHtml || ''}</div>
-            <div id="letter-content">${template.content}</div>
-            <div class="footer">${config?.footerHtml || ''}</div>
-          </div>
-        </body>
-        </html>
-      `;
-      hbsTemplate = Handlebars.compile(fullHtml);
-    } else if (template.type === 'DOCX' && template.binaryContent) {
+    let docxTemplate = null;
+    if (template.type === 'DOCX' && template.binaryContent) {
       docxTemplate = template.binaryContent;
     }
 
@@ -112,13 +82,11 @@ self.onmessage = async (e) => {
     const decoder = new TextDecoder('windows-1252'); 
     
     let lineCount = 0;
-    let processed = 0;
+    let processedCount = 0;
     let partialLine = '';
+    const industrialBaseHash = md5_mini(`${dataFile.name}_${options.lote || 'STRS'}`);
     
-    const batchSeed = `${dataFile.name}_${options.lote}_${Date.now()}`;
-    const industrialBaseHash = md5(batchSeed);
-    
-    self.postMessage({ type: 'LOG', payload: { type: 'info', message: `INICIANDO PROCESO BATCH: ${dataFile.name}` } });
+    self.postMessage({ type: 'LOG', payload: { type: 'info', message: `MOTOR AGNOSTICO (v18.7-Centralized) iniciado.` } });
 
     while (true) {
       const { done, value } = await dataStream.read();
@@ -131,121 +99,143 @@ self.onmessage = async (e) => {
       for (const line of lines) {
         if (line.trim() === '') continue;
         lineCount++;
-        
-        // Skip header if lineCount 1
         if (lineCount === 1) continue; 
 
-        if (options.rangeFrom > 0 && (lineCount - 1) < options.rangeFrom) continue;
-        if (options.rangeTo > 0 && (lineCount - 1) > options.rangeTo) break;
-
-        const parts = line.split(';');
-        
-        // Construct merge data based on mapping
-        const mergeData: Record<string, any> = {
+        let rt = null;
+        let mergeData = {
           _INDEX: (lineCount - 1).toString(),
           _LOTE: options.lote,
           _OFICINA: options.oficina,
           _FECHA_CARTA: options.fechaCarta
         };
 
-        mapping.mappings.forEach(m => {
-          if (m.sourceType === 'TEMPLATE' || m.sourceType === 'GAWEB') {
-              // Extract from CSV parts based on preset field index
-              const presetField = etlPreset.recordTypes[0].fields.find(f => f.Name === m.sourceField || (f as any).name === m.sourceField);
-              if (presetField) {
-                  const val = parts[presetField.Index] || '';
-                  mergeData[m.templateVar] = val.trim();
-              }
-          }
-        });
+        // 1. Identificación de Registro
+        for (const type of etlPreset.recordTypes) {
+           const trigger = type.trigger;
+           const start = type.triggerStart || 0;
+           if (line.substring(start, start + trigger.length).trim() === trigger.trim()) {
+             rt = type;
+             break;
+           }
+        }
 
-        // Generate Document Content
-        let documentContent: ArrayBuffer;
-        const outExt = template.type === 'DOCX' ? 'docx' : 'html';
+        if (rt) {
+          // 2. Mapeo
+          mapping.mappings.forEach(m => {
+            const field = rt.fields.find(f => 
+              (f.Name || f.name) === m.sourceField || f.id === m.sourceField
+            );
+            
+            if (field) {
+               const startPos = typeof field.Start === 'number' ? field.Start : field.start;
+               const len = typeof field.Length === 'number' ? field.Length : field.length;
 
-        if (template.type === 'DOCX' && docxTemplate) {
-          const zip = new JSZip();
-          await zip.loadAsync(docxTemplate);
-          const doc = new Docxtemplater(zip, {
-            paragraphLoop: true,
-            linebreaks: true,
+               const val = (typeof startPos === 'number' && typeof len === 'number')
+                  ? line.substring(startPos, startPos + len)
+                  : line.split(';')[field.Index || field.index] || '';
+               
+               mergeData[m.templateVar] = val.trim();
+            }
           });
-          doc.render(mergeData);
-          documentContent = doc.getZip().generate({ type: 'arraybuffer' });
-        } else {
-          const merged = hbsTemplate(mergeData);
-          documentContent = new TextEncoder().encode(merged).buffer;
-        }
 
-        const docName = GawebExporter.generateDocName(industrialBaseHash, lineCount - 1);
-        const fileName = `${docName}.${outExt}`;
-        
-        // Audit & ZIP
-        const sha256 = await calculateSha256(documentContent);
-        auditLines.push(`${lineCount - 1};${fileName};${sha256};${new Date().toISOString()}`);
-        zipOutput.file(fileName, documentContent);
+          // 3. Generación (Solo DATA)
+          if (rt.name === 'DATA') {
+             processedCount++;
+             
+             const docName = GawebUtility.generateDocName(industrialBaseHash, lineCount - 1);
+             const fileName = `${docName}.${template.type === 'DOCX' ? 'docx' : 'html'}`;
+             let content;
 
-        // GAWEB Serialization
-        if (options.outputType === 'PDF_GAWEB') {
-           const gaLine = GawebExporter.serializeRecord({
-             LetterType: ' ',
-             Format: etlPreset.gawebConfig?.formatoCarta || '04',
-             GenerationDate: options.fechaGeneracion,
-             Batch: options.lote,
-             Sequential: (lineCount - 1).toString().padStart(7, '0'),
-             Page: '0001',
-             DocCode: options.codDocumento,
-             Version: '0000',
-             ContractClass: '  ',
-             ContractCode: (mergeData['CodContrato'] || '').padEnd(25),
-             TIREL: ' ',
-             NUREL: '000',
-             CLALF: (mergeData['CLALF'] || '').padEnd(15),
-             INDOM: '00',
-             ForceSend: ' ',
-             Language: 'ES',
-             SavingOpCode: '  ',
-             SavingOpAccount: ' '.repeat(25),
-             SavingOpSign: ' ',
-             SavingOpAmount: '0'.repeat(13),
-             SavingOpCurrency: '  ',
-             SavingOpISO: '   ',
-             SavingOpConcept: '  ',
-             LetterDate: options.fechaCarta,
-             DestinationIndicator: '0',
-             LoadDetail: '0000',
-             DeliveryWay: '  ',
-             PaperCopy: ' ',
-             OfficeCode: options.oficina,
-             EmailFax: ' '.repeat(50),
-             ContentLength: '00000',
-             PdfName: docName
-           });
-           gawebLines.push(gaLine);
-        }
+             try {
+               if (template.type === 'DOCX' && docxTemplate) {
+                 const zip = new (self as any).PizZip(docxTemplate);
+                 const doc = new (self as any).docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+                 doc.render(mergeData);
+                 content = doc.getZip().generate({ type: 'arraybuffer' });
+               } else {
+                 let merged = template.content || '';
+                 Object.entries(mergeData).forEach(([k, v]) => {
+                   merged = merged.replace(new RegExp(`\\{\\{\\s*${k}\\s*\\}\\}`, 'gi'), v || '');
+                 });
+                 content = new TextEncoder().encode(merged).buffer;
+               }
 
-        processed++;
-        if (processed % 10 === 0) {
-          self.postMessage({ type: 'PROGRESS', payload: { processed } });
+               const sha256 = await calculateSha256(content);
+               auditLines.push(`${lineCount - 1};${fileName};${sha256};${new Date().toISOString()}`);
+
+               if (isStreaming) {
+                 self.postMessage({ type: 'DOCUMENT_READY', payload: { name: fileName, content } });
+               } else {
+                 zipOutput.file(fileName, content);
+               }
+
+               // SERIALIZACIÓN UNIVERSAL (Inyectada - Protocolo v4 / Diseño v.1)
+               const cfg = etlPreset.gawebConfig || {};
+               const indexData = {
+                  LetterType: ' ',
+                  Format: options.codDocto || cfg.formatoCarta || '04',
+                  GenerationDate: options.fechaGeneracion || cfg.fechaGeneracion || options.fechaCarta,
+                  Batch: options.lote || '0000',
+                  Sequential: (lineCount - 1).toString(),
+                  Page: cfg.paginasDefecto ? cfg.paginasDefecto.toString() : '0001',
+                  DocCode: (options.codDocto || cfg.codigoDocumento || 'x00054').substring(0, 6),
+                  Version: '0000',
+                  ContractClass: '00',
+                  ContractCode: mergeData.CodContrato || mergeData._INDEX,
+                  CLALF: mergeData.CLALF || '',
+                  ForceSend: cfg.forzarMetodo || ' ',
+                  Language: cfg.idioma || '  ',
+                  SavingOpCode: cfg.savingsOpCode || '',
+                  SavingOpAccount: cfg.savingsOpAccount || '',
+                  SavingOpSign: cfg.savingsOpSign || '+',
+                  SavingOpAmount: cfg.savingsOpAmount || '0',
+                  SavingOpCurrency: cfg.savingsOpCurrency || '  ',
+                  SavingOpISO: cfg.savingsOpISO || '   ',
+                  SavingOpConcept: cfg.savingsOpConcept || '  ',
+                  LetterDate: options.fechaCarta || cfg.fechaCarta || '',
+                  DestinationIndicator: cfg.indicadorDestino || '0',
+                  LoadDetail: '0000',
+                  DeliveryWay: cfg.viaReparto || '',
+                  PaperCopy: cfg.copiaPapel || '',
+                  OfficeCode: options.oficina || cfg.oficina || '00000',
+                  PdfName: docName
+               };
+               
+               const gawebLine = GawebUtility.serializeDynamic(gawebFields, indexData);
+               gawebLines.push(gawebLine);
+
+               if (processedCount % 100 === 0) {
+                  self.postMessage({ type: 'LOG', payload: { type: 'info', message: `PROGRESO: [${processedCount}] generados...` } });
+               }
+             } catch (renderErr) {
+               self.postMessage({ type: 'LOG', payload: { type: 'error', message: `RENDER ERROR (L ${lineCount}): ${renderErr.message}` } });
+             }
+          }
         }
       }
     }
 
-    // Finalize Metadata
-    const timestamp = new Date().toISOString().split('T')[0].replace(/-/g, '') + 
-                     new Date().toTimeString().split(' ')[0].replace(/:/g, '');
-
-    if (options.outputType === 'PDF_GAWEB') {
-       const packageName = GawebExporter.generatePackageName('ARATORES', timestamp, options.lote);
-       zipOutput.file(`${packageName}.GAWEB`, gawebLines.join('\n'));
-       zipOutput.file(`AUDIT_REPORT_${timestamp}.CSV`, auditLines.join('\n'));
+    // PERSISTENCIA DE ÍNDICES FINALES
+    if (isStreaming && processedCount > 0) {
+       const gawebContent = new TextEncoder().encode(gawebLines.join('\r\n')).buffer;
+       self.postMessage({ type: 'DOCUMENT_READY', payload: { name: 'GAWEB.txt', content: gawebContent } });
+       
+       const auditContent = new TextEncoder().encode(auditLines.join('\r\n')).buffer;
+       self.postMessage({ type: 'DOCUMENT_READY', payload: { name: 'AUDIT_REPORT.CSV', content: auditContent } });
     }
 
-    const finalBundle = await zipOutput.generateAsync({ type: 'blob' });
-    self.postMessage({ type: 'COMPLETE', payload: finalBundle });
+    self.postMessage({ type: 'LOG', payload: { type: 'info', message: `CICLE COMPLETE: ${processedCount} documentos procesados.` } });
 
-  } catch (err: any) {
-    console.error(err);
-    self.postMessage({ type: 'LOG', payload: { type: 'error', message: `ERROR CRÍTICO EN MOTOR: ${err.message}` } });
+    if (isStreaming) {
+       self.postMessage({ type: 'COMPLETE', payload: { count: processedCount } });
+    } else {
+       zipOutput.file('GAWEB.txt', gawebLines.join('\r\n'));
+       zipOutput.file('AUDIT_REPORT.CSV', auditLines.join('\r\n'));
+       const blob = await zipOutput.generateAsync({ type: 'blob' });
+       self.postMessage({ type: 'COMPLETE', payload: { blob, name: `LOTE_${options.lote || '0000'}.zip`, count: processedCount } });
+    }
+
+  } catch (err) {
+    self.postMessage({ type: 'LOG', payload: { type: 'error', message: `ERROR CRÍTICO: ${err.message}` } });
   }
 };

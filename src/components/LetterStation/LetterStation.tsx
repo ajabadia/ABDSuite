@@ -13,7 +13,11 @@ import {
   PlayIcon, 
   FolderIcon, 
   TagIcon,
+  ZapIcon,
+  DownloadIcon,
+  SearchIcon
 } from '@/components/common/Icons';
+import { seedStressEnvironment, generateIndustrialStressData } from '@/lib/utils/stress-test-tool';
 import JSZip from 'jszip';
 
 import { useLog } from '@/lib/context/LogContext';
@@ -31,8 +35,16 @@ const LetterStation: React.FC = () => {
 
   // Selections
   const [selectedPresetId, setSelectedPresetId] = useState<number | null>(null);
+  const [selectedMapping, setSelectedMapping] = useState<any>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const [dataFile, setDataFile] = useState<File | null>(null);
+  const [outputHandle, setOutputHandle] = useState<any>(null);
+  const outputHandleRef = useRef<any>(null);
+  
+  // Sincronizar Ref para el manejador del Worker (Evita Stale Closure)
+  useEffect(() => {
+    outputHandleRef.current = outputHandle;
+  }, [outputHandle]);
   
   // Lote Options
   const [options, setOptions] = useState<LetterGenerationOptions>({
@@ -48,26 +60,77 @@ const LetterStation: React.FC = () => {
 
   // Engine
   const [isProcessing, setIsProcessing] = useState(false);
+  const [pendingDownload, setPendingDownload] = useState<{blob: Blob, name: string} | null>(null);
+
+  // El Downloader Industrial (Diálogos de Sistema Nativo)
+  const triggerDownload = async (blob: Blob, name: string) => {
+    addLog(`PREPARANDO DIÁLOGO DE SISTEMA PARA: ${name}...`);
+    try {
+      const handle = await (window as any).showSaveFilePicker({
+        suggestedName: name,
+        types: [{
+          description: 'ZIP Industrial Package',
+          accept: { 'application/zip': ['.zip'] },
+        }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      addLog('ARCHIVO GUARDADO CORRECTAMENTE MEDIANTE DIÁLOGO DE SISTEMA.', 'info');
+      setPendingDownload(null);
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        addLog('GUARDADO CANCELADO POR EL USUARIO.', 'info');
+      } else {
+        addLog(`ERROR EN DIÁLOGO NATIVO: ${err.message}. Intentando fallback...`, 'error');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    }
+  };
+
   const workerRef = useRef<Worker | null>(null);
 
-  const addLog = (message: string, type: 'info' | 'error' = 'info') => {
+  const addLog = (message: string, type: 'info' | 'error' | 'warning' | 'debug' = 'info') => {
     globalAddLog('LETTER', message, type as LogLevel);
   };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       workerRef.current = new Worker(new URL('../../lib/workers/document-engine.worker.ts', import.meta.url));
-      workerRef.current.onmessage = (e) => {
+      workerRef.current.onmessage = async (e) => {
         const { type, payload } = e.data;
-        if (type === 'LOG') addLog(payload.message, payload.type);
+        if (type === 'HEARTBEAT') {
+          (window as any).__WORKER_ALIVE = true;
+          addLog('MOTOR: Latido detectado. Hilo de fondo operativo.', 'info');
+        }
+        if (type === 'LOG') {
+          addLog(payload.message, payload.type);
+          if (payload.type === 'error') setIsProcessing(false);
+        }
         if (type === 'COMPLETE') {
           setIsProcessing(false);
-          addLog('GENERACIÓN FINALIZADA CON ÉXITO.');
-          const url = URL.createObjectURL(payload);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `GEN_CARTAS_${options.lote}_${Date.now()}.zip`;
-          a.click();
+          addLog('GENERACIÓN FINALIZADA CON ÉXITO.', 'info');
+          if (payload?.blob) {
+            setPendingDownload({ blob: payload.blob, name: payload.name });
+            addLog('>>> ARCHIVO LISTO. PULSE EL BOTÓN DE DESCARGA APARECIDO ABAJO.', 'info');
+          }
+        }
+        if (type === 'DOCUMENT_READY' && outputHandleRef.current) {
+          try {
+            const fileHandle = await (outputHandleRef.current as any).getFileHandle(payload.name, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(payload.content);
+            await writable.close();
+            addLog(`GUARDADO FISICO: ${payload.name}`, 'info');
+          } catch (err: any) {
+            addLog(`ERROR ESCRITURA: ${payload.name} - ${err.message}`, 'error');
+            addLog('Sugerencia: Haz clic en el icono de carpeta y otorga permisos de nuevo.', 'warning');
+          }
         }
       };
     }
@@ -91,7 +154,8 @@ const LetterStation: React.FC = () => {
   };
 
   const handleShowTags = async () => {
-    const template = templates.find(t => t.id === selectedTemplateId);
+    const injected = (window as any).__STRESS_RESOURCES || {};
+    const template = injected.template || templates.find(t => t.id === selectedTemplateId);
     if (!template) { alert('Seleccione plantilla.'); return; }
     let tags: string[] = [];
     if (template.type === 'DOCX' && template.binaryContent) {
@@ -104,137 +168,271 @@ const LetterStation: React.FC = () => {
           tags.push(match[1].trim().replace(/<[^>]*>?/gm, ''));
         }
       }
+    } else if (template.type === 'HTML' && template.content) {
+      const regex = /\{\{(.*?)\}\}/g;
+      let match;
+      while ((match = regex.exec(template.content)) !== null) {
+        tags.push(match[1].trim());
+      }
     }
-    alert(`ETIQUETAS IDENTIFICADAS:\n\n${Array.from(new Set(tags)).join('\n') || 'Ninguna'}`);
+    const tagList = Array.from(new Set(tags));
+    if (tagList.length > 0) {
+      addLog('------------------------------------------------', 'info');
+      addLog(`ETIQUETAS DETECTADAS EN PLANTILLA (${tagList.length}):`, 'info');
+      tagList.forEach(t => addLog(` • {{ ${t} }}`, 'info'));
+      addLog('------------------------------------------------', 'info');
+    } else {
+      addLog('ATENCIÓN: No se han identificado etiquetas dinámicas en esta plantilla.', 'error');
+    }
   };
 
-  const handleStart = () => {
-    if (!dataFile || !selectedTemplateId || !selectedPresetId) {
-      addLog('ERROR: Faltan recursos requeridos.', 'error');
-      return;
+  const isValidIndustrialDate = (dateStr: string) => {
+    if (!/^\d{8}$/.test(dateStr)) return false;
+    const year = parseInt(dateStr.substring(0, 4));
+    const month = parseInt(dateStr.substring(4, 6)) - 1;
+    const day = parseInt(dateStr.substring(6, 8));
+    const date = new Date(year, month, day);
+    return date.getFullYear() === year && date.getMonth() === month && date.getDate() === day;
+  };
+
+  const handlePickOutput = async () => {
+    try {
+      const handle = await (window as any).showDirectoryPicker();
+      const options = { mode: 'readwrite' };
+      if (await (handle as any).requestPermission(options) === 'granted') {
+         setOutputHandle(handle);
+         addLog(`CARPETA VINCULADA: ${handle.name} (Escritura Concedida)`);
+      } else {
+         addLog('ATENCIÓN: Se denegaron los permisos de escritura.', 'error');
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') addLog(`ERROR DIRECTORIO: ${err.message}`, 'error');
     }
-    const template = templates.find(t => t.id === selectedTemplateId);
-    const mapping = mappings.find(m => m.templateId === selectedTemplateId && m.etlPresetId === selectedPresetId);
-    const preset = presets.find(p => p.id === selectedPresetId);
-    
+  };
+
+  const handleAutoMap = async () => {
+    if (!selectedMapping || !selectedPresetId) return;
+    try {
+      const preset = await db.presets.get(selectedPresetId);
+      const mapping = await db.letter_mappings.get(selectedMapping.id!);
+      if (!preset || !mapping) return;
+      const dataRecordType = preset.recordTypes.find(rt => rt.name === 'DATA');
+      if (!dataRecordType) return;
+      const newMappings = mapping.mappings.map(m => {
+        const field = dataRecordType.fields.find(f => {
+          const fName = (f.Name || f.name || "").toLowerCase().replace(/_/g, '');
+          const tVar = m.templateVar.toLowerCase().replace(/_/g, '');
+          return fName === tVar || fName.includes(tVar.substring(0, 4));
+        });
+        const finalFieldName = field ? (field.Name || field.name) : m.sourceField;
+        return { ...m, sourceField: finalFieldName };
+      });
+      await db.letter_mappings.update(mapping.id!, { mappings: newMappings });
+      addLog('AUTO-MAPEO: Sincronización inteligente completada.', 'info');
+      const updated = await db.letter_mappings.get(mapping.id!);
+      if (updated) setSelectedMapping(updated);
+    } catch (err) { addLog(`ERROR AUTO-MAPEO: ${err}`, 'error'); }
+  };
+
+  const handleRunStressTest = async () => {
     setIsProcessing(true);
-    addLog(`INICIANDO PROCESO (Lote ${options.lote})...`);
-    workerRef.current?.postMessage({ dataFile, template, mapping, etlPreset: preset, options });
+    addLog('INICIANDO DIAGNÓSTICO DE ESTRÉS (Volumen Reducido: 5)...', 'info');
+    try {
+      const { presetId, templateId, mapping, template, preset } = await seedStressEnvironment();
+      setDataFile(generateIndustrialStressData(5));
+      setSelectedPresetId(presetId);
+      setSelectedTemplateId(templateId);
+      setSelectedMapping(mapping);
+      (window as any).__STRESS_RESOURCES = { mapping, template, preset };
+      addLog(`RECURSOS INDUSTRIALES SINCRONIZADOS (5 REGISTROS).`);
+      addLog('ENTORNO CONFIGURADO TOTALMENTE. PULSE INICIAR MOTOR.');
+      setOptions(prev => ({ ...prev, lote: 'STRS' }));
+    } catch (err) { addLog(`ERROR EN DIAGNÓSTICO: ${err}`, 'error'); setIsProcessing(false); }
   };
 
-  const navigateToConfig = () => {
-    router.push('/letter?view=config');
+  const handleStart = async () => {
+    if (!dataFile) { addLog('DIAGNOSTICO: Falta archivo de datos.', 'error'); return; }
+    if (!selectedTemplateId) { addLog('DIAGNOSTICO: Falta plantilla.', 'error'); return; }
+    if (!isValidIndustrialDate(options.fechaCarta) || !isValidIndustrialDate(options.fechaGeneracion)) {
+       addLog('ERROR: Fechas no válidas (AAAAMMDD).', 'error'); return;
+    }
+    if (!selectedPresetId) { addLog('DIAGNOSTICO: Falta preset.', 'error'); return; }
+    setIsProcessing(true);
+    setPendingDownload(null);
+    try {
+      const injected = (window as any).__STRESS_RESOURCES || {};
+      const template = injected.template || await db.letter_templates.get(selectedTemplateId);
+      const preset = injected.preset || await db.presets.get(selectedPresetId);
+      const mapping = injected.mapping || await db.letter_mappings.where('id').equals(selectedMapping?.id || 0).first();
+      if (!template || !preset || !mapping) throw new Error('Faltan recursos (Plantilla/Preset/Mapeo).');
+      addLog(`INICIANDO PROCESO (Lote ${options.lote})...`);
+      (window as any).__WORKER_ALIVE = false;
+      setTimeout(() => { if (!(window as any).__WORKER_ALIVE && isProcessing) { setIsProcessing(false); addLog('ERROR CRÍTICO: PARÁLISIS DE MOTOR DETECTADA.', 'error'); } }, 4000);
+      
+      // Inyección de Estándar Universal
+      const { GAWEB_FIELDS } = await import('@/lib/logic/gaweb-auditor.logic');
+
+      // Solo hacemos streaming si NO es modo ZIP y tenemos carpeta
+      const shouldStream = options.outputType !== 'ZIP' && !!outputHandle;
+
+      workerRef.current?.postMessage({ 
+        dataFile, 
+        template, 
+        mapping, 
+        etlPreset: preset, 
+        options, 
+        isStreaming: shouldStream,
+        gawebFields: GAWEB_FIELDS // Inyección de reglas
+      });
+    } catch (err: any) { addLog(`ERROR ARRANQUE: ${err.message}`, 'error'); setIsProcessing(false); }
   };
 
-  return (
-    <div className="flex-col" style={{ gap: '24px', padding: '24px' }}>
-      {/* Paso 1: Configuración de Recursos */}
-      <section className="station-card flex-col" style={{ gap: '20px' }}>
-        <span className="station-form-section-title">PASO 1: SELECCIÓN DE RECURSOS</span>
-              <div className="station-form-grid">
-                <div className="station-form-field medium">
-                  <label className="station-label">Preset GAWEB</label>
-                  <div className="flex-row" style={{ gap: '8px' }}>
-                    <select className="station-select" style={{ flex: 1 }} value={selectedPresetId || ''} onChange={e => setSelectedPresetId(Number(e.target.value))}>
-                      <option value="">-- Seleccionar --</option>
-                      {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <button className="station-btn" onClick={navigateToConfig} title="Gestionar Modelos"><FolderIcon size={14} /></button>
-                    <button className="station-btn" onClick={navigateToConfig}>Editar</button>
-                  </div>
-                </div>
+    const isBox1Complete = !!selectedPresetId && !!dataFile && !!selectedTemplateId && !!selectedMapping;
+    const isBox2Complete = !!options.lote && !!options.codDocumento && !!options.oficina && !!options.fechaCarta && !!options.fechaGeneracion;
+    const isReadyForStart = isBox1Complete && isBox2Complete && (options.outputType === 'ZIP' || !!outputHandle);
 
-                <div className="station-form-field large">
+    return (
+      <div className="flex-col" style={{ gap: '24px', padding: '24px' }}>
+        <section className="station-card flex-col" style={{ gap: '20px' }}>
+          <span className="station-form-section-title">PASO 1: SELECCIÓN DE RECURSOS</span>
+          <div className="station-form-grid">
+            {/* Campo 1: Preset (Siempre Visible) */}
+            <div className="station-form-field large">
+              <label className="station-label">Modelo de Carta (Preset)</label>
+              <div className="flex-row" style={{ gap: '8px' }}>
+                <select className="station-select" style={{ flex: 1 }} value={selectedPresetId || ''} onChange={e => setSelectedPresetId(Number(e.target.value))}>
+                  <option value="">-- Seleccionar Modelo --</option>
+                  {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+                <button className="station-btn" onClick={() => router.push('/letter?view=config')}>Editar</button>
+              </div>
+            </div>
+  
+            {/* Campo 2: DataFile (Depende de Preset) */}
+            {selectedPresetId && (
+              <div className="flex-row fade-in" style={{ width: '100%', gridColumn: '1 / -1' }}>
+                <div className="station-form-field" style={{ flex: 1 }}>
                   <label className="station-label">Archivo de Datos (ETL Output)</label>
                   <div className="flex-row" style={{ gap: '8px' }}>
-                    <input className="station-input" style={{ flex: 1 }} readOnly value={dataFile?.name || ''} placeholder="Seleccione archivo..." />
-                    <label className="station-btn">
-                      Explorar..
-                      <input type="file" hidden onChange={e => setDataFile(e.target.files?.[0] || null)} />
-                    </label>
+                    <input className="station-input" style={{ flex: 1 }} readOnly value={dataFile?.name || ''} placeholder="Esperando carga de datos..." />
+                    <label className="station-btn">Explorar..<input type="file" hidden onChange={e => setDataFile(e.target.files?.[0] || null)} /></label>
                   </div>
                 </div>
-
-                <div className="station-form-field full">
-                  <label className="station-label">Plantilla Principal (DOCX/HTML)</label>
+              </div>
+            )}
+  
+            {/* Campo 3: Template (Depende de DataFile) */}
+            {dataFile && (
+              <div className="flex-row fade-in" style={{ width: '100%', gridColumn: '1 / -1' }}>
+                <div className="station-form-field" style={{ flex: 1 }}>
+                  <label className="station-label">Plantilla Visual (DOCX/HTML)</label>
                   <div className="flex-row" style={{ gap: '8px' }}>
                     <select className="station-select" style={{ flex: 1 }} value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(Number(e.target.value))}>
-                      <option value="">-- Seleccionar --</option>
-                      {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                      <option value="">-- Seleccionar Plantilla --</option>
+                      {templates.map(t => <option key={t.id} value={t.id}>{t.name} ({t.type})</option>)}
                     </select>
-                    <label className="station-btn">
-                      Subir
-                      <input type="file" hidden onChange={e => e.target.files?.[0] && handleTemplateUpload(e.target.files?.[0])} />
-                    </label>
-                    <button className="station-btn" onClick={handleShowTags} title="Ver Etiquetas"><TagIcon size={14} /></button>
+                    <button className="station-btn" onClick={() => (document.getElementById('tpl-upload') as any).click()}>Subir</button>
+                    <button className="station-btn icon-only" onClick={handleShowTags}><SearchIcon size={14} /></button>
+                    <input id="tpl-upload" type="file" hidden onChange={e => { if(e.target.files) handleTemplateUpload(e.target.files[0]) }} />
                   </div>
                 </div>
               </div>
-            </section>
-
-            {/* Paso 2: Parámetros */}
-            <section className="station-card flex-col" style={{ gap: '20px' }}>
-              <span className="station-form-section-title">PASO 2: PARÁMETROS DEL LOTE</span>
-              <div className="station-form-grid">
-                <div className="station-form-field">
-                  <label className="station-label">Fecha Generación</label>
+            )}
+  
+            {/* Campo 4: Mapping (Depende de Template) */}
+            {selectedTemplateId && (
+              <div className="flex-row fade-in" style={{ width: '100%', gridColumn: '1 / -1' }}>
+                <div className="station-form-field" style={{ flex: 1 }}>
+                  <label className="station-label">Cerebro de Datos (Mapeo)</label>
                   <div className="flex-row" style={{ gap: '8px' }}>
-                    <input className="station-input" style={{ flex: 1 }} value={options.fechaGeneracion} onChange={e => setOptions({...options, fechaGeneracion: e.target.value})} />
-                    <button className="station-btn" onClick={() => setOptions({...options, fechaGeneracion: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button>
+                    <select className="station-select" style={{ flex: 1 }} value={selectedMapping?.id || ''} onChange={e => setSelectedMapping(mappings.find(m => m.id === Number(e.target.value)) || null)}>
+                      <option value="">-- Seleccionar Matriz de Mapeo --</option>
+                      {mappings.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                    </select>
+                    <button className="station-btn" onClick={handleAutoMap}>Auto-Map</button>
                   </div>
+                  {selectedMapping && (
+                     <div className="flex-col fade-in" style={{ marginTop: '12px', padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>Estado de Salud de Datos Variable</span>
+                        <div className="flex-row" style={{ flexWrap: 'wrap', gap: '8px' }}>
+                           {selectedMapping.mappings.map((m: any, i: number) => {
+                              const isMapped = !!m.sourceField;
+                              return (
+                                 <div key={i} style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '9px', background: isMapped ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: `1px solid ${isMapped ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`, color: isMapped ? '#4ade80' : '#f87171', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    {isMapped ? '✓' : '⚠'} {m.templateVar} {isMapped && <span style={{ opacity: 0.5 }}>→ {m.sourceField}</span>}
+                                 </div>
+                              );
+                           })}
+                        </div>
+                     </div>
+                  )}
                 </div>
-                <div className="station-form-field">
-                  <label className="station-label">ID Lote</label>
-                  <input className="station-input" value={options.lote} onChange={e => setOptions({...options, lote: e.target.value})} />
-                </div>
-                <div className="station-form-field">
-                  <label className="station-label">Fecha Carta</label>
+              </div>
+            )}
+  
+            {/* Campo 5: Folder (Depende de Mapping) */}
+            {selectedMapping && (
+              <div className="flex-row fade-in" style={{ width: '100%', gridColumn: '1 / -1' }}>
+                <div className="station-form-field" style={{ flex: 1 }}>
+                  <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                     <label className="station-label" style={{ marginBottom: 0 }}>Carpeta de Salida Industrial (Vuelco Directo)</label>
+                     {outputHandle && (
+                        <div className="flex-row fade-in" style={{ gap: '6px', padding: '2px 8px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '12px', border: '1px solid var(--status-ok)' }}>
+                           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--status-ok)', animation: 'pulse 2s infinite' }} />
+                           <span style={{ fontSize: '10px', color: 'var(--status-ok)', fontWeight: 700, textTransform: 'uppercase' }}>Escritura Concedida</span>
+                        </div>
+                     )}
+                  </div>
                   <div className="flex-row" style={{ gap: '8px' }}>
-                    <input className="station-input" style={{ flex: 1 }} value={options.fechaCarta} onChange={e => setOptions({...options, fechaCarta: e.target.value})} />
-                    <button className="station-btn" onClick={() => setOptions({...options, fechaCarta: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button>
-                  </div>
-                </div>
-                <div className="station-form-field">
-                  <div className="station-form-grid" style={{ gap: '16px' }}>
-                    <div className="station-form-field">
-                      <label className="station-label">Oficina</label>
-                      <input className="station-input" value={options.oficina} onChange={e => setOptions({...options, oficina: e.target.value})} />
+                    <div className="station-input" style={{ flex: 1, color: outputHandle ? 'var(--status-ok)' : 'rgba(255,255,255,0.2)', fontSize: '0.9rem', display: 'flex', alignItems: 'center' }}>
+                       {outputHandle?.name ? `[SISTEMA_DISCO] > ${outputHandle.name}` : 'Habilite permisos de escritura para iniciar lote...'}
                     </div>
-                    <div className="station-form-field">
-                      <label className="station-label">Cód. Docto.</label>
-                      <input className="station-input" value={options.codDocumento} onChange={e => setOptions({...options, codDocumento: e.target.value})} />
-                    </div>
+                    <button className="station-btn" onClick={handlePickOutput}><FolderIcon size={14} /> Conceder Acceso</button>
+                    {outputHandle && <button className="station-btn err" onClick={() => setOutputHandle(null)}>X</button>}
                   </div>
                 </div>
               </div>
-            </section>
-
-            {/* Paso 3: Salida */}
-            <div className="flex-row" style={{ gap: '16px', alignItems: 'stretch' }}>
-               <section className="station-card flex-col" style={{ flex: 2, gap: '12px' }}>
-                  <span className="station-form-section-title">CONTROL DE RANGO Y SALIDA</span>
-                  <div className="flex-row" style={{ gap: '16px', flex: 1, alignItems: 'center' }}>
-                    <div className="flex-row" style={{ gap: '8px', flex: 1 }}>
-                      <input className="station-input" style={{ width: '80px' }} type="number" placeholder="De" value={options.rangeFrom} onChange={e => setOptions({...options, rangeFrom: Number(e.target.value)})} />
-                      <input className="station-input" style={{ width: '80px' }} type="number" placeholder="A" value={options.rangeTo} onChange={e => setOptions({...options, rangeTo: Number(e.target.value)})} />
-                    </div>
-                    <select className="station-select" style={{ width: '120px' }} value={options.outputType} onChange={e => setOptions({...options, outputType: e.target.value as any})}>
-                      <option value="PDF_GAWEB">GAWEB</option>
-                      <option value="ZIP">ZIP</option>
-                    </select>
-                  </div>
-               </section>
-               <button 
-                  className="station-btn station-btn-primary" 
-                  disabled={isProcessing}
-                  style={{ flex: 1, fontSize: '1.2rem', fontWeight: 900 }}
-                  onClick={handleStart}
-                >
-                  <PlayIcon size={24} /> {isProcessing ? 'GENERANDO...' : 'INICIAR MOTOR'}
-                </button>
+            )}
+          </div>
+        </section>
+  
+        {/* PARÁMETROS DEL LOTE (Solo si Box 1 está completo) */}
+        {isBox1Complete && (
+          <section className="station-card flex-col fade-in" style={{ gap: '20px' }}>
+            <span className="station-form-section-title">PASO 2: PARÁMETROS DEL LOTE</span>
+            <div className="station-form-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr) !important', display: 'grid !important', gap: '20px' }}>
+              <div className="station-form-field"><label className="station-label">Fecha Carta</label><div className="flex-row" style={{ gap: 4 }}><input className="station-input" style={{ flex: 1 }} value={options.fechaCarta} onChange={e => setOptions({...options, fechaCarta: e.target.value})} maxLength={8} /><button className="station-btn" onClick={() => setOptions({...options, fechaCarta: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button></div></div>
+              <div className="station-form-field"><label className="station-label">Fecha Generación</label><div className="flex-row" style={{ gap: 4 }}><input className="station-input" style={{ flex: 1 }} value={options.fechaGeneracion} onChange={e => setOptions({...options, fechaGeneracion: e.target.value})} maxLength={8} /><button className="station-btn" onClick={() => setOptions({...options, fechaGeneracion: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button></div></div>
+              <div className="station-form-field"><label className="station-label">ID Lote</label><input className="station-input" style={{ textAlign: 'center' }} value={options.lote} onChange={e => setOptions({...options, lote: e.target.value})} maxLength={4} /></div>
+              <div className="station-form-field"><label className="station-label">Cód. Docto.</label><input className="station-input" value={options.codDocumento} onChange={e => setOptions({...options, codDocumento: e.target.value})} /></div>
+              <div className="station-form-field"><label className="station-label">Oficina</label><input className="station-input" style={{ textAlign: 'center' }} value={options.oficina} onChange={e => setOptions({...options, oficina: e.target.value})} /></div>
+              <div className="station-form-field"><label className="station-label">Rango (De / A)</label><div className="flex-row" style={{ gap: 8 }}><input className="station-input" style={{ width: '50%', textAlign: 'center' }} type="number" value={options.rangeFrom} onChange={e => setOptions({...options, rangeFrom: Number(e.target.value)})} /><input className="station-input" style={{ width: '50%', textAlign: 'center' }} type="number" value={options.rangeTo} onChange={e => setOptions({...options, rangeTo: Number(e.target.value)})} /></div></div>
+              <div className="station-form-field"><label className="station-label">Formato Final</label><select className="station-select" style={{ width: '100%' }} value={options.outputType} onChange={e => setOptions({...options, outputType: e.target.value as any})}><option value="PDF_GAWEB">GAWEB (MASTER)</option><option value="ZIP">ZIP (AUDIT)</option></select></div>
             </div>
-    </div>
-  );
-};
-
-export default LetterStation;
+          </section>
+        )}
+  
+        {/* ACCIÓN FINAL (Solo si TODO está relleno y listo) */}
+        {isReadyForStart && (
+          <div className="flex-row fade-in" style={{ justifyContent: 'flex-end' }}>
+            <button className="station-btn station-btn-primary" disabled={isProcessing} style={{ width: '400px', height: '64px', fontSize: '1.4rem', fontWeight: 900 }} onClick={handleStart}><PlayIcon size={28} /> {isProcessing ? 'GENERANDO...' : 'INICIAR MOTOR CARTA'}</button>
+          </div>
+        )}
+  
+        {pendingDownload && (
+          <div className="station-card flex-col" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid var(--status-ok)', gap: '12px' }}>
+            <span style={{ color: 'var(--status-ok)', fontWeight: 700, textAlign: 'center' }}>✓ LOTE GENERADO CORRECTAMENTE</span>
+            <button className="station-btn station-btn-primary" style={{ background: 'var(--status-ok)', color: 'white', height: '50px' }} onClick={() => triggerDownload(pendingDownload.blob, pendingDownload.name)}><DownloadIcon size={20} /> BAJAR ARCHIVO COMPLETO</button>
+          </div>
+        )}
+  
+        {isBox1Complete && (
+          <div className="station-card fade-in" style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px dashed rgba(239, 68, 68, 0.2)', marginTop: '24px' }}>
+            <button className="station-btn" style={{ width: '100%', height: '40px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-err)', fontWeight: 800 }} onClick={handleRunStressTest} disabled={isProcessing}><ZapIcon size={14} /> EJECUTAR STRESS TEST (10.000 REGISTROS)</button>
+          </div>
+        )}
+      </div>
+    );
+  };
+  
+  export default LetterStation;

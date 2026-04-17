@@ -35,12 +35,17 @@ const TemplateEditor: React.FC = () => {
   const [editContent, setEditContent] = useState('');
   const [editVersion, setEditVersion] = useState('1.0');
   const [editActive, setEditActive] = useState(true);
+  const [docxPreview, setDocxPreview] = useState<string>('');
+  const [docxTags, setDocxTags] = useState<string[]>([]);
+  const [isLoadingDocx, setIsLoadingDocx] = useState(false);
   const [editConfig, setEditConfig] = useState<TemplateComposition>(DEFAULT_COMPOSITION);
 
   // UI State
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [undoStack, setUndoStack] = useState<string[]>([]);
+
+  const currentTemplate = templates.find(t => t.id === selectedId);
 
   useEffect(() => {
     if (selectedId) {
@@ -84,6 +89,55 @@ const TemplateEditor: React.FC = () => {
     setActiveTab('content');
     setIsRegistryExpanded(false); // Auto-collapse to focus on editing
   };
+
+  useEffect(() => {
+    const extractDocx = async () => {
+      if (currentTemplate?.type === 'DOCX' && currentTemplate.binaryContent) {
+        setIsLoadingDocx(true);
+        try {
+          const zip = await JSZip.loadAsync(currentTemplate.binaryContent);
+          
+          // 1. Scan ALL XML files for Tags (Main, Headers, Footers)
+          const tags: string[] = [];
+          const tagRegex = /\{\{(.*?)\}\}/g;
+          
+          const xmlFiles = Object.keys(zip.files).filter(name => name.endsWith('.xml'));
+          
+          for (const name of xmlFiles) {
+             const content = await zip.file(name)?.async('text');
+             if (content) {
+                let match;
+                while ((match = tagRegex.exec(content)) !== null) {
+                  // Clean tags from XML markers (Docxtemplater standard)
+                  const tag = match[1].trim().replace(/<[^>]*>?/gm, '');
+                  if (tag) tags.push(tag);
+                }
+             }
+          }
+          setDocxTags(Array.from(new Set(tags)));
+
+          // 2. Extract Main Content Text Preview
+          const docXml = await zip.file('word/document.xml')?.async('text');
+          if (docXml) {
+             const text = docXml
+               .replace(/<w:p(?:\s+[^>]*)?>/g, '\n')
+               .replace(/<[^>]*>/g, '')
+               .replace(/\n\s*\n/g, '\n\n')
+               .trim();
+             setDocxPreview(text);
+          }
+        } catch (err) {
+          setDocxPreview('ERROR_DE_EXTRACCIÓN: No se pudo leer la estructura del Word.');
+        } finally {
+          setIsLoadingDocx(false);
+        }
+      } else {
+        setDocxPreview('');
+        setDocxTags([]);
+      }
+    };
+    extractDocx();
+  }, [selectedId, currentTemplate?.binaryContent]);
 
   const handleImport = async () => {
     const input = document.createElement('input');
@@ -219,7 +273,7 @@ const TemplateEditor: React.FC = () => {
                     <span className="station-shimmer-text">SIN PLANTILLAS REGISTRADAS</span>
                   </div>
                 )}
-                  {templates.filter(t => t.type === 'HTML').map(tmpl => (
+                  {templates.map(tmpl => (
                     <div 
                       key={tmpl.id} 
                       className={`station-registry-item ${selectedId === tmpl.id ? 'active' : ''}`}
@@ -231,10 +285,10 @@ const TemplateEditor: React.FC = () => {
                       <div className="station-registry-item-left">
                          <div className="station-registry-item-icon"><FileTextIcon size={16} /></div>
                          <div className="station-registry-item-info">
-                            <span className="station-registry-item-name">{tmpl.name}</span>
-                            <span className="station-registry-item-meta">
-                               V1.0 • HTML • {new Date(tmpl.updatedAt).toLocaleDateString()}
-                            </span>
+                             <span className="station-registry-item-name">{tmpl.name}</span>
+                             <span className="station-registry-item-meta">
+                                V1.0 • {tmpl.type} • {new Date(tmpl.updatedAt).toLocaleDateString()}
+                             </span>
                          </div>
                       </div>
 
@@ -264,7 +318,46 @@ const TemplateEditor: React.FC = () => {
       </section>
 
       <main className="station-main">
-        {selectedId ? (
+        {selectedId && currentTemplate?.type === 'DOCX' && (
+        <div className="flex-col" style={{ gap: '24px' }}>
+           <div className="station-card" style={{ background: 'rgba(56, 189, 248, 0.05)', borderLeft: '4px solid var(--primary-color)' }}>
+              <div className="flex-row" style={{ alignItems: 'center', gap: '16px' }}>
+                 <FileTextIcon size={32} style={{ color: 'var(--primary-color)' }} />
+                 <div className="flex-col">
+                    <span style={{ fontWeight: 800, fontSize: '1rem' }}>ESTRUCTURA DOCX (OPENXML / ZIP)</span>
+                    <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>MODO PREVISUALIZACIÓN TÉCNICA - EDICIÓN NO DISPONIBLE EN WEB</span>
+                 </div>
+              </div>
+           </div>
+
+           <div className="station-card shadow-lg" style={{ minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
+              <div className="station-panel-header">
+                 <span className="station-title-main">CONTENIDO EXTRAÍDO (BORRADOR)</span>
+                 <span className="station-badge station-badge-blue">READ-ONLY</span>
+              </div>
+              <div className="station-shell-content" style={{ flex: 1, padding: '24px', whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', opacity: 0.8 }}>
+                 {isLoadingDocx ? (
+                   <div className="station-shimmer-text">EXTRAYENDO ESTRUCTURA TÉCNICA...</div>
+                 ) : (
+                   <>
+                     <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
+                        <span className="station-label">ETIQUETAS DETECTADAS:</span>
+                        <div className="flex-row" style={{ flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                           {docxTags.length > 0 ? docxTags.map(t => (
+                             <span key={t} className="station-badge station-badge-blue" style={{ fontSize: '0.65rem' }}>{`{{${t}}}`}</span>
+                           )) : <span style={{ opacity: 0.5 }}>Ninguna detectada.</span>}
+                        </div>
+                     </div>
+                     {docxPreview || 'Sin contenido de texto detectable.'}
+                   </>
+                 )}
+                 {"\n\n[SISTEMA]: El motor industrial utilizará el archivo binario original para la generación final."}
+              </div>
+           </div>
+        </div>
+     )}
+
+     {selectedId && currentTemplate?.type === 'HTML' && (
           <>
             <header className="station-card">
               <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
@@ -425,13 +518,14 @@ const TemplateEditor: React.FC = () => {
               </div>
             </div>
           </>
-        ) : (
+      )}
+      {!selectedId && (
           <div className="station-empty-state">
             <FileTextIcon size={64} style={{ marginBottom: '16px' }} />
             <h2 style={{ fontSize: '1.2rem', fontWeight: 900 }}>SISTEMA DE DISEÑO DE PLANTILLAS</h2>
             <p style={{ fontSize: '0.9rem', opacity: 0.6 }}>Seleccione o cree una plantilla desde el registro superior para comenzar.</p>
           </div>
-        )}
+      )}
       </main>
       {/* Modales de Configuración de Plantilla */}
       {showSettingsModal && (

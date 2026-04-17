@@ -45,7 +45,14 @@ const DEFAULT_CONFIG: GawebConfig = {
   paginasDefecto: 4,
   idioma: '  ',
   viaReparto: '  ',
-  copiaPapel: ' '
+  copiaPapel: ' ',
+  savingsOpCode: '',
+  savingsOpAccount: '',
+  savingsOpSign: '+',
+  savingsOpAmount: '0',
+  savingsOpCurrency: '  ',
+  savingsOpISO: '   ',
+  savingsOpConcept: '  '
 };
 
 const LetterPresetEditor: React.FC = () => {
@@ -128,18 +135,56 @@ const LetterPresetEditor: React.FC = () => {
     // Validation
     const newErrors: Record<string, string> = {};
     if (!formData.name) newErrors.name = 'Nombre requerido';
-    if (formData.gawebConfig?.codigoDocumento.length !== 6) newErrors.codDoc = 'Exacto 6 caracteres';
-    if (formData.gawebConfig?.oficina.length !== 5) newErrors.oficina = 'Exacto 5 caracteres';
+    
+    const codDoc = formData.gawebConfig?.codigoDocumento || "";
+    const oficina = formData.gawebConfig?.oficina || "";
+    
+    if (codDoc.length !== 6) newErrors.codDoc = 'Exacto 6 caracteres';
+    if (oficina.length !== 5) newErrors.oficina = 'Exacto 5 caracteres';
     
     setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
+    
+    if (Object.keys(newErrors).length > 0) {
+      alert('ATENCIÓN: Corrija los campos marcados en rojo antes de guardar.');
+      return;
+    }
 
-    recordSnapshot();
-    await db.presets.put({
-      ...formData,
-      updatedAt: Date.now()
-    });
-    alert('MODELO GUARDADO CON ÉXITO.');
+    try {
+      recordSnapshot();
+      
+      // 1. Guardado Interno (DB)
+      await db.presets.put({
+        ...formData,
+        updatedAt: Date.now()
+      });
+
+      // 2. Guardado Físico (Diálogo de Sistema / Requisito Chrome)
+      const fileName = `PRESET_${formData.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
+      const blob = new Blob([JSON.stringify(formData, null, 2)], { type: 'application/json' });
+      
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: fileName,
+          types: [{
+            description: 'ABDFN Preset Configuration (JSON)',
+            accept: { 'application/json': ['.json'] },
+          }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        alert('MODELO PERSISTIDO EN BASE DE DATOS Y DISCO CON ÉXITO.');
+      } catch (fileErr: any) {
+        if (fileErr.name === 'AbortError') {
+          alert('ATENCIÓN: Se guardó en base de datos pero se canceló el guardado físico.');
+        } else {
+          throw fileErr;
+        }
+      }
+    } catch (err: any) {
+      console.error('SAVE_ERROR', err);
+      alert(`ERROR AL GUARDAR: ${err.message}`);
+    }
   };
 
   const handleExportAll = async () => {
@@ -380,7 +425,8 @@ const LetterPresetEditor: React.FC = () => {
                   <input className="station-input" value={formData.gawebConfig?.fechaCarta} onChange={e => updateGaweb('fechaCarta', e.target.value)} />, undefined, 'small')}
               </div>
             </section>
-            {/* Bloque: Opcionales */}
+            
+            {/* Bloque: Opcionales GAWEB */}
             <span className="station-form-section-title">OPCIONALES GAWEB</span>
             <section className="station-card">
               <div className="station-form-grid">
@@ -401,6 +447,29 @@ const LetterPresetEditor: React.FC = () => {
               </div>
             </section>
 
+            {/* Bloque: Ahorro (AH) */}
+            <span className="station-form-section-title">OPERACIONES EN AHORRO (AH)</span>
+            <section className="station-card">
+              <div className="station-form-grid">
+                {renderField('Cód. Ahorro', 'ahcode',
+                  <input className="station-input" value={formData.gawebConfig?.savingsOpCode} onChange={e => updateGaweb('savingsOpCode', e.target.value.toUpperCase())} placeholder="EJ: AH" />, undefined, 'small')}
+                {renderField('Cuenta (CCC)', 'account',
+                  <input className="station-input" value={formData.gawebConfig?.savingsOpAccount} onChange={e => updateGaweb('savingsOpAccount', e.target.value)} />, undefined, 'medium')}
+                {renderField('Signo / Importe', null,
+                  <div className="flex-row" style={{ gap: '4px' }}>
+                    <select className="station-select" style={{ width: '40px' }} value={formData.gawebConfig?.savingsOpSign} onChange={e => updateGaweb('savingsOpSign', e.target.value)}>
+                      <option value="+">+</option>
+                      <option value="-">-</option>
+                    </select>
+                    <input className="station-input" style={{ flex: 1 }} value={formData.gawebConfig?.savingsOpAmount} onChange={e => updateGaweb('savingsOpAmount', e.target.value)} />
+                  </div>, undefined, 'medium')}
+                {renderField('ISO / Concepto', null,
+                  <div className="flex-row" style={{ gap: '4px' }}>
+                    <input className="station-input" style={{ width: '50px' }} value={formData.gawebConfig?.savingsOpISO} onChange={e => updateGaweb('savingsOpISO', e.target.value.toUpperCase())} />
+                    <input className="station-input" style={{ flex: 1 }} value={formData.gawebConfig?.savingsOpConcept} onChange={e => updateGaweb('savingsOpConcept', e.target.value)} />
+                  </div>, undefined, 'small')}
+              </div>
+            </section>
           </div>
 
           <footer className="station-modal-footer" style={{ border: 'none', background: 'transparent', padding: 0, marginTop: '24px' }}>

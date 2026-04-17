@@ -15,38 +15,38 @@ export interface GawebField {
 }
 
 export const GAWEB_FIELDS: GawebField[] = [
-  { name: 'LetterType', length: 1 },         // 1-1
-  { name: 'Format', length: 2 },             // 2-3
-  { name: 'GenerationDate', length: 8, isNumeric: true }, // 4-11
-  { name: 'Batch', length: 4, isNumeric: true },          // 12-15
-  { name: 'Sequential', length: 7, isNumeric: true },     // 16-22
-  { name: 'Page', length: 4, isNumeric: true },           // 23-26
-  { name: 'DocCode', length: 6 },            // 27-32
-  { name: 'Version', length: 4, isNumeric: true },        // 33-36
-  { name: 'ContractClass', length: 2 },      // 37-38
-  { name: 'ContractCode', length: 25 },      // 39-63
-  { name: 'TIREL', length: 1 },              // 64-64
-  { name: 'NUREL', length: 3, isNumeric: true },          // 65-67
-  { name: 'CLALF', length: 15 },             // 68-82
-  { name: 'INDOM', length: 2, isNumeric: true },          // 83-84
-  { name: 'ForceSend', length: 1 },          // 85-85
-  { name: 'Language', length: 2 },           // 86-87
-  { name: 'SavingOpCode', length: 2 },       // 88-89
-  { name: 'SavingOpAccount', length: 25 },   // 90-114
-  { name: 'SavingOpSign', length: 1 },       // 115-115
-  { name: 'SavingOpAmount', length: 13, isNumeric: true }, // 116-128
-  { name: 'SavingOpCurrency', length: 2 },   // 129-130
-  { name: 'SavingOpISO', length: 3 },        // 131-133
-  { name: 'SavingOpConcept', length: 2 },    // 134-135
-  { name: 'LetterDate', length: 8, isNumeric: true },     // 136-143
-  { name: 'DestinationIndicator', length: 1 }, // 144-144
-  { name: 'LoadDetail', length: 4, isNumeric: true },      // 145-148
-  { name: 'DeliveryWay', length: 2 },        // 149-150
-  { name: 'PaperCopy', length: 1 },          // 151-151
-  { name: 'OfficeCode', length: 5 },         // 152-156
-  { name: 'EmailFax', length: 50 },          // 157-206
-  { name: 'ContentLength', length: 5, isNumeric: true },   // 207-211
-  { name: 'PdfName', length: 40 }            // 212-251
+  { name: 'LetterType', length: 1 },         // 1-1 (Fijo Blanco)
+  { name: 'Format', length: 2 },             // 2-3 (01-05)
+  { name: 'GenerationDate', length: 8, isNumeric: true }, // 4-11 (AAAAMMDD)
+  { name: 'Batch', length: 4, isNumeric: true },          // 12-15 (Lote)
+  { name: 'Sequential', length: 7, isNumeric: true },     // 16-22 (Secuencial)
+  { name: 'Page', length: 4, isNumeric: true },           // 23-26 (Página)
+  { name: 'DocCode', length: 6 },            // 27-32 (Cód Documento)
+  { name: 'Version', length: 4, isNumeric: true },        // 33-36 (Versión Ceros)
+  { name: 'ContractClass', length: 2 },      // 37-38 (Clase)
+  { name: 'ContractCode', length: 25 },      // 39-63 (Código Contrato)
+  { name: 'TIREL', length: 1 },              // 64-64 (Tipo Relación)
+  { name: 'NUREL', length: 3, isNumeric: true },          // 65-67 (Núm Relación)
+  { name: 'CLALF', length: 15 },             // 68-82 (ID Cliente)
+  { name: 'INDOM', length: 2, isNumeric: true },          // 83-84 (Cod Domicilio)
+  { name: 'ForceSend', length: 1 },          // 85-85 (Forzar Envío - Vacío)
+  { name: 'Language', length: 2 },           // 86-87 (Idioma - Vacío)
+  { name: 'SavingOpCode', length: 2 },       // 88-89 (Ahorro - AH)
+  { name: 'SavingOpAccount', length: 25 },   // 90-114 (CCC)
+  { name: 'SavingOpSign', length: 1 },       // 115-115 (Signo +/-)
+  { name: 'SavingOpAmount', length: 13, isNumeric: true }, // 116-128 (Importe)
+  { name: 'SavingOpCurrency', length: 2 },   // 129-130 (Moneda)
+  { name: 'SavingOpISO', length: 3 },        // 131-133 (Cod ISO)
+  { name: 'SavingOpConcept', length: 2 },    // 134-135 (Concepto)
+  { name: 'LetterDate', length: 8, isNumeric: true },     // 136-143 (Fecha AAAAMMDD)
+  { name: 'DestinationIndicator', length: 1 }, // 144-144 (0, O, 7)
+  { name: 'LoadDetail', length: 4, isNumeric: true },      // 145-148 (Fijo Cero)
+  { name: 'DeliveryWay', length: 2 },        // 149-150 (Vacío)
+  { name: 'PaperCopy', length: 1 },          // 151-151 (Vacío)
+  { name: 'OfficeCode', length: 5 },         // 152-156 (Cód Oficina)
+  { name: 'EmailFax', length: 50 },          // 157-206 (Vacío)
+  { name: 'ContentLength', length: 5, isNumeric: true },   // 207-211 (Longitud Cero)
+  { name: 'PdfName', length: 40 }            // 212-251 (Nombre PDF)
 ];
 
 export interface GawebError {
@@ -199,6 +199,28 @@ function validateCrossFields(record: Record<string, string>, line: number, audit
        });
     }
   }
+}
+
+/**
+ * Universal GAWEB Serializer
+ * Used by both Generator and Validator to ensure 100% parity.
+ */
+export function serializeGawebRecord(fields: GawebField[], data: Record<string, string>): string {
+  let body = "";
+  
+  fields.forEach(field => {
+    let val = data[field.name] || "";
+    
+    if (field.isNumeric) {
+      // Numeric: Pad with zeros to the left
+      body += val.replace(/\D/g, '').substring(0, field.length).padStart(field.length, '0');
+    } else {
+      // Alphanumeric: Pad with spaces to the right
+      body += val.substring(0, field.length).padEnd(field.length, ' ');
+    }
+  });
+
+  return body.padEnd(300, ' ');
 }
 
 function isValidGawebDate(dateStr: string): boolean {

@@ -33,6 +33,14 @@ export interface GawebConfig {
   idioma: string;
   viaReparto: string;
   copiaPapel: string;
+  // Ahorro (AH) Block
+  savingsOpCode?: string; // AH
+  savingsOpAccount?: string;
+  savingsOpSign?: string;
+  savingsOpAmount?: string;
+  savingsOpCurrency?: string;
+  savingsOpISO?: string;
+  savingsOpConcept?: string;
   windowOffsetX?: number; // mm
   windowOffsetY?: number; // mm
 }

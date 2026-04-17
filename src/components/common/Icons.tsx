@@ -288,3 +288,9 @@ export const PlusIcon: React.FC<IconProps> = ({ size = 24, className }) => (
     <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );
+
+export const ZapIcon: React.FC<IconProps> = ({ size = 24, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" className={className}>
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+  </svg>
+);

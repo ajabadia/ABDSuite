@@ -64,31 +64,34 @@ export const EtlSidebar: React.FC<EtlSidebarProps> = ({
       <div className={`station-registry-anim-container ${!isCollapsed ? 'expanded' : ''}`}>
         <div className="station-registry-anim-content">
           <div className="station-registry-content">
-            <div className="station-registry-actions">
-              <button 
-                className="station-btn station-btn-primary station-registry-btn-main" 
-                onClick={onNew}
-              >
-                [+] {t('etl.new_preset')}
-              </button>
-              <button 
-                className="station-btn station-registry-btn-side" 
-                onClick={onImport}
-                title="Importar Backup (.json)"
-              >
-                <UploadIcon size={16} />
-              </button>
+            <div className="station-registry-actions" style={{ justifyContent: 'space-between' }}>
+               <div className="flex-row" style={{ gap: '8px' }}>
+                 <button 
+                    className="station-btn station-registry-btn-side" 
+                    onClick={onExportAll}
+                    title="Exportar Mapeos (JSON↓)"
+                 >
+                    <DownloadIcon size={14} /> <span style={{fontSize: '0.65rem', fontWeight: 800}}>JSON↓</span>
+                 </button>
+                 <button 
+                    className="station-btn station-registry-btn-side" 
+                    onClick={onImport}
+                    title="Importar Mapeos (ALL↑)"
+                 >
+                    <UploadIcon size={14} /> <span style={{fontSize: '0.65rem', fontWeight: 800}}>ALL↑</span>
+                 </button>
+               </div>
+
+               <button 
+                 className="station-btn station-btn-primary station-registry-btn-main" 
+                 onClick={onNew}
+                 style={{ flex: 1, maxWidth: '300px' }}
+               >
+                 [+] {t('etl.new_preset')}
+               </button>
             </div>
 
             <div className="flex-col" style={{ gap: '8px' }}>
-              <div className="station-registry-sync-header">
-                 <span className="station-registry-sync-title">SYNCHRONIZATION</span>
-                 <div className="station-registry-sync-actions">
-                    <button className="station-registry-sync-btn" onClick={onImport}>JSON↓</button>
-                    <button className="station-registry-sync-btn" onClick={onExportAll}>ALL↑</button>
-                 </div>
-              </div>
-
               <div className="station-registry-list">
                 {sortedPresets.length === 0 ? (
                   <div className="station-empty-state" style={{ minHeight: '120px' }}>

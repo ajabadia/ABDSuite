@@ -13,38 +13,38 @@ export class GawebExporter {
     // Padding & Construction logic (Industrial Fixed Width)
     // Following positions from documentation:
     return [
-      clean.LetterType.padEnd(1),             // 1
-      clean.Format.padEnd(2),                 // 2-3
-      clean.GenerationDate.padEnd(8),         // 4-11
-      clean.Batch.padStart(4, '0'),           // 12-15
-      clean.Sequential.padStart(7, '0'),      // 16-22
-      clean.Page.padStart(4, '0'),            // 23-26
-      clean.DocCode.padEnd(6),                // 27-32
-      clean.Version.padStart(4, '0'),         // 33-36
-      clean.ContractClass.padEnd(2),          // 37-38
-      clean.ContractCode.padEnd(25),          // 39-63
-      clean.TIREL.padEnd(1),                  // 64
-      clean.NUREL.padStart(3, '0'),           // 65-67
-      clean.CLALF.padEnd(15),                 // 68-82
-      clean.INDOM.padStart(2, '0'),           // 83-84
-      clean.ForceSend.padEnd(1),              // 85
-      clean.Language.padEnd(2),               // 86-87
-      clean.SavingOpCode.padEnd(2),           // 88-89
-      clean.SavingOpAccount.padEnd(25),       // 90-114
-      clean.SavingOpSign.padEnd(1),           // 115
-      clean.SavingOpAmount.padStart(13, '0'), // 116-128
-      clean.SavingOpCurrency.padEnd(2),       // 129-130
-      clean.SavingOpISO.padEnd(3),            // 131-133
-      clean.SavingOpConcept.padEnd(2),        // 134-135
-      clean.LetterDate.padEnd(8),             // 136-143
-      clean.DestinationIndicator.padEnd(1),   // 144
-      clean.LoadDetail.padStart(4, '0'),      // 145-148
-      clean.DeliveryWay.padEnd(2),            // 149-150
-      clean.PaperCopy.padEnd(1),              // 151
-      clean.OfficeCode.padStart(5, '0'),      // 152-156
-      clean.EmailFax.padEnd(50),              // 157-206
-      clean.ContentLength.padStart(5, '0'),   // 207-211
-      clean.NombrePDF.padEnd(40)              // 212-251
+      (clean.LetterType || ' ').padEnd(1),             // 1
+      (clean.Format || '04').padEnd(2),                // 2-3
+      (clean.GenerationDate || '00000000').padEnd(8),   // 4-11
+      (clean.Batch || '0000').padStart(4, '0'),        // 12-15
+      (clean.Sequential || '0000000').padStart(7, '0'), // 16-22
+      (clean.Page || '0001').padStart(4, '0'),         // 23-26
+      (clean.DocCode || '000000').padEnd(6),           // 27-32
+      (clean.Version || '0000').padStart(4, '0'),      // 33-36
+      (clean.ContractClass || '  ').padEnd(2),         // 37-38
+      (clean.ContractCode || ' '.repeat(25)).padEnd(25), // 39-63
+      (clean.TIREL || ' ').padEnd(1),                  // 64
+      (clean.NUREL || '000').padStart(3, '0'),         // 65-67
+      (clean.CLALF || ' '.repeat(15)).padEnd(15),      // 68-82
+      (clean.INDOM || '00').padStart(2, '0'),          // 83-84
+      (clean.ForceSend || ' ').padEnd(1),              // 85
+      (clean.Language || 'ES').padEnd(2),              // 86-87
+      (clean.SavingOpCode || '  ').padEnd(2),          // 88-89
+      (clean.SavingOpAccount || ' '.repeat(25)).padEnd(25), // 90-114
+      (clean.SavingOpSign || ' ').padEnd(1),           // 115
+      (clean.SavingOpAmount || '0'.repeat(13)).padStart(13, '0'), // 116-128
+      (clean.SavingOpCurrency || '  ').padEnd(2),      // 129-130
+      (clean.SavingOpISO || '   ').padEnd(3),          // 131-133
+      (clean.SavingOpConcept || '  ').padEnd(2),       // 134-135
+      (clean.LetterDate || '00000000').padEnd(8),      // 136-143
+      (clean.DestinationIndicator || '0').padEnd(1),   // 144
+      (clean.LoadDetail || '0000').padStart(4, '0'),   // 145-148
+      (clean.DeliveryWay || '  ').padEnd(2),           // 149-150
+      (clean.PaperCopy || ' ').padEnd(1),              // 151
+      (clean.OfficeCode || '00000').padStart(5, '0'),  // 152-156
+      (clean.EmailFax || ' '.repeat(50)).padEnd(50),   // 157-206
+      (clean.ContentLength || '00000').padStart(5, '0'), // 207-211
+      (clean.PdfName || 'NONAME').padEnd(40)           // 212-251
     ].join('');
   }
 
