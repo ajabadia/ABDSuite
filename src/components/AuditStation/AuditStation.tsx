@@ -94,24 +94,38 @@ const AuditStation: React.FC = () => {
     <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
       
       <div className="station-card flex-col" style={{ gap: '20px' }}>
-        <span className="station-form-section-title">CONTROL DE AUDITORÍA TÉCNICA</span>
+        <span className="station-form-section-title">{t('audit.subtitle').toUpperCase()}</span>
         
         <div className="station-form-grid">
           <div className="station-form-field">
-            <label className="station-label">{t('audit.select_file')}</label>
+            <label className="station-label">{t('audit.select_file').toUpperCase()}</label>
             <div className="flex-row" style={{ gap: '8px' }}>
-              <input className="station-input" readOnly value={indexFile?.name || ''} placeholder="ESPERANDO .TXT..." />
+              <input className="station-input" readOnly value={indexFile?.name || ''} placeholder={t('audit.index_placeholder')} />
               <input type="file" id="index-input" style={{ display: 'none' }} onChange={(e) => handleFileChange(e, 'index')} />
-              <button className="station-btn" style={{ minWidth: '40px' }} onClick={() => document.getElementById('index-input')?.click()}>...</button>
+              <button 
+                className="station-btn" 
+                style={{ minWidth: '40px' }} 
+                onClick={() => document.getElementById('index-input')?.click()}
+                aria-label={t('audit.select_file')}
+              >
+                <FolderIcon size={16} />
+              </button>
             </div>
           </div>
 
           <div className="station-form-field">
-            <label className="station-label">{t('audit.select_archive')}</label>
+            <label className="station-label">{t('audit.select_archive').toUpperCase()}</label>
             <div className="flex-row" style={{ gap: '8px' }}>
-              <input className="station-input" readOnly value={archiveFile?.name || ''} placeholder="ESPERANDO .ZIP..." />
+              <input className="station-input" readOnly value={archiveFile?.name || ''} placeholder={t('audit.archive_placeholder')} />
               <input type="file" id="archive-input" style={{ display: 'none' }} accept=".zip" onChange={(e) => handleFileChange(e, 'archive')} />
-              <button className="station-btn" style={{ minWidth: '40px' }} onClick={() => document.getElementById('archive-input')?.click()}>...</button>
+              <button 
+                className="station-btn" 
+                style={{ minWidth: '40px' }} 
+                onClick={() => document.getElementById('archive-input')?.click()}
+                aria-label={t('audit.select_archive')}
+              >
+                <FolderIcon size={16} />
+              </button>
             </div>
           </div>
         </div>
@@ -120,11 +134,11 @@ const AuditStation: React.FC = () => {
           <div className="flex-row" style={{ gap: '24px', fontSize: '0.75rem', fontWeight: 800 }}>
             {result ? (
               <>
-                <span>REGISTROS: <span className="station-badge station-badge-blue">{result.lines}</span></span>
-                <span>ANOMALÍAS: <span className={`station-badge ${result.errors.length > 0 ? 'station-badge-orange' : 'station-badge-blue'}`}>{result.errors.length}</span></span>
+                <span>{t('audit.stats_records')} <span className="station-badge station-badge-blue">{result.lines}</span></span>
+                <span>{t('audit.stats_anomalies')} <span className={`station-badge ${result.errors.length > 0 ? 'station-badge-orange' : 'station-badge-blue'}`}>{result.errors.length}</span></span>
               </>
             ) : (
-              <span style={{ opacity: 0.5 }}>STATUS_READY: WAITING_FOR_PAYLOAD</span>
+              <span style={{ opacity: 0.5 }}>{t('audit.status_payload_waiting')}</span>
             )}
           </div>
           
@@ -134,7 +148,7 @@ const AuditStation: React.FC = () => {
             onClick={runValidation}
             style={{ width: '220px', height: '40px' }}
           >
-            {isValidating ? 'VALIDANDO...' : t('audit.validate').toUpperCase()}
+            {isValidating ? t('audit.validating').toUpperCase() : t('audit.validate').toUpperCase()}
           </button>
         </div>
       </div>
@@ -155,7 +169,7 @@ const AuditStation: React.FC = () => {
               <table className="station-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '48px', textAlign: 'center' }}>ID</th>
+                    <th style={{ width: '48px', textAlign: 'center' }}>{t('audit.col_id')}</th>
                     {GAWEB_FIELDS.map(f => (
                       <th key={f.name}>{t(`audit.fields.${f.name}`)}</th>
                     ))}
@@ -180,10 +194,10 @@ const AuditStation: React.FC = () => {
               <table className="station-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '50px' }}>LÍN.</th>
-                    <th style={{ width: '120px' }}>CAMPO</th>
-                    <th style={{ width: '80px' }}>SEVERIDAD</th>
-                    <th>MENSAJE DE AUDITORÍA</th>
+                    <th style={{ width: '50px' }}>{t('audit.col_line_short')}</th>
+                    <th style={{ width: '120px' }}>{t('audit.col_field_title')}</th>
+                    <th style={{ width: '80px' }}>{t('audit.col_severity_title')}</th>
+                    <th>{t('audit.col_message_title')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -200,10 +214,10 @@ const AuditStation: React.FC = () => {
                   {result.errors.length === 0 && (
                     <tr>
                       <td colSpan={4}>
-                        <div className="station-empty-state" style={{ minHeight: '200px' }}>
+                        <div className="station-empty-state" style={{ minHeight: '300px' }}>
                           <ShieldCheckIcon size={48} style={{ color: 'var(--status-ok)', marginBottom: '16px' }} />
-                          <div style={{ fontWeight: 900, letterSpacing: '0.1rem' }}>INTEGRIDAD_VERIFICADA</div>
-                          <p style={{ opacity: 0.5, fontSize: '0.8rem' }}>No se han detectado anomalías estructurales en el flujo.</p>
+                          <div style={{ fontWeight: 900, letterSpacing: '0.1rem' }}>{t('audit.integrity_verified')}</div>
+                          <p style={{ opacity: 0.5, fontSize: '0.8rem' }}>{t('audit.integrity_desc')}</p>
                         </div>
                       </td>
                     </tr>
@@ -215,8 +229,8 @@ const AuditStation: React.FC = () => {
           
           {!result && (
             <div className="station-empty-state" style={{ height: '100%' }}>
-              <SearchIcon size={64} style={{ marginBottom: '16px', opacity: 0.2 }} />
-              <p style={{ fontWeight: 900, letterSpacing: '0.2rem', opacity: 0.3 }}>WAITING_FOR_DATA_STREAM</p>
+              <SearchIcon size={64} style={{ marginBottom: '16px', opacity: 0.1 }} />
+              <p style={{ fontWeight: 900, letterSpacing: '0.2rem', opacity: 0.2 }}>{t('audit.waiting_stream')}</p>
             </div>
           )}
         </div>
@@ -225,7 +239,7 @@ const AuditStation: React.FC = () => {
       {result && result.errors.length > 0 && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
           <button className="station-btn" style={{ padding: '0 24px', height: '40px', fontWeight: 800 }} onClick={exportCsv}>
-            <DownloadIcon size={16} /> EXPORTAR REPORTE DE ANOMALÍAS (.CSV)
+            <DownloadIcon size={16} /> {t('audit.export_detailed').toUpperCase()}
           </button>
         </div>
       )}
