@@ -220,7 +220,7 @@ const LetterStation: React.FC = () => {
       if (!dataRecordType) return;
       const newMappings = mapping.mappings.map(m => {
         const field = dataRecordType.fields.find(f => {
-          const fName = (f.Name || f.name || "").toLowerCase().replace(/_/g, '');
+          const fName = (f.name || "").toLowerCase().replace(/_/g, '');
           const tVar = m.templateVar.toLowerCase().replace(/_/g, '');
           return fName === tVar || fName.includes(tVar.substring(0, 4));
         });
