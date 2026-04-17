@@ -66,28 +66,12 @@ export const EtlSidebar: React.FC<EtlSidebarProps> = ({
           <div className="station-registry-content">
             <div className="station-registry-actions" style={{ justifyContent: 'space-between' }}>
                <div className="flex-row" style={{ gap: '8px' }}>
-                 <button 
-                    className="station-btn station-registry-btn-side" 
-                    onClick={onExportAll}
-                    title="Exportar Mapeos (JSON↓)"
-                 >
-                    <DownloadIcon size={14} /> <span style={{fontSize: '0.65rem', fontWeight: 800}}>JSON↓</span>
-                 </button>
-                 <button 
-                    className="station-btn station-registry-btn-side" 
-                    onClick={onImport}
-                    title="Importar Mapeos (ALL↑)"
-                 >
-                    <UploadIcon size={14} /> <span style={{fontSize: '0.65rem', fontWeight: 800}}>ALL↑</span>
-                 </button>
+                 <button className="station-btn" onClick={onExportAll}><DownloadIcon size={14} /> JSON↓</button>
+                 <button className="station-btn" onClick={onImport}><UploadIcon size={14} /> ALL↑</button>
                </div>
 
-               <button 
-                 className="station-btn station-btn-primary station-registry-btn-main" 
-                 onClick={onNew}
-                 style={{ flex: 1, maxWidth: '300px' }}
-               >
-                 [+] {t('etl.new_preset')}
+               <button className="station-btn station-btn-primary" onClick={onNew} style={{ flex: 1, maxWidth: '300px' }}>
+                  {t('etl.new_preset').toUpperCase()}
                </button>
             </div>
 
@@ -95,7 +79,7 @@ export const EtlSidebar: React.FC<EtlSidebarProps> = ({
               <div className="station-registry-list">
                 {sortedPresets.length === 0 ? (
                   <div className="station-empty-state" style={{ minHeight: '120px' }}>
-                    <span className="station-shimmer-text">SIN PRESETS REGISTRADOS</span>
+                    <span className="station-shimmer-text">{t('processor.empty').toUpperCase()}</span>
                   </div>
                 ) : (
                   sortedPresets.map((p) => (
@@ -115,20 +99,8 @@ export const EtlSidebar: React.FC<EtlSidebarProps> = ({
                       </div>
 
                       <div className="station-registry-item-actions">
-                        <button 
-                          className="station-registry-action-btn"
-                          onClick={(e) => { e.stopPropagation(); onExport(p); }}
-                          title="Exportar Preset"
-                        >
-                          <DownloadIcon size={16} />
-                        </button>
-                        <button 
-                          className="station-registry-action-btn err"
-                          onClick={(e) => { e.stopPropagation(); if (p.id) onDelete(p.id); }}
-                          title="Eliminar"
-                        >
-                          <TrashIcon size={16} />
-                        </button>
+                        <button className="station-registry-action-btn" onClick={(e) => { e.stopPropagation(); onExport(p); }}><DownloadIcon size={16} /></button>
+                        <button className="station-registry-action-btn err" onClick={(e) => { e.stopPropagation(); if (p.id) onDelete(p.id); }}><TrashIcon size={16} /></button>
                       </div>
                     </div>
                   ))

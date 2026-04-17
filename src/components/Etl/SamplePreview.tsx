@@ -82,7 +82,7 @@ export const SamplePreview: React.FC<SamplePreviewProps> = ({ preset, activeReco
 
   return (
     <div className="flex-col" style={{ height: '100%', gap: '12px' }}>
-      <h3 style={{ fontSize: '0.8rem', opacity: 0.6, textTransform: 'uppercase' }}>Vista Previa de Datos</h3>
+      <h3 className="station-form-section-title">PREVIEW_ENGINE</h3>
 
       <div 
         className="station-card"
@@ -93,8 +93,8 @@ export const SamplePreview: React.FC<SamplePreviewProps> = ({ preset, activeReco
       >
         {lines.length === 0 ? (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
-            <p style={{ fontWeight: 800 }}>ARRASTRE UN ARCHIVO PARA EXPLORAR</p>
-            <small style={{ fontSize: '0.65rem' }}>FORMATO TEXTO / MONO</small>
+            <p style={{ fontWeight: 800 }}>{t('processor.drop').toUpperCase()}</p>
+            <small style={{ fontSize: '0.65rem' }}>MONO_STREAM_READY</small>
           </div>
         ) : (
           <div style={{ padding: '8px' }}>

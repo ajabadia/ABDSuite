@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useLog } from '@/lib/context/LogContext';
+import { useLanguage } from '@/lib/context/LanguageContext';
 import { 
   XIcon, 
   CopyIcon, 
@@ -13,7 +14,8 @@ import {
 } from '@/components/common/Icons';
 
 export const LogDrawer: React.FC = () => {
-  const { logs, isOpen, setIsOpen, isMaximized, setIsMaximized, clearLogs } = useLog();
+  const { logs, isOpen, setIsOpen, isMaximized, setIsMaximized, clearLogs, addLog } = useLog();
+  const { t } = useLanguage();
   const [search, setSearch] = useState('');
   const [appFilter, setAppFilter] = useState('');
 
@@ -35,7 +37,8 @@ export const LogDrawer: React.FC = () => {
   const handleCopy = () => {
     const text = filteredLogs.map(l => `[${l.timestamp}] [${l.app}] [${l.level.toUpperCase()}] ${l.message}`).join('\n');
     navigator.clipboard.writeText(text);
-    alert('Logs copiados al portapapeles');
+    // Notificación silenciosa en el stream de logs
+    addLog('SHELL', t('logs.copied').toUpperCase(), 'success');
   };
 
   return (
@@ -60,14 +63,7 @@ export const LogDrawer: React.FC = () => {
       }}
     >
       {/* Toolbar */}
-      <header style={{ 
-        padding: '8px 16px', 
-        borderBottom: '1px solid var(--border-color)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        background: 'rgba(0,0,0,0.1)'
-      }}>
+      <header className="station-console-header" style={{ padding: '8px 16px', background: 'rgba(0,0,0,0.1)' }}>
         {/* Left: Filters */}
         <div className="flex-row" style={{ alignItems: 'center', gap: '16px', flex: 1 }}>
           <div className="station-registry-sync-actions" style={{ gap: '8px' }}>
@@ -76,7 +72,7 @@ export const LogDrawer: React.FC = () => {
               <input 
                 type="text" 
                 className="station-input"
-                placeholder="FILTRAR REGISTROS..." 
+                placeholder={t('logs.filter_placeholder').toUpperCase()} 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
@@ -98,7 +94,7 @@ export const LogDrawer: React.FC = () => {
                 padding: '0 12px'
               }}
             >
-              <option value="">TODAS LAS APPS</option>
+              <option value="">{t('logs.all_apps').toUpperCase()}</option>
               {uniqueApps.map(app => <option key={app} value={app}>{app.toUpperCase()}</option>)}
             </select>
           </div>
@@ -115,19 +111,19 @@ export const LogDrawer: React.FC = () => {
               background: 'rgba(239, 68, 68, 0.1)'
             }}
           >
-            LIMPIAR CONSOLA
+            {t('logs.clear_console').toUpperCase()}
           </button>
         </div>
 
         {/* Right: Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button onClick={handleCopy} title="Copy Logs" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+          <button onClick={handleCopy} title={t('logs.copied')} className="station-icon-btn">
             <CopyIcon size={16} />
           </button>
-          <button onClick={() => setIsMaximized(!isMaximized)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+          <button onClick={() => setIsMaximized(!isMaximized)} className="station-icon-btn">
             {isMaximized ? <ArrowDownIcon size={18} /> : <ArrowUpIcon size={18} />}
           </button>
-          <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+          <button onClick={() => setIsOpen(false)} className="station-icon-btn">
             <XIcon size={18} />
           </button>
         </div>
@@ -136,7 +132,7 @@ export const LogDrawer: React.FC = () => {
       {/* Log Entries */}
       <div className="station-shell-content" style={{ flex: 1, overflowY: 'auto', padding: '16px', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', background: 'rgba(0,0,0,0.05)' }}>
         {filteredLogs.map((log) => (
-          <div key={log.id} style={{ 
+          <div key={log.id} className="log-entry" style={{ 
             display: 'flex', 
             gap: '16px', 
             marginBottom: '6px',
@@ -146,20 +142,20 @@ export const LogDrawer: React.FC = () => {
             padding: '4px 0',
             borderBottom: '1px solid rgba(255,255,255,0.03)'
           }}>
-            <span style={{ opacity: 0.4, whiteSpace: 'nowrap', fontSize: '0.7rem' }}>[{log.timestamp.split('T')[1].split('.')[0]}]</span>
-            <span style={{ 
+            <span className="log-time" style={{ opacity: 0.4, whiteSpace: 'nowrap', fontSize: '0.7rem' }}>[{log.timestamp.split('T')[1].split('.')[0]}]</span>
+            <span className="log-app" style={{ 
               fontWeight: 900, 
               minWidth: '70px', 
               color: 'var(--primary-color)',
               fontSize: '0.7rem',
               letterSpacing: '0.05rem'
             }}>{log.app.toUpperCase()}</span>
-            <span style={{ flex: 1, wordBreak: 'break-all', opacity: 0.9 }}>{log.message}</span>
+            <span className="log-msg" style={{ flex: 1, wordBreak: 'break-all', opacity: 0.9 }}>{log.message}</span>
           </div>
         ))}
         {filteredLogs.length === 0 && (
           <div className="station-empty-state" style={{ minHeight: '100px' }}>
-             <span className="station-shimmer-text">SIN STREAM DE DATOS ACTIVO</span>
+             <span className="station-shimmer-text">{t('logs.empty_stream').toUpperCase()}</span>
           </div>
         )}
       </div>

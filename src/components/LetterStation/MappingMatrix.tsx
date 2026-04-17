@@ -29,8 +29,10 @@ import {
   UndoIcon
 } from '@/components/common/Icons';
 import JSZip from 'jszip';
+import { useLanguage } from '@/lib/context/LanguageContext';
 
 const MappingMatrix: React.FC = () => {
+  const { t } = useLanguage();
   const presets = useLiveQuery(() => db.presets.toArray()) || [];
   const templates = useLiveQuery(() => db.letter_templates.toArray()) || [];
   const allMappings = useLiveQuery(() => db.letter_mappings.toArray()) || [];
@@ -71,7 +73,7 @@ const MappingMatrix: React.FC = () => {
 
   const handleNewMapping = async () => {
     const nextId = (allMappings.length > 0 ? Math.max(...allMappings.map(m => m.id || 0)) : 0) + 1;
-    const name = `MAPEADO_AUTO_${nextId}_${new Date().toLocaleDateString().replace(/\//g, '')}`;
+    const name = `MAPEADO_AUTO_${nextId}`;
     
     const newMapping: LetterMapping = {
       name,
@@ -163,7 +165,7 @@ const MappingMatrix: React.FC = () => {
 
   const saveMapping = async () => {
     if (!currentMapping || !selectedPresetId || !selectedTemplateId) {
-      alert("FALTAN DATOS DE VINCULACIÓN"); return;
+      return;
     }
     try {
       recordSnapshot();
@@ -171,13 +173,12 @@ const MappingMatrix: React.FC = () => {
       const id = await db.letter_mappings.put(payload);
       setSelectedMappingId(id);
       setIsLinkerExpanded(false);
-      alert('MAPEADO PERSISTIDO CON ÉXITO');
-    } catch (err) { alert(`Error al guardar: ${err}`); }
+    } catch (err) {}
   };
 
   const handleDeleteMapping = async (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
-    if (confirm("¿ELIMINAR ESTE MAPEADO?")) {
+    if (confirm(t('common.confirm_delete').toUpperCase())) {
       await db.letter_mappings.delete(id);
       if (selectedMappingId === id) setSelectedMappingId(null);
     }
@@ -210,9 +211,8 @@ const MappingMatrix: React.FC = () => {
               const { id, ...cleanMapping } = m; 
               await db.letter_mappings.add(cleanMapping);
             }
-            alert('IMPORTADO CON ÉXITO');
           }
-        } catch (err) { alert('ERROR AL IMPORTAR'); }
+        } catch (err) {}
       }
     };
     input.click();
@@ -226,7 +226,7 @@ const MappingMatrix: React.FC = () => {
     <div className="flex-col" style={{ gap: '24px' }}>
       <section className="station-registry">
          <div className="station-registry-header" onClick={() => setIsRegistryExpanded(!isRegistryExpanded)}>
-            <div className="station-registry-title"><ListIcon size={18} /> MAPPINGS_REGISTRY ({allMappings.length})</div>
+            <div className="station-registry-title"><ListIcon size={18} /> {t('letter.ui.mapping_brain').toUpperCase()} ({allMappings.length})</div>
             {isRegistryExpanded ? <ArrowUpIcon size={20} /> : <ArrowDownIcon size={20} />}
          </div>
          <div className={`station-registry-anim-container ${isRegistryExpanded ? 'expanded' : ''}`}>
@@ -237,7 +237,7 @@ const MappingMatrix: React.FC = () => {
                      <button className="station-btn" onClick={handleExportAll}><DownloadIcon size={14} /> JSON↓</button>
                      <button className="station-btn" onClick={handleImport}><UploadIcon size={14} /> ALL↑</button>
                    </div>
-                   <button className="station-btn station-btn-primary" onClick={handleNewMapping} style={{ flex: 1, maxWidth: '300px' }}>[+] NUEVO MAPEADO INDUSTRIAL</button>
+                   <button className="station-btn station-btn-primary" onClick={handleNewMapping} style={{ flex: 1, maxWidth: '300px' }}>{t('letter.ui.btn_generate').toUpperCase()}</button>
                 </div>
                 <div className="station-registry-list">
                   {allMappings.sort((a,b) => (b.id||0)-(a.id||0)).map(m => (
@@ -264,13 +264,13 @@ const MappingMatrix: React.FC = () => {
               <div className="flex-col"><h2 className="station-title-main" style={{ margin: 0 }}>{currentMapping?.name}</h2></div>
               <div className="flex-row" style={{ gap: '12px' }}>
                 <button className="station-btn" onClick={undo} disabled={undoStack.length === 0}><UndoIcon size={16} /></button>
-                <button className="station-btn" onClick={() => setShowConfigModal(true)}><CogIcon size={16} /> CONFIGURACIÓN</button>
-                <button className="station-btn station-btn-primary" onClick={saveMapping}><SaveIcon size={16} /> GUARDAR TRANSFORMACIÓN</button>
+                <button className="station-btn" onClick={() => setShowConfigModal(true)}><CogIcon size={16} /> {t('settings.title').toUpperCase()}</button>
+                <button className="station-btn station-btn-primary" onClick={saveMapping}><SaveIcon size={16} /> {t('common.save').toUpperCase()}</button>
               </div>
            </div>
            <div className="station-tech-summary" style={{ marginTop: '16px' }}>
-              <div className="station-tech-item"><span className="station-tech-label">Origen (ETL):</span> {selectedPreset?.name || '---'}</div>
-              <div className="station-tech-item"><span className="station-tech-label">Salida (Doc):</span> {selectedTemplate?.name || '---'}</div>
+              <div className="station-tech-item"><span className="station-tech-label">{t('letter.ui.resources')}:</span> {selectedPreset?.name || '---'}</div>
+              <div className="station-tech-item"><span className="station-tech-label">{t('letter.ui.output_format')}:</span> {selectedTemplate?.name || '---'}</div>
            </div>
         </div>
       )}
@@ -278,13 +278,13 @@ const MappingMatrix: React.FC = () => {
       {(selectedMappingId || currentMapping) && (
         <section className="station-registry">
            <div className="station-registry-header" onClick={() => setIsLinkerExpanded(!isLinkerExpanded)}>
-              <div className="station-registry-title"><CogIcon size={16} /> RESOURCE_LINKER (VINCULACIÓN)</div>
+              <div className="station-registry-title"><CogIcon size={16} /> RESOURCE_LINKER</div>
               {isLinkerExpanded ? <ArrowUpIcon size={18} /> : <ArrowDownIcon size={18} />}
            </div>
            <div className={`station-registry-anim-container ${isLinkerExpanded ? 'expanded' : ''}`}>
              <div className="station-registry-anim-content"><div className="station-registry-content"><div className="station-form-grid">
-               <div className="station-form-field"><label className="station-label">RECURSO ETL</label><select className="station-select" value={selectedPresetId || 0} onChange={e => setSelectedPresetId(parseInt(e.target.value))}><option value={0}>-- SELECCIONAR ORIGEN --</option>{presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
-               <div className="station-form-field"><label className="station-label">RECURSO PLANTILLA</label><select className="station-select" value={selectedTemplateId || 0} onChange={e => setSelectedTemplateId(parseInt(e.target.value))}><option value={0}>-- SELECCIONAR DESTINO --</option>{templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
+               <div className="station-form-field"><label className="station-label">{t('letter.ui.data_file').toUpperCase()}</label><select className="station-select" value={selectedPresetId || 0} onChange={e => setSelectedPresetId(parseInt(e.target.value))}><option value={0}>-- {t('letter.ui.waiting_data').toUpperCase()} --</option>{presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+               <div className="station-form-field"><label className="station-label">{t('letter.ui.template_visual').toUpperCase()}</label><select className="station-select" value={selectedTemplateId || 0} onChange={e => setSelectedTemplateId(parseInt(e.target.value))}><option value={0}>-- {t('letter.ui.select_template').toUpperCase()} --</option>{templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
              </div></div></div>
            </div>
         </section>
@@ -293,12 +293,12 @@ const MappingMatrix: React.FC = () => {
       {selectedPresetId && selectedTemplateId && (
         <div className="flex-col" style={{ marginTop: '24px', gap: '20px' }}>
           <div className="station-toolbar">
-             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><span className="station-badge station-badge-blue">W</span><span style={{ fontWeight: 800 }}>VARIABLES DETECTADAS: {templateVars.length}</span></div>
-             <div style={{ display: 'flex', gap: '12px' }}><button className="station-btn" onClick={handleAutoMap}><RefreshCwIcon size={14} /> AUTO-MAPEO</button><button className="station-btn station-btn-primary" onClick={saveMapping}><SaveIcon size={14} /> PERSISTIR MAPEADO</button></div>
+             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><span className="station-badge station-badge-blue">W</span><span style={{ fontWeight: 800 }}>{t('letter.ui.mapping_brain').toUpperCase()}: {templateVars.length}</span></div>
+             <div style={{ display: 'flex', gap: '12px' }}><button className="station-btn" onClick={handleAutoMap}><RefreshCwIcon size={14} /> {t('letter.ui.auto_map').toUpperCase()}</button><button className="station-btn station-btn-primary" onClick={saveMapping}><SaveIcon size={14} /> {t('common.save').toUpperCase()}</button></div>
           </div>
           <div className="station-table-container">
             <table className="station-table">
-              <thead><tr><th style={{ width: '40px' }}>TIPO</th><th>ETIQUETA</th><th>ORIGEN</th><th style={{ width: '120px' }}>ESTADO</th></tr></thead>
+              <thead><tr><th style={{ width: '40px' }}>TYP</th><th>{t('etl.field_name').toUpperCase()}</th><th>SOURCE</th><th style={{ width: '120px' }}>STATUS</th></tr></thead>
               <tbody>
                 {templateVars.map(v => {
                    const map = currentMapping?.mappings.find(m => m.templateVar === v);
@@ -308,19 +308,19 @@ const MappingMatrix: React.FC = () => {
                        <td style={{ fontWeight: 800 }}>{`{{${v}}}`}</td>
                        <td>
                           <select className="station-select" style={{ fontSize: '0.8rem' }} value={map ? `${map.sourceType}:${map.sourceField}` : ''} onChange={e => { const [type, field] = e.target.value.split(':'); handleUpdateMapping(v, type as any, field); }}>
-                             <option value="">-- SELECCIONAR ORIGEN --</option>
-                             <optgroup label="[CSV] COLUMNAS DEL PRESET SELECCIONADO">
+                             <option value="">-- {t('letter.ui.select_mapping').toUpperCase()} --</option>
+                             <optgroup label="[CSV] COLUMNS">
                                 {dataRT?.fields.map((f: any, idx) => (
                                    <option key={idx} value={`TEMPLATE:${f.Name || f.name}`}>{f.Name || f.name}</option>
                                 ))}
                              </optgroup>
-                             <optgroup label="[GAWEB] TÉCNICOS">{CANONICAL_GAWEB_FIELDS.map(g => <option key={g} value={`GAWEB:${g}`}>{g}</option>)}</optgroup>
+                             <optgroup label="[GAWEB] TECHNICALS">{CANONICAL_GAWEB_FIELDS.map(g => <option key={g} value={`GAWEB:${g}`}>{g}</option>)}</optgroup>
                           </select>
                        </td>
-                       <td>{map ? 'VINCULADO' : 'PENDIENTE'}</td>
+                       <td>{map ? 'LINKED' : 'PENDING'}</td>
                      </tr>
                    );
-                })}
+                 })}
               </tbody>
             </table>
           </div>

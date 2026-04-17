@@ -67,7 +67,7 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
     setIsProcessing(true);
     outputStreamsRef.current = new Map();
 
-    addLog({ type: 'info', message: `Iniciando motor ETL: ${selectedPreset.name}` });
+    addLog({ type: 'info', message: `${t('etl.logs.start')}: ${selectedPreset.name}` });
 
     const worker = new Worker(new URL('../../lib/workers/etl-processor.worker.ts', import.meta.url));
     workerRef.current = worker;
@@ -80,7 +80,7 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
         case 'COMPLETE':
           cleanupStreams();
           setIsProcessing(false);
-          addLog({ type: 'success', message: 'Procesamiento finalizado con éxito.' });
+          addLog({ type: 'success', message: t('etl.logs.complete') });
           break;
       }
     };
@@ -137,27 +137,27 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
       
       <div className="station-card">
         <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
-          <span className="station-form-section-title">CONTROL DE EJECUCIÓN</span>
+          <span className="station-form-section-title">CONTROL_PANEL</span>
           {selectedPreset && (
-            <button className="station-btn station-btn-gear" onClick={handleEditDesign} title="Modificar Diseño del Preset">
-              <CogIcon size={16} /> EDITAR DISEÑO
+            <button className="station-btn icon-only" onClick={handleEditDesign}>
+              <CogIcon size={16} />
             </button>
           )}
         </div>
 
         <div className="station-form-grid" style={{ marginTop: '16px' }}>
           <div className="station-form-field medium">
-            <label className="station-label">Archivo de Entrada</label>
+            <label className="station-label">{t('etl.input_file').toUpperCase()}</label>
             <div className="flex-row" style={{ gap: '8px' }}>
-              <input className="station-input" readOnly value={inputFile?.name || ''} placeholder="Seleccionar CSV/TXT..." />
+              <input className="station-input" readOnly value={inputFile?.name || ''} placeholder="..." />
               <input type="file" id="etl-run-in" style={{ display: 'none' }} onChange={e => setInputFile(e.target.files?.[0] || null)} />
               <button className="station-btn" onClick={() => document.getElementById('etl-run-in')?.click()}>...</button>
             </div>
           </div>
           <div className="station-form-field medium">
-            <label className="station-label">Carpeta de Salida</label>
+            <label className="station-label">{t('etl.output_path').toUpperCase()}</label>
             <div className="flex-row" style={{ gap: '8px' }}>
-              <input className="station-input" readOnly value={outputHandle?.name || ''} placeholder="Seleccionar destino..." />
+              <input className="station-input" readOnly value={outputHandle?.name || ''} placeholder="..." />
               <button className="station-btn" onClick={handlePickOutput}>...</button>
             </div>
           </div>
@@ -165,25 +165,25 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
       </div>
 
       <div className="station-card">
-        <span className="station-form-section-title">PARÁMETROS DEL MOTOR</span>
+        <span className="station-form-section-title">ENGINE_PARAMETERS</span>
         <div className="station-form-grid" style={{ marginTop: '16px' }}>
            <div className="station-form-field">
-             <label className="station-label">Tamaño Partición</label>
+             <label className="station-label">{t('etl.default_chunk').toUpperCase()}</label>
              <input type="number" className="station-input" value={options.chunkSize} onChange={e => setOptions({...options, chunkSize: parseInt(e.target.value) || 0})} />
            </div>
            <div className="station-form-field medium">
-             <label className="station-label">Formato Salida</label>
+             <label className="station-label">FORMAT</label>
              <select className="station-select" value={options.outputFormat} onChange={e => setOptions({...options, outputFormat: e.target.value as any})}>
-                <option value="CSV">Valores Separados por Punto y Coma (CSV)</option>
-                <option value="JSON">Estructura de Datos JSON</option>
+                <option value="CSV">COMMA_SEPARATED (CSV)</option>
+                <option value="JSON">DATA_STRUCTURE (JSON)</option>
              </select>
            </div>
            <div className="station-form-field">
-             <label className="station-label">Fila de Inicio</label>
+             <label className="station-label">START_ROW</label>
              <input type="number" className="station-input" value={options.startRow} onChange={e => setOptions({...options, startRow: parseInt(e.target.value) || 1})} />
            </div>
            <div className="station-form-field">
-             <label className="station-label">Fila Final (0 = AUTO)</label>
+             <label className="station-label">END_ROW (0=AUTO)</label>
              <input type="number" className="station-input" value={options.endRow} onChange={e => setOptions({...options, endRow: parseInt(e.target.value) || 0})} />
            </div>
         </div>
@@ -195,7 +195,7 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
         disabled={!inputFile || !outputHandle || !selectedPreset || isProcessing}
         onClick={startProcess}
       >
-        <PlayIcon size={20} /> {isProcessing ? 'PROCESANDO LOTE...' : 'INICIAR PROCESAMIENTO'}
+        <PlayIcon size={20} /> {isProcessing ? 'PROCESADO LOTE...' : t('etl.run').toUpperCase()}
       </button>
     </div>
   );

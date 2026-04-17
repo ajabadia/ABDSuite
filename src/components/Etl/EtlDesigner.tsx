@@ -66,7 +66,7 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
 
   const removeRecordType = () => {
     if (!activeRT) return;
-    if (!confirm('¿Eliminar este tipo de registro?')) return;
+    if (!confirm(t('common.confirm_delete').toUpperCase())) return;
     const newRTs = preset.recordTypes.filter((_, i) => i !== activeRTIndex);
     updatePreset({ recordTypes: newRTs });
     setActiveRTIndex(Math.max(0, activeRTIndex - 1));
@@ -76,7 +76,7 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
     if (!activeRT) return;
     const newField: EtlField = { 
       id: `f_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      name: 'NUEVO_CAMPO', start: 0, length: 1 
+      name: 'FIELD', start: 0, length: 1 
     };
     updateRT(activeRTIndex, { fields: [...activeRT.fields, newField] });
   };
@@ -103,27 +103,27 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
             <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
                <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>V{preset.version}</span>
                <span className={`station-badge ${preset.isActive ? 'station-badge-green' : 'station-badge-orange'}`}>
-                  {preset.isActive ? 'ACTIVO' : 'BORRADOR'}
+                  {preset.isActive ? 'ACTIVE' : 'DRAFT'}
                </span>
             </div>
           </div>
 
           <div className="flex-row" style={{ gap: '12px' }}>
-            <button className="station-btn" onClick={undo} disabled={undoStack.length === 0} title="Deshacer"><UndoIcon size={16} /></button>
-            <button className="station-btn station-btn-gear" onClick={() => setShowConfigModal(true)}><CogIcon size={16} /> Configuración</button>
-            <button className="station-btn station-btn-primary" onClick={onSave}><SaveIcon size={16} /> {t('common.save')}</button>
+            <button className="station-btn" onClick={undo} disabled={undoStack.length === 0}><UndoIcon size={16} /></button>
+            <button className="station-btn" onClick={() => setShowConfigModal(true)}><CogIcon size={16} /> {t('settings.title').toUpperCase()}</button>
+            <button className="station-btn station-btn-primary" onClick={onSave}><SaveIcon size={16} /> {t('common.save').toUpperCase()}</button>
             <button className="station-btn station-btn-primary" onClick={handleLaunchExecutor} style={{ background: 'var(--status-ok)', border: 'none' }}>
-              <PlayIcon size={16} /> {t('etl.launch_executor')}
+              <PlayIcon size={16} /> {t('etl.launch_executor').toUpperCase()}
             </button>
           </div>
         </div>
 
         <div className="station-tech-summary">
-          <div className="station-tech-item"><span className="station-tech-label">Lote:</span> {preset.chunkSize}</div>
-          <div className="station-tech-item"><span className="station-tech-label">Enc:</span> {preset.encoding?.toUpperCase()}</div>
-          <div className="station-tech-item"><span className="station-tech-label">Tipo Pos:</span> {preset.recordTypeStart}</div>
-          <div className="station-tech-item"><span className="station-tech-label">Tipo Len:</span> {preset.recordTypeLen}</div>
-          <div className="station-tech-item"><span className="station-tech-label">Defecto:</span> {preset.defaultRecordType}</div>
+          <div className="station-tech-item"><span className="station-tech-label">CHUNK:</span> {preset.chunkSize}</div>
+          <div className="station-tech-item"><span className="station-tech-label">ENC:</span> {preset.encoding?.toUpperCase()}</div>
+          <div className="station-tech-item"><span className="station-tech-label">RT_POS:</span> {preset.recordTypeStart}</div>
+          <div className="station-tech-item"><span className="station-tech-label">RT_LEN:</span> {preset.recordTypeLen}</div>
+          <div className="station-tech-item"><span className="station-tech-label">DEFAULT:</span> {preset.defaultRecordType}</div>
         </div>
       </div>
 
@@ -131,7 +131,7 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
         
         {/* Lista de Registros */}
         <div className="flex-col" style={{ gap: '12px' }}>
-          <span className="station-form-section-title">ESTRUCTURA DE DATOS</span>
+          <span className="station-form-section-title">DATA_STRUCTURE</span>
           <div className="station-card" style={{ padding: '8px', flex: 1, overflowY: 'auto' }}>
             <div className="station-registry-list">
               {preset.recordTypes.map((rt, i) => (
@@ -146,19 +146,19 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
                     </div>
                     <div className="station-registry-item-info">
                       <span className="station-registry-item-name">{rt.name}</span>
-                      <span className="station-registry-item-meta">{rt.behavior} • {rt.fields.length} campos</span>
+                      <span className="station-registry-item-meta">{rt.behavior} • {rt.fields.length} {t('etl.fields').toUpperCase()}</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            <button className="station-btn station-btn-primary" style={{ marginTop: '12px', width: '100%', height: '40px' }} onClick={addRT}>+ {t('etl.add_rt')}</button>
+            <button className="station-btn station-btn-primary" style={{ marginTop: '12px', width: '100%', height: '40px' }} onClick={addRT}>{t('etl.add_rt').toUpperCase()}</button>
           </div>
         </div>
 
         {/* Editor de Campos */}
         <div className="flex-col" style={{ gap: '12px' }}>
-          <span className="station-form-section-title">DEFINICIÓN DE CAMPOS</span>
+          <span className="station-form-section-title">FIELDS_DEFINITION</span>
           <div className="station-card" style={{ flex: 1, minHeight: 0, padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             {activeRT ? (
               <>
@@ -168,9 +168,9 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
                     <span className="station-badge station-badge-blue">{activeRT.behavior}</span>
                   </div>
                   <div className="flex-row" style={{ gap: '8px' }}>
-                    <button className="station-btn" onClick={() => setShowSampleModal(true)} title="Vista Previa"><EyeIcon size={16} /></button>
-                    <button className="station-btn station-btn-gear" onClick={() => setShowRTModal(true)} title="Propiedades"><CogIcon size={16} /></button>
-                    <button className="station-btn" style={{ color: 'var(--status-err)' }} onClick={removeRecordType} title="Eliminar"><TrashIcon size={16} /></button>
+                    <button className="station-btn icon-only" onClick={() => setShowSampleModal(true)}><EyeIcon size={16} /></button>
+                    <button className="station-btn icon-only" onClick={() => setShowRTModal(true)}><CogIcon size={16} /></button>
+                    <button className="station-btn icon-only err" onClick={removeRecordType}><TrashIcon size={16} /></button>
                   </div>
                 </header>
 
@@ -178,9 +178,9 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
                   <table className="station-table">
                     <thead>
                       <tr>
-                        <th style={{ width: '100px', textAlign: 'center' }}>INICIO</th>
-                        <th style={{ width: '100px', textAlign: 'center' }}>LONGITUD</th>
-                        <th>NOMBRE DEL CAMPO</th>
+                        <th style={{ width: '100px', textAlign: 'center' }}>START</th>
+                        <th style={{ width: '100px', textAlign: 'center' }}>LENGTH</th>
+                        <th>{t('etl.field_name').toUpperCase()}</th>
                         <th style={{ width: '60px' }}></th>
                       </tr>
                     </thead>
@@ -191,18 +191,18 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
                           <td><input type="number" className="station-input" style={{ textAlign: 'center' }} value={f.length} onChange={e => updateField(f.id, { length: parseInt(e.target.value) || 0 })} /></td>
                           <td><input type="text" className="station-input" value={f.name} onChange={e => updateField(f.id, { name: e.target.value.toUpperCase() })} /></td>
                           <td style={{ textAlign: 'center' }}>
-                             <button onClick={() => removeField(f.id)} className="station-btn" style={{ padding: '4px', border: 'none' }}><TrashIcon size={14} style={{ color: 'var(--status-err)' }} /></button>
+                             <button onClick={() => removeField(f.id)} className="station-btn icon-only err"><TrashIcon size={14} /></button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <button className="station-btn station-btn-primary" style={{ margin: '16px', height: '48px' }} onClick={addField}>+ Añadir Campo</button>
+                <button className="station-btn station-btn-primary" style={{ margin: '16px', height: '48px' }} onClick={addField}>+ {t('etl.add_field').toUpperCase()}</button>
               </>
             ) : (
               <div className="station-empty-state">
-                <span className="station-shimmer-text">SELECCIONE UN TIPO DE REGISTRO</span>
+                <span className="station-shimmer-text">{t('etl.empty').toUpperCase()}</span>
               </div>
             )}
           </div>
@@ -214,38 +214,19 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
         <div className="station-modal-overlay" onClick={() => setShowConfigModal(false)}>
           <div className="station-modal" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
             <header className="station-modal-header">
-              <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem' }}>CONFIGURACIÓN DEL PRESET</h3>
-              <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={() => setShowConfigModal(false)}><XIcon size={20} /></button>
+              <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem' }}>{t('settings.title').toUpperCase()}</h3>
+              <button className="station-btn icon-only" onClick={() => setShowConfigModal(false)}><XIcon size={20} /></button>
             </header>
             <div className="station-modal-content">
               <div className="station-form-grid">
                 <div className="station-form-field full">
-                  <label className="station-label">Nombre del Preset</label>
+                  <label className="station-label">{t('etl.field_name').toUpperCase()}</label>
                   <input className="station-input" value={preset.name} onChange={e => updatePreset({ name: e.target.value })} />
-                </div>
-                <div className="station-form-field">
-                  <label className="station-label">Versión</label>
-                  <input className="station-input" value={preset.version} onChange={e => updatePreset({ version: e.target.value })} />
-                </div>
-                <div className="station-form-field">
-                  <label className="station-label">Tamaño Lote</label>
-                  <input type="number" className="station-input" value={preset.chunkSize} onChange={e => updatePreset({ chunkSize: parseInt(e.target.value) || 0 })} />
-                </div>
-                <div className="station-form-field full">
-                  <div className="flex-row" style={{ gap: '12px', marginTop: '8px' }}>
-                    <input 
-                      type="checkbox" 
-                      id="etl-active"
-                      checked={preset.isActive !== false} 
-                      onChange={e => updatePreset({ isActive: e.target.checked })} 
-                    />
-                    <label htmlFor="etl-active" className="station-label" style={{ marginBottom: 0 }}>Preset de extracción activo para producción</label>
-                  </div>
                 </div>
               </div>
             </div>
             <footer className="station-modal-footer">
-               <button className="station-btn station-btn-primary" style={{ flex: 1 }} onClick={() => setShowConfigModal(false)}>{t('common.save')} Y CERRAR</button>
+               <button className="station-btn station-btn-primary" style={{ flex: 1 }} onClick={() => setShowConfigModal(false)}>{t('common.save').toUpperCase()}</button>
             </footer>
           </div>
         </div>
@@ -255,32 +236,32 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
         <div className="station-modal-overlay" onClick={() => setShowRTModal(false)}>
           <div className="station-modal" style={{ maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
             <header className="station-modal-header">
-              <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem' }}>PROPIEDADES DEL REGISTRO</h3>
-              <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={() => setShowRTModal(false)}><XIcon size={20} /></button>
+              <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem' }}>RT_PROPERTIES</h3>
+              <button className="station-btn icon-only" onClick={() => setShowRTModal(false)}><XIcon size={20} /></button>
             </header>
             <div className="station-modal-content">
               <div className="station-form-grid">
                 <div className="station-form-field full">
-                  <label className="station-label">Identificador (Trigger)</label>
+                  <label className="station-label">TRIGGER_ID</label>
                   <input className="station-input" value={activeRT.trigger} onChange={e => updateRT(activeRTIndex, { trigger: e.target.value })} />
                 </div>
                 
                 <div className="station-form-field">
-                  <label className="station-label">Posición Inicio</label>
+                  <label className="station-label">START_POS</label>
                   <input type="number" className="station-input" value={activeRT.triggerStart} onChange={e => updateRT(activeRTIndex, { triggerStart: parseInt(e.target.value) || 0 })} />
                 </div>
                 <div className="station-form-field">
-                  <label className="station-label">Comportamiento</label>
+                  <label className="station-label">BEHAVIOR</label>
                   <select className="station-select" value={activeRT.behavior} onChange={e => updateRT(activeRTIndex, { behavior: e.target.value as EtlRecordBehavior })}>
-                      <option value="DATA">DATA (DATOS)</option>
-                      <option value="HEADER">HEADER (CABECERA)</option>
-                      <option value="FOOTER">FOOTER (PIE)</option>
+                      <option value="DATA">DATA</option>
+                      <option value="HEADER">HEADER</option>
+                      <option value="FOOTER">FOOTER</option>
                   </select>
                 </div>
               </div>
             </div>
             <footer className="station-modal-footer">
-              <button className="station-btn station-btn-primary" style={{ width: '100%' }} onClick={() => setShowRTModal(false)}>APLICAR CAMBIOS</button>
+              <button className="station-btn station-btn-primary" style={{ width: '100%' }} onClick={() => setShowRTModal(false)}>{t('common.save').toUpperCase()}</button>
             </footer>
           </div>
         </div>
@@ -290,8 +271,8 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
         <div className="station-modal-overlay" onClick={() => setShowSampleModal(false)}>
           <div className="station-modal" style={{ maxWidth: '1000px', height: '85vh'}} onClick={e => e.stopPropagation()}>
             <header className="station-modal-header">
-              <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem' }}>ESTUDIO DE DATOS</h3>
-              <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={() => setShowSampleModal(false)}><XIcon size={20} /></button>
+              <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem' }}>DATA_STUDY</h3>
+              <button className="station-btn icon-only" onClick={() => setShowSampleModal(false)}><XIcon size={20} /></button>
             </header>
             <div className="station-modal-content" style={{ padding: '12px' }}>
               <SamplePreview preset={preset} activeRecordTypeName={activeRT?.name} />

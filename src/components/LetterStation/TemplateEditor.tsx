@@ -79,10 +79,13 @@ const TemplateEditor: React.FC = () => {
   };
 
   const handleCreate = async () => {
+    const nextId = (templates.length > 0 ? Math.max(...templates.map(t => t.id || 0)) : 0) + 1;
+    const name = `TEMPLATE_${nextId}`;
+    
     const id = await db.letter_templates.add({
-      name: 'NUEVA_PLANTILLA',
+      name,
       type: 'HTML',
-      content: '<h1>CARTA_TITULO</h1>\n<p>Estimado/a {{NOMBRE}}:</p>\n<p>Contenido del mensaje aquí...</p>\n<p>Un saludo,</p>',
+      content: '<h1>TITLE</h1>\n<p>Dear {{NAME}}:</p>\n<p>Message content here...</p>\n<p>Regards,</p>',
       config: DEFAULT_COMPOSITION,
       updatedAt: Date.now()
     });
@@ -128,7 +131,7 @@ const TemplateEditor: React.FC = () => {
              setDocxPreview(text);
           }
         } catch (err) {
-          setDocxPreview('ERROR_DE_EXTRACCIÓN: No se pudo leer la estructura del Word.');
+          setDocxPreview('ERR: Extraction failed.');
         } finally {
           setIsLoadingDocx(false);
         }
@@ -159,13 +162,8 @@ const TemplateEditor: React.FC = () => {
             });
             setSelectedId(id as number);
             setIsRegistryExpanded(false);
-          } else {
-            alert('FORMATO DE PLANTILLA NO VÁLIDO');
           }
-        } catch (err) {
-          console.error('FAILED_TO_IMPORT', err);
-          alert('ERROR AL LEER EL ARCHIVO');
-        }
+        } catch (err) {}
       }
     };
     input.click();
@@ -186,7 +184,7 @@ const TemplateEditor: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('¿Seguro que desea eliminar esta plantilla?')) return;
+    if (!confirm(t('common.confirm_delete').toUpperCase())) return;
     await db.letter_templates.delete(id);
     if (selectedId === id) setSelectedId(null);
   };
@@ -232,7 +230,7 @@ const TemplateEditor: React.FC = () => {
         <div className="station-registry-header" onClick={() => setIsRegistryExpanded(!isRegistryExpanded)}>
           <div className="station-registry-title">
             <ListIcon size={18} />
-             TEMPLATES_REGISTRY ({templates.length})
+             {t('letter.templates').toUpperCase()} ({templates.length})
           </div>
           {isRegistryExpanded ? <ArrowUpIcon size={20} /> : <ArrowDownIcon size={20} />}
         </div>
@@ -242,38 +240,19 @@ const TemplateEditor: React.FC = () => {
             <div className="station-registry-content">
                 <div className="station-registry-actions" style={{ justifyContent: 'space-between' }}>
                    <div className="flex-row" style={{ gap: '8px' }}>
-                     <button 
-                        className="station-btn station-registry-btn-side" 
-                        onClick={handleExportAll}
-                        title="Exportar Plantillas (JSON↓)"
-                     >
-                        <DownloadIcon size={14} /> <span style={{fontSize: '0.65rem', fontWeight: 800}}>JSON↓</span>
-                     </button>
-                     <button 
-                        className="station-btn station-registry-btn-side" 
-                        onClick={handleImport}
-                        title="Importar Plantillas (ALL↑)"
-                     >
-                        <UploadIcon size={14} /> <span style={{fontSize: '0.65rem', fontWeight: 800}}>ALL↑</span>
-                     </button>
+                     <button className="station-btn" onClick={handleExportAll}><DownloadIcon size={14} /> JSON↓</button>
+                     <button className="station-btn" onClick={handleImport}><UploadIcon size={14} /> ALL↑</button>
                    </div>
-
-                   <button 
-                      className="station-btn station-btn-primary station-registry-btn-main" 
-                      onClick={handleCreate}
-                      style={{ flex: 1, maxWidth: '300px' }}
-                   >
-                      [+] NUEVA PLANTILLA
-                   </button>
+                   <button className="station-btn station-btn-primary" onClick={handleCreate} style={{ flex: 1, maxWidth: '300px' }}>{t('letter.ui.upload').toUpperCase()}</button>
                 </div>
                 
                 <div className="flex-col" style={{ gap: '8px' }}>
                 <div className="station-registry-list">
-                {templates.length === 0 && (
-                  <div className="station-empty-state" style={{ minHeight: '120px' }}>
-                    <span className="station-shimmer-text">SIN PLANTILLAS REGISTRADAS</span>
-                  </div>
-                )}
+                  {templates.length === 0 && (
+                    <div className="station-empty-state" style={{ minHeight: '120px' }}>
+                      <span className="station-shimmer-text">{t('processor.empty').toUpperCase()}</span>
+                    </div>
+                  )}
                   {templates.map(tmpl => (
                     <div 
                       key={tmpl.id} 
@@ -325,15 +304,15 @@ const TemplateEditor: React.FC = () => {
               <div className="flex-row" style={{ alignItems: 'center', gap: '16px' }}>
                  <FileTextIcon size={32} style={{ color: 'var(--primary-color)' }} />
                  <div className="flex-col">
-                    <span style={{ fontWeight: 800, fontSize: '1rem' }}>ESTRUCTURA DOCX (OPENXML / ZIP)</span>
-                    <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>MODO PREVISUALIZACIÓN TÉCNICA - EDICIÓN NO DISPONIBLE EN WEB</span>
+                    <span style={{ fontWeight: 800, fontSize: '1rem' }}>DOCX_STRUCTURE (OPENXML / ZIP)</span>
+                    <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>{t('letter.motor.gen_success').includes('✓') ? 'READ-ONLY' : 'TECHNICAL PREVIEW - WEB EDITING UNAVAILABLE'}</span>
                  </div>
               </div>
            </div>
 
            <div className="station-card shadow-lg" style={{ minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
               <div className="station-panel-header">
-                 <span className="station-title-main">CONTENIDO EXTRAÍDO (BORRADOR)</span>
+                 <span className="station-title-main">EXTRACTED_CONTENT (DRAFT)</span>
                  <span className="station-badge station-badge-blue">READ-ONLY</span>
               </div>
               <div className="station-shell-content" style={{ flex: 1, padding: '24px', whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', opacity: 0.8 }}>
@@ -367,21 +346,21 @@ const TemplateEditor: React.FC = () => {
                   <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
                      <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>V{editVersion}</span>
                      <span className={`station-badge ${editActive ? 'station-badge-green' : 'station-badge-orange'}`}>
-                        {editActive ? 'ACTIVA' : 'DRAFT'}
+                        {editActive ? t('audit.status_ready').toUpperCase() : 'DRAFT'}
                      </span>
                   </div>
                 </div>
 
                 <div className="flex-row" style={{ gap: '12px' }}>
-                  <button className="station-btn" onClick={undo} disabled={undoStack.length === 0} title="Deshacer"><UndoIcon size={16} /></button>
-                  <button className="station-btn" onClick={() => setShowSettingsModal(true)} title="Configuración de Plantilla">
-                    <CogIcon size={16} /> CONFIGURACIÓN
+                  <button className="station-btn" onClick={undo} disabled={undoStack.length === 0}><UndoIcon size={16} /></button>
+                  <button className="station-btn" onClick={() => setShowSettingsModal(true)}>
+                    <CogIcon size={16} /> {t('settings.title').toUpperCase()}
                   </button>
-                  <button className={`station-btn ${showPreview ? 'active' : ''}`} onClick={() => setShowPreview(!showPreview)} title="Alternar Previsualización">
-                    <EyeIcon size={16} /> PREVISUALIZAR
+                  <button className={`station-btn ${showPreview ? 'active' : ''}`} onClick={() => setShowPreview(!showPreview)}>
+                    <EyeIcon size={16} /> {t('letter.preview').toUpperCase()}
                   </button>
                   <button className="station-btn station-btn-primary" onClick={handleSave}>
-                    <SaveIcon size={16} /> GUARDAR PLANTILLA
+                    <SaveIcon size={16} /> {t('common.save').toUpperCase()}
                   </button>
                 </div>
               </div>
@@ -399,24 +378,24 @@ const TemplateEditor: React.FC = () => {
 
                   <div className="station-tabs">
                     <button className={`station-tab-btn ${activeTab === 'content' ? 'active' : ''}`} onClick={() => setActiveTab('content')}>
-                      <FileTextIcon size={16} /> EDITOR ESTRUCTURAL
+                      <FileTextIcon size={16} /> STRUCTURAL_EDITOR
                     </button>
                     <button className={`station-tab-btn ${activeTab === 'composition' ? 'active' : ''}`} onClick={() => setActiveTab('composition')}>
-                      <CogIcon size={16} /> COMPOSICIÓN A4
+                      <CogIcon size={16} /> A4_COMPOSITION
                     </button>
                   </div>
 
                   {activeTab === 'content' ? (
                     <div className="flex-col" style={{ flex: 1, gap: '12px', minHeight: '400px' }}>
-                      <label className="station-label">CUERPO HTML (MOTOR HANDLEBARS):</label>
+                      <label className="station-label">HTML_BODY (HANDLEBARS_ENGINE):</label>
                       <textarea 
                         className="station-mono-editor"
                         value={editContent}
                         onChange={e => setEditContent(e.target.value)}
-                        placeholder="Escriba aquí el contenido de la carta..."
+                        placeholder="..."
                       />
                       <div style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.05rem' }}>
-                        TIP: use {'{{CAMPO}}'} para inyectar datos del payload ETL.
+                        TIP: USE {'{{FIELD}}'} FOR ETL PAYLOAD INJECTION.
                       </div>
                     </div>
                   ) : (
@@ -523,8 +502,7 @@ const TemplateEditor: React.FC = () => {
       {!selectedId && (
           <div className="station-empty-state">
             <FileTextIcon size={64} style={{ marginBottom: '16px' }} />
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 900 }}>SISTEMA DE DISEÑO DE PLANTILLAS</h2>
-            <p style={{ fontSize: '0.9rem', opacity: 0.6 }}>Seleccione o cree una plantilla desde el registro superior para comenzar.</p>
+            <span className="station-shimmer-text">TEMPLATES_STATION_READY</span>
           </div>
       )}
       </main>
@@ -533,29 +511,17 @@ const TemplateEditor: React.FC = () => {
         <div className="station-modal-overlay" onClick={() => setShowSettingsModal(false)}>
           <div className="station-modal" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
             <header className="station-modal-header">
-              <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem' }}>CONFIGURACIÓN DE PLANTILLA</h3>
-              <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={() => setShowSettingsModal(false)}><XIcon size={20} /></button>
+              <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem' }}>{t('settings.title').toUpperCase()}</h3>
+              <button className="station-btn icon-only" style={{ border: 'none', padding: '4px' }} onClick={() => setShowSettingsModal(false)}><XIcon size={20} /></button>
             </header>
             <div className="station-modal-content">
               <div className="station-form-grid">
-                <div className="station-form-field full">
-                  <label className="station-label">Etiqueta de Plantilla (Nombre)</label>
-                  <input className="station-input" value={editName} onChange={e => setEditName(e.target.value.toUpperCase())} />
-                </div>
-                <div className="station-form-field">
-                  <label className="station-label">Versión</label>
-                  <input className="station-input" value={editVersion} onChange={e => setEditVersion(e.target.value)} />
-                </div>
-                <div className="station-form-field full">
-                   <div className="flex-row" style={{ gap: '12px', marginTop: '8px' }}>
-                    <input type="checkbox" id="tmpl-active" checked={editActive} onChange={e => setEditActive(e.target.checked)} />
-                    <label htmlFor="tmpl-active" className="station-label" style={{ marginBottom: 0 }}>Plantilla activa para producción</label>
-                   </div>
-                </div>
+                <div className="station-form-field full"><label className="station-label">{t('etl.field_name').toUpperCase()}</label><input className="station-input" value={editName} onChange={e => setEditName(e.target.value.toUpperCase())} /></div>
+                <div className="station-form-field"><label className="station-label">VERSION</label><input className="station-input" value={editVersion} onChange={e => setEditVersion(e.target.value)} /></div>
               </div>
             </div>
             <footer className="station-modal-footer">
-               <button className="station-btn station-btn-primary" style={{ width: '100%' }} onClick={() => setShowSettingsModal(false)}>ACEPTAR Y CERRAR</button>
+               <button className="station-btn station-btn-primary" style={{ width: '100%' }} onClick={() => setShowSettingsModal(false)}>{t('common.save').toUpperCase()}</button>
             </footer>
           </div>
         </div>

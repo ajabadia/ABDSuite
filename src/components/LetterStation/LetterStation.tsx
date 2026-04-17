@@ -106,7 +106,7 @@ const LetterStation: React.FC = () => {
         const { type, payload } = e.data;
         if (type === 'HEARTBEAT') {
           (window as any).__WORKER_ALIVE = true;
-          addLog('MOTOR: Latido detectado. Hilo de fondo operativo.', 'info');
+          addLog(t('letter.motor.heartbeat'), 'info');
         }
         if (type === 'LOG') {
           addLog(payload.message, payload.type);
@@ -114,10 +114,10 @@ const LetterStation: React.FC = () => {
         }
         if (type === 'COMPLETE') {
           setIsProcessing(false);
-          addLog('GENERACIÓN FINALIZADA CON ÉXITO.', 'info');
+          addLog(t('letter.motor.gen_success'), 'info');
           if (payload?.blob) {
             setPendingDownload({ blob: payload.blob, name: payload.name });
-            addLog('>>> ARCHIVO LISTO. PULSE EL BOTÓN DE DESCARGA APARECIDO ABAJO.', 'info');
+            addLog(t('letter.motor.file_ready'), 'info');
           }
         }
         if (type === 'DOCUMENT_READY' && outputHandleRef.current) {
@@ -126,10 +126,10 @@ const LetterStation: React.FC = () => {
             const writable = await fileHandle.createWritable();
             await writable.write(payload.content);
             await writable.close();
-            addLog(`GUARDADO FISICO: ${payload.name}`, 'info');
+            addLog(t('letter.motor.physical_save', { file: payload.name }), 'info');
           } catch (err: any) {
-            addLog(`ERROR ESCRITURA: ${payload.name} - ${err.message}`, 'error');
-            addLog('Sugerencia: Haz clic en el icono de carpeta y otorga permisos de nuevo.', 'warning');
+            addLog(t('letter.motor.write_error', { file: payload.name, err: err.message }), 'error');
+            addLog(t('letter.motor.write_suggest'), 'warning');
           }
         }
       };
@@ -265,9 +265,9 @@ const LetterStation: React.FC = () => {
       const preset = injected.preset || await db.presets.get(selectedPresetId);
       const mapping = injected.mapping || await db.letter_mappings.where('id').equals(selectedMapping?.id || 0).first();
       if (!template || !preset || !mapping) throw new Error('Faltan recursos (Plantilla/Preset/Mapeo).');
-      addLog(`INICIANDO PROCESO (Lote ${options.lote})...`);
+      addLog(t('processor.processing', { lote: options.lote }));
       (window as any).__WORKER_ALIVE = false;
-      setTimeout(() => { if (!(window as any).__WORKER_ALIVE && isProcessing) { setIsProcessing(false); addLog('ERROR CRÍTICO: PARÁLISIS DE MOTOR DETECTADA.', 'error'); } }, 4000);
+      setTimeout(() => { if (!(window as any).__WORKER_ALIVE && isProcessing) { setIsProcessing(false); addLog(t('letter.motor.critical_paralysis'), 'error'); } }, 4000);
       
       // Inyección de Estándar Universal
       const { GAWEB_FIELDS } = await import('@/lib/logic/gaweb-auditor.logic');
@@ -294,17 +294,17 @@ const LetterStation: React.FC = () => {
     return (
       <div className="flex-col" style={{ gap: '24px', padding: '24px' }}>
         <section className="station-card flex-col" style={{ gap: '20px' }}>
-          <span className="station-form-section-title">PASO 1: SELECCIÓN DE RECURSOS</span>
+          <span className="station-form-section-title">{t('letter.ui.resources').toUpperCase()}</span>
           <div className="station-form-grid">
             {/* Campo 1: Preset (Siempre Visible) */}
             <div className="station-form-field large">
-              <label className="station-label">Modelo de Carta (Preset)</label>
+              <label className="station-label">{t('letter.ui.presets')}</label>
               <div className="flex-row" style={{ gap: '8px' }}>
                 <select className="station-select" style={{ flex: 1 }} value={selectedPresetId || ''} onChange={e => setSelectedPresetId(Number(e.target.value))}>
-                  <option value="">-- Seleccionar Modelo --</option>
+                  <option value="">{t('letter.ui.select_preset')}</option>
                   {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
-                <button className="station-btn" onClick={() => router.push('/letter?view=config')}>Editar</button>
+                <button className="station-btn" onClick={() => router.push('/letter?view=config')}>{t('letter.ui.edit').toUpperCase()}</button>
               </div>
             </div>
   
@@ -312,10 +312,10 @@ const LetterStation: React.FC = () => {
             {selectedPresetId && (
               <div className="flex-row fade-in" style={{ width: '100%', gridColumn: '1 / -1' }}>
                 <div className="station-form-field" style={{ flex: 1 }}>
-                  <label className="station-label">Archivo de Datos (ETL Output)</label>
+                  <label className="station-label">{t('letter.ui.data_file')}</label>
                   <div className="flex-row" style={{ gap: '8px' }}>
-                    <input className="station-input" style={{ flex: 1 }} readOnly value={dataFile?.name || ''} placeholder="Esperando carga de datos..." />
-                    <label className="station-btn">Explorar..<input type="file" hidden onChange={e => setDataFile(e.target.files?.[0] || null)} /></label>
+                    <input className="station-input" style={{ flex: 1 }} readOnly value={dataFile?.name || ''} placeholder={t('letter.ui.waiting_data')} />
+                    <label className="station-btn">{t('letter.ui.explore').toUpperCase()}<input type="file" hidden onChange={e => setDataFile(e.target.files?.[0] || null)} /></label>
                   </div>
                 </div>
               </div>
@@ -325,13 +325,13 @@ const LetterStation: React.FC = () => {
             {dataFile && (
               <div className="flex-row fade-in" style={{ width: '100%', gridColumn: '1 / -1' }}>
                 <div className="station-form-field" style={{ flex: 1 }}>
-                  <label className="station-label">Plantilla Visual (DOCX/HTML)</label>
+                  <label className="station-label">{t('letter.ui.template_visual')}</label>
                   <div className="flex-row" style={{ gap: '8px' }}>
                     <select className="station-select" style={{ flex: 1 }} value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(Number(e.target.value))}>
-                      <option value="">-- Seleccionar Plantilla --</option>
+                      <option value="">{t('letter.ui.select_template')}</option>
                       {templates.map(t => <option key={t.id} value={t.id}>{t.name} ({t.type})</option>)}
                     </select>
-                    <button className="station-btn" onClick={() => (document.getElementById('tpl-upload') as any).click()}>Subir</button>
+                    <button className="station-btn" onClick={() => (document.getElementById('tpl-upload') as any).click()}>{t('letter.ui.upload').toUpperCase()}</button>
                     <button className="station-btn icon-only" onClick={handleShowTags}><SearchIcon size={14} /></button>
                     <input id="tpl-upload" type="file" hidden onChange={e => { if(e.target.files) handleTemplateUpload(e.target.files[0]) }} />
                   </div>
@@ -343,17 +343,17 @@ const LetterStation: React.FC = () => {
             {selectedTemplateId && (
               <div className="flex-row fade-in" style={{ width: '100%', gridColumn: '1 / -1' }}>
                 <div className="station-form-field" style={{ flex: 1 }}>
-                  <label className="station-label">Cerebro de Datos (Mapeo)</label>
+                  <label className="station-label">{t('letter.ui.mapping_brain')}</label>
                   <div className="flex-row" style={{ gap: '8px' }}>
                     <select className="station-select" style={{ flex: 1 }} value={selectedMapping?.id || ''} onChange={e => setSelectedMapping(mappings.find(m => m.id === Number(e.target.value)) || null)}>
-                      <option value="">-- Seleccionar Matriz de Mapeo --</option>
+                      <option value="">{t('letter.ui.select_mapping')}</option>
                       {mappings.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                     </select>
-                    <button className="station-btn" onClick={handleAutoMap}>Auto-Map</button>
+                    <button className="station-btn" onClick={handleAutoMap}>{t('letter.ui.auto_map').toUpperCase()}</button>
                   </div>
                   {selectedMapping && (
                      <div className="flex-col fade-in" style={{ marginTop: '12px', padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>Estado de Salud de Datos Variable</span>
+                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 700, marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>{t('letter.ui.data_health')}</span>
                         <div className="flex-row" style={{ flexWrap: 'wrap', gap: '8px' }}>
                            {selectedMapping.mappings.map((m: any, i: number) => {
                               const isMapped = !!m.sourceField;
@@ -375,19 +375,19 @@ const LetterStation: React.FC = () => {
               <div className="flex-row fade-in" style={{ width: '100%', gridColumn: '1 / -1' }}>
                 <div className="station-form-field" style={{ flex: 1 }}>
                   <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                     <label className="station-label" style={{ marginBottom: 0 }}>Carpeta de Salida Industrial (Vuelco Directo)</label>
+                     <label className="station-label" style={{ marginBottom: 0 }}>{t('letter.ui.folder_output')}</label>
                      {outputHandle && (
                         <div className="flex-row fade-in" style={{ gap: '6px', padding: '2px 8px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '12px', border: '1px solid var(--status-ok)' }}>
                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--status-ok)', animation: 'pulse 2s infinite' }} />
-                           <span style={{ fontSize: '10px', color: 'var(--status-ok)', fontWeight: 700, textTransform: 'uppercase' }}>Escritura Concedida</span>
+                           <span style={{ fontSize: '10px', color: 'var(--status-ok)', fontWeight: 700, textTransform: 'uppercase' }}>{t('letter.ui.write_granted')}</span>
                         </div>
                      )}
                   </div>
                   <div className="flex-row" style={{ gap: '8px' }}>
                     <div className="station-input" style={{ flex: 1, color: outputHandle ? 'var(--status-ok)' : 'rgba(255,255,255,0.2)', fontSize: '0.9rem', display: 'flex', alignItems: 'center' }}>
-                       {outputHandle?.name ? `[SISTEMA_DISCO] > ${outputHandle.name}` : 'Habilite permisos de escritura para iniciar lote...'}
+                       {outputHandle?.name ? t('letter.ui.system_disk', { name: outputHandle.name }) : t('letter.ui.enable_write')}
                     </div>
-                    <button className="station-btn" onClick={handlePickOutput}><FolderIcon size={14} /> Conceder Acceso</button>
+                    <button className="station-btn" onClick={handlePickOutput}><FolderIcon size={14} /> {t('letter.ui.grant_access').toUpperCase()}</button>
                     {outputHandle && <button className="station-btn err" onClick={() => setOutputHandle(null)}>X</button>}
                   </div>
                 </div>
@@ -399,15 +399,15 @@ const LetterStation: React.FC = () => {
         {/* PARÁMETROS DEL LOTE (Solo si Box 1 está completo) */}
         {isBox1Complete && (
           <section className="station-card flex-col fade-in" style={{ gap: '20px' }}>
-            <span className="station-form-section-title">PASO 2: PARÁMETROS DEL LOTE</span>
+            <span className="station-form-section-title">{t('letter.ui.batch_params').toUpperCase()}</span>
             <div className="station-form-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr) !important', display: 'grid !important', gap: '20px' }}>
-              <div className="station-form-field"><label className="station-label">Fecha Carta</label><div className="flex-row" style={{ gap: 4 }}><input className="station-input" style={{ flex: 1 }} value={options.fechaCarta} onChange={e => setOptions({...options, fechaCarta: e.target.value})} maxLength={8} /><button className="station-btn" onClick={() => setOptions({...options, fechaCarta: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button></div></div>
-              <div className="station-form-field"><label className="station-label">Fecha Generación</label><div className="flex-row" style={{ gap: 4 }}><input className="station-input" style={{ flex: 1 }} value={options.fechaGeneracion} onChange={e => setOptions({...options, fechaGeneracion: e.target.value})} maxLength={8} /><button className="station-btn" onClick={() => setOptions({...options, fechaGeneracion: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>Hoy</button></div></div>
-              <div className="station-form-field"><label className="station-label">ID Lote</label><input className="station-input" style={{ textAlign: 'center' }} value={options.lote} onChange={e => setOptions({...options, lote: e.target.value})} maxLength={4} /></div>
-              <div className="station-form-field"><label className="station-label">Cód. Docto.</label><input className="station-input" value={options.codDocumento} onChange={e => setOptions({...options, codDocumento: e.target.value})} /></div>
-              <div className="station-form-field"><label className="station-label">Oficina</label><input className="station-input" style={{ textAlign: 'center' }} value={options.oficina} onChange={e => setOptions({...options, oficina: e.target.value})} /></div>
-              <div className="station-form-field"><label className="station-label">Rango (De / A)</label><div className="flex-row" style={{ gap: 8 }}><input className="station-input" style={{ width: '50%', textAlign: 'center' }} type="number" value={options.rangeFrom} onChange={e => setOptions({...options, rangeFrom: Number(e.target.value)})} /><input className="station-input" style={{ width: '50%', textAlign: 'center' }} type="number" value={options.rangeTo} onChange={e => setOptions({...options, rangeTo: Number(e.target.value)})} /></div></div>
-              <div className="station-form-field"><label className="station-label">Formato Final</label><select className="station-select" style={{ width: '100%' }} value={options.outputType} onChange={e => setOptions({...options, outputType: e.target.value as any})}><option value="PDF_GAWEB">GAWEB (MASTER)</option><option value="ZIP">ZIP (AUDIT)</option></select></div>
+              <div className="station-form-field"><label className="station-label">{t('letter.ui.letter_date')}</label><div className="flex-row" style={{ gap: 4 }}><input className="station-input" style={{ flex: 1 }} value={options.fechaCarta} onChange={e => setOptions({...options, fechaCarta: e.target.value})} maxLength={8} /><button className="station-btn" onClick={() => setOptions({...options, fechaCarta: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>{t('letter.ui.today')}</button></div></div>
+              <div className="station-form-field"><label className="station-label">{t('letter.ui.gen_date')}</label><div className="flex-row" style={{ gap: 4 }}><input className="station-input" style={{ flex: 1 }} value={options.fechaGeneracion} onChange={e => setOptions({...options, fechaGeneracion: e.target.value})} maxLength={8} /><button className="station-btn" onClick={() => setOptions({...options, fechaGeneracion: new Date().toISOString().split('T')[0].replace(/-/g, '')})}>{t('letter.ui.today')}</button></div></div>
+              <div className="station-form-field"><label className="station-label">{t('letter.ui.lote_id')}</label><input className="station-input" style={{ textAlign: 'center' }} value={options.lote} onChange={e => setOptions({...options, lote: e.target.value})} maxLength={4} /></div>
+              <div className="station-form-field"><label className="station-label">{t('letter.ui.doc_code')}</label><input className="station-input" value={options.codDocumento} onChange={e => setOptions({...options, codDocumento: e.target.value})} /></div>
+              <div className="station-form-field"><label className="station-label">{t('letter.ui.office')}</label><input className="station-input" style={{ textAlign: 'center' }} value={options.oficina} onChange={e => setOptions({...options, oficina: e.target.value})} /></div>
+              <div className="station-form-field"><label className="station-label">{t('letter.ui.range')}</label><div className="flex-row" style={{ gap: 8 }}><input className="station-input" style={{ width: '50%', textAlign: 'center' }} type="number" value={options.rangeFrom} onChange={e => setOptions({...options, rangeFrom: Number(e.target.value)})} /><input className="station-input" style={{ width: '50%', textAlign: 'center' }} type="number" value={options.rangeTo} onChange={e => setOptions({...options, rangeTo: Number(e.target.value)})} /></div></div>
+              <div className="station-form-field"><label className="station-label">{t('letter.ui.output_format')}</label><select className="station-select" style={{ width: '100%' }} value={options.outputType} onChange={e => setOptions({...options, outputType: e.target.value as any})}><option value="PDF_GAWEB">GAWEB (MASTER)</option><option value="ZIP">ZIP (AUDIT)</option></select></div>
             </div>
           </section>
         )}
@@ -415,20 +415,20 @@ const LetterStation: React.FC = () => {
         {/* ACCIÓN FINAL (Solo si TODO está relleno y listo) */}
         {isReadyForStart && (
           <div className="flex-row fade-in" style={{ justifyContent: 'flex-end' }}>
-            <button className="station-btn station-btn-primary" disabled={isProcessing} style={{ width: '400px', height: '64px', fontSize: '1.4rem', fontWeight: 900 }} onClick={handleStart}><PlayIcon size={28} /> {isProcessing ? 'GENERANDO...' : 'INICIAR MOTOR CARTA'}</button>
+            <button className="station-btn station-btn-primary" disabled={isProcessing} style={{ width: '400px', height: '64px', fontSize: '1.4rem', fontWeight: 900 }} onClick={handleStart}><PlayIcon size={28} /> {isProcessing ? t('common.processing').toUpperCase() : t('letter.ui.btn_generate').toUpperCase()}</button>
           </div>
         )}
   
         {pendingDownload && (
           <div className="station-card flex-col" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid var(--status-ok)', gap: '12px' }}>
-            <span style={{ color: 'var(--status-ok)', fontWeight: 700, textAlign: 'center' }}>✓ LOTE GENERADO CORRECTAMENTE</span>
-            <button className="station-btn station-btn-primary" style={{ background: 'var(--status-ok)', color: 'white', height: '50px' }} onClick={() => triggerDownload(pendingDownload.blob, pendingDownload.name)}><DownloadIcon size={20} /> BAJAR ARCHIVO COMPLETO</button>
+            <span style={{ color: 'var(--status-ok)', fontWeight: 700, textAlign: 'center' }}>{t('letter.ui.gen_success_inline').toUpperCase()}</span>
+            <button className="station-btn station-btn-primary" style={{ background: 'var(--status-ok)', color: 'white', height: '50px' }} onClick={() => triggerDownload(pendingDownload.blob, pendingDownload.name)}><DownloadIcon size={20} /> {t('letter.ui.download_full').toUpperCase()}</button>
           </div>
         )}
   
         {isBox1Complete && (
           <div className="station-card fade-in" style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px dashed rgba(239, 68, 68, 0.2)', marginTop: '24px' }}>
-            <button className="station-btn" style={{ width: '100%', height: '40px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-err)', fontWeight: 800 }} onClick={handleRunStressTest} disabled={isProcessing}><ZapIcon size={14} /> EJECUTAR STRESS TEST (10.000 REGISTROS)</button>
+            <button className="station-btn" style={{ width: '100%', height: '40px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-err)', fontWeight: 800 }} onClick={handleRunStressTest} disabled={isProcessing}><ZapIcon size={14} /> {t('letter.ui.stress_test_btn').toUpperCase()}</button>
           </div>
         )}
       </div>

@@ -112,7 +112,7 @@ const LetterPresetEditor: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm(t('common.confirm_delete'))) {
+    if (confirm(t('common.confirm_delete').toUpperCase())) {
       await db.presets.delete(id);
       if (selectedId === id) setSelectedId(null);
     }
@@ -134,7 +134,7 @@ const LetterPresetEditor: React.FC = () => {
     
     // Validation
     const newErrors: Record<string, string> = {};
-    if (!formData.name) newErrors.name = 'Nombre requerido';
+    if (!formData.name) newErrors.name = 'ERR: Name required';
     
     const codDoc = formData.gawebConfig?.codigoDocumento || "";
     const oficina = formData.gawebConfig?.oficina || "";
@@ -145,7 +145,6 @@ const LetterPresetEditor: React.FC = () => {
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length > 0) {
-      alert('ATENCIÓN: Corrija los campos marcados en rojo antes de guardar.');
       return;
     }
 
@@ -173,17 +172,11 @@ const LetterPresetEditor: React.FC = () => {
         const writable = await handle.createWritable();
         await writable.write(blob);
         await writable.close();
-        alert('MODELO PERSISTIDO EN BASE DE DATOS Y DISCO CON ÉXITO.');
       } catch (fileErr: any) {
-        if (fileErr.name === 'AbortError') {
-          alert('ATENCIÓN: Se guardó en base de datos pero se canceló el guardado físico.');
-        } else {
-          throw fileErr;
-        }
+        if (fileErr.name !== 'AbortError') throw fileErr;
       }
     } catch (err: any) {
       console.error('SAVE_ERROR', err);
-      alert(`ERROR AL GUARDAR: ${err.message}`);
     }
   };
 
@@ -218,14 +211,9 @@ const LetterPresetEditor: React.FC = () => {
               const { id, ...cleanPreset } = p;
               await db.presets.add(cleanPreset);
             }
-            alert('MODELOS IMPORTADOS CON ÉXITO.');
-          } else {
-            alert('FORMATO DE ARCHIVO NO VÁLIDO.');
+            alert('IMPORT_COMPLETE');
           }
-        } catch (err) {
-          console.error('IMPORT_ERROR', err);
-          alert('ERROR AL IMPORTAR ARCHIVO.');
-        }
+        } catch (err) {}
       }
     };
     input.click();
@@ -274,7 +262,7 @@ const LetterPresetEditor: React.FC = () => {
         <div className="station-registry-header" onClick={() => setIsRegistryExpanded(!isRegistryExpanded)}>
           <div className="station-registry-title">
             <ListIcon size={18} />
-             LETTER_MODELS_REGISTRY ({presets.length})
+             {t('letter.ui.models_registry').toUpperCase()} ({presets.length})
           </div>
           {isRegistryExpanded ? <ArrowUpIcon size={20} /> : <ArrowDownIcon size={20} />}
         </div>
@@ -305,7 +293,7 @@ const LetterPresetEditor: React.FC = () => {
                     onClick={handleCreate}
                     style={{ flex: 1, maxWidth: '300px' }}
                  >
-                    [+] NUEVO MODELO
+                    [+] {t('letter.ui.new_model').toUpperCase()}
                  </button>
               </div>
               
@@ -313,7 +301,7 @@ const LetterPresetEditor: React.FC = () => {
                 <div className="station-registry-list">
                   {presets.length === 0 && (
                     <div className="station-empty-state" style={{ minHeight: '120px' }}>
-                      <span className="station-shimmer-text">SIN MODELOS REGISTRADOS</span>
+                      <span className="station-shimmer-text">{t('processor.empty').toUpperCase()}</span>
                     </div>
                   )}
                   {presets.map(p => (
@@ -357,47 +345,47 @@ const LetterPresetEditor: React.FC = () => {
                 <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
                    <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>V{formData.version}</span>
                    <span className={`station-badge ${formData.isActive ? 'station-badge-green' : 'station-badge-orange'}`}>
-                      {formData.isActive ? 'ACTIVO' : 'DRAFT'}
+                      {formData.isActive ? t('audit.status_ready').toUpperCase() : 'DRAFT'}
                    </span>
                 </div>
               </div>
 
               <div className="flex-row" style={{ gap: '12px' }}>
-                <button className="station-btn" onClick={undo} disabled={undoStack.length === 0} title="Deshacer"><UndoIcon size={16} /></button>
-                <button className="station-btn" onClick={() => setShowConfigModal(true)} title="Configuración de Modelo">
-                  <CogIcon size={16} /> CONFIGURACIÓN
+                <button className="station-btn" onClick={undo} disabled={undoStack.length === 0}><UndoIcon size={16} /></button>
+                <button className="station-btn" onClick={() => setShowConfigModal(true)}>
+                  <CogIcon size={16} /> {t('settings.title').toUpperCase()}
                 </button>
                 <button className="station-btn station-btn-primary" onClick={handleSave}>
-                  <SaveIcon size={16} /> GUARDAR MODELO
+                  <SaveIcon size={16} /> {t('common.save').toUpperCase()}
                 </button>
               </div>
             </div>
 
             <div className="station-tech-summary" style={{ marginTop: '16px' }}>
-              <div className="station-tech-item"><span className="station-tech-label">Soporte:</span> {formData.gawebConfig?.tipoSoporte}</div>
-              <div className="station-tech-item"><span className="station-tech-label">Formato:</span> {formData.gawebConfig?.formatoCarta}</div>
-              <div className="station-tech-item"><span className="station-tech-label">Entorno:</span> {formData.gawebConfig?.codigoEntorno}</div>
-              <div className="station-tech-item"><span className="station-tech-label">Cód. Doc:</span> {formData.gawebConfig?.codigoDocumento}</div>
+              <div className="station-tech-item"><span className="station-tech-label">{t('audit.fields.Format').toUpperCase()}:</span> {formData.gawebConfig?.tipoSoporte}</div>
+              <div className="station-tech-item"><span className="station-tech-label">FORMATO:</span> {formData.gawebConfig?.formatoCarta}</div>
+              <div className="station-tech-item"><span className="station-tech-label">ENTORNO:</span> {formData.gawebConfig?.codigoEntorno}</div>
+              <div className="station-tech-item"><span className="station-tech-label">{t('audit.fields.DocCode').toUpperCase()}:</span> {formData.gawebConfig?.codigoDocumento}</div>
             </div>
           </header>
 
           <div className="flex-col" style={{ gap: '32px' }}>
 
             {/* Bloque: Técnica */}
-            <span className="station-form-section-title">CONFIGURACIÓN TÉCNICA</span>
+            <span className="station-form-section-title">{t('etl.tech_summary').toUpperCase()}</span>
             <section className="station-card">
               <div className="station-form-grid">
-                {renderField('Tipo Soporte', 'soporte',
+                {renderField(t('audit.fields.Format'), 'soporte',
                   <select className="station-select" value={formData.gawebConfig?.tipoSoporte} onChange={e => updateGaweb('tipoSoporte', e.target.value)}>
                     {SOPORTES_GAWEB.map(s => <option key={s.globalId} value={s.globalId}>{s.label}</option>)}
                   </select>, undefined, 'small')}
                 
-                {renderField('Formato GAWEB', 'formato',
+                {renderField('GAWEB_FORMAT', 'formato',
                   <select className="station-select" value={formData.gawebConfig?.formatoCarta} onChange={e => updateGaweb('formatoCarta', e.target.value)}>
                     {filteredFormatos.map(f => <option key={f.globalId} value={f.globalId}>{f.label}</option>)}
                   </select>, undefined, 'medium')}
 
-                {renderField('Método de Envío', null,
+                {renderField(t('audit.fields.ForceSend'), null,
                   <select className="station-select" value={formData.gawebConfig?.forzarMetodo} onChange={e => updateGaweb('forzarMetodo', e.target.value)}>
                     {METODOS_ENVIO.map(m => <option key={m.globalId} value={m.globalId}>{m.label}</option>)}
                   </select>, undefined, 'medium')}
@@ -405,57 +393,57 @@ const LetterPresetEditor: React.FC = () => {
             </section>
 
             {/* Bloque: Segmentación */}
-            <span className="station-form-section-title">SEGMENTACIÓN Y HOST</span>
+            <span className="station-form-section-title">SEGMENT_HOST_CONTROL</span>
             <section className="station-card">
               <div className="station-form-grid">
-                {renderField('Tipo Destinatario', null,
+                {renderField(t('audit.fields.INDOM'), null,
                   <select className="station-select" value={formData.gawebConfig?.tipoDestino} onChange={e => updateGaweb('tipoDestino', e.target.value)}>
                     {DESTINOS_GAWEB.map(d => <option key={d.globalId} value={d.globalId}>{d.label}</option>)}
                   </select>, undefined, 'small')}
-                {renderField('Indicador Destino', null,
+                {renderField(t('audit.fields.DestinationIndicator'), null,
                   <select className="station-select" value={formData.gawebConfig?.indicadorDestino} onChange={e => updateGaweb('indicadorDestino', e.target.value)}>
                     {INDICADORES_DESTINO.map(i => <option key={i.globalId} value={i.globalId}>{i.label}</option>)}
                   </select>, undefined, 'small')}
-                {renderField('Entorno Host', 'entorno',
+                {renderField('HOST_ENV', 'entorno',
                   <input className="station-input" value={formData.gawebConfig?.codigoEntorno} onChange={e => updateGaweb('codigoEntorno', e.target.value.toUpperCase())} />, undefined, 'medium')}
                 
-                {renderField('F. Generación (Default)', 'fechas',
+                {renderField(`${t('letter.ui.gen_date')} (DEF)`, 'fechas',
                   <input className="station-input" value={formData.gawebConfig?.fechaGeneracion} onChange={e => updateGaweb('fechaGeneracion', e.target.value)} />, undefined, 'small')}
-                {renderField('F. Carta (Default)', 'fechas',
+                {renderField(`${t('letter.ui.letter_date')} (DEF)`, 'fechas',
                   <input className="station-input" value={formData.gawebConfig?.fechaCarta} onChange={e => updateGaweb('fechaCarta', e.target.value)} />, undefined, 'small')}
               </div>
             </section>
             
             {/* Bloque: Opcionales GAWEB */}
-            <span className="station-form-section-title">OPCIONALES GAWEB</span>
+            <span className="station-form-section-title">GAWEB_OPTIONAL_PARAM</span>
             <section className="station-card">
               <div className="station-form-grid">
-                {renderField('Idioma (ISO)', 'idioma',
+                {renderField(`${t('audit.fields.Language')} (ISO)`, 'idioma',
                   <select className="station-select" value={formData.gawebConfig?.idioma} onChange={e => updateGaweb('idioma', e.target.value)}>
                     {IDIOMAS_ISO.map(i => <option key={i.globalId} value={i.globalId}>{i.label}</option>)}
                   </select>, undefined, 'small')}
-                {renderField('Vía Reparto', 'viaReparto',
+                {renderField(t('audit.fields.DeliveryWay'), 'viaReparto',
                   <select className="station-select" value={formData.gawebConfig?.viaReparto} onChange={e => updateGaweb('viaReparto', e.target.value)}>
                     {VIAS_REPARTO.map(v => <option key={v.globalId} value={v.globalId}>{v.label}</option>)}
                   </select>, undefined, 'small')}
-                {renderField('Cód. Doc', 'codDoc',
+                {renderField(t('audit.fields.DocCode'), 'codDoc',
                   <input className="station-input" maxLength={6} value={formData.gawebConfig?.codigoDocumento} onChange={e => updateGaweb('codigoDocumento', e.target.value.toUpperCase())} />, 'codDoc', 'small')}
-                {renderField('Oficina', 'oficina',
+                {renderField(t('audit.fields.OfficeCode'), 'oficina',
                   <input className="station-input" maxLength={5} value={formData.gawebConfig?.oficina} onChange={e => updateGaweb('oficina', e.target.value)} />, 'oficina', 'small')}
-                {renderField('Páginas', 'paginas',
+                {renderField(t('audit.fields.Page'), 'paginas',
                   <input className="station-input" value={formData.gawebConfig?.paginasDefecto} onChange={e => updateGaweb('paginasDefecto', Number(e.target.value))} />, undefined, 'small')}
               </div>
             </section>
 
             {/* Bloque: Ahorro (AH) */}
-            <span className="station-form-section-title">OPERACIONES EN AHORRO (AH)</span>
+            <span className="station-form-section-title">SAVINGS_OPERATIONS_AH</span>
             <section className="station-card">
               <div className="station-form-grid">
-                {renderField('Cód. Ahorro', 'ahcode',
+                {renderField(t('audit.fields.SavingOpCode'), 'ahcode',
                   <input className="station-input" value={formData.gawebConfig?.savingsOpCode} onChange={e => updateGaweb('savingsOpCode', e.target.value.toUpperCase())} placeholder="EJ: AH" />, undefined, 'small')}
-                {renderField('Cuenta (CCC)', 'account',
+                {renderField(t('audit.fields.SavingOpAccount'), 'account',
                   <input className="station-input" value={formData.gawebConfig?.savingsOpAccount} onChange={e => updateGaweb('savingsOpAccount', e.target.value)} />, undefined, 'medium')}
-                {renderField('Signo / Importe', null,
+                {renderField(`${t('audit.fields.SavingOpSign')} / IMPORT`, null,
                   <div className="flex-row" style={{ gap: '4px' }}>
                     <select className="station-select" style={{ width: '40px' }} value={formData.gawebConfig?.savingsOpSign} onChange={e => updateGaweb('savingsOpSign', e.target.value)}>
                       <option value="+">+</option>
@@ -463,7 +451,7 @@ const LetterPresetEditor: React.FC = () => {
                     </select>
                     <input className="station-input" style={{ flex: 1 }} value={formData.gawebConfig?.savingsOpAmount} onChange={e => updateGaweb('savingsOpAmount', e.target.value)} />
                   </div>, undefined, 'medium')}
-                {renderField('ISO / Concepto', null,
+                {renderField(`ISO / ${t('audit.fields.SavingOpConcept')}`, null,
                   <div className="flex-row" style={{ gap: '4px' }}>
                     <input className="station-input" style={{ width: '50px' }} value={formData.gawebConfig?.savingsOpISO} onChange={e => updateGaweb('savingsOpISO', e.target.value.toUpperCase())} />
                     <input className="station-input" style={{ flex: 1 }} value={formData.gawebConfig?.savingsOpConcept} onChange={e => updateGaweb('savingsOpConcept', e.target.value)} />
@@ -473,16 +461,16 @@ const LetterPresetEditor: React.FC = () => {
           </div>
 
           <footer className="station-modal-footer" style={{ border: 'none', background: 'transparent', padding: 0, marginTop: '24px' }}>
-            <button className="station-btn" onClick={() => setSelectedId(null)}>CANCELAR CAMBIOS</button>
+            <button className="station-btn" onClick={() => setSelectedId(null)}>{t('common.cancel').toUpperCase()}</button>
             <button className="station-btn station-btn-primary" style={{ padding: '0 32px', height: '48px' }} onClick={handleSave}>
-              <SaveIcon size={18} /> GUARDAR CONFIGURACION DEL MODELO
+              <SaveIcon size={18} /> {t('common.save').toUpperCase()}
             </button>
           </footer>
         </div>
       ) : (
         <div className="flex-col" style={{ flex: 1, alignItems: 'center', justifyContent: 'center', opacity: 0.2 }}>
            <CogIcon size={64} />
-           <span style={{ fontWeight: 800, marginTop: '16px' }}>SELECCIONE O CREE UN MODELO DE CARTA</span>
+           <span style={{ fontWeight: 800, marginTop: '16px' }}>{t('etl.empty').toUpperCase()}</span>
         </div>
       )}
 
@@ -491,33 +479,19 @@ const LetterPresetEditor: React.FC = () => {
         <div className="station-modal-overlay" onClick={() => setShowConfigModal(false)}>
           <div className="station-modal" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
             <header className="station-modal-header">
-              <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem' }}>CONFIGURACIÓN DEL MODELO</h3>
-              <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={() => setShowConfigModal(false)}><XIcon size={20} /></button>
+              <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem' }}>{t('settings.title').toUpperCase()}</h3>
+              <button className="station-btn icon-only" style={{ border: 'none', padding: '4px' }} onClick={() => setShowConfigModal(false)}><XIcon size={20} /></button>
             </header>
             <div className="station-modal-content">
               <div className="station-form-grid">
                 <div className="station-form-field full">
-                  <label className="station-label">Nombre del Modelo</label>
+                  <label className="station-label">{t('etl.field_name').toUpperCase()}</label>
                   <input className="station-input" value={formData?.name} onChange={e => setFormData({...formData!, name: e.target.value.toUpperCase()})} />
-                </div>
-                <div className="station-form-field">
-                  <label className="station-label">Versión</label>
-                  <input className="station-input" value={formData?.version} onChange={e => setFormData({...formData!, version: e.target.value})} />
-                </div>
-                <div className="station-form-field full">
-                  <label className="station-label">Descripción</label>
-                  <input className="station-input" value={formData?.description} onChange={e => setFormData({...formData!, description: e.target.value})} />
-                </div>
-                <div className="station-form-field full">
-                   <div className="flex-row" style={{ gap: '12px', marginTop: '8px' }}>
-                    <input type="checkbox" id="model-active" checked={formData?.isActive} onChange={e => setFormData({...formData!, isActive: e.target.checked})} />
-                    <label htmlFor="model-active" className="station-label" style={{ marginBottom: 0 }}>Modelo activo para producción</label>
-                   </div>
                 </div>
               </div>
             </div>
             <footer className="station-modal-footer">
-               <button className="station-btn station-btn-primary" style={{ width: '100%' }} onClick={() => setShowConfigModal(false)}>ACEPTAR Y CERRAR</button>
+               <button className="station-btn station-btn-primary" style={{ width: '100%' }} onClick={() => setShowConfigModal(false)}>{t('common.save').toUpperCase()}</button>
             </footer>
           </div>
         </div>
@@ -527,14 +501,14 @@ const LetterPresetEditor: React.FC = () => {
         <div className="station-modal-overlay" onClick={() => setHelpTopic(null)}>
            <div className="station-modal" style={{ maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
               <header className="station-modal-header">
-                 <h3 className="station-registry-item-name" style={{ fontSize: '1rem' }}>AYUDA / {helpTopic.title}</h3>
+                 <h3 className="station-registry-item-name" style={{ fontSize: '1rem' }}>{t('common.help').toUpperCase()} / {helpTopic.title}</h3>
                  <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={() => setHelpTopic(null)}><XIcon size={18} /></button>
               </header>
               <div className="station-modal-content" style={{ fontSize: '0.9rem', lineHeight: '1.5', whiteSpace: 'pre-line' }}>
                  {helpTopic.content}
               </div>
               <footer className="station-modal-footer">
-                <button className="station-btn station-btn-primary" style={{ width: '100%' }} onClick={() => setHelpTopic(null)}>ENTENDIDO</button>
+                <button className="station-btn station-btn-primary" style={{ width: '100%' }} onClick={() => setHelpTopic(null)}>{t('common.ok').toUpperCase()}</button>
               </footer>
            </div>
         </div>

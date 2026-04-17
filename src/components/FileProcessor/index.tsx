@@ -81,7 +81,7 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
           onDrop={handleDrop}
         >
           <FolderIcon size={40} style={{ marginBottom: '8px', opacity: 0.4 }} />
-          <p className="station-shimmer-text" style={{ fontSize: '0.85rem' }}>{t('processor.dropzone')}</p>
+          <p className="station-shimmer-text" style={{ fontSize: '0.85rem' }}>{t('processor.dropzone').toUpperCase()}</p>
           <input 
             type="file" 
             multiple 
@@ -91,7 +91,7 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
 
         <header className="station-registry-header" style={{ cursor: 'default', display: 'flex', justifyContent: 'space-between' }}>
           <div className="flex-row" style={{ alignItems: 'baseline', gap: '16px' }}>
-            <span className="station-registry-item-name">COLA DE PROCESAMIENTO ({files.length})</span>
+            <span className="station-registry-item-name">{t('processor.processing_queue', { n: files.length }).toUpperCase()}</span>
             <div className="station-tech-summary" style={{ border: 'none', marginTop: 0, paddingTop: 0, gap: '12px', opacity: 0.8 }}>
               <div className="station-tech-item"><span className="station-tech-label">OK:</span> <span className="txt-ok">{stats.success}</span></div>
               <div className="station-tech-item"><span className="station-tech-label">SKP:</span> <span className="txt-warn">{stats.skip}</span></div>
@@ -99,15 +99,15 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
             </div>
           </div>
           <div className="flex-row" style={{ gap: '8px' }}>
-            <button onClick={() => sortFiles(true)} className="station-btn" style={{ padding: '4px' }} title="Ordenar A-Z"><ArrowUpIcon size={16} /></button>
-            <button onClick={() => sortFiles(false)} className="station-btn" style={{ padding: '4px' }} title="Ordenar Z-A"><ArrowDownIcon size={16} /></button>
-            <button onClick={clearFiles} className="station-btn" style={{ padding: '4px', color: 'var(--status-err)' }} title="Limpiar Cola"><TrashIcon size={16} /></button>
+            <button onClick={() => sortFiles(true)} className="station-btn" style={{ padding: '4px' }} title={t('processor.sort_az').toUpperCase()}><ArrowUpIcon size={16} /></button>
+            <button onClick={() => sortFiles(false)} className="station-btn" style={{ padding: '4px' }} title={t('processor.sort_za').toUpperCase()}><ArrowDownIcon size={16} /></button>
+            <button onClick={clearFiles} className="station-btn" style={{ padding: '4px', color: 'var(--status-err)' }} title={t('processor.clear_list').toUpperCase()}><TrashIcon size={16} /></button>
           </div>
         </header>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {files.length === 0 ? (
             <div className="station-empty-state">
-              <span className="station-shimmer-text">ESPERANDO FICHEROS...</span>
+              <span className="station-shimmer-text">{t('processor.waiting_files').toUpperCase()}</span>
             </div>
           ) : (
             <div className="station-file-list">
