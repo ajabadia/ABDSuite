@@ -93,10 +93,10 @@ const AuditStation: React.FC = () => {
   return (
     <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
       
-      <div className="station-card flex-col" style={{ gap: '20px' }}>
-        <span className="station-form-section-title">{t('audit.subtitle').toUpperCase()}</span>
-        
-        <div className="station-form-grid">
+      {/* PASO 1: SELECCIÓN DE ÍNDICE */}
+      <section className="station-card flex-col" style={{ gap: '16px' }}>
+        <span className="station-form-section-title">PASO 1: SELECCIÓN DE ÍNDICE (.TXT)</span>
+        <div className="station-form-grid" style={{ gridTemplateColumns: '1fr' }}>
           <div className="station-form-field">
             <label className="station-label">{t('audit.select_file').toUpperCase()}</label>
             <div className="flex-row" style={{ gap: '8px' }}>
@@ -110,138 +110,148 @@ const AuditStation: React.FC = () => {
               >
                 <FolderIcon size={16} />
               </button>
-            </div>
-          </div>
-
-          <div className="station-form-field">
-            <label className="station-label">{t('audit.select_archive').toUpperCase()}</label>
-            <div className="flex-row" style={{ gap: '8px' }}>
-              <input className="station-input" readOnly value={archiveFile?.name || ''} placeholder={t('audit.archive_placeholder')} />
-              <input type="file" id="archive-input" style={{ display: 'none' }} accept=".zip" onChange={(e) => handleFileChange(e, 'archive')} />
-              <button 
-                className="station-btn" 
-                style={{ minWidth: '40px' }} 
-                onClick={() => document.getElementById('archive-input')?.click()}
-                aria-label={t('audit.select_archive')}
-              >
-                <FolderIcon size={16} />
-              </button>
+              {indexFile && <button className="station-btn icon-only err" onClick={() => { setIndexFile(null); resetResults(); }}><XIcon size={16} /></button>}
             </div>
           </div>
         </div>
+      </section>
 
-        <div className="station-registry-sync-header" style={{ padding: '16px', borderRadius: '4px', marginTop: '8px' }}>
-          <div className="flex-row" style={{ gap: '24px', fontSize: '0.75rem', fontWeight: 800 }}>
-            {result ? (
-              <>
-                <span>{t('audit.stats_records')} <span className="station-badge station-badge-blue">{result.lines}</span></span>
-                <span>{t('audit.stats_anomalies')} <span className={`station-badge ${result.errors.length > 0 ? 'station-badge-orange' : 'station-badge-blue'}`}>{result.errors.length}</span></span>
-              </>
-            ) : (
-              <span style={{ opacity: 0.5 }}>{t('audit.status_payload_waiting')}</span>
-            )}
+      {/* PASO 2: SELECCIÓN DE PAQUETE (Solo si hay TXT) */}
+      {indexFile && (
+        <section className="station-card flex-col" style={{ gap: '16px' }}>
+          <span className="station-form-section-title">PASO 2: SELECCIÓN DE PAQUETE (.ZIP)</span>
+          <div className="station-form-grid" style={{ gridTemplateColumns: '1fr' }}>
+            <div className="station-form-field">
+              <label className="station-label">{t('audit.select_archive').toUpperCase()}</label>
+              <div className="flex-row" style={{ gap: '8px' }}>
+                <input className="station-input" readOnly value={archiveFile?.name || ''} placeholder={t('audit.archive_placeholder')} />
+                <input type="file" id="archive-input" style={{ display: 'none' }} accept=".zip" onChange={(e) => handleFileChange(e, 'archive')} />
+                <button 
+                  className="station-btn" 
+                  style={{ minWidth: '40px' }} 
+                  onClick={() => document.getElementById('archive-input')?.click()}
+                  aria-label={t('audit.select_archive')}
+                >
+                  <FolderIcon size={16} />
+                </button>
+                {archiveFile && <button className="station-btn icon-only err" onClick={() => { setArchiveFile(null); resetResults(); }}><XIcon size={16} /></button>}
+              </div>
+            </div>
           </div>
-          
-          <button 
+        </section>
+      )}
+
+      {/* ACCIÓN DE VALIDACIÓN (Solo si hay TXT) */}
+      {indexFile && (
+        <div className="flex-col" style={{ alignItems: 'center', gap: '12px', margin: '8px 0' }}>
+           <button 
             className="station-btn station-btn-primary" 
             disabled={!indexFile || isValidating}
             onClick={runValidation}
-            style={{ width: '220px', height: '40px' }}
+            style={{ width: '320px', height: '54px', fontSize: '1rem', fontWeight: 800 }}
           >
             {isValidating ? t('audit.validating').toUpperCase() : t('audit.validate').toUpperCase()}
           </button>
-        </div>
-      </div>
-
-      <div className="flex-col" style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-        <div className="station-tabs" style={{ background: 'var(--surface-color)', borderBottom: '1px solid var(--border-color)', borderRadius: '8px 8px 0 0' }}>
-          <button className={`station-tab-btn ${activeTab === 'DATA' ? 'active' : ''}`} onClick={() => setActiveTab('DATA')}>
-            <FileTextIcon size={14} /> {t('audit.tab_data').toUpperCase()}
-          </button>
-          <button className={`station-tab-btn ${activeTab === 'ERRORS' ? 'active' : ''}`} onClick={() => setActiveTab('ERRORS')}>
-            <AlertTriangleIcon size={14} /> {t('audit.tab_errors').toUpperCase()}
-          </button>
-        </div>
-
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          {activeTab === 'DATA' && result && (
-            <div className="station-table-container" style={{ border: 'none', borderRadius: 0 }}>
-              <table className="station-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '48px', textAlign: 'center' }}>{t('audit.col_id')}</th>
-                    {GAWEB_FIELDS.map(f => (
-                      <th key={f.name}>{t(`audit.fields.${f.name}`)}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.parsedData.map((row, idx) => (
-                    <tr key={idx} style={{ background: selectedLine === idx + 1 ? 'rgba(var(--primary-color), 0.1)' : 'transparent' }} onClick={() => setSelectedLine(idx + 1)}>
-                      <td style={{ textAlign: 'center', opacity: 0.5, fontSize: '0.7rem' }}>{idx + 1}</td>
-                      {GAWEB_FIELDS.map(f => (
-                        <td key={f.name}>{row[f.name]}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {activeTab === 'ERRORS' && result && (
-            <div className="station-table-container" style={{ border: 'none', borderRadius: 0 }}>
-              <table className="station-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '50px' }}>{t('audit.col_line_short')}</th>
-                    <th style={{ width: '120px' }}>{t('audit.col_field_title')}</th>
-                    <th style={{ width: '80px' }}>{t('audit.col_severity_title')}</th>
-                    <th>{t('audit.col_message_title')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.errors.map((err, idx) => (
-                    <tr key={idx} style={{ background: err.severity === 'ERROR' ? 'rgba(239, 68, 68, 0.05)' : 'transparent' }}>
-                      <td style={{ fontWeight: 800 }}>{err.line || '-'}</td>
-                      <td style={{ fontSize: '0.75rem', opacity: 0.7 }}>{err.field}</td>
-                      <td>
-                        <span className={`station-badge ${err.severity === 'ERROR' ? 'station-badge-orange' : 'station-badge-blue'}`}>{err.severity}</span>
-                      </td>
-                      <td style={{ whiteSpace: 'normal', opacity: 0.9, fontSize: '0.85rem' }}>{t(err.messageKey, { file: err.value })}</td>
-                    </tr>
-                  ))}
-                  {result.errors.length === 0 && (
-                    <tr>
-                      <td colSpan={4}>
-                        <div className="station-empty-state" style={{ minHeight: '300px' }}>
-                          <ShieldCheckIcon size={48} style={{ color: 'var(--status-ok)', marginBottom: '16px' }} />
-                          <div style={{ fontWeight: 900, letterSpacing: '0.1rem' }}>{t('audit.integrity_verified')}</div>
-                          <p style={{ opacity: 0.5, fontSize: '0.8rem' }}>{t('audit.integrity_desc')}</p>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-          
-        </div>
-      </div>
-
-      {!result && !packageResult && (
-        <div className="station-empty-state">
-          <SearchIcon size={64} style={{ marginBottom: '16px' }} />
-          <span className="station-shimmer-text">{t('audit.status_payload_waiting').toUpperCase()}</span>
+          {!result && <span style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.1rem' }}>{t('audit.status_payload_waiting')}</span>}
         </div>
       )}
 
-      {(result || packageResult) && result && result.errors.length > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-          <button className="station-btn" style={{ padding: '0 24px', height: '40px', fontWeight: 800 }} onClick={exportCsv}>
-            <DownloadIcon size={16} /> {t('audit.export_detailed').toUpperCase()}
-          </button>
+      {/* RESULTADOS (Solo tras validar) */}
+      {(result || packageResult) ? (
+        <div className="flex-col" style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          <div className="station-tabs" style={{ background: 'var(--surface-color)', borderBottom: '1px solid var(--border-color)', borderRadius: '8px 8px 0 0' }}>
+            <button className={`station-tab-btn ${activeTab === 'DATA' ? 'active' : ''}`} onClick={() => setActiveTab('DATA')}>
+              <FileTextIcon size={14} /> {t('audit.tab_data').toUpperCase()}
+            </button>
+            <button className={`station-tab-btn ${activeTab === 'ERRORS' ? 'active' : ''}`} onClick={() => setActiveTab('ERRORS')}>
+              <AlertTriangleIcon size={14} /> {t('audit.tab_errors').toUpperCase()}
+            </button>
+          </div>
+
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            <div className="station-registry-sync-header" style={{ padding: '8px 16px', borderRadius: 0, borderBottom: '1px solid var(--border-color)' }}>
+              <div className="flex-row" style={{ gap: '24px', fontSize: '0.75rem', fontWeight: 800 }}>
+                <span>{t('audit.stats_records')} <span className="station-badge station-badge-blue">{result?.lines || 0}</span></span>
+                <span>{t('audit.stats_anomalies')} <span className={`station-badge ${result?.errors.length && result.errors.length > 0 ? 'station-badge-orange' : 'station-badge-blue'}`}>{result?.errors.length || 0}</span></span>
+                {packageResult && <span>{t('audit.stats_zip_files')} <span className="station-badge station-badge-blue">{packageResult.fileCount}</span></span>}
+              </div>
+            </div>
+
+            {activeTab === 'DATA' && result && (
+              <div className="station-table-container" style={{ border: 'none', borderRadius: 0 }}>
+                <table className="station-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '48px', textAlign: 'center' }}>{t('audit.col_id')}</th>
+                      {GAWEB_FIELDS.map(f => (
+                        <th key={f.name}>{t(`audit.fields.${f.name}`)}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.parsedData.map((row, idx) => (
+                      <tr key={idx} style={{ background: selectedLine === idx + 1 ? 'rgba(var(--primary-color), 0.1)' : 'transparent' }} onClick={() => setSelectedLine(idx + 1)}>
+                        <td style={{ textAlign: 'center', opacity: 0.5, fontSize: '0.7rem' }}>{idx + 1}</td>
+                        {GAWEB_FIELDS.map(f => (
+                          <td key={f.name}>{row[f.name]}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'ERRORS' && result && (
+              <div className="station-table-container" style={{ border: 'none', borderRadius: 0 }}>
+                <table className="station-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '50px' }}>{t('audit.col_line_short')}</th>
+                      <th style={{ width: '120px' }}>{t('audit.col_field_title')}</th>
+                      <th style={{ width: '80px' }}>{t('audit.col_severity_title')}</th>
+                      <th>{t('audit.col_message_title')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.errors.map((err, idx) => (
+                      <tr key={idx} style={{ background: err.severity === 'ERROR' ? 'rgba(239, 68, 68, 0.05)' : 'transparent' }}>
+                        <td style={{ fontWeight: 800 }}>{err.line || '-'}</td>
+                        <td style={{ fontSize: '0.75rem', opacity: 0.7 }}>{err.field}</td>
+                        <td>
+                          <span className={`station-badge ${err.severity === 'ERROR' ? 'station-badge-orange' : 'station-badge-blue'}`}>{err.severity}</span>
+                        </td>
+                        <td style={{ whiteSpace: 'normal', opacity: 0.9, fontSize: '0.85rem' }}>{t(err.messageKey, { file: err.value })}</td>
+                      </tr>
+                    ))}
+                    {result.errors.length === 0 && (
+                      <tr>
+                        <td colSpan={4}>
+                          <div className="station-empty-state" style={{ minHeight: '300px' }}>
+                            <ShieldCheckIcon size={48} style={{ color: 'var(--status-ok)', marginBottom: '16px' }} />
+                            <div style={{ fontWeight: 900, letterSpacing: '0.1rem' }}>{t('audit.integrity_verified')}</div>
+                            <p style={{ opacity: 0.5, fontSize: '0.8rem' }}>{t('audit.integrity_desc')}</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          {result && result.errors.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px' }}>
+              <button className="station-btn" style={{ padding: '0 24px', height: '40px', fontWeight: 800 }} onClick={exportCsv}>
+                <DownloadIcon size={16} /> {t('audit.export_detailed').toUpperCase()}
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="station-empty-state" style={{ flex: 1 }}>
+          <SearchIcon size={64} style={{ marginBottom: '16px' }} />
+          <span className="station-shimmer-text">{t('audit.status_ready').toUpperCase()}</span>
         </div>
       )}
 
