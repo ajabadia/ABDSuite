@@ -22,7 +22,7 @@ function LetterPageContent() {
       case 'config':
         return <LetterPresetEditor />;
       case 'generation':
-        return <LetterStation onOpenMapping={() => {}} />; // mapping is now a separate view
+        return <LetterStation />; // mapping is now a separate view
       case 'audit':
         return <AuditStation />;
       case 'templates':

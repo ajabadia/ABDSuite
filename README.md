@@ -1,45 +1,46 @@
-# ⚔️ ABDFN Unified Suite (v2026.04-ASEPTIC)
+# ⚔️ ABDFN Unified Suite (v4.1-INDUSTRIAL)
 
-**Aseptic Computing & High-Performance Local Processing.**
+**Excelencia en Procesamiento Local Aséptico & Paridad Bancaria GAWEB v.1.**
 
-ABDFN Unified Suite es una plataforma web modular de herramientas "Offline-First", diseñada para centralizar operaciones críticas de datos con seguridad de grado militar y una estética retro-industrial de alta fidelidad.
-
-Basada en la filosofía **Zero-Knowledge**, esta suite garantiza que ningún dato, archivo o clave abandone jamás el navegador del usuario.
+ABDFN Unified Suite es una plataforma modular de grado industrial diseñada para operaciones críticas de datos mediante tecnología **Offline-First**. Optimizada para el cumplimiento del estándar **Aseptic v4.1**, garantiza que el procesamiento masivo de documentos y el blindaje criptográfico ocurran íntegramente en el cliente.
 
 ## 🏛️ El Ecosistema Modular (The Shell)
-La suite utiliza una arquitectura de **"Shell & Modules"** con navegación jerárquica mediante acordeones industriales:
+
+La suite organiza las operativas en estaciones de trabajo especializadas, guiadas por un **Wizard Progresivo Dinámico**:
 
 - **🔐 CRYPT STATION:** Suite criptográfica AES-256-GCM.
-  - **Shield Vault:** Blindaje masivo de archivos con sufijos personalizados.
-  - **Open Key:** Apertura y descifrado seguro de contenedores `.enc`.
-- **📊 ETL STUDIO:** Motor de transformación de datos.
-  - **Designer:** Diseñador visual de reglas de extracción y mapeo.
-  - **Executor:** Ejecutor de alto rendimiento para procesamiento de presets.
-- **📄 LETTER STATION:** Generación masiva de documentos basada en mapeo de datos JSON/CSV.
-- **shield; SYSTEM AUDIT:** Herramientas de integridad y verificación de salud de archivos (Diseño base listo).
+  - **Shield Vault:** Blindaje masivo con derivados de PBKDF2.
+  - **Open Key:** Descifrado seguro y validación de firma.
+- **📊 ETL STUDIO:** Motor de transformación estructural.
+  - **Designer:** Modelado visual de registros y segregación técnica.
+  - **Executor:** Procesamiento de grandes volúmenes con persistencia IndexDB.
+- **📄 LETTER STATION (Industrial Ready):** Motor de generación de documentos con paridad total **GAWEB v.1**.
+  - **Single Source of Truth:** Sincronización absoluta de offsets (300 bytes) entre generación y auditoría.
+  - **Native Persistence:** Integración con la *Native File System API* para guardado directo en carpetas y diálogos de sistema de Chrome.
+- **🛡️ SYSTEM AUDIT:** Auditoría técnica y validación de paridad.
+  - **GAWEB Auditor:** Validador en tiempo real de archivos `.txt` contra el manual oficial de diseño v.1.
 
-## 🚀 Características Globales (Aseptic v4)
+## 🚀 Innovaciones Aseptic v4.1
 
-- **⚡ Procesamiento 100% Local:** Mediante la **Web Crypto API**. Ni un solo bit sale a la red.
-- **🖥️ Aseptic Shell UI:** Interfaz industrial de alta fidelidad con tipografía técnica y micro-animaciones (shimmer/pulse).
-- **⚛️ Arquitectura Reactiva:** Los módulos se activan dinámicamente según la carga de archivos, minimizando el ruido visual.
-- **↔️ Sidebar de Navegación:** Acordeones auto-colapsables que organizan las sub-especialidades de cada estación.
-- **🌐 i18n Nativa:** Multilingüe con soporte para Español e Inglés (Core actual).
-- **🌓 Gestión Temática Retro:** Modos C64 (Dark) y High-Contrast con paletas calibradas para entornos industriales.
+- **⚡ Motor Agnóstico Inyectado:** El generador recibe las reglas de negocio en tiempo real, asegurando 0% de discrepancia entre los archivos generados y los auditados.
+- **🛠️ Wizard Industrial Progresivo:** Interfaz en cascada que guía al operador, bloqueando acciones críticas hasta que se satisfacen todos los requisitos de datos.
+- **📂 Chrome File Access:** Soporte completo para `showSaveFilePicker`, permitiendo el guardado manual de backups JSON y paquetes ZIP cumpliendo con las políticas de seguridad de Windows.
+- **⚛️ Arquitectura de Latido (Heartbeat):** Monitoreo constante del estado de los Workers de fondo para asegurar la integridad de procesos largos.
 
-## 🛠️ Especificaciones Técnicas (Core)
+## 🛠️ Especificaciones Técnicas
 
-- **Criptografía:** AES-GCM (256 bits) con PBKDF2 (100k iteraciones).
-- **Stack:** Next.js 15 (Turbopack), TypeScript, Vanilla CSS (Industrial UX v4).
-- **Seguridad:** Auto-purga de memoria por inactividad y protección Offline-First.
+- **Core:** Next.js 16.2.3 (Turbopack), TypeScript 5.x.
+- **Base de Datos:** Dexie.js (IndexedDB) con persistencia reactiva.
+- **Estética:** Industrial High-Fidelity (Retro-Minimalist), Vanilla CSS, Google Fonts (Outfit/Roboto Mono).
+- **Cumplimiento:** Aseptic Standard v4.1 (Zero-Knowledge, Local-Only).
 
-## 📦 Ejecución Local
+## 📦 Despliegue y Ejecución
 
-1. Clona el repositorio.
-2. `npm install`
-3. Lanza el servidor con `npm run dev` o usa el script automatizado `start.bat`.
-4. Accede a `http://localhost:4100`.
+1. **Instalación:** `npm install`
+2. **Entorno de Desarrollo:** `npm run dev`
+3. **Producción/Build:** `npm run build` (Optimizado para Vercel CI/CD).
+4. **Acceso Local:** `http://localhost:4100`
 
 ---
 
-**© 2026 ABD INDUSTRIAL INFRASTRUCTURES** | *Excelencia en Procesamiento Local Aséptico.*
+**© 2026 ABD INDUSTRIAL INFRASTRUCTURES** | *Privacidad por Diseño. Potencia por Arquitectura.*
