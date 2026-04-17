@@ -88,7 +88,7 @@ function EtlPageContent() {
 
   const handleSave = async () => {
     if (!selectedPreset || !selectedPreset.id) return;
-    await db.presets.update(selectedPreset.id, selectedPreset);
+    await db.presets.put(selectedPreset);
   };
 
   const handleDelete = async (id: number) => {
