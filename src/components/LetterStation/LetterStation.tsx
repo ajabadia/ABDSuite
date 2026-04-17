@@ -224,7 +224,7 @@ const LetterStation: React.FC = () => {
           const tVar = m.templateVar.toLowerCase().replace(/_/g, '');
           return fName === tVar || fName.includes(tVar.substring(0, 4));
         });
-        const finalFieldName = field ? (field.Name || field.name) : m.sourceField;
+        const finalFieldName = field ? (field.name) : m.sourceField;
         return { ...m, sourceField: finalFieldName };
       });
       await db.letter_mappings.update(mapping.id!, { mappings: newMappings });
