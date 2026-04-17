@@ -1,4 +1,5 @@
 import { GawebRecord, GawebRecordSchema } from '../types/letter.types';
+import { sanitizeFilename } from './filename.utils';
 
 export class GawebExporter {
   
@@ -65,7 +66,8 @@ export class GawebExporter {
    * Generates the overall package name for the ZIP and .GAWEB files.
    */
   static generatePackageName(entorno: string, timestamp: string, lote: string): string {
-    // Standard industrial naming
-    return `COMUNICADOS.PDF.${entorno}.${timestamp}.L${lote.padStart(4, '0')}`;
+    // Standard industrial naming + Safety sanitization
+    const rawName = `COMUNICADOS.PDF.${entorno}.${timestamp}.L${lote.padStart(4, '0')}`;
+    return sanitizeFilename(rawName);
   }
 }

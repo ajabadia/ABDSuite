@@ -15,7 +15,8 @@ import {
   TagIcon,
   ZapIcon,
   DownloadIcon,
-  SearchIcon
+  SearchIcon,
+  FileTextIcon
 } from '@/components/common/Icons';
 import { seedStressEnvironment, generateIndustrialStressData } from '@/lib/utils/stress-test-tool';
 import JSZip from 'jszip';
@@ -396,6 +397,13 @@ const LetterStation: React.FC = () => {
           </div>
         </section>
   
+        {!isBox1Complete && (
+          <div className="station-empty-state">
+            <FileTextIcon size={64} style={{ marginBottom: '16px' }} />
+            <span className="station-shimmer-text">GENERATION_CORE_ONLINE</span>
+          </div>
+        )}
+  
         {/* PARÁMETROS DEL LOTE (Solo si Box 1 está completo) */}
         {isBox1Complete && (
           <section className="station-card flex-col fade-in" style={{ gap: '20px' }}>
@@ -431,6 +439,13 @@ const LetterStation: React.FC = () => {
             <button className="station-btn" style={{ width: '100%', height: '40px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-err)', fontWeight: 800 }} onClick={handleRunStressTest} disabled={isProcessing}><ZapIcon size={14} /> {t('letter.ui.stress_test_btn').toUpperCase()}</button>
           </div>
         )}
+
+        {/* Sello de Integridad (Era 5) */}
+        <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
+           <div className="integrity-dot" />
+           <FileTextIcon size={14} />
+           <span>ESTÁNDAR GAWEB v.1</span>
+        </div>
       </div>
     );
   };

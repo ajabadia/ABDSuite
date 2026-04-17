@@ -132,8 +132,14 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
         {/* Lista de Registros */}
         <div className="flex-col" style={{ gap: '12px' }}>
           <span className="station-form-section-title">DATA_STRUCTURE</span>
-          <div className="station-card" style={{ padding: '8px', flex: 1, overflowY: 'auto' }}>
+          <div className="station-card" style={{ padding: '8px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
             <div className="station-registry-list">
+              {preset.recordTypes.length === 0 && (
+                <div className="station-empty-state">
+                   <ListIcon size={48} style={{ marginBottom: '12px' }} />
+                   <span className="station-shimmer-text">STRUCTURAL_READY</span>
+                </div>
+              )}
               {preset.recordTypes.map((rt, i) => (
                 <div 
                   key={i} 
@@ -202,6 +208,7 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
               </>
             ) : (
               <div className="station-empty-state">
+                <ListIcon size={64} style={{ marginBottom: '16px' }} />
                 <span className="station-shimmer-text">{t('etl.empty').toUpperCase()}</span>
               </div>
             )}
@@ -280,6 +287,13 @@ export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSa
           </div>
         </div>
       )}
+
+      {/* Sello de Integridad (Era 5) */}
+      <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
+         <div className="integrity-dot" />
+         <ListIcon size={14} />
+         <span>REFINERÍA ESTRUCTURAL</span>
+      </div>
     </div>
   );
 };

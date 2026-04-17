@@ -27,7 +27,8 @@ import {
   HelpIcon,
   XIcon,
   CogIcon,
-  UndoIcon
+  UndoIcon,
+  FileTextIcon
 } from '@/components/common/Icons';
 
 const DEFAULT_CONFIG: GawebConfig = {
@@ -468,9 +469,9 @@ const LetterPresetEditor: React.FC = () => {
           </footer>
         </div>
       ) : (
-        <div className="flex-col" style={{ flex: 1, alignItems: 'center', justifyContent: 'center', opacity: 0.2 }}>
-           <CogIcon size={64} />
-           <span style={{ fontWeight: 800, marginTop: '16px' }}>{t('etl.empty').toUpperCase()}</span>
+        <div className="station-empty-state">
+           <CogIcon size={64} style={{ marginBottom: '16px' }} />
+           <span className="station-shimmer-text">{t('letter.ui.models_registry').toUpperCase()}</span>
         </div>
       )}
 
@@ -513,6 +514,12 @@ const LetterPresetEditor: React.FC = () => {
            </div>
         </div>
       )}
+      {/* Sello de Integridad (Era 5) */}
+      <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
+         <div className="integrity-dot" />
+         <FileTextIcon size={14} />
+         <span>ESTÁNDAR GAWEB v.1</span>
+      </div>
     </div>
   );
 };

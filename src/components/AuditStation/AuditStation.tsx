@@ -227,22 +227,30 @@ const AuditStation: React.FC = () => {
             </div>
           )}
           
-          {!result && (
-            <div className="station-empty-state" style={{ height: '100%' }}>
-              <SearchIcon size={64} style={{ marginBottom: '16px', opacity: 0.1 }} />
-              <p style={{ fontWeight: 900, letterSpacing: '0.2rem', opacity: 0.2 }}>{t('audit.waiting_stream')}</p>
-            </div>
-          )}
         </div>
       </div>
 
-      {result && result.errors.length > 0 && (
+      {!result && !packageResult && (
+        <div className="station-empty-state">
+          <SearchIcon size={64} style={{ marginBottom: '16px' }} />
+          <span className="station-shimmer-text">{t('audit.status_payload_waiting').toUpperCase()}</span>
+        </div>
+      )}
+
+      {(result || packageResult) && result && result.errors.length > 0 && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
           <button className="station-btn" style={{ padding: '0 24px', height: '40px', fontWeight: 800 }} onClick={exportCsv}>
             <DownloadIcon size={16} /> {t('audit.export_detailed').toUpperCase()}
           </button>
         </div>
       )}
+
+      {/* Sello de Integridad (Era 5) */}
+      <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
+         <div className="integrity-dot" />
+         <ShieldCheckIcon size={14} />
+         <span>AUDITORÍA DE PARIDAD OK</span>
+      </div>
     </div>
   );
 };

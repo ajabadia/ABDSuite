@@ -196,7 +196,7 @@ function EtlPageContent() {
           />
         </section>
 
-        {selectedPreset && (
+        {selectedPreset ? (
           <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div style={{ flex: 1, minHeight: 0 }}>
               {activeTab === 'designer' ? (
@@ -214,6 +214,11 @@ function EtlPageContent() {
               )}
             </div>
           </section>
+        ) : (
+          <div className="station-empty-state" style={{ flex: 1 }}>
+             <MapIcon size={64} style={{ marginBottom: '16px' }} />
+             <span className="station-shimmer-text">STRUCTURAL_DESIGNER_STANDBY</span>
+          </div>
         )}
       </div>
     </div>

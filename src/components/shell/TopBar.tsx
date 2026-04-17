@@ -34,14 +34,6 @@ export const TopBar: React.FC = () => {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
         <nav style={{ display: 'flex', gap: '20px' }}>
-           <a 
-             href="/DOC/USER_MANUAL.txt" 
-             target="_blank" 
-             className="station-btn"
-             style={{ fontSize: '0.75rem', padding: '4px 12px', boxShadow: 'none' }}
-           >
-             Manual
-           </a>
            <button 
              onClick={() => setIsAboutOpen(true)}
              className="station-btn"

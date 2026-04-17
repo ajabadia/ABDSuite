@@ -258,6 +258,13 @@ const MappingMatrix: React.FC = () => {
          </div>
       </section>
 
+      {!selectedMappingId && (
+        <div className="station-empty-state">
+          <MapIcon size={64} style={{ marginBottom: '16px' }} />
+          <span className="station-shimmer-text">MAPPING_ENGINE_STANDBY</span>
+        </div>
+      )}
+
       {(selectedMappingId || currentMapping) && (
         <div className="station-card">
            <div className="station-panel-header">
@@ -326,6 +333,13 @@ const MappingMatrix: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Sello de Integridad (Era 5) */}
+      <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
+         <div className="integrity-dot" />
+         <FileTextIcon size={14} />
+         <span>ESTÁNDAR GAWEB v.1</span>
+      </div>
     </div>
   );
 };

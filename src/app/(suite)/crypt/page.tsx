@@ -85,8 +85,16 @@ function CryptPageContent() {
             onSort={() => addLog('info', 'logs.sort_applied')}
             isProcessing={isProcessing}
             stats={stats}
+            hideEmpty={true}
           />
         </section>
+
+        {files.length === 0 && (
+          <div className="station-empty-state" style={{ marginTop: '40px' }}>
+             <ShieldCheckIcon size={64} style={{ marginBottom: '16px' }} />
+             <span className="station-shimmer-text">CRYPT_VAULT_AWAITING_INPUT</span>
+          </div>
+        )}
 
         {files.length > 0 && (
           <section style={{ display: 'flex', flexDirection: 'column' }}>
@@ -104,6 +112,13 @@ function CryptPageContent() {
             />
           </section>
         )}
+      </div>
+
+      {/* Sello de Integridad (Era 5) */}
+      <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
+         <div className="integrity-dot" />
+         <ShieldCheckIcon size={14} />
+         <span>AES-GCM 256 INDUSTRIAL</span>
       </div>
     </div>
   );

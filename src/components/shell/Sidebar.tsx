@@ -13,11 +13,14 @@ import {
   CogIcon,
   PlayIcon,
   UnlockIcon,
-  MapIcon
+  MapIcon,
+  HelpIcon
 } from '@/components/common/Icons';
+import { HelpModal } from './HelpModal';
 
 export const Sidebar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const pathname = usePathname();
   const { t } = useLanguage();
   
@@ -165,12 +168,25 @@ export const Sidebar: React.FC = () => {
         })}
       </nav>
 
+      <div style={{ padding: '8px 12px', borderTop: '1px solid var(--border-color)' }}>
+        <button 
+          className="station-nav-item" 
+          onClick={() => setIsHelpOpen(true)}
+          style={{ width: '100%', border: 'none', background: 'transparent' }}
+        >
+          <span className="station-nav-icon"><HelpIcon size={20} /></span>
+          {!isCollapsed && <span className="station-nav-label">{t('shell.help')}</span>}
+        </button>
+      </div>
+
       {!isCollapsed && (
-        <div style={{ padding: '24px', fontSize: '0.65rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-color)' }}>
-          <div style={{ fontWeight: 700, marginBottom: '4px' }}>VERSION 2026.04-ASEPTIC</div>
+        <div style={{ padding: '24px', fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
+          <div style={{ fontWeight: 700, marginBottom: '4px' }}>VERSION 5.0.0-IND</div>
           <div>© ABD INDUSTRIAL INFRASTRUCTURES</div>
         </div>
       )}
+
+      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </aside>
   );
 };

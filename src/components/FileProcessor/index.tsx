@@ -17,6 +17,8 @@ interface FileProcessorProps {
   onSort?: (asc: boolean) => void;
   isProcessing: boolean;
   stats?: { success: number; error: number; skip: number };
+  emptyIcon?: React.ReactNode;
+  hideEmpty?: boolean;
 }
 
 const FileProcessor: React.FC<FileProcessorProps> = ({ 
@@ -25,7 +27,9 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
   onClear,
   onSort,
   isProcessing,
-  stats = { success: 0, error: 0, skip: 0 }
+  stats = { success: 0, error: 0, skip: 0 },
+  emptyIcon = <ShieldCheckIcon size={64} style={{ marginBottom: '16px' }} />,
+  hideEmpty = false
 }) => {
   const { t } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
@@ -106,9 +110,12 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
         </header>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {files.length === 0 ? (
-            <div className="station-empty-state">
-              <span className="station-shimmer-text">{t('processor.waiting_files').toUpperCase()}</span>
-            </div>
+            !hideEmpty && (
+              <div className="station-empty-state">
+                {emptyIcon}
+                <span className="station-shimmer-text">{t('processor.waiting_files').toUpperCase()}</span>
+              </div>
+            )
           ) : (
             <div className="station-file-list">
               {files.map(({ file, id }) => (

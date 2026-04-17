@@ -10,7 +10,7 @@
  * @returns Sanitized filename
  */
 export function sanitizeFilename(filename: string, replacement: string = '_'): string {
-  if (!filename) return 'unnamed_file';
+  if (!filename) return 'ABDFN_GEN_UNNAMED';
 
   // 1. Remove control characters and reserved characters across OSs
   // Forbidden in Windows: < > : " / \ | ? *
@@ -20,12 +20,23 @@ export function sanitizeFilename(filename: string, replacement: string = '_'): s
   // 2. Prevent path traversal (..)
   sanitized = sanitized.replace(/\.\.+/g, replacement);
 
-  // 3. Trim and ensure it's not empty after sanitization
+  // 3. Prevent hidden files (Unix starts with .)
+  if (sanitized.startsWith('.')) {
+    sanitized = 'DATA' + sanitized;
+  }
+
+  // 4. Trace-back and Trim
   sanitized = sanitized.trim();
   
   if (sanitized === '.' || sanitized === '..') {
-    return 'invalid_name';
+    return 'ABDFN_GEN_UNNAMED';
   }
 
-  return sanitized || 'unnamed_file';
+  // 5. Length Limit (Industrial legacy often limits to 255 or even 40)
+  const MAX_LENGTH = 120;
+  if (sanitized.length > MAX_LENGTH) {
+    sanitized = sanitized.substring(0, MAX_LENGTH);
+  }
+
+  return sanitized || 'ABDFN_GEN_UNNAMED';
 }
