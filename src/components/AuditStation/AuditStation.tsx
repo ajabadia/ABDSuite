@@ -173,7 +173,7 @@ const AuditStation: React.FC = () => {
               <div className="flex-row" style={{ gap: '24px', fontSize: '0.75rem', fontWeight: 800 }}>
                 <span>{t('audit.stats_records')} <span className="station-badge station-badge-blue">{result?.lines || 0}</span></span>
                 <span>{t('audit.stats_anomalies')} <span className={`station-badge ${result?.errors.length && result.errors.length > 0 ? 'station-badge-orange' : 'station-badge-blue'}`}>{result?.errors.length || 0}</span></span>
-                {packageResult && <span>{t('audit.stats_zip_files')} <span className="station-badge station-badge-blue">{packageResult.fileCount}</span></span>}
+                {packageResult && <span>{t('audit.stats_zip_files')} <span className="station-badge station-badge-blue">{packageResult.zipFilesCount}</span></span>}
               </div>
             </div>
 

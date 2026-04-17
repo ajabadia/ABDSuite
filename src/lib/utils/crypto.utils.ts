@@ -85,7 +85,7 @@ export async function deriveKey(password: string, salt: Uint8Array): Promise<Cry
       salt,
       iterations: 100000,
       hash: 'SHA-256'
-    },
+    } as Pbkdf2Params,
     baseKey,
     { name: 'AES-GCM', length: 256 },
     true,

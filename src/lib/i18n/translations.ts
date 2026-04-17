@@ -279,9 +279,7 @@ export const translations = {
       col_value: 'Valor',
       export_csv: 'EXPORTAR INFORME (CSV)',
       no_errors: '¡VALIDACIÓN FINALIZADA SIN ERRORES!',
-      status_ready: 'ESPERANDO ARCHIVO...',
       status_done: 'Validación finalizada con {n} errores.',
-      status_payload_waiting: 'SISTEMA CARGADO. ESPERANDO VOLCADO EXTERNO...',
       select_file: 'SELECCIONAR ÍNDICE (.TXT)',
       select_archive: 'SELECCIONAR PAQUETE (.ZIP)',
       errors: {
@@ -557,9 +555,7 @@ export const translations = {
       col_value: 'Value',
       export_csv: 'EXPORT REPORT (CSV)',
       no_errors: 'VALIDATION COMPLETED WITH NO ERRORS!',
-      status_ready: 'WAITING FOR FILE...',
       status_done: 'Validation finished with {n} errors.',
-      status_payload_waiting: 'SYSTEM LOADED. WAITING FOR EXTERNAL DUMP...',
       select_file: 'SELECT INDEX (.TXT)',
       select_archive: 'SELECT PACKAGE (.ZIP)',
       errors: {
