@@ -331,15 +331,20 @@ export default function Dashboard() {
 function ModuleCard({ title, desc, icon, href, color }: { title: string, desc: string, icon: React.ReactNode, href: string, color: string }) {
   return (
     <Link href={href} className="module-card-link" aria-label={title}>
-      <div className="station-card module-card" style={{ '--card-accent': color } as any}>
-        <div className="module-icon-wrap" aria-hidden="true">
-          {icon}
+      <div className="module-card-container" style={{ '--card-accent': color } as any}>
+        <div className="module-card-inner">
+          <div className="module-header-wrap">
+            <div className="module-icon-box" aria-hidden="true">
+              {icon}
+            </div>
+            <h3 className="module-title-uncodix">{title}</h3>
+          </div>
+          <p className="module-desc-uncodix">{desc}</p>
+          <div className="module-footer">
+            <span className="module-status-indicator" style={{ background: color }}></span>
+            <span className="module-action-text">OPEN MODULE</span>
+          </div>
         </div>
-        <div className="module-info">
-          <h3 className="module-title-h3">{title}</h3>
-          <p className="module-desc-p">{desc}</p>
-        </div>
-        <div className="module-arrow">→</div>
       </div>
 
       <style jsx>{`
@@ -349,71 +354,106 @@ function ModuleCard({ title, desc, icon, href, color }: { title: string, desc: s
           display: block;
         }
 
-        .module-card {
-          padding: 30px;
+        .module-card-container {
+          background: var(--surface-color);
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
           height: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-          cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          border-left: 4px solid var(--card-accent);
-          background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.05) 0%, transparent 100%);
           position: relative;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
           overflow: hidden;
         }
 
-        .module-card:hover {
-          transform: translateY(-4px);
-          background: rgba(var(--primary-color-rgb), 0.08);
-          border-left-width: 8px;
-          box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        .module-card-container:hover {
+          border-color: var(--card-accent);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
-        .module-card::before {
+        .module-card-inner {
+          padding: 24px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .module-header-wrap {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .module-icon-box {
+          color: var(--card-accent);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0.8;
+          transition: opacity 0.2s ease;
+        }
+
+        .module-card-container:hover .module-icon-box {
+          opacity: 1;
+        }
+
+        .module-title-uncodix {
+          font-size: 0.95rem;
+          font-weight: 800;
+          margin: 0;
+          letter-spacing: 0.5px;
+          color: var(--text-primary);
+        }
+
+        .module-desc-uncodix {
+          font-size: 0.8rem;
+          line-height: 1.5;
+          color: var(--text-secondary);
+          margin: 0;
+          opacity: 0.7;
+          flex-grow: 1;
+        }
+
+        .module-footer {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 8px;
+          padding-top: 16px;
+          border-top: 1px solid rgba(var(--primary-color-rgb), 0.05);
+        }
+
+        .module-status-indicator {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          box-shadow: 0 0 4px var(--card-accent);
+        }
+
+        .module-action-text {
+          font-size: 0.65rem;
+          font-weight: 900;
+          letter-spacing: 1px;
+          opacity: 0.4;
+          transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .module-card-container:hover .module-action-text {
+          opacity: 0.8;
+          transform: translateX(4px);
+        }
+
+        /* Ambient subtle light for uncodixfy feel */
+        .module-card-container::after {
           content: '';
           position: absolute;
-          top: 0; right: 0;
-          width: 60px; height: 60px;
-          background: linear-gradient(225deg, var(--card-accent) 0%, transparent 50%);
-          opacity: 0.1;
-          transition: opacity 0.3s;
-        }
-
-        .module-card:hover::before { opacity: 0.3; }
-
-        .module-icon-wrap {
-          color: var(--card-accent);
-          transition: transform 0.3s ease;
-        }
-        .module-card:hover .module-icon-wrap { transform: scale(1.1); }
-
-        .module-title-h3 {
-          font-size: 1.1rem;
-          font-weight: 900;
-          margin: 0 0 8px 0;
-          letter-spacing: 1px;
-        }
-
-        .module-desc-p {
-          font-size: 0.85rem;
-          opacity: 0.6;
-          margin: 0;
-          line-height: 1.5;
-        }
-
-        .module-arrow {
-          margin-top: auto;
-          font-size: 1.5rem;
+          top: 0; left: 0; right: 0; height: 1px;
+          background: linear-gradient(90deg, transparent, var(--card-accent), transparent);
           opacity: 0;
-          transform: translateX(-10px);
-          transition: all 0.3s;
-          color: var(--card-accent);
+          transition: opacity 0.3s ease;
         }
 
-        .module-card:hover .module-arrow {
-          opacity: 1;
-          transform: translateX(0);
+        .module-card-container:hover::after {
+          opacity: 0.5;
         }
       `}</style>
     </Link>

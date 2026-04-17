@@ -149,10 +149,10 @@ const MappingMatrix: React.FC = () => {
     const newMappings: VariableMapping[] = templateVars.map(v => {
       // Direct Match con normalización robusta
       const match = fields.find(f => {
-         const fName = (f.Name || f.name || "").toLowerCase();
+         const fName = (f.name || "").toLowerCase();
          return fName === v.toLowerCase();
       });
-      if (match) return { templateVar: v, sourceType: 'TEMPLATE', sourceField: (match.Name || match.name) };
+      if (match) return { templateVar: v, sourceType: 'TEMPLATE', sourceField: match.name };
       const gaMatch = CANONICAL_GAWEB_FIELDS.find(g => g.toLowerCase() === v.toLowerCase());
       if (gaMatch) return { templateVar: v, sourceType: 'GAWEB', sourceField: gaMatch };
       return { templateVar: v, sourceType: 'UI_OVERRIDE', sourceField: '' };
