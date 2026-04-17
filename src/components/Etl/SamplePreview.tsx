@@ -86,7 +86,7 @@ export const SamplePreview: React.FC<SamplePreviewProps> = ({ preset, activeReco
 
       <div 
         className="station-card"
-        style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: 'var(--bg-color)', borderStyle: isDragging ? 'dashed' : 'solid', borderPrimaryColor: isDragging ? 'var(--primary-color)' : 'var(--border-color)' }}
+        style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: 'var(--bg-color)', borderStyle: isDragging ? 'dashed' : 'solid', borderColor: isDragging ? 'var(--primary-color)' : 'var(--border-color)' }}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
