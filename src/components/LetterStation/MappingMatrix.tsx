@@ -6,7 +6,7 @@ import { db } from '@/lib/db/db';
 import { 
   LetterTemplate, 
   LetterMapping, 
-  LetterMappingEntry,
+  VariableMapping,
   CANONICAL_GAWEB_FIELDS 
 } from '@/lib/types/letter.types';
 import { 
@@ -128,7 +128,7 @@ const MappingMatrix: React.FC = () => {
     extractVars();
   }, [selectedTemplateId, templates]);
 
-  const handleUpdateMapping = (templateVar: string, sourceType: LetterMappingEntry['sourceType'], sourceField: string) => {
+  const handleUpdateMapping = (templateVar: string, sourceType: VariableMapping['sourceType'], sourceField: string) => {
     if (!currentMapping) return;
     const newMappings = [...currentMapping.mappings];
     const idx = newMappings.findIndex(m => m.templateVar === templateVar);
@@ -146,7 +146,7 @@ const MappingMatrix: React.FC = () => {
     if (!preset) return;
     const dataRT = preset.recordTypes.find(rt => rt.name === 'DATA') || preset.recordTypes[0];
     const fields = dataRT?.fields || [];
-    const newMappings: LetterMappingEntry[] = templateVars.map(v => {
+    const newMappings: VariableMapping[] = templateVars.map(v => {
       // Direct Match con normalización robusta
       const match = fields.find(f => {
          const fName = (f.Name || f.name || "").toLowerCase();
