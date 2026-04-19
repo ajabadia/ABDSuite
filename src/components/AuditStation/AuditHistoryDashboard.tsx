@@ -28,13 +28,13 @@ export const AuditHistoryDashboard: React.FC = () => {
     useEffect(() => {
         const fetchHistory = async () => {
             let collection = db.audit_history_v6.orderBy('timestamp').reverse();
-            
+
             let data = await collection.toArray() as any as AuditRecord[];
-            
+
             if (moduleFilter !== 'ALL') {
                 data = data.filter(r => r.module === moduleFilter);
             }
-            
+
             setRecords(data);
         };
         fetchHistory();
@@ -42,11 +42,11 @@ export const AuditHistoryDashboard: React.FC = () => {
 
     const renderRow = (record: AuditRecord | undefined, idx: number, style: React.CSSProperties) => {
         if (!record) return <div style={style}>...</div>;
-        
+
         const isSelected = selectedId === record.id;
-        
+
         return (
-            <div 
+            <div
                 key={record.id}
                 onClick={() => setSelectedId(record.id)}
                 style={{
@@ -64,10 +64,9 @@ export const AuditHistoryDashboard: React.FC = () => {
                     {new Date(record.timestamp).toLocaleString()}
                 </div>
                 <div style={{ width: '120px' }}>
-                    <span className={`station-badge ${
-                        record.module === 'GAWEB_AUDIT' ? 'station-badge-blue' : 
-                        record.module === 'LETTER_QA' ? 'station-badge-orange' : 'station-badge-green'
-                    }`}>
+                    <span className={`station-badge ${record.module === 'GAWEB_AUDIT' ? 'station-badge-blue' :
+                            record.module === 'LETTER_QA' ? 'station-badge-orange' : 'station-badge-green'
+                        }`}>
                         {record.module}
                     </span>
                 </div>
@@ -91,9 +90,9 @@ export const AuditHistoryDashboard: React.FC = () => {
             <div className="flex-row" style={{ gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div className="flex-col">
                     <label className="station-label" style={{ fontSize: '0.65rem' }}>MODULE_FILTER</label>
-                    <select 
-                        className="station-input" 
-                        value={moduleFilter} 
+                    <select
+                        className="station-input"
+                        value={moduleFilter}
                         onChange={e => setModuleFilter(e.target.value as any)}
                         style={{ width: '180px', height: '36px' }}
                     >
@@ -107,9 +106,9 @@ export const AuditHistoryDashboard: React.FC = () => {
                 <div className="flex-col">
                     <label className="station-label" style={{ fontSize: '0.65rem' }}>RETENTION_PERIOD</label>
                     <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
-                         <select 
-                            className="station-input" 
-                            value={retention.months} 
+                        <select
+                            className="station-input"
+                            value={retention.months}
                             onChange={e => handleRetentionChange(Number(e.target.value))}
                             style={{ width: '140px', height: '36px' }}
                         >
@@ -131,7 +130,7 @@ export const AuditHistoryDashboard: React.FC = () => {
             <div style={{ display: 'flex', flex: 1, gap: '20px', minHeight: 0 }}>
                 {/* TABLE SECTION */}
                 <div style={{ flex: 2, border: '1px solid var(--border-color)', background: 'var(--surface-color)', position: 'relative' }}>
-                    <IndustrialVirtualTable 
+                    <IndustrialVirtualTable
                         items={records}
                         totalItems={records.length}
                         itemHeight={ITEM_HEIGHT}
@@ -149,22 +148,22 @@ export const AuditHistoryDashboard: React.FC = () => {
                             </div>
 
                             <div className="station-tech-summary">
-                               {selectedRecord.payload.type === 'GAWEB_AUDIT' && (
-                                   <>
-                                    <div className="station-tech-item"><span className="station-tech-label">FILE:</span> {selectedRecord.payload.data.fileName}</div>
-                                    <div className="station-tech-item"><span className="station-tech-label">LINES:</span> {selectedRecord.payload.data.totalLines}</div>
-                                    <div className="station-tech-item"><span className="station-tech-label">ERRORS:</span> {selectedRecord.payload.data.totalErrors}</div>
-                                   </>
-                               )}
-                               {selectedRecord.payload.type === 'LETTER_QA' && (
-                                   <>
-                                    <div className="station-tech-item"><span className="station-tech-label">LOTE:</span> {selectedRecord.payload.data.lote}</div>
-                                    <div className="station-tech-item"><span className="station-tech-label">DOC:</span> {selectedRecord.payload.data.codDocumento}</div>
-                                    <div className="station-tech-item"><span className="station-tech-label">STATUS:</span> {selectedRecord.payload.data.qaStatus}</div>
-                                   </>
-                               )}
+                                {selectedRecord.payload.type === 'GAWEB_AUDIT' && (
+                                    <>
+                                        <div className="station-tech-item"><span className="station-tech-label">FILE:</span> {selectedRecord.payload.data.fileName}</div>
+                                        <div className="station-tech-item"><span className="station-tech-label">LINES:</span> {selectedRecord.payload.data.totalLines}</div>
+                                        <div className="station-tech-item"><span className="station-tech-label">ERRORS:</span> {selectedRecord.payload.data.totalErrors}</div>
+                                    </>
+                                )}
+                                {selectedRecord.payload.type === 'LETTER_QA' && (
+                                    <>
+                                        <div className="station-tech-item"><span className="station-tech-label">LOTE:</span> {selectedRecord.payload.data.lote}</div>
+                                        <div className="station-tech-item"><span className="station-tech-label">DOC:</span> {selectedRecord.payload.data.codDocumento}</div>
+                                        <div className="station-tech-item"><span className="station-tech-label">STATUS:</span> {selectedRecord.payload.data.qaStatus}</div>
+                                    </>
+                                )}
                             </div>
-                            
+
                             <pre style={{ fontSize: '0.7rem', padding: '12px', background: 'var(--surface-color)', borderRadius: '4px', overflowX: 'auto' }}>
                                 {JSON.stringify(selectedRecord.payload.data, null, 2)}
                             </pre>

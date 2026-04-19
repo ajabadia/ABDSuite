@@ -114,7 +114,7 @@ function CryptPageContent() {
         )}
       </div>
 
-      {/* Sello de Integridad (Era 5) */}
+      {/* Sello de Integridad (Era 6) */}
       <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
          <div className="integrity-dot" />
          <ShieldCheckIcon size={14} />

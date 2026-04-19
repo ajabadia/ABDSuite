@@ -135,7 +135,7 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
   return (
     <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
       
-      {/* CABECERA INDUSTRIAL (Era 5) */}
+      {/* CABECERA INDUSTRIAL (Era 6) */}
       <div className="station-card">
         <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
           <div className="flex-col" style={{ gap: '4px' }}>
@@ -224,7 +224,7 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
         )}
       </button>
 
-      {/* SELLO DE INTEGRID (Era 5) */}
+      {/* SELLO DE INTEGRIDAD (Era 6) */}
       <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
          <div className="integrity-dot" />
          <CogIcon size={14} />

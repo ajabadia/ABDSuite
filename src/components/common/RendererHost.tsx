@@ -10,7 +10,7 @@ interface RendererHostProps {
 /**
  * RendererHost
  * Componente asíncrono que carga los motores de renderizado de alta fidelidad.
- * Cumplimiento: Era 5 (Industrial Design)
+ * Cumplimiento: Era 6 (Industrial Design)
  */
 export const RendererHost: React.FC<RendererHostProps> = ({ onReady }) => {
   const [isLoaded, setIsLoaded] = useState(false);

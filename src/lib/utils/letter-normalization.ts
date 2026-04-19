@@ -1,5 +1,5 @@
 /**
- * ABDFN Unified Suite - Letter Normalization Utility (Era 5)
+ * ABDFN Unified Suite - Letter Normalization Utility (Era 6)
  * Handles legacy naming aliases and ensures canonical data flow.
  */
 

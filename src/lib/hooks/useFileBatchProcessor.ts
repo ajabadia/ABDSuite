@@ -109,6 +109,28 @@ export const useFileBatchProcessor = ({
     }
 
     addLog('info', 'logs.summary', undefined, { s: sCount, e: eCount, k: kCount });
+    
+    // REGISTRO DE AUDITORÍA: BATCH CRYPT COMPLETADO
+    try {
+      const { db } = await import('@/lib/db/db');
+      await db.audit_history_v6.add({
+        id: crypto.randomUUID(),
+        timestamp: Date.now(),
+        module: 'CRYPT',
+        action: 'CRYPT_BATCH_COMPLETED',
+        status: eCount > 0 ? 'WARNING' : 'SUCCESS',
+        details: JSON.stringify({
+          mode: mode.toUpperCase(),
+          total: files.length,
+          success: sCount,
+          errors: eCount,
+          skipped: kCount
+        })
+      } as any);
+    } catch (e) {
+      console.error('Failed to log crypt audit', e);
+    }
+
     setIsProcessing(false);
   }, [password, outputSuffix, t, addLog]);
 

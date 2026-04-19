@@ -158,6 +158,21 @@ const LetterStation: React.FC = () => {
           if (payload.blob) {
             setPendingDownload({ blob: payload.blob, name: payload.name || 'document.zip' });
             addLog(t('letter.motor.file_ready'), 'info');
+
+            // REGISTRO DE AUDITORÍA: BATCH COMPLETADO
+            db.audit_history_v6.add({
+              id: crypto.randomUUID(),
+              timestamp: Date.now(),
+              module: 'LETTER',
+              action: 'LETTER_BATCH_GEN',
+              status: 'SUCCESS',
+              details: JSON.stringify({
+                lote: options.lote,
+                templateId: selectedTemplateId,
+                outputType: options.outputType,
+                fileName: payload.name
+              })
+            } as any).catch(e => console.error('Failed to log batch audit', e));
           }
         }
         if (type === 'DOCUMENT_READY' && payload && outputHandleRef.current) {
@@ -184,10 +199,40 @@ const LetterStation: React.FC = () => {
                     if (currentHash === goldenRef.layoutHash) {
                       addLog('🏆 QA_MATCH: Integridad visual confirmada.', 'success');
                       setQaStatus('MATCH');
-                      await db.golden_tests_v6.update(goldenRef.id!, { lastVerifiedAt: Date.now() });
+                      await Promise.all([
+                        db.golden_tests_v6.update(goldenRef.id!, { lastVerifiedAt: Date.now() }),
+                        db.audit_history_v6.add({
+                          id: crypto.randomUUID(),
+                          timestamp: Date.now(),
+                          module: 'LETTER',
+                          action: 'LETTER_QA_MATCH',
+                          status: 'SUCCESS',
+                          details: JSON.stringify({
+                            templateId: selectedTemplateId,
+                            mappingId: selectedMapping.id,
+                            lote: options.lote,
+                            docName: finalName,
+                            layoutHash: currentHash
+                          })
+                        } as any)
+                      ]);
                     } else {
                       addLog('❌ QA_BREAK: Regresión de layout detectada.', 'error');
-                      setQaStatus('BREAK');
+                      await db.audit_history_v6.add({
+                        id: crypto.randomUUID(),
+                        timestamp: Date.now(),
+                        module: 'LETTER',
+                        action: 'LETTER_QA_BREAK',
+                        status: 'ERROR',
+                        details: JSON.stringify({
+                          templateId: selectedTemplateId,
+                          mappingId: selectedMapping.id,
+                          lote: options.lote,
+                          docName: finalName,
+                          detectedHash: currentHash,
+                          expectedHash: goldenRef.layoutHash
+                        })
+                      } as any);
                       setIsProcessing(false);
                       workerRef.current?.terminate(); // PARADA INDUSTRIAL AUTOMÁTICA
                       addLog('LOTE DETENIDO POR SEGURIDAD INDUSTRIAL (QA_BREAK).', 'error');
@@ -733,11 +778,11 @@ const LetterStation: React.FC = () => {
         )}
 
 
-        {/* Sello de Integridad (Era 5) */}
+        {/* Sello de Integridad (Era 6) */}
         <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
            <div className="integrity-dot" />
            <FileTextIcon size={14} />
-           <span>ESTÁNDAR GAWEB v.1</span>
+           <span>ESTÁNDAR GAWEB v.1 (ERA 6)</span>
         </div>
 
         <RendererHost onReady={setRendererEngine} />

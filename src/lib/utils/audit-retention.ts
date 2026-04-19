@@ -17,6 +17,9 @@ export async function purgeOldAuditRecords() {
   ).getTime();
 
   try {
+    // Phase 8 Multi-Tenancy Guard
+    if (!db.audit_history_v6) return;
+
     const deletedCount = await db.audit_history_v6
       .where('timestamp')
       .below(cutoff)

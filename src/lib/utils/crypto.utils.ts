@@ -63,7 +63,7 @@ export function md5(text: string): string {
   return toHex(h0) + toHex(h1) + toHex(h2) + toHex(h3);
 }
 
-// ERA 5: Industrial Crypto Standards (AES-GCM + PBKDF2)
+// ERA 6: Industrial Crypto Standards (AES-GCM + PBKDF2)
 
 /**
  * Derives a secure 256-bit key from a password and salt using PBKDF2.
@@ -133,4 +133,38 @@ export async function decryptData(combined: Uint8Array, password: string): Promi
   );
 
   return new TextDecoder().decode(decrypted);
+}
+
+/**
+ * High-security PIN Hashing for Industrial Authentication.
+ * Uses SHA-256 with 100,000 iterations.
+ */
+export async function hashPin(pin: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pin);
+  // Using a fixed salt for deterministic local verification of PINs
+  const salt = encoder.encode('ABDFN_INDUSTRIAL_SALT_v6'); 
+  
+  const baseKey = await crypto.subtle.importKey(
+    'raw',
+    data,
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  );
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt,
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    baseKey,
+    256
+  );
+
+  return Array.from(new Uint8Array(derivedBits))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 }

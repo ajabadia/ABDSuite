@@ -1,5 +1,5 @@
 /**
- * ABDFN Unified Suite - Worker Contracts (Era 5)
+ * ABDFN Unified Suite - Worker Contracts (Era 6)
  * Strict interfaces for Document Engine communication.
  */
 

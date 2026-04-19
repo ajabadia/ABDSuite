@@ -1,5 +1,5 @@
 /**
- * Document Engine Worker - Era 5 (Industrial Edition)
+ * Document Engine Worker - Era 6 (Industrial Edition)
  * Unified High-Fidelity Engine for DOCX and HTML multi-format generation.
  */
 
@@ -82,7 +82,7 @@ self.onmessage = async (e: MessageEvent) => {
     
     const industrialBaseHash = (Math.random().toString(36).substring(2, 10) + Date.now().toString(36)).substring(0, 11);
     
-    self.postMessage({ type: 'LOG', payload: { type: 'info', message: `INDUSTRIAL MOTOR (Era 5) iniciado.` } });
+    self.postMessage({ type: 'LOG', payload: { type: 'info', message: `INDUSTRIAL MOTOR (Era 6) iniciado.` } });
 
     while (true) {
       const { done, value } = await dataStream.read();

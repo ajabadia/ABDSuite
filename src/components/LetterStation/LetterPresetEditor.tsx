@@ -514,11 +514,11 @@ const LetterPresetEditor: React.FC = () => {
            </div>
         </div>
       )}
-      {/* Sello de Integridad (Era 5) */}
+      {/* Sello de Integridad (Era 6) */}
       <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
          <div className="integrity-dot" />
          <FileTextIcon size={14} />
-         <span>ESTÁNDAR GAWEB v.1</span>
+         <span>ESTÁNDAR GAWEB v.1 (ERA 6)</span>
       </div>
     </div>
   );

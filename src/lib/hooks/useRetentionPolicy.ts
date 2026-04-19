@@ -2,20 +2,29 @@
 
 import { useEffect } from 'react';
 import { db } from '@/lib/db/db';
+import { purgeOldAuditRecords } from '@/lib/utils/audit-retention';
 
 /**
  * useRetentionPolicy
  * Hook industrial para la gestión del ciclo de vida de los datos locales.
  * Purga registros de auditoría antiguos para mantener la base de datos lean.
  */
-export function useRetentionPolicy(retentionDays: number = 30) {
+export function useRetentionPolicy(retentionDays: number = 30, active: boolean = false) {
   useEffect(() => {
+    if (!active) return;
+
     const executePurge = async () => {
+      // 0. Manual industrial purge (Settings-based)
+      await purgeOldAuditRecords().catch(console.error);
+
       const now = Date.now();
       const expirationMs = retentionDays * 24 * 60 * 60 * 1000;
       const threshold = now - expirationMs;
 
       try {
+        // Guard: double-check db instance availability
+        if (!db.audit_history_v6) return;
+
         // 1. Purgar audit_history por antigüedad
         const deletedCount = await db.audit_history_v6
           .where('timestamp')
@@ -49,5 +58,5 @@ export function useRetentionPolicy(retentionDays: number = 30) {
     // Y cada 24 horas si la sesión se mantiene abierta
     const interval = setInterval(executePurge, 24 * 60 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [retentionDays]);
+  }, [retentionDays, active]);
 }

@@ -217,7 +217,7 @@ const AuditStation: React.FC = () => {
 
   return (
     <>
-      {/* CABECERA INDUSTRIAL (Era 5 / Aseptic v4) */}
+      {/* CABECERA INDUSTRIAL (Era 6 / Aseptic v6) */}
       <div className="station-card">
         <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
           <div className="flex-col" style={{ gap: '4px' }}>

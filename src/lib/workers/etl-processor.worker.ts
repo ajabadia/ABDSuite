@@ -1,7 +1,7 @@
 /**
  * ETL Processor Worker - ABDFN Aseptic Engine
  * Translates legacy C# ProcessorService logic to pure TypeScript.
- * Mandato 100% Inglés - Aseptic Standard ERA 5.
+ * Mandato 100% Inglés - Aseptic Standard ERA 6.
  */
 
 import { EtlPreset, EtlRecordType, EtlField } from '../types/etl.types';

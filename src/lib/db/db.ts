@@ -27,101 +27,29 @@ export interface AuditHistoryRecord {
   status: 'SUCCESS' | 'WARNING' | 'ERROR';
 }
 
+/**
+ * ABDFNSuiteDB (Data Layer)
+ * Scoped per Unit/Department for isolation.
+ */
 export class ABDFNSuiteDB extends Dexie {
-  // Only expose v6 tables to the application core
   presets_v6!: Table<EtlPreset>;
   lettertemplates_v6!: Table<LetterTemplate>;
   lettermappings_v6!: Table<LetterMapping>;
   golden_tests_v6!: Table<GoldenTest>;
   audit_history_v6!: Table<AuditHistoryRecord>;
 
-  // Legacy tables kept for migration
-  presets_v5!: Table<any>;
-  templates_v5!: Table<any>;
-  mappings_v5!: Table<any>;
-
-  constructor() {
-    super('ABDFNSuiteDB');
+  constructor(unitId: string) {
+    super(`ABDFN_UNIT_${unitId}`);
     
-    // v8: The legacy numerical structure (Last of the 5.x Era)
-    this.version(8).stores({
-      presets: '++id, name, gawebConfig.active, updatedAt',
-      letter_templates: '++id, name, type, isActive, updatedAt',
-      letter_mappings: '++id, name, templateId, etlPresetId, isActive, updatedAt',
-      golden_tests: '++id, templateId, mappingId, etlPresetId, codDocumento, version',
-      audit_history: '++id, timestamp, module, action, status'
-    });
-
-    // v9: Era 6 - The Industrial UUID Migration
+    // Schema Era 6 (UUID Based)
     this.version(9).stores({
       presets_v6: 'id, name, gawebConfig.active, updatedAt',
       lettertemplates_v6: 'id, name, type, isActive, updatedAt',
       lettermappings_v6: 'id, name, templateId, etlPresetId, isActive, updatedAt',
       golden_tests_v6: 'id, templateId, mappingId, etlPresetId, codDocumento, version',
       audit_history_v6: 'id, timestamp, module, action, status'
-    }).upgrade(async (tx) => {
-        // --- INDUSTRIAL MIGRATION LOGIC (Legacy -> v6) ---
-        const legacyPresets = tx.table('presets');
-        const legacyTemplates = tx.table('letter_templates');
-        const legacyMappings = tx.table('letter_mappings');
-
-        const v6Presets = tx.table('presets_v6');
-        const v6Templates = tx.table('lettertemplates_v6');
-        const v6Mappings = tx.table('lettermappings_v6');
-
-        const presetIdMap = new Map<number, string>();
-        const templateIdMap = new Map<number, string>();
-
-        console.log('[ABDFN-DB] Starting Era 6 Migration...');
-
-        // 1. Presets Migration
-        const oldPresets = await legacyPresets.toArray();
-        if (oldPresets.length > 0) {
-            const newPresets = oldPresets.map(p => {
-                const oldId = p.id as number;
-                const newId = crypto.randomUUID();
-                presetIdMap.set(oldId, newId);
-                return { ...p, id: newId };
-            });
-            await v6Presets.bulkAdd(newPresets);
-            console.log(`[ABDFN-DB] Migrated ${newPresets.length} presets.`);
-        }
-
-        // 2. Templates Migration
-        const oldTemplates = await legacyTemplates.toArray();
-        if (oldTemplates.length > 0) {
-            const newTemplates = oldTemplates.map(t => {
-                const oldId = t.id as number;
-                const newId = crypto.randomUUID();
-                templateIdMap.set(oldId, newId);
-                return { ...t, id: newId };
-            });
-            await v6Templates.bulkAdd(newTemplates);
-            console.log(`[ABDFN-DB] Migrated ${newTemplates.length} templates.`);
-        }
-
-        // 3. Mappings Migration (Relational Re-mapping)
-        const oldMappings = await legacyMappings.toArray();
-        if (oldMappings.length > 0) {
-            const newMappings = oldMappings.map(m => {
-                const newId = crypto.randomUUID();
-                const newTplId = templateIdMap.get(m.templateId as number);
-                const newPresetId = presetIdMap.get(m.etlPresetId as number);
-                return { 
-                    ...m, 
-                    id: newId, 
-                    templateId: newTplId || m.templateId, 
-                    etlPresetId: newPresetId || m.etlPresetId 
-                };
-            });
-            await v6Mappings.bulkAdd(newMappings);
-            console.log(`[ABDFN-DB] Migrated ${newMappings.length} mappings with re-mapped FKs.`);
-        }
-
-        console.log('[ABDFN-DB] Era 6 Migration successfully completed.');
     });
 
-    // Assign table shortcuts for the v6 era
     this.presets_v6 = this.table('presets_v6');
     this.lettertemplates_v6 = this.table('lettertemplates_v6');
     this.lettermappings_v6 = this.table('lettermappings_v6');
@@ -130,4 +58,33 @@ export class ABDFNSuiteDB extends Dexie {
   }
 }
 
-export const db = new ABDFNSuiteDB();
+// Internal reference for the active workspace DB
+let activeDbInstance: ABDFNSuiteDB | null = null;
+
+/**
+ * Sets the active unit database.
+ * Closes the previous one if it exists to prevent contamination.
+ */
+export async function setActiveUnit(unitId: string): Promise<ABDFNSuiteDB> {
+  if (activeDbInstance) {
+    activeDbInstance.close();
+  }
+  activeDbInstance = new ABDFNSuiteDB(unitId);
+  await activeDbInstance.open();
+  return activeDbInstance;
+}
+
+/**
+ * DB PROXY (Industrial Logic)
+ * Intercepts property access and redirects to the active instance.
+ * Allows components to do `import { db } from ...` without refactoring.
+ */
+export const db = new Proxy({} as ABDFNSuiteDB, {
+  get: (_, prop) => {
+    if (!activeDbInstance) {
+       // On clean starts (Bootstrap), we allow calling getUnitDb later
+       return undefined;
+    }
+    return (activeDbInstance as any)[prop];
+  }
+});

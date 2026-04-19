@@ -60,7 +60,7 @@ export const STRESS_TEMPLATE_DATA = {
       <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 40px;">
         <h1 style="margin: 0; font-size: 28px; letter-spacing: 2px;">INDUSTRIAL_NOTIFICATION</h1>
         <div style="text-align: right;">
-           <div style="background: #333; color: white; padding: 4px 12px; font-weight: 900; font-size: 12px;">ERA_5_COMPLIANT</div>
+           <div style="background: #333; color: white; padding: 4px 12px; font-weight: 900; font-size: 12px;">ERA_6_COMPLIANT</div>
            <div style="font-size: 10px; margin-top: 4px;">SECURE_DOCUMENT_STREAM</div>
         </div>
       </div>
@@ -85,7 +85,7 @@ export const STRESS_TEMPLATE_DATA = {
 
       <p style="font-size: 12px; line-height: 1.6; opacity: 0.8;">
         Este documento ha sido generado por el motor de alta fidelidad ABDFN Suite. 
-        La paridad visual respecto al modelo industrial está garantizada bajo el protocolo Aseptic V4.
+        La paridad visual respecto al modelo industrial está garantizada bajo el protocolo Aseptic V6.
       </p>
       
       <div style="margin-top: 60px; border-top: 1px solid #eee; padding-top: 20px; font-size: 10px; display: flex; justify-content: space-between;">

@@ -1,5 +1,5 @@
 /**
- * ABDFN Unified Suite - Manuales Técnicos Era 5
+ * ABDFN Unified Suite - Manuales Técnicos Era 6
  * ABDFN Unified Suite - Manuales Técnicos Era 6
  * Idioma: Castellano (ES)
  * Filosofía: Offline-First / Zero-Knowledge
