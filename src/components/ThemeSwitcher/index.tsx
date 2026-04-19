@@ -2,15 +2,17 @@
 
 import React, { useState } from 'react';
 import { useTheme, ThemeMode } from '@/lib/hooks/useTheme';
-import { SunIcon, MoonIcon, SystemIcon, ClockIcon } from '@/components/common/Icons';
+import { SunIcon, MoonIcon, SystemIcon, ClockIcon, IndustrialIcon } from '@/components/common/Icons';
 import { useLanguage } from '@/lib/context/LanguageContext';
 
 const options: { mode: ThemeMode; labelKey: string; icon: React.ReactNode }[] = [
   { mode: 'light', labelKey: 'ui.theme_light', icon: <SunIcon size={18} /> },
   { mode: 'dark', labelKey: 'ui.theme_dark', icon: <MoonIcon size={18} /> },
+  { mode: 'midnight', labelKey: 'ui.theme_midnight', icon: <IndustrialIcon size={18} /> },
   { mode: 'system', labelKey: 'ui.theme_system', icon: <SystemIcon size={18} /> },
   { mode: 'auto', labelKey: 'ui.theme_auto', icon: <ClockIcon size={18} /> },
 ];
+
 
 const ThemeSwitcher: React.FC = () => {
   const { mode, setMode } = useTheme();

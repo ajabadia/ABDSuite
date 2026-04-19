@@ -41,7 +41,7 @@ const DataPreviewModal: React.FC<DataPreviewModalProps> = ({ file, onClose }) =>
         onClick={e => e.stopPropagation()}
       >
         <header style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1rem', fontWeight: 800 }}>VISTA PREVIA: {file.name}</h2>
+          <h2 style={{ fontSize: '1rem', fontWeight: 800 }}>{t('letter.ui.data_preview').toUpperCase()}: {file.name}</h2>
           <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={onClose}>
             <XIcon size={20} />
           </button>
@@ -49,7 +49,7 @@ const DataPreviewModal: React.FC<DataPreviewModalProps> = ({ file, onClose }) =>
 
         <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-color)' }}>
           {loading ? (
-            <div style={{ padding: '48px', textAlign: 'center', opacity: 0.5 }}>Analizando flujo de datos...</div>
+            <div style={{ padding: '48px', textAlign: 'center', opacity: 0.5 }}>{t('letter.ui.analyzing_flow')}</div>
           ) : (
             <div className="station-table-container" style={{ border: 'none', borderRadius: 0 }}>
               <table className="station-table">

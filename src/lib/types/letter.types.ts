@@ -16,7 +16,7 @@ export interface TemplateComposition {
 }
 
 export interface LetterTemplate {
-  id?: number;
+  id?: string;
   name: string;
   type: 'HTML' | 'DOCX';
   content?: string; // HTML with {{variables}}
@@ -119,10 +119,10 @@ export const GawebRecordSchema = z.object({
 export type GawebRecord = z.infer<typeof GawebRecordSchema>;
 
 export interface LetterMapping {
-  id?: number;
+  id?: string;
   name: string;
-  templateId: number;
-  etlPresetId: number;
+  templateId: string;
+  etlPresetId: string;
   mappings: VariableMapping[];
   version?: string;
   isActive?: boolean;

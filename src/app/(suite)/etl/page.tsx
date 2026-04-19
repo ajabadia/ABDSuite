@@ -36,7 +36,7 @@ function EtlPageContent() {
   const [etlSettings, setEtlSettings] = useState<EtlGlobalSettings>(DEFAULT_SETTINGS);
 
   // Persistence (Dexie)
-  const presets = useLiveQuery(() => db.presets.toArray()) || [];
+  const presets = useLiveQuery(() => db.presets_v6.toArray()) || [];
 
   // Load Global Settings
   useEffect(() => {
@@ -53,9 +53,8 @@ function EtlPageContent() {
   // Sync selectedPreset with URL ID param
   useEffect(() => {
     if (idParam && presets.length > 0) {
-      const pid = parseInt(idParam);
-      if (selectedPreset?.id !== pid) {
-        const p = presets.find(x => x.id === pid);
+      if (selectedPreset?.id !== idParam) {
+        const p = presets.find(x => x.id === idParam);
         if (p) setSelectedPreset(p);
       }
     }
@@ -82,18 +81,18 @@ function EtlPageContent() {
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
-    const id = await db.presets.add(newPreset);
+    const id = await db.presets_v6.add(newPreset);
     router.push(`/etl?view=${activeTab}&id=${id}`);
   };
 
   const handleSave = async () => {
     if (!selectedPreset || !selectedPreset.id) return;
-    await db.presets.put(selectedPreset);
+    await db.presets_v6.put(selectedPreset);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (confirm(t('common.confirm_delete') || 'DELETE?')) {
-      await db.presets.delete(id);
+      await db.presets_v6.delete(id);
       if (selectedPreset?.id === id) {
         setSelectedPreset(null);
         router.push(`/etl?view=${activeTab}`);
@@ -134,7 +133,7 @@ function EtlPageContent() {
           const text = await file.text();
           const rawData = JSON.parse(text);
           const normalized = normalizeEtlPreset(rawData);
-          const id = await db.presets.add(normalized);
+          const id = await db.presets_v6.add(normalized);
           router.push(`/etl?view=${activeTab}&id=${id}`);
         } catch (err) {
           console.error('FAILED_TO_IMPORT_Preset', err);

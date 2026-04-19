@@ -2,31 +2,34 @@
 
 import React from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
+import { useSystemDiagnostics } from '@/lib/hooks/useSystemDiagnostics';
 
 export const StatusBar: React.FC = () => {
   const { t } = useLanguage();
-  const [isSecure, setIsSecure] = React.useState(true);
-
-  React.useEffect(() => {
-    // SubtleCrypto requires a Secure Context (HTTPS or localhost)
-    const secure = window.isSecureContext && !!window.crypto.subtle;
-    setIsSecure(secure);
-  }, []);
+  const metrics = useSystemDiagnostics();
 
   return (
     <footer className="shell-status">
-      <div style={{ marginRight: 'auto' }}>
+      <div style={{ marginRight: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ 
+          width: '6px', 
+          height: '6px', 
+          borderRadius: '50%', 
+          background: metrics.isSecure ? 'var(--status-ok)' : 'var(--status-err)',
+          opacity: metrics.heartbeat ? 1 : 0.3,
+          transition: 'opacity 0.2s ease'
+        }} />
         {t('shell.status_ready')}...
       </div>
-      <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-        <span>[ CPU: 0.02% ]</span>
-        <span>[ RAM: 8MB ]</span>
+      <div style={{ display: 'flex', gap: '20px', alignItems: 'center', fontSize: '11px', opacity: 0.8 }}>
+        <span>[ CPU: {metrics.cpuPulse}% ]</span>
+        <span>[ RAM: {metrics.ramUsage || '--'}MB ]</span>
         <span style={{ 
-          color: isSecure ? 'var(--status-ok)' : 'var(--status-err)',
+          color: metrics.isSecure ? 'var(--status-ok)' : 'var(--status-err)',
           fontWeight: 900,
           opacity: 1
         }}>
-          [ {isSecure ? t('shell.security_safe').toUpperCase() : t('shell.security_unsafe').toUpperCase()} ]
+          [ {metrics.isSecure ? t('shell.security_safe').toUpperCase() : t('shell.security_unsafe').toUpperCase()} ]
         </span>
       </div>
     </footer>

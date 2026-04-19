@@ -1,0 +1,24 @@
+{
+  "name": "ABDFN Audit Suite",
+  "short_name": "ABDFN Suite",
+  "description": "Industrial Aseptic Unified Hub v5.0 - Air-Gapped Generation & Audit",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    {
+      "src": "/screenshots/industrial_icon_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/screenshots/industrial_icon_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "orientation": "any",
+  "scope": "/"
+}

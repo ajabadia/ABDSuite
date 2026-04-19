@@ -1,54 +1,36 @@
-# 🗺️ ROADMAP: ABDFN Unified Web Suite (ERA 5)
+# ABDFN Suite - Industrialization Roadmap
 
-Este documento sirve como registro maestro y guía de ejecución para la transformación del **ABDFN Encryptor** en una **Suite Web Multiactividad de Alto Rendimiento**.
+## Done: Phase 1 (Core Hardening)
+- [x] **Zero-Exfiltration Enforcement**: Controlled CSP and vendorized libraries.
+- [x] **Naming Canonization**: Unified `codDocumento` across all layers.
+- [x] **Aseptic UI v4**: Industrial header and registry-first layout.
 
-## 1. Visión del Proyecto
-Centralizar todas las utilidades de `ABDFiles` (C#) en una plataforma web única, **100% Offline (Zero-Knowledge)**, manteniendo la estética retro-terminal y mejorando la integración entre herramientas.
+## Done: Phase 2 (Ultra-Scale Audit & QA P1)
+- [x] **Streaming Audit Engine**: 2GB support via Web Workers + Streams API.
+- [x] **Virtualized Interaction**: Zero-dependency `IndustrialVirtualTable`.
+- [x] **Golden Infrastructure**: Canvas Fingerprinting engine and v6 DB Schema.
+- [x] **Manual Golden Capture**: "Save as Golden" action in Letter Station.
 
-- **Directorio de Trabajo:** `D:\desarrollos\ABDFNSuite`
-- **Base Técnica:** Next.js 15, TypeScript, Vanilla CSS, i18n (4 idiomas), Arquitectura de Shell & Modules.
-- **Estado Global:** Phase A finalizada. Infraestructura base operativa.
+## Done: Phase 3 (Automated Quality & Decoupling)
+- [x] **Automated Regression Loop**: Real-time Golden verification and `LAYOUT_BREAK` detection.
+- [x] **Architectural Decoupling**: Sequenced rendering queue and global scope sanitization.
+- [x] **Lab Mode**: Dedicated UX for Golden registration and management.
 
-## 3. Arquitectura del Sistema (Modular)
-La aplicación evolucionará a un diseño de **"Shell & Modules"**:
-- **Sidebar de Navegación:** Acceso instantáneo a los diferentes centros de trabajo.
-- **Módulos:**
-  - `CRYPT_STATION`: Encriptación AES-GCM (Migrado de v4.0).
-  - `ETL_STUDIO`: Dividido en **DESIGNER** (Creación de Presets) y **RUNNER** (Procesado masivo).
-  - `LETTER_STATION`: Mapeador de datos y generación masiva de documentos.
-  - `SYSTEM_AUDIT`: Verificación de paquetes y herramientas de integridad.
+## Done: Phase 4 (Deployment & Performance)
+- [x] **PWA Air-Gapped Installation**: Manifest and standalone mode integration.
+- [x] **Real-Time Diagnostics**: Dynamic Heap Monitor and System Pulse in StatusBar.
+- [x] **Industrial Help Station**: Integrated documentation navigator with Aseptic v4 style.
 
-## 4. Próximos Pasos de Ejecución
+## Done: Phase 5 (Enterprise Hardening & Life Cycle)
+- [x] **Retention Mastery**: Auto-purge logic for aging audit logs implemented via `useRetentionPolicy`.
+- [x] **Theme Engine v2**: Midnight Industrial high-contrast dark mode for operator focus.
+- [x] **Feature Flag Provider**: Unified `ConfigProvider` for PROD/QA/DEV environment gating.
 
-### Fase A: El Contenedor Global (The Shell) [CONCLUIDO ✅]
-1.  **Refactorización de Layout:** Creado el componente `Sidebar` retro-colapsable y un `TopBar` con gestión i18n/Theme.
-2.  **Dashboard Hub:** Implementada terminal de inicio con monitor de sistema simulado y arte ASCII.
+## Future: Phase 6 (Industrial History & Traceability)
+- [ ] **Audit History Repository**: Centralized view for browsing and auditing past validation results.
+- [ ] **Advanced Reporting**: Exporting full history logs to CSV/Excel for regulatory compliance.
 
-### Fase B: ETL Studio (Designer & Runner) [CONCLUIDO ✅]
-1.  **ETL Designer [COMPLETADO ✅]**: 
-    - Arquitectura "Read-Only + Modal Edit" para Presets y Record Types.
-    - Detección visual de colisiones y huecos en campos.
-    - Gestión avanzada de campos (Numeric Sort, ID-based tracking).
-    - Refinamiento Estético: Layout lateral simétrico, prompt terminal en TopBar, iconografía industrial estandarizada.
-2.  **ETL Runner [COMPLETADO ✅]**: 
-    - Implementación de procesamiento paralelo mediante Web Workers.
-    - Integración de File System Access API para gestión de carpetas industriales.
-    - Sincronización global de preferencias y i18n dinámica.
+## Future: Phase 7 (Scalable Workspace Management)
+- [ ] **Multi-Tenant Profiles**: Partitioned database namespaces for different industrial units/departments.
+- [ ] **Identity Handover**: Secure session switching between operator profiles without data contamination.
 
-### Fase C: Letter Station [CONCLUIDO ✅]
-1.  **Mapping Engine [COMPLETADO ✅]**: Interfaz interactiva para asociar campos del ETL Studio con variables de plantilla `{{variable}}`.
-2.  **Generation Engine [COMPLETADO ✅]**: Implementación de generación PDF/GAWEB masiva mediante Web Workers y packaging ZIP local.
-3.  **Template Editor [COMPLETADO ✅]**: Gestión de plantillas HTML con vista previa en tiempo real y persistencia en IndexedDB.
-
-### Fase D: System Audit [PRÓXIMO OBJETIVO 🎯]
-1.  **Package Verification:** Herramientas para validar la integridad de paquetes ZIP y firmas GAWEB.
-2.  **Integrity Tools:** Chequeo de consistencia entre datos procesados y documentos generados.
-
-## 5. Instrucciones para Continuar
-Si se pierde el contexto de la sesión, el agente deberá:
-1.  Leer este `ROADMAP.md`.
-2.  Leer las Skills en `.agent/skills/`.
-3.  Iniciar con la **Fase B.2: Implementación del ETL Runner**.
-
----
-**© 2026 ABD-IA Systems** | *Excelencia en Procesamiento Local.*

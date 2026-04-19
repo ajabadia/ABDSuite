@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
-export type ThemeMode = 'light' | 'dark' | 'system' | 'auto';
-export type ResolvedTheme = 'light' | 'dark';
+export type ThemeMode = 'light' | 'dark' | 'midnight' | 'system' | 'auto';
+export type ResolvedTheme = 'light' | 'dark' | 'midnight';
 
 interface ThemeContextType {
   mode: ThemeMode;
@@ -31,11 +31,13 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     switch (currentMode) {
       case 'light': return 'light';
       case 'dark': return 'dark';
+      case 'midnight': return 'midnight';
       case 'system': return getSystemTheme();
       case 'auto': return getTimeBasedTheme();
       default: return 'dark';
     }
   }, []);
+
 
   const setMode = (newMode: ThemeMode) => {
     setModeState(newMode);

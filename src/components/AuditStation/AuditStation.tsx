@@ -1,14 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
-import { auditGaweb, GawebAuditResult, GAWEB_FIELDS } from '@/lib/logic/gaweb-auditor.logic';
-import { auditPackageIntegrity, PackageAuditResult } from '@/lib/logic/package-auditor.logic';
+import { GAWEB_FIELDS } from '@/lib/logic/gaweb-auditor.logic';
 import { sanitizeFilename } from '@/lib/utils/filename.utils';
-import { FileIcon, ShieldCheckIcon, AlertTriangleIcon, SearchIcon, DownloadIcon, FolderIcon, XIcon, FileTextIcon } from '@/components/common/Icons';
+import { 
+  ShieldCheckIcon, 
+  AlertTriangleIcon, 
+  SearchIcon, 
+  DownloadIcon, 
+  XIcon, 
+  FileTextIcon 
+} from '@/components/common/Icons';
 
 import { useLog } from '@/lib/context/LogContext';
-import { LogLevel } from '@/lib/types/log.types';
+import { useAuditWorker } from '@/lib/hooks/useAuditWorker';
+import { IndustrialVirtualTable } from '@/components/common/IndustrialVirtualTable';
+import { GawebRow, GawebErrorLite } from '@/lib/types/audit-worker.types';
+
+import { db } from '@/lib/db/db';
+import { AuditHistoryDashboard } from './AuditHistoryDashboard';
+
+const PAGE_SIZE = 200;
+const ITEM_HEIGHT = 32;
 
 const AuditStation: React.FC = () => {
   const { t } = useLanguage();
@@ -18,18 +32,19 @@ const AuditStation: React.FC = () => {
   const [archiveFile, setArchiveFile] = useState<File | null>(null);
   const [md5File, setMd5File] = useState<File | null>(null);
 
-  const [result, setResult] = useState<GawebAuditResult | null>(null);
-  const [packageResult, setPackageResult] = useState<PackageAuditResult | null>(null);
-  
-  const [activeTab, setActiveTab] = useState<'DATA' | 'ERRORS'>('DATA');
-  const [isValidating, setIsValidating] = useState(false);
+  const [activeTab, setActiveTab] = useState<'DATA' | 'ERRORS' | 'HISTORY'>('DATA');
   const [selectedLine, setSelectedLine] = useState<number | null>(null);
 
-  const resetResults = () => {
-    setResult(null);
-    setPackageResult(null);
+  // MOTOR INDUSTRIAL (Phase 2)
+  const audit = useAuditWorker({ 
+    encoding: 'iso-8859-1', 
+    maxErrorsPreview: 5000 
+  });
+
+  const resetResults = useCallback(() => {
+    audit.reset();
     setSelectedLine(null);
-  };
+  }, [audit]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, slot: 'index' | 'archive' | 'md5') => {
     const f = e.target.files?.[0] || null;
@@ -41,67 +56,182 @@ const AuditStation: React.FC = () => {
 
   const runValidation = async () => {
     if (!indexFile) return;
-    setIsValidating(true);
-    resetResults();
+    
     globalAddLog('AUDIT', t('audit.logs.start', { file: indexFile.name }), 'info', { fileName: indexFile.name });
     
-    await new Promise(r => setTimeout(r, 600));
-
-    try {
-      const reader = new FileReader();
-      const auditPromise = new Promise<GawebAuditResult>((resolve, reject) => {
-        reader.onload = (e) => {
-          const content = e.target?.result as string;
-          resolve(auditGaweb(content));
-        };
-        reader.onerror = reject;
-        reader.readAsText(indexFile, 'iso-8859-1');
-      });
-
-      const auditResult = await auditPromise;
-      
-      if (archiveFile) {
-        let md5Witness: string | undefined = undefined;
-        if (md5File) md5Witness = await md5File.text();
-        const pkgRes = await auditPackageIntegrity(auditResult, archiveFile, md5Witness);
-        setPackageResult(pkgRes);
-      }
-
-      setResult(auditResult);
-      globalAddLog('AUDIT', t('audit.logs.success', { n: auditResult.errors.length }), auditResult.errors.length > 0 ? 'error' : 'success', { fileName: indexFile.name });
-      setActiveTab(auditResult.errors.length > 0 ? 'ERRORS' : 'DATA');
-    } catch (err: any) {
-      globalAddLog('AUDIT', t('logs.error'), 'error', { fileName: indexFile.name });
-    } finally {
-      setIsValidating(false);
+    let md5Text = '';
+    if (md5File) {
+        try {
+            md5Text = await md5File.text();
+        } catch(e) {
+            console.error("Error reading MD5 file", e);
+        }
     }
+    
+    audit.startAudit({ 
+      gawebFile: indexFile, 
+      zipFile: archiveFile || undefined, 
+      md5Witness: md5Text 
+    });
   };
 
+  // Efecto para feedback de logs industriales
+  useEffect(() => {
+    if (audit.summary && !audit.isRunning) {
+      globalAddLog('AUDIT', t('audit.logs.success', { n: audit.summary.totalErrors }), audit.summary.totalErrors > 0 ? 'error' : 'success', { fileName: indexFile?.name });
+      
+      // PERSISTENCIA INDUSTRIAL (Era 6)
+      const persistAudit = async () => {
+          if (!indexFile || !audit.summary) return;
+          try {
+              await db.audit_history_v6.add({
+                  id: crypto.randomUUID(),
+                  module: 'AUDIT',
+                  timestamp: Date.now(),
+                  action: 'GAWEB_AUDIT_COMPLETED',
+                  status: audit.summary.totalErrors > 0 ? 'ERROR' : 'SUCCESS',
+                  details: JSON.stringify({
+                      fileName: indexFile.name,
+                      totalLines: audit.summary.totalLines,
+                      totalErrors: audit.summary.totalErrors,
+                      totalWarnings: audit.summary.totalWarnings
+                  })
+              } as any);
+              console.log('[ABDFN-AUDIT] Result persisted to history.');
+          } catch (e) {
+              console.error('Failed to persist audit', e);
+          }
+      };
+      persistAudit();
+
+      if (audit.summary.totalErrors > 0) setActiveTab('ERRORS');
+    }
+  }, [audit.summary, audit.isRunning, globalAddLog, indexFile, t]);
+
   const exportCsv = () => {
-    if (!result || !indexFile) return;
+    if (!audit.summary || !indexFile) return;
+    const errors = Array.from(audit.errorsWindows.values()).flat();
     const headers = [t('audit.col_line'), t('audit.col_field'), t('audit.col_pos'), t('audit.col_severity'), t('audit.col_message'), t('audit.col_value')].join(',');
-    const rows = result.errors.map(e => `${e.line},${e.field},${e.position},${e.severity},"${t(e.messageKey, { file: e.value })}",${e.value}`).join('\n');
+    const rows = errors.map(e => `${e.line},${e.field},${e.position},${e.severity},"${t(e.messageKey, { file: e.value })}",${e.value}`).join('\n');
     const blob = new Blob([headers + '\n' + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const cleanOrigName = sanitizeFilename(indexFile.name);
-    const downloadName = `AUDIT_REPORT_${cleanOrigName.split('.')[0]}.csv`;
-    const a = document.createElement('a');
-    a.href = url; a.download = downloadName; a.click();
+    const downloadName = `AUDIT_REPORT_${sanitizeFilename(indexFile.name).split('.')[0]}.csv`;
+    const a = document.createElement('a'); a.href = url; a.download = downloadName; a.click();
     URL.revokeObjectURL(url);
   };
 
+  // Renderizador de Filas de DATOS
+  const renderDataRow = useCallback((row: GawebRow | undefined, idx: number, style: React.CSSProperties) => {
+    if (!row) return (
+        <div key={idx} style={{ ...style, opacity: 0.3, padding: '0 16px', fontSize: '10px', display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-color)' }}>
+            [STREAMING_CHUNK_LOADING_BLOCK_{Math.floor(idx / PAGE_SIZE)}]
+        </div>
+    );
+    
+    return (
+      <div 
+        key={idx} 
+        style={{ 
+          ...style, 
+          display: 'flex', 
+          borderBottom: '1px solid var(--border-color)',
+          background: selectedLine === row.line ? 'rgba(var(--primary-color), 0.1)' : 'transparent',
+          cursor: 'pointer'
+        }}
+        onClick={() => setSelectedLine(row.line)}
+      >
+        <div style={{ width: '48px', textAlign: 'center', opacity: 0.5, fontSize: '0.7rem', borderRight: '1px solid var(--border-color)', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {row.line}
+        </div>
+        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            {GAWEB_FIELDS.map(f => (
+                <div key={f.name} style={{ flex: `0 0 ${f.length * 7}px`, minWidth: '32px', padding: '0 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRight: '1px solid var(--border-color-soft)', height: '100%', display: 'flex', alignItems: 'center', fontSize: '0.75rem' }}>
+                    {row.fields[f.name]}
+                </div>
+            ))}
+        </div>
+      </div>
+    );
+  }, [selectedLine]);
+
+  // Renderizador de Filas de ERRORES
+  const renderErrorRow = useCallback((err: GawebErrorLite | undefined, idx: number, style: React.CSSProperties) => {
+    if (!err) return <div key={idx} style={{ ...style, opacity: 0.3, padding: '0 16px', fontSize: '10px', display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-color)' }}>[ERROR_CHUNK_LOADING...]</div>;
+    
+    return (
+      <div 
+        key={idx} 
+        style={{ 
+          ...style, 
+          display: 'flex', 
+          borderBottom: '1px solid var(--border-color)',
+          background: err.severity === 'ERROR' ? 'rgba(239, 68, 68, 0.05)' : 'transparent',
+          alignItems: 'center'
+        }}
+      >
+        <div style={{ width: '50px', fontWeight: 800, textAlign: 'center', borderRight: '1px solid var(--border-color)', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{err.line}</div>
+        <div style={{ width: '120px', fontSize: '0.75rem', opacity: 0.7, padding: '0 8px' }}>{err.field}</div>
+        <div style={{ width: '80px', textAlign: 'center' }}>
+          <span className={`station-badge ${err.severity === 'ERROR' ? 'station-badge-orange' : 'station-badge-blue'}`}>{err.severity}</span>
+        </div>
+        <div style={{ flex: 1, padding: '0 8px', opacity: 0.9, fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {t(err.messageKey, { file: err.value })}
+        </div>
+      </div>
+    );
+  }, [t]);
+
+  // Lógica de Paginación para VirtualTable
+  const handleRangeChange = useCallback((start: number, end: number) => {
+    if (activeTab === 'DATA') {
+      const windowStart = Math.floor((start - 1) / PAGE_SIZE) * PAGE_SIZE + 1;
+      const windowEnd = windowStart + PAGE_SIZE - 1;
+      audit.requestDataWindow(windowStart, windowEnd);
+    } else {
+      const windowStart = Math.floor((start - 1) / PAGE_SIZE) * PAGE_SIZE;
+      const windowEnd = windowStart + PAGE_SIZE - 1;
+      audit.requestErrorsWindow(windowStart, windowEnd);
+    }
+  }, [activeTab, audit]);
+
+  // Helpers para obtener data de las ventanas cacheadas
+  const visibleData = useMemo(() => {
+    if (!audit.summary) return [];
+    const arr = new Array(audit.summary.totalLines).fill(undefined);
+    audit.dataWindows.forEach((rows, key) => {
+      const [start] = key.split('-').map(Number);
+      rows.forEach((r, i) => { arr[start - 1 + i] = r; });
+    });
+    return arr;
+  }, [audit.dataWindows, audit.summary]);
+
+  const visibleErrors = useMemo(() => {
+    if (!audit.summary) return [];
+    const arr = new Array(audit.summary.totalErrors).fill(undefined);
+    audit.errorsWindows.forEach((errs, key) => {
+      const [start] = key.split('-').map(Number);
+      errs.forEach((e, i) => { arr[start + i] = e; });
+    });
+    return arr;
+  }, [audit.errorsWindows, audit.summary]);
+
   return (
     <>
-      {/* CABECERA INDUSTRIAL (Era 5) */}
+      {/* CABECERA INDUSTRIAL (Era 5 / Aseptic v4) */}
       <div className="station-card">
         <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
           <div className="flex-col" style={{ gap: '4px' }}>
             <h2 className="station-title-main" style={{ margin: 0 }}>{t('dashboard.dash_audit_title').toUpperCase()}</h2>
             <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
-               <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>AUDIT_SYS_V4.2</span>
-               <span className={`station-badge ${isValidating ? 'station-badge-orange' : (result ? 'station-badge-blue' : 'station-badge-green')}`}>
-                  {isValidating ? 'ANALYSIS_ACTIVE' : (result ? 'REPORT_READY' : 'LISTENING')}
+               <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>AUDIT_SYS_V4.3</span>
+               <span className={`station-badge ${audit.isRunning ? 'station-badge-orange' : (audit.summary ? 'station-badge-blue' : 'station-badge-green')}`}>
+                  {audit.isRunning ? 'ULTRA_SCALE_ACTIVE' : (audit.summary ? 'REPORT_READY' : 'LISTENING')}
                </span>
+               {audit.progress && (
+                 <span className="station-badge station-badge-blue" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
+                   {audit.progress.processedLines.toLocaleString()} REC_OK
+                 </span>
+               )}
             </div>
           </div>
         </div>
@@ -109,194 +239,109 @@ const AuditStation: React.FC = () => {
         <div className="station-tech-summary" style={{ marginTop: '24px' }}>
           <div className="station-tech-item"><span className="station-tech-label">SOURCE:</span> {indexFile?.name || 'NONE'}</div>
           <div className="station-tech-item"><span className="station-tech-label">PKG:</span> {archiveFile?.name || 'NONE'}</div>
-          <div className="station-tech-item"><span className="station-tech-label">STATUS:</span> {isValidating ? 'PROCESSING' : (result ? 'COMPLETED' : 'IDLE')}</div>
+          <div className="station-tech-item"><span className="station-tech-label">MODE:</span> ZERO_MEMORY_STREAMING</div>
         </div>
       </div>
 
-      {/* PASO 1: SELECCIÓN DE ÍNDICE */}
-      <section className="station-card flex-col" style={{ gap: '20px' }}>
-        <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div className="flex-col">
-            <span className="station-form-section-title">{t('audit.index_selection').toUpperCase()}</span>
+      {/* SELECCIÓN DE FICHEROS */}
+      <section className="station-card flex-col" style={{ gap: '16px' }}>
+        <div className="station-form-grid">
+          <div className="station-form-field">
+            <label className="station-label">{t('audit.select_file').toUpperCase()}</label>
+            <div className="flex-row" style={{ gap: '8px' }}>
+              <input className="station-input" style={{ flex: 1 }} readOnly value={indexFile?.name || ''} placeholder=".txt (GAWEB)" />
+              <input type="file" id="index-input" style={{ display: 'none' }} onChange={(e) => handleFileChange(e, 'index')} />
+              <button className="station-btn" onClick={() => document.getElementById('index-input')?.click()}>{t('audit.explore').toUpperCase()}</button>
+            </div>
+          </div>
+          <div className="station-form-field">
+            <label className="station-label">{t('audit.select_archive').toUpperCase()}</label>
+            <div className="flex-row" style={{ gap: '8px' }}>
+              <input className="station-input" style={{ flex: 1 }} readOnly value={archiveFile?.name || ''} placeholder=".zip (2GB_MAX)" />
+              <input type="file" id="archive-input" style={{ display: 'none' }} accept=".zip" onChange={(e) => handleFileChange(e, 'archive')} />
+              <button className="station-btn" onClick={() => document.getElementById('archive-input')?.click()}>{t('audit.explore').toUpperCase()}</button>
+            </div>
           </div>
         </div>
         
-        <div className="station-form-grid" style={{ marginTop: '12px' }}>
-          <div className="station-form-field large">
-            <label className="station-label">{t('audit.select_file').toUpperCase()}</label>
-            <div className="flex-row" style={{ gap: '8px' }}>
-              <input className="station-input" style={{ flex: 1 }} readOnly value={indexFile?.name || ''} placeholder={t('audit.index_placeholder')} />
-              <input type="file" id="index-input" style={{ display: 'none' }} onChange={(e) => handleFileChange(e, 'index')} />
-              <button 
-                className="station-btn" 
-                style={{ minWidth: '100px' }} 
-                onClick={() => document.getElementById('index-input')?.click()}
-              >
-                {t('audit.explore').toUpperCase()}
-              </button>
-              {indexFile && <button className="station-btn icon-only err" onClick={() => { setIndexFile(null); resetResults(); }}><XIcon size={16} /></button>}
-            </div>
-          </div>
+        <div className="flex-row" style={{ justifyContent: 'flex-end', marginTop: '12px' }}>
+          <button 
+            className="station-btn station-btn-primary" 
+            disabled={!indexFile || audit.isRunning}
+            onClick={runValidation}
+            style={{ width: '320px', height: '56px', fontSize: '1.2rem', fontWeight: 900 }}
+          >
+            {audit.isRunning ? t('audit.validating').toUpperCase() : t('audit.validate').toUpperCase()}
+          </button>
         </div>
       </section>
 
-      {/* PASO 2: SELECCIÓN DE PAQUETE (Solo si hay TXT) */}
-      {indexFile && (
-        <section className="station-card flex-col fade-in" style={{ gap: '20px' }}>
-          <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div className="flex-col">
-              <span className="station-form-section-title">02. {t('audit.archive_selection').toUpperCase()}</span>
-              <div className="flex-row" style={{ gap: '8px', marginTop: '4px' }}>
-                <span className="station-badge station-badge-blue">INDUSTRIAL_PKG</span>
-                <span className="station-badge station-badge-orange">OPTIONAL</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="station-form-grid" style={{ marginTop: '12px' }}>
-            <div className="station-form-field large">
-              <label className="station-label">{t('audit.select_archive').toUpperCase()}</label>
-              <div className="flex-row" style={{ gap: '8px' }}>
-                <input className="station-input" style={{ flex: 1 }} readOnly value={archiveFile?.name || ''} placeholder={t('audit.archive_placeholder')} />
-                <input type="file" id="archive-input" style={{ display: 'none' }} accept=".zip" onChange={(e) => handleFileChange(e, 'archive')} />
-                <button 
-                  className="station-btn" 
-                  style={{ minWidth: '100px' }} 
-                  onClick={() => document.getElementById('archive-input')?.click()}
-                >
-                  {t('audit.explore').toUpperCase()}
-                </button>
-                {archiveFile && <button className="station-btn icon-only err" onClick={() => { setArchiveFile(null); resetResults(); }}><XIcon size={16} /></button>}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ACCIÓN DE VALIDACIÓN (Solo si hay TXT) */}
-      {indexFile && (
-        <div className="flex-row fade-in" style={{ justifyContent: 'flex-end', alignItems: 'center', gap: '16px' }}>
-          {!result && (
-            <span style={{ fontSize: '10px', opacity: 0.5, fontWeight: 700, letterSpacing: '0.1rem', textTransform: 'uppercase' }}>
-              {t('audit.status_payload_waiting')}
-            </span>
-          )}
-          <button 
-            className="station-btn station-btn-primary" 
-            disabled={!indexFile || isValidating}
-            onClick={runValidation}
-            style={{ width: '400px', height: '64px', fontSize: '1.4rem', fontWeight: 900 }}
-          >
-            <ShieldCheckIcon size={24} /> {isValidating ? t('audit.validating').toUpperCase() : t('audit.validate').toUpperCase()}
-          </button>
-        </div>
-      )}
-
-
-      {/* RESULTADOS (Solo tras validar) */}
-      {(result || packageResult) ? (
+      {/* RESULTADOS INDUSTRIALES */}
+      {(audit.summary || audit.packageResult || audit.isRunning) && (
         <div className="flex-col" style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-          <div className="station-tabs" style={{ background: 'var(--surface-color)', borderBottom: '1px solid var(--border-color)', borderRadius: '8px 8px 0 0' }}>
+          <div className="station-tabs" style={{ background: 'var(--surface-color)', borderBottom: '1px solid var(--border-color)' }}>
             <button className={`station-tab-btn ${activeTab === 'DATA' ? 'active' : ''}`} onClick={() => setActiveTab('DATA')}>
               <FileTextIcon size={14} /> {t('audit.tab_data').toUpperCase()}
             </button>
             <button className={`station-tab-btn ${activeTab === 'ERRORS' ? 'active' : ''}`} onClick={() => setActiveTab('ERRORS')}>
               <AlertTriangleIcon size={14} /> {t('audit.tab_errors').toUpperCase()}
             </button>
+            <button className={`station-tab-btn ${activeTab === 'HISTORY' ? 'active' : ''}`} onClick={() => setActiveTab('HISTORY')}>
+              <ListIcon size={14} /> {t('audit.tab_history') || 'HISTORIAL'}
+            </button>
           </div>
 
-          <div style={{ flex: 1, overflow: 'auto' }}>
-            <div className="station-registry-sync-header" style={{ padding: '8px 16px', borderRadius: 0, borderBottom: '1px solid var(--border-color)' }}>
-              <div className="flex-row" style={{ gap: '24px', fontSize: '0.75rem', fontWeight: 800 }}>
-                <span>{t('audit.stats_records')} <span className="station-badge station-badge-blue">{result?.lines || 0}</span></span>
-                <span>{t('audit.stats_anomalies')} <span className={`station-badge ${result?.errors.length && result.errors.length > 0 ? 'station-badge-orange' : 'station-badge-blue'}`}>{result?.errors.length || 0}</span></span>
-                {packageResult && <span>{t('audit.stats_zip_files')} <span className="station-badge station-badge-blue">{packageResult.zipFilesCount}</span></span>}
-              </div>
+          <div className="station-registry-sync-header" style={{ padding: '8px 16px', borderBottom: '1px solid var(--border-color)' }}>
+            <div className="flex-row" style={{ gap: '24px', fontSize: '0.75rem', fontWeight: 800 }}>
+              <span>TOTAL_REC: <span className="station-badge station-badge-blue">{audit.summary?.totalLines.toLocaleString() || audit.progress?.processedLines.toLocaleString() || '0'}</span></span>
+              <span>ANOMALIES: <span className={`station-badge ${audit.summary?.totalErrors || audit.progress?.errorsSoFar ? 'station-badge-orange' : 'station-badge-blue'}`}>{audit.summary?.totalErrors.toLocaleString() || audit.progress?.errorsSoFar.toLocaleString() || '0'}</span></span>
+              {audit.packageResult && <span>PKG_FILES: <span className="station-badge station-badge-blue">{audit.packageResult.zipFilesCount}</span></span>}
             </div>
+          </div>
 
-            {activeTab === 'DATA' && result && (
-              <div className="station-table-container" style={{ border: 'none', borderRadius: 0 }}>
-                <table className="station-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '48px', textAlign: 'center' }}>{t('audit.col_id')}</th>
-                      {GAWEB_FIELDS.map(f => (
-                        <th key={f.name}>{t(`audit.fields.${f.name}`)}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.parsedData.map((row, idx) => (
-                      <tr key={idx} style={{ background: selectedLine === idx + 1 ? 'rgba(var(--primary-color), 0.1)' : 'transparent' }} onClick={() => setSelectedLine(idx + 1)}>
-                        <td style={{ textAlign: 'center', opacity: 0.5, fontSize: '0.7rem' }}>{idx + 1}</td>
-                        {GAWEB_FIELDS.map(f => (
-                          <td key={f.name}>{row[f.name]}</td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {activeTab === 'ERRORS' && result && (
-              <div className="station-table-container" style={{ border: 'none', borderRadius: 0 }}>
-                <table className="station-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '50px' }}>{t('audit.col_line_short')}</th>
-                      <th style={{ width: '120px' }}>{t('audit.col_field_title')}</th>
-                      <th style={{ width: '80px' }}>{t('audit.col_severity_title')}</th>
-                      <th>{t('audit.col_message_title')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.errors.map((err, idx) => (
-                      <tr key={idx} style={{ background: err.severity === 'ERROR' ? 'rgba(239, 68, 68, 0.05)' : 'transparent' }}>
-                        <td style={{ fontWeight: 800 }}>{err.line || '-'}</td>
-                        <td style={{ fontSize: '0.75rem', opacity: 0.7 }}>{err.field}</td>
-                        <td>
-                          <span className={`station-badge ${err.severity === 'ERROR' ? 'station-badge-orange' : 'station-badge-blue'}`}>{err.severity}</span>
-                        </td>
-                        <td style={{ whiteSpace: 'normal', opacity: 0.9, fontSize: '0.85rem' }}>{t(err.messageKey, { file: err.value })}</td>
-                      </tr>
-                    ))}
-                    {result.errors.length === 0 && (
-                      <tr>
-                        <td colSpan={4}>
-                          <div className="station-empty-state" style={{ minHeight: '300px' }}>
-                            <ShieldCheckIcon size={48} style={{ color: 'var(--status-ok)', marginBottom: '16px' }} />
-                            <div style={{ fontWeight: 900, letterSpacing: '0.1rem' }}>{t('audit.integrity_verified')}</div>
-                            <p style={{ opacity: 0.5, fontSize: '0.8rem' }}>{t('audit.integrity_desc')}</p>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+          <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+            {activeTab === 'HISTORY' ? (
+                <div style={{ flex: 1, padding: '20px', minHeight: '400px' }}>
+                    <AuditHistoryDashboard />
+                </div>
+            ) : activeTab === 'DATA' && audit.summary ? (
+              <IndustrialVirtualTable
+                items={visibleData}
+                totalItems={audit.summary.totalLines}
+                itemHeight={ITEM_HEIGHT}
+                containerHeight={500}
+                onRangeChange={handleRangeChange}
+                renderRow={renderDataRow}
+              />
+            ) : activeTab === 'ERRORS' && audit.summary ? (
+              <IndustrialVirtualTable
+                items={visibleErrors}
+                totalItems={audit.summary.totalErrors}
+                itemHeight={ITEM_HEIGHT}
+                containerHeight={500}
+                onRangeChange={handleRangeChange}
+                renderRow={renderErrorRow}
+              />
+            ) : (
+                <div className="station-empty-state" style={{ height: '300px' }}>
+                    <SearchIcon className="station-shimmer-text" size={48} />
+                    <div style={{ marginTop: '16px', fontWeight: 700 }}>{audit.isRunning ? 'ANALYZING_STREAM...' : 'WAITING_FOR_SUMMARY'}</div>
+                </div>
             )}
           </div>
-          {result && result.errors.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px' }}>
-              <button className="station-btn" style={{ padding: '0 24px', height: '40px', fontWeight: 800 }} onClick={exportCsv}>
-                <DownloadIcon size={16} /> {t('audit.export_detailed').toUpperCase()}
-              </button>
+
+          {audit.summary && audit.summary.totalErrors > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px' }}>
+              <button className="station-btn" onClick={exportCsv}><DownloadIcon size={16} /> EXPORT_CSV</button>
             </div>
           )}
         </div>
-      ) : (
-        <div className="station-empty-state" style={{ flex: 1 }}>
-          <SearchIcon size={64} style={{ marginBottom: '16px' }} />
-          <span className="station-shimmer-text">{t('audit.status_ready').toUpperCase()}</span>
-        </div>
       )}
 
-      {/* Sello de Integridad (Era 5) */}
+      {/* Sello de Integridad */}
       <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
          <div className="integrity-dot" />
-         <ShieldCheckIcon size={14} />
-         <span>AUDITORÍA DE PARIDAD OK</span>
+         <span>ZERO_MEMORY_VALIDATION OK</span>
       </div>
     </>
   );

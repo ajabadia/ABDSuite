@@ -45,7 +45,7 @@ export default function Dashboard() {
       }
 
       // Core 2: Data items count
-      const templateCount = await db.letter_templates.count();
+      const templateCount = await db.lettertemplates_v6.count();
       const dbPercent = Math.min(100, (templateCount / 20) * 100);
 
       // Core 3: System Heartbeat (Sine variation)
@@ -93,7 +93,7 @@ export default function Dashboard() {
           <div className="scanlines"></div>
         </div>
         <div className="crt-bezel-info">
-          <span>ASEPTIC v5.0-INDUSTRIAL (ERA 5)</span>
+          <span>ASEPTIC v6.0-INDUSTRIAL (ERA 6)</span>
           <span className="blink">STATUS: {t('dashboard.sys_status_online')}</span>
         </div>
       </section>
@@ -142,7 +142,7 @@ export default function Dashboard() {
                 onClick={() => setShowDiagnostics(true)}
                 title="RUN_DIAGNOSTICS_0x5"
               >
-                <span>KERNEL:</span> <span className="tel-val pulse-text">v5.0.0-IND (ERA 5)</span>
+                <span>KERNEL:</span> <span className="tel-val pulse-text">v6.0.0-IND (ERA 6)</span>
               </div>
               <div className="tel-item"><span>UPTIME:</span> <span className="tel-val mono">{bootTime}</span></div>
               <div className="tel-item"><span>NET:</span> <span className="tel-val gapped">AIR-GAPPED</span></div>
@@ -186,7 +186,7 @@ export default function Dashboard() {
             <div className="station-integrity-badge" style={{ marginTop: 'auto', alignSelf: 'flex-start' }}>
               <div className="integrity-dot"></div>
               <CpuIcon size={14} />
-              <span>KERNEL_INTEGRITY_v5.0</span>
+              <span>KERNEL_INTEGRITY_v6.0</span>
             </div>
           </div>
 
@@ -208,16 +208,17 @@ export default function Dashboard() {
         <div className="station-modal-overlay" onClick={() => setShowDiagnostics(false)}>
           <div className="station-modal diagnostics-panel" onClick={e => e.stopPropagation()}>
             <header className="station-modal-header">
-              <h3 className="station-registry-item-name">KERNEL_DIAGNOSTICS_v5.0.0</h3>
+              <h3 className="station-registry-item-name">KERNEL_DIAGNOSTICS_v6.0.0</h3>
               <button className="station-btn icon-only" onClick={() => setShowDiagnostics(false)}>X</button>
             </header>
             <div className="station-modal-content">
               <div className="diag-grid">
                 <div className="diag-row"><span>CRYPT_CORE:</span> <span className={secureContext ? 'val-ok' : 'val-err'}>{secureContext ? 'AES-GCM 256-BIT (ACTIVE)' : 'VULNERABLE (UNSECURE)'}</span></div>
                 <div className="diag-row"><span>KEY_DERIVATION:</span> <span className="val-ok">PBKDF2 / 100K ITERATIONS</span></div>
+                <div className="diag-row"><span>UUID_STORAGE:</span> <span className="val-ok">ACTIVE (PORTABLE)</span></div>
                 <div className="diag-row"><span>I18N_ENGINE:</span> <span className="val-ok">QUAD-SYNC (ES, EN, FR, DE)</span></div>
-                <div className="diag-row"><span>LOCAL_STORAGE:</span> <span className="val-ok">LOCAL_ONLY / ZERO_LEAK</span></div>
-                <div className="diag-row"><span>ARCH:</span> <span className="val-ok">ASEPTIC HUB (ERA 5)</span></div>
+                <div className="diag-row"><span>LOCAL_STORAGE:</span> <span className="val-ok">_v6_VERSIONED / ZERO_LEAK</span></div>
+                <div className="diag-row"><span>ARCH:</span> <span className="val-ok">ASEPTIC HUB (ERA 6)</span></div>
               </div>
               <div className="diag-footer-text">
                 SYSTEM INTEGRITY: 100% | PARITY: GAWEB v.1 | ZERO-KNOWLEDGE: ENABLED

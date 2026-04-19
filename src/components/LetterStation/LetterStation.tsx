@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/context/LanguageContext';
+import { useConfig } from '@/lib/context/ConfigContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db/db';
 import { 
@@ -10,13 +11,21 @@ import {
   LetterGenerationOptions 
 } from '@/lib/types/letter.types';
 import { 
+  WorkerEvent,
+  LetterWorkerPayload
+} from '@/lib/types/worker.contracts';
+import { normalizeLetterOptions } from '@/lib/utils/letter-normalization';
+import { 
   PlayIcon, 
   FolderIcon, 
   TagIcon,
   ZapIcon,
   DownloadIcon,
   SearchIcon,
-  FileTextIcon
+  FileTextIcon,
+  CogIcon,
+  ListIcon,
+  MapIcon
 } from '@/components/common/Icons';
 import { seedStressEnvironment, generateIndustrialStressData } from '@/lib/utils/stress-test-tool';
 import JSZip from 'jszip';
@@ -28,22 +37,23 @@ import { LogLevel } from '@/lib/types/log.types';
 
 const LetterStation: React.FC = () => {
   const { t } = useLanguage();
+  const { environment, isTechnicianMode } = useConfig();
   const { addLog: globalAddLog } = useLog();
   const router = useRouter();
   
   // Resources
-  const presets = useLiveQuery(() => db.presets.toArray()) || [];
-  const templates = useLiveQuery(() => db.letter_templates.toArray()) || [];
-  const mappings = useLiveQuery(() => db.letter_mappings.toArray()) || [];
+  const presets = useLiveQuery(() => db.presets_v6.toArray()) || [];
+  const templates = useLiveQuery(() => db.lettertemplates_v6.toArray()) || [];
+  const mappings = useLiveQuery(() => db.lettermappings_v6.toArray()) || [];
 
   // Selections
-  const [selectedPresetId, setSelectedPresetId] = useState<number | null>(null);
-  const [selectedMapping, setSelectedMapping] = useState<any>(null);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
+  const [selectedMapping, setSelectedMapping] = useState<any>(null); // TODO: Strict type mappings
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [dataFile, setDataFile] = useState<File | null>(null);
-  const [outputHandle, setOutputHandle] = useState<any>(null);
-  const outputHandleRef = useRef<any>(null);
-  const [rendererEngine, setRendererEngine] = useState<any>(null);
+  const [outputHandle, setOutputHandle] = useState<FileSystemHandle | null>(null);
+  const outputHandleRef = useRef<FileSystemHandle | null>(null);
+  const [rendererEngine, setRendererEngine] = useState<{renderToPdf: (b: Blob, n: string) => Promise<Blob>} | null>(null);
   const writeQueue = useRef<Promise<void>>(Promise.resolve());
 
   
@@ -67,28 +77,52 @@ const LetterStation: React.FC = () => {
   // Engine
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingDownload, setPendingDownload] = useState<{blob: Blob, name: string} | null>(null);
+  
+  // QA & Lab Mode (Phase 3)
+  const [isLabMode, setIsLabMode] = useState(false);
+  const [qaStatus, setQaStatus] = useState<'PENDING' | 'MATCH' | 'BREAK' | 'NO_GOLDEN'>('PENDING');
+
+  // Golden Reference Link
+  const goldenRef = useLiveQuery(async () => {
+    if (!selectedTemplateId || !selectedMapping?.id || !selectedPresetId) return null;
+    return await db.golden_tests_v6
+      .where({ 
+        templateId: selectedTemplateId, 
+        mappingId: selectedMapping.id, 
+        etlPresetId: selectedPresetId,
+        codDocumento: options.codDocumento
+      })
+      .first();
+  }, [selectedTemplateId, selectedMapping?.id, selectedPresetId, options.codDocumento]);
 
   // El Downloader Industrial (Diálogos de Sistema Nativo)
   const triggerDownload = async (blob: Blob, name: string) => {
-    addLog(`PREPARANDO DIÁLOGO DE SISTEMA PARA: ${name}...`);
+    addLog(t('letter.motor.prep_save', { file: name }));
     try {
+      // Detección dinámica de tipo para el diálogo de sistema
+      const isZip = name.toLowerCase().endsWith('.zip');
+      const isPdf = name.toLowerCase().endsWith('.pdf');
+      const isTxt = name.toLowerCase().endsWith('.txt');
+      
+      const fileTypes = [];
+      if (isPdf) fileTypes.push({ description: 'Documento PDF', accept: { 'application/pdf': ['.pdf'] } });
+      else if (isZip) fileTypes.push({ description: 'Paquete ZIP Industrial', accept: { 'application/zip': ['.zip'] } });
+      else if (isTxt) fileTypes.push({ description: 'Archivo de Texto/GAWEB', accept: { 'text/plain': ['.txt'] } });
+
       const handle = await (window as any).showSaveFilePicker({
         suggestedName: name,
-        types: [{
-          description: 'ZIP Industrial Package',
-          accept: { 'application/zip': ['.zip'] },
-        }],
+        types: fileTypes.length > 0 ? fileTypes : undefined,
       });
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
-      addLog('ARCHIVO GUARDADO CORRECTAMENTE MEDIANTE DIÁLOGO DE SISTEMA.', 'info');
+      addLog(t('letter.motor.save_success'), 'info');
       setPendingDownload(null);
     } catch (err: any) {
       if (err.name === 'AbortError') {
-        addLog('GUARDADO CANCELADO POR EL USUARIO.', 'info');
+        addLog(t('letter.motor.save_cancel'), 'info');
       } else {
-        addLog(`ERROR EN DIÁLOGO NATIVO: ${err.message}. Intentando fallback...`, 'error');
+        addLog(t('letter.motor.save_error', { err: err.message }), 'error');
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -108,31 +142,31 @@ const LetterStation: React.FC = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       workerRef.current = new Worker(new URL('../../lib/workers/document-engine.worker.ts', import.meta.url));
-      workerRef.current.onmessage = async (e) => {
+      workerRef.current.onmessage = async (e: MessageEvent<WorkerEvent>) => {
         const { type, payload } = e.data;
         if (type === 'HEARTBEAT') {
           (window as any).__WORKER_ALIVE = true;
           addLog(t('letter.motor.heartbeat'), 'info');
         }
-        if (type === 'LOG') {
-          addLog(payload.message, payload.type);
+        if (type === 'LOG' && payload) {
+          addLog(payload.message || '', payload.type);
           if (payload.type === 'error') setIsProcessing(false);
         }
-        if (type === 'COMPLETE') {
+        if (type === 'COMPLETE' && payload) {
           setIsProcessing(false);
           addLog(t('letter.motor.gen_success'), 'info');
-          if (payload?.blob) {
-            setPendingDownload({ blob: payload.blob, name: payload.name });
+          if (payload.blob) {
+            setPendingDownload({ blob: payload.blob, name: payload.name || 'document.zip' });
             addLog(t('letter.motor.file_ready'), 'info');
           }
         }
-        if (type === 'DOCUMENT_READY' && outputHandleRef.current) {
+        if (type === 'DOCUMENT_READY' && payload && outputHandleRef.current) {
           writeQueue.current = writeQueue.current.then(async () => {
             try {
-              let finalContent = payload.content;
-              let finalName = payload.name;
+              let finalContent = payload.content as ArrayBuffer;
+              let finalName = payload.name as string;
 
-              // CONVERSIÓN DE ALTA FIDELIDAD (MANTENIENDO COMPLEJIDAD)
+              // CONVERSIÓN DE ALTA FIDELIDAD
               if (options.outputType.startsWith('PDF') && (finalName.endsWith('.docx') || finalName.endsWith('.html')) && rendererEngine) {
                 try {
                   const isDocx = finalName.endsWith('.docx');
@@ -141,6 +175,28 @@ const LetterStation: React.FC = () => {
                   
                   addLog(t('letter.motor.converting_pdf', { file: finalName }), 'info');
                   const pdfBlob = await rendererEngine.renderToPdf(docBlob, finalName);
+                  
+                  // --- QA GOLDEN LOOP (Sampling Index 1) ---
+                  if (payload.isFirst && goldenRef) {
+                    addLog('AUTOMATED_QA: Inmediata verificación de integridad visual...', 'warning');
+                    const currentHash = await (rendererEngine as any).captureFingerprint(docBlob, finalName);
+                    
+                    if (currentHash === goldenRef.layoutHash) {
+                      addLog('🏆 QA_MATCH: Integridad visual confirmada.', 'success');
+                      setQaStatus('MATCH');
+                      await db.golden_tests_v6.update(goldenRef.id!, { lastVerifiedAt: Date.now() });
+                    } else {
+                      addLog('❌ QA_BREAK: Regresión de layout detectada.', 'error');
+                      setQaStatus('BREAK');
+                      setIsProcessing(false);
+                      workerRef.current?.terminate(); // PARADA INDUSTRIAL AUTOMÁTICA
+                      addLog('LOTE DETENIDO POR SEGURIDAD INDUSTRIAL (QA_BREAK).', 'error');
+                      return; // Abortar escritura de este documento
+                    }
+                  } else if (payload.isFirst) {
+                    setQaStatus('NO_GOLDEN');
+                  }
+
                   finalContent = await pdfBlob.arrayBuffer();
                   finalName = finalName.replace(/\.(docx|html)$/i, '.pdf');
                 } catch (convErr) {
@@ -156,7 +212,6 @@ const LetterStation: React.FC = () => {
 
             } catch (err: any) {
               addLog(t('letter.motor.write_error', { file: payload.name, err: err.message }), 'error');
-              addLog(t('letter.motor.write_suggest'), 'warning');
             }
           });
         }
@@ -176,8 +231,8 @@ const LetterStation: React.FC = () => {
         binaryContent: buffer,
         updatedAt: Date.now()
       };
-      const id = await db.letter_templates.add(newTemplate);
-      setSelectedTemplateId(id as number);
+      const id = await db.lettertemplates_v6.add(newTemplate);
+      setSelectedTemplateId(id as string);
       addLog(`PLANTILLA DOCX CARGADA: ${file.name}`);
     } catch (err) { addLog(`ERROR_UPLOAD: ${err}`, 'error'); }
   };
@@ -242,8 +297,8 @@ const LetterStation: React.FC = () => {
   const handleAutoMap = async () => {
     if (!selectedMapping || !selectedPresetId) return;
     try {
-      const preset = await db.presets.get(selectedPresetId);
-      const mapping = await db.letter_mappings.get(selectedMapping.id!);
+      const preset = await db.presets_v6.get(selectedPresetId);
+      const mapping = await db.lettermappings_v6.get(selectedMapping.id!);
       if (!preset || !mapping) return;
       const dataRecordType = preset.recordTypes.find(rt => rt.name === 'DATA');
       if (!dataRecordType) return;
@@ -256,9 +311,9 @@ const LetterStation: React.FC = () => {
         const finalFieldName = field ? (field.name) : m.sourceField;
         return { ...m, sourceField: finalFieldName };
       });
-      await db.letter_mappings.update(mapping.id!, { mappings: newMappings });
+      await db.lettermappings_v6.update(mapping.id!, { mappings: newMappings });
       addLog('AUTO-MAPEO: Sincronización inteligente completada.', 'info');
-      const updated = await db.letter_mappings.get(mapping.id!);
+      const updated = await db.lettermappings_v6.get(mapping.id!);
       if (updated) setSelectedMapping(updated);
     } catch (err) { addLog(`ERROR AUTO-MAPEO: ${err}`, 'error'); }
   };
@@ -300,9 +355,9 @@ const LetterStation: React.FC = () => {
     setPendingDownload(null);
     try {
       const injected = (window as any).__STRESS_RESOURCES || {};
-      const template = injected.template || await db.letter_templates.get(selectedTemplateId);
-      const preset = injected.preset || await db.presets.get(selectedPresetId);
-      const mapping = injected.mapping || await db.letter_mappings.where('id').equals(selectedMapping?.id || 0).first();
+      const template = injected.template || await db.lettertemplates_v6.get(selectedTemplateId);
+      const preset = injected.preset || await db.presets_v6.get(selectedPresetId);
+      const mapping = injected.mapping || await db.lettermappings_v6.where('id').equals(selectedMapping?.id || '').first();
       if (!template || !preset || !mapping) throw new Error('Faltan recursos (Plantilla/Preset/Mapeo).');
       addLog(t('processor.processing', { lote: options.lote }));
       (window as any).__WORKER_ALIVE = false;
@@ -314,15 +369,20 @@ const LetterStation: React.FC = () => {
       // Solo hacemos streaming si NO es modo ZIP y tenemos carpeta
       const shouldStream = options.outputType !== 'ZIP' && !!outputHandle;
 
-      workerRef.current?.postMessage({ 
+      // NOMALIZACIÓN CANÓNICA (Smart Loader)
+      const normalizedOptions = normalizeLetterOptions(options);
+
+      const workerPayload: LetterWorkerPayload = { 
         dataFile, 
         template, 
         mapping, 
         etlPreset: preset, 
-        options, 
+        options: normalizedOptions, 
         isStreaming: shouldStream,
-        gawebFields: GAWEB_FIELDS // Inyección de reglas
-      });
+        gawebFields: GAWEB_FIELDS 
+      };
+
+      workerRef.current?.postMessage(workerPayload);
     } catch (err: any) { addLog(`ERROR ARRANQUE: ${err.message}`, 'error'); setIsProcessing(false); }
   };
 
@@ -332,14 +392,60 @@ const LetterStation: React.FC = () => {
 
     return (
       <div className="flex-col" style={{ gap: '24px', padding: '24px' }}>
+        {/* CABECERA INDUSTRIAL (Aseptic v4) */}
+        <header className="station-card flex-col" style={{ gap: '16px', borderBottom: '2px solid var(--border-color)', borderRadius: 0, paddingBottom: '24px' }}>
+          <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="flex-col" style={{ gap: '4px' }}>
+              <h2 className="station-title-main" style={{ margin: 0, fontSize: '1.5rem', letterSpacing: '0.1rem' }}>
+                {t('letter.ui.models_registry').toUpperCase()}
+              </h2>
+              <div className="flex-row" style={{ gap: '8px' }}>
+                <span className="station-badge">v1.2</span>
+                <span className="station-badge success">ACTIVO</span>
+                <span className="station-badge warning">ZERO_RED</span>
+              </div>
+            </div>
+            <div className="flex-row" style={{ gap: '12px' }}>
+              <div 
+                className={`station-badge ${qaStatus === 'MATCH' ? 'success' : qaStatus === 'BREAK' ? 'err' : ''}`}
+                style={{ opacity: qaStatus === 'NO_GOLDEN' ? 0.3 : 1 }}
+              >
+                QA: {qaStatus === 'MATCH' ? 'INTEGRITY_OK' : qaStatus === 'BREAK' ? 'LAYOUT_BREAK' : qaStatus === 'PENDING' ? 'READY' : 'NO_GOLDEN'}
+              </div>
+              {(environment !== 'PROD' || isTechnicianMode) && (
+                <button 
+                  className={`station-btn icon-only ${isLabMode ? 'active' : ''}`} 
+                  onClick={() => setIsLabMode(!isLabMode)}
+                  title="QA LAB MODE"
+                >
+                  🔬
+                </button>
+              )}
+              <button className="station-btn icon-only" onClick={() => addLog('CONFIGURACIÓN_ESTACIÓN_ABIERTA', 'info')}><CogIcon size={18} /></button>
+            </div>
+          </div>
+
+          <div className="station-registry-summary flex-row" style={{ gap: '32px', padding: '12px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="flex-col"><span style={{ fontSize: '10px', opacity: 0.5 }}>ORIGEN_DATOS</span><span style={{ fontSize: '11px', fontWeight: 700 }}>{dataFile?.name || '---'}</span></div>
+            <div className="flex-col"><span style={{ fontSize: '10px', opacity: 0.5 }}>PLANTILLA_ID</span><span style={{ fontSize: '11px', fontWeight: 700 }}>{templates.find(t => t.id === selectedTemplateId)?.name || '---'}</span></div>
+            <div className="flex-col"><span style={{ fontSize: '10px', opacity: 0.5 }}>LOTE_CONTROL</span><span style={{ fontSize: '11px', fontWeight: 700 }}>{options.lote || '0000'}</span></div>
+            <div className="flex-col"><span style={{ fontSize: '10px', opacity: 0.5 }}>ESTADO_RED</span><span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--status-ok)' }}>LOCAL_ONLY (CSP_LOCKED)</span></div>
+          </div>
+        </header>
+
         <section className="station-card flex-col" style={{ gap: '20px' }}>
-          <span className="station-form-section-title">{t('letter.ui.resources').toUpperCase()}</span>
+          <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="station-form-section-title">{t('letter.ui.resources').toUpperCase()}</span>
+            <div className="flex-row" style={{ gap: '8px' }}>
+              <ListIcon size={14} style={{ opacity: 0.3 }} />
+            </div>
+          </div>
           <div className="station-form-grid">
             {/* Campo 1: Preset (Siempre Visible) */}
             <div className="station-form-field large">
               <label className="station-label">{t('letter.ui.presets')}</label>
               <div className="flex-row" style={{ gap: '8px' }}>
-                <select className="station-select" style={{ flex: 1 }} value={selectedPresetId || ''} onChange={e => setSelectedPresetId(Number(e.target.value))}>
+                <select className="station-select" style={{ flex: 1 }} value={selectedPresetId || ''} onChange={e => setSelectedPresetId(e.target.value)}>
                   <option value="">{t('letter.ui.select_preset')}</option>
                   {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
@@ -366,7 +472,7 @@ const LetterStation: React.FC = () => {
                 <div className="station-form-field" style={{ flex: 1 }}>
                   <label className="station-label">{t('letter.ui.template_visual')}</label>
                   <div className="flex-row" style={{ gap: '8px' }}>
-                    <select className="station-select" style={{ flex: 1 }} value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(Number(e.target.value))}>
+                    <select className="station-select" style={{ flex: 1 }} value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(e.target.value)}>
                       <option value="">{t('letter.ui.select_template')}</option>
                       {templates.map(t => <option key={t.id} value={t.id}>{t.name} ({t.type})</option>)}
                     </select>
@@ -384,7 +490,7 @@ const LetterStation: React.FC = () => {
                 <div className="station-form-field" style={{ flex: 1 }}>
                   <label className="station-label">{t('letter.ui.mapping_brain')}</label>
                   <div className="flex-row" style={{ gap: '8px' }}>
-                    <select className="station-select" style={{ flex: 1 }} value={selectedMapping?.id || ''} onChange={e => setSelectedMapping(mappings.find(m => m.id === Number(e.target.value)) || null)}>
+                    <select className="station-select" style={{ flex: 1 }} value={selectedMapping?.id || ''} onChange={e => setSelectedMapping(mappings.find(m => m.id === e.target.value) || null)}>
                       <option value="">{t('letter.ui.select_mapping')}</option>
                       {mappings.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                     </select>
@@ -458,69 +564,173 @@ const LetterStation: React.FC = () => {
           </section>
         )}
   
-        {/* ACCIÓN FINAL (Solo si TODO está relleno y listo) */}
-        {isReadyForStart && (
-          <div className="flex-row fade-in" style={{ justifyContent: 'flex-end' }}>
-            <button className="station-btn station-btn-primary" disabled={isProcessing} style={{ width: '400px', height: '64px', fontSize: '1.4rem', fontWeight: 900 }} onClick={handleStart}><PlayIcon size={28} /> {isProcessing ? t('common.processing').toUpperCase() : t('letter.ui.btn_generate').toUpperCase()}</button>
+        {/* REGISTRY-FIRST ACTION BAR (Aseptic v4) */}
+        {(isBox1Complete || selectedPresetId) && (
+          <div className="station-registry-actions flex-row" style={{ 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            marginTop: '12px',
+            padding: '16px',
+            background: 'var(--surface-color)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px'
+          }}>
+            <div className="flex-row" style={{ gap: '12px' }}>
+              <button 
+                className="station-btn station-btn-side" 
+                title="Exportar Almacén Local (JSON↓)"
+                onClick={() => addLog('EXPORTACIÓN_LOCAL_INICIADA', 'info')}
+              >
+                JSON↓
+              </button>
+              <button 
+                className="station-btn station-btn-side" 
+                title="Importar Configuración (ALL↑)"
+                onClick={() => addLog('IMPORTACIÓN_LOCAL_BLOQUEADA_MODO_RED_ZERO', 'warning')}
+              >
+                ALL↑
+              </button>
+            </div>
+
+            {isReadyForStart && (
+              <button 
+                className="station-btn station-btn-primary" 
+                disabled={isProcessing} 
+                style={{ minWidth: '320px', height: '56px', fontSize: '1.2rem', fontWeight: 900 }} 
+                onClick={handleStart}
+              >
+                <PlayIcon size={24} /> {isProcessing ? t('common.processing').toUpperCase() : t('letter.ui.btn_generate').toUpperCase()}
+              </button>
+            )}
           </div>
         )}
   
         {pendingDownload && (
           <div className="station-card flex-col" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid var(--status-ok)', gap: '12px' }}>
             <span style={{ color: 'var(--status-ok)', fontWeight: 700, textAlign: 'center' }}>{t('letter.ui.gen_success_inline').toUpperCase()}</span>
-            <button className="station-btn station-btn-primary" style={{ background: 'var(--status-ok)', color: 'white', height: '50px' }} onClick={() => triggerDownload(pendingDownload.blob, pendingDownload.name)}><DownloadIcon size={20} /> {t('letter.ui.download_full').toUpperCase()}</button>
+            <div className="flex-row" style={{ gap: '12px' }}>
+              <button 
+                className="station-btn station-btn-primary" 
+                style={{ flex: 1, background: 'var(--status-ok)', color: 'white', height: '50px' }} 
+                onClick={() => triggerDownload(pendingDownload.blob, pendingDownload.name)}
+              >
+                <DownloadIcon size={20} /> {t('letter.ui.download_full').toUpperCase()}
+              </button>
+              <button 
+                className="station-btn" 
+                style={{ height: '50px', background: 'rgba(255,215,0,0.1)', color: '#FFD700', border: '1px solid #FFD700' }}
+                onClick={async () => {
+                  if (rendererEngine && pendingDownload) {
+                    addLog('GENERANDO FINGERPRINT GOLDEN...', 'info');
+                    const hash = await rendererEngine.captureFingerprint(pendingDownload.blob, pendingDownload.name);
+                    await db.golden_tests_v6.add({
+                      name: `Golden_${pendingDownload.name}`,
+                      templateId: selectedTemplateId!,
+                      hash: hash,
+                      createdAt: Date.now()
+                    });
+                    addLog('SÍMBOLO GOLDEN GUARDADO EN EL REGISTRO DE QA.', 'success');
+                  }
+                }}
+              >
+                🏆 {t('letter.ui.save_golden').toUpperCase()}
+              </button>
+            </div>
           </div>
         )}
   
-        {/* CONSOLA DE DIAGNÓSTICO (Siempre Accesible - Era 5) */}
-        <div className="station-card" style={{ 
-          background: 'rgba(239, 68, 68, 0.03)', 
-          border: '1px dashed rgba(239, 68, 68, 0.15)', 
-          marginTop: 'auto',
-          padding: '16px'
-        }}>
-          <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-            <div className="flex-col">
-              <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--status-err)', letterSpacing: '0.05rem' }}>
-                INDUSTRIAL_DIAGNOSTIC_CONSOLE_V4
-              </span>
-              <span style={{ fontSize: '10px', opacity: 0.5 }}>
-                USE PARA AUTO-CONFIGURACIÓN DE ENTORNO Y PRUEBAS DE ESTRÉS PDF
-              </span>
-            </div>
-            <div className="flex-row" style={{ gap: '12px' }}>
-              <button 
-                className="station-btn" 
-                style={{ 
-                  height: '36px', 
-                  background: 'rgba(239, 68, 68, 0.1)', 
-                  color: 'var(--status-err)', 
-                  fontWeight: 800,
-                  border: '1px solid rgba(239, 68, 68, 0.2)'
-                }} 
-                onClick={() => handleRunStressTest(5)} 
-                disabled={isProcessing}
-              >
-                <ZapIcon size={14} /> {t('letter.ui.stress_test_btn').toUpperCase()} (5)
-              </button>
-              <button 
-                className="station-btn" 
-                style={{ 
-                  height: '36px', 
-                  background: 'var(--status-err)', 
-                  color: 'white', 
-                  fontWeight: 800,
-                  border: '1px solid var(--status-err)'
-                }} 
-                onClick={() => handleRunStressTest(50)} 
-                disabled={isProcessing}
-              >
-                <ZapIcon size={14} /> PDF_MASSIVE_QA (50)
-              </button>
-            </div>
+        {/* CONSOLA DE DIAGNÓSTICO (Oculta en PROD a menos que sea Técnico) */}
+        {(environment !== 'PROD' || isTechnicianMode) && (
+          <div className="station-card" style={{ 
+            background: 'rgba(239, 68, 68, 0.03)', 
+            border: '1px dashed rgba(239, 68, 68, 0.15)', 
+            marginTop: 'auto',
+            padding: '16px'
+          }}>
+            <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="flex-col">
+                <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--status-err)', letterSpacing: '0.05rem' }}>
+                  INDUSTRIAL_DIAGNOSTIC_CONSOLE_V4
+                </span>
+                <span style={{ fontSize: '10px', opacity: 0.5 }}>
+                  MODO TÉCNICO ACTIVADO - PRUEBAS DE ESTRÉS PDF
+                </span>
+              </div>
+              
+              <div className="flex-row" style={{ gap: '12px' }}>
+                {isLabMode && pendingDownload && (
+                  <button 
+                    className="station-btn" 
+                    style={{ 
+                      height: '36px', 
+                      background: 'rgba(255, 215, 0, 0.2)', 
+                      color: '#FFD700', 
+                      fontWeight: 800,
+                      border: '1px solid #FFD700'
+                    }} 
+                    onClick={async () => {
+                      if (rendererEngine && pendingDownload) {
+                        addLog('LAB_QA: Capturando huella normalizada para nuevo GOLDEN...', 'info');
+                        // Para el Golden capturamos el fingerprint del documento cargado
+                        const hash = await (rendererEngine as any).captureFingerprint(pendingDownload.blob, pendingDownload.name);
+                        
+                        const newGolden = {
+                          templateId: selectedTemplateId!,
+                          mappingId: selectedMapping!.id,
+                          etlPresetId: selectedPresetId!,
+                          codDocumento: options.codDocumento,
+                          version: '1.000',
+                          layoutHash: hash,
+                          hashAlgorithm: 'SHA-256' as const,
+                          renderSpec: 'v1:page1@144dpi:gray:512x724',
+                          createdAt: Date.now(),
+                          updatedAt: Date.now(),
+                          lastVerifiedAt: Date.now(),
+                          notes: 'Captura inicial desde Lab Mode'
+                        };
 
+                        await db.golden_tests_v6.add(newGolden);
+                        addLog('HUELLA GOLDEN REGISTRADA CON ÉXITO.', 'success');
+                        setQaStatus('MATCH');
+                      }
+                    }}
+                  >
+                    🏆 REGISTRAR COMO GOLDEN
+                  </button>
+                )}
+                
+                <button 
+                  className="station-btn" 
+                  style={{ 
+                    height: '36px', 
+                    background: 'rgba(239, 68, 68, 0.1)', 
+                    color: 'var(--status-err)', 
+                    fontWeight: 800,
+                    border: '1px solid rgba(239, 68, 68, 0.2)'
+                  }} 
+                  onClick={() => handleRunStressTest(5)} 
+                  disabled={isProcessing}
+                >
+                  <ZapIcon size={14} /> {t('letter.ui.stress_test_btn').toUpperCase()} (5)
+                </button>
+                <button 
+                  className="station-btn" 
+                  style={{ 
+                    height: '36px', 
+                    background: 'var(--status-err)', 
+                    color: 'white', 
+                    fontWeight: 800,
+                    border: '1px solid var(--status-err)'
+                  }} 
+                  onClick={() => handleRunStressTest(50)} 
+                  disabled={isProcessing}
+                >
+                  <ZapIcon size={14} /> PDF_MASSIVE_QA (50)
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
 
         {/* Sello de Integridad (Era 5) */}

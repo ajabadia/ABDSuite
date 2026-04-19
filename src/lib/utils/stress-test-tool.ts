@@ -101,28 +101,28 @@ export const STRESS_TEMPLATE_DATA = {
 
 export async function seedStressEnvironment() {
   // 1. Seed Preset (Force field names consistency)
-  let presetId: number;
-  const existingPreset = await db.presets.where('name').equals(STRESS_PRESET_DATA.name).first();
+  let presetId: string;
+  const existingPreset = await db.presets_v6.where('name').equals(STRESS_PRESET_DATA.name).first();
   if (!existingPreset) {
-    presetId = await db.presets.add(STRESS_PRESET_DATA as any) as number;
+    presetId = await db.presets_v6.add(STRESS_PRESET_DATA as any) as string;
   } else {
     presetId = existingPreset.id!;
     // UPDATE fields to ensure they match our logic
-    await db.presets.update(presetId, { recordTypes: STRESS_PRESET_DATA.recordTypes as any });
+    await db.presets_v6.update(presetId, { recordTypes: STRESS_PRESET_DATA.recordTypes as any });
   }
 
   // 2. Seed Template
-  let templateId: number;
-  const existingTemplate = await db.letter_templates.where('name').equals(STRESS_TEMPLATE_DATA.name).first();
+  let templateId: string;
+  const existingTemplate = await db.lettertemplates_v6.where('name').equals(STRESS_TEMPLATE_DATA.name).first();
   if (!existingTemplate) {
-    templateId = await db.letter_templates.add(STRESS_TEMPLATE_DATA as any) as number;
+    templateId = await db.lettertemplates_v6.add(STRESS_TEMPLATE_DATA as any) as string;
   } else {
     templateId = existingTemplate.id!;
   }
 
   // 3. Seed Mapping (Industrial Auto-Link)
   let mapping: any;
-  const existingMapping = await db.letter_mappings
+  const existingMapping = await db.lettermappings_v6
     .where('templateId').equals(templateId)
     .filter(m => m.etlPresetId === presetId)
     .first();
@@ -143,16 +143,16 @@ export async function seedStressEnvironment() {
       isActive: true,
       updatedAt: Date.now()
     };
-    mapping.id = await db.letter_mappings.add(mapping as any) as number;
+    mapping.id = await db.lettermappings_v6.add(mapping as any) as string;
   } else {
     mapping = existingMapping;
     // Forzar actualización de mappings para QA
-    await db.letter_mappings.update(mapping.id!, { mappings: mappingDefinition });
+    await db.lettermappings_v6.update(mapping.id!, { mappings: mappingDefinition });
     mapping.mappings = mappingDefinition;
   }
 
-  const template = await db.letter_templates.get(templateId);
-  const preset = await db.presets.get(presetId);
+  const template = await db.lettertemplates_v6.get(templateId);
+  const preset = await db.presets_v6.get(presetId);
 
   return { presetId, templateId, mapping, template, preset };
 }

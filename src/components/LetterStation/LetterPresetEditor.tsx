@@ -60,8 +60,8 @@ const LetterPresetEditor: React.FC = () => {
   const { t } = useLanguage();
   
   // Data
-  const presets = useLiveQuery(() => db.presets.toArray()) || [];
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const presets = useLiveQuery(() => db.presets_v6.toArray()) || [];
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isRegistryExpanded, setIsRegistryExpanded] = useState(true);
   
   const [formData, setFormData] = useState<EtlPreset | null>(null);
@@ -107,14 +107,14 @@ const LetterPresetEditor: React.FC = () => {
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
-    const id = await db.presets.add(newPreset);
-    setSelectedId(id as number);
+    const id = await db.presets_v6.add(newPreset);
+    setSelectedId(id as string);
     setIsRegistryExpanded(false);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (confirm(t('common.confirm_delete').toUpperCase())) {
-      await db.presets.delete(id);
+      await db.presets_v6.delete(id);
       if (selectedId === id) setSelectedId(null);
     }
   };
@@ -153,7 +153,7 @@ const LetterPresetEditor: React.FC = () => {
       recordSnapshot();
       
       // 1. Guardado Interno (DB)
-      await db.presets.put({
+      await db.presets_v6.put({
         ...formData,
         updatedAt: Date.now()
       });
@@ -182,7 +182,7 @@ const LetterPresetEditor: React.FC = () => {
   };
 
   const handleExportAll = async () => {
-    const data = await db.presets.toArray();
+    const data = await db.presets_v6.toArray();
     const exportPath = {
       type: 'abdfn_presets_backup',
       payload: data,
@@ -210,7 +210,7 @@ const LetterPresetEditor: React.FC = () => {
           if (data.type === 'abdfn_presets_backup' && Array.isArray(data.payload)) {
             for (const p of data.payload) {
               const { id, ...cleanPreset } = p;
-              await db.presets.add(cleanPreset);
+              await db.presets_v6.add(cleanPreset);
             }
             alert('IMPORT_COMPLETE');
           }

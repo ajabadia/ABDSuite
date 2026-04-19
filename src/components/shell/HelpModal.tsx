@@ -94,7 +94,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <footer style={{ padding: '12px 24px', borderTop: '1px solid var(--border-color)', background: 'rgba(var(--primary-color-rgb), 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>DOCUMENT_ID: {activeSection.toUpperCase()}_MAN_v5.0</span>
+          <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>DOCUMENT_ID: {activeSection.toUpperCase()}_MAN_v6.0</span>
           <span style={{ fontSize: '0.6rem', opacity: 0.5, letterSpacing: '2px' }}>ABD INDUSTRIAL INFRASTRUCTURES</span>
         </footer>
       </div>

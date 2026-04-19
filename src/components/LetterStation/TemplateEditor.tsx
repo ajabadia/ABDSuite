@@ -25,9 +25,9 @@ const DEFAULT_COMPOSITION: TemplateComposition = {
 
 const TemplateEditor: React.FC = () => {
   const { t } = useLanguage();
-  const templates = useLiveQuery(() => db.letter_templates.toArray()) || [];
+  const templates = useLiveQuery(() => db.lettertemplates_v6.toArray()) || [];
   
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'content' | 'composition'>('content');
   const [isRegistryExpanded, setIsRegistryExpanded] = useState(true);
   
@@ -79,17 +79,16 @@ const TemplateEditor: React.FC = () => {
   };
 
   const handleCreate = async () => {
-    const nextId = (templates.length > 0 ? Math.max(...templates.map(t => t.id || 0)) : 0) + 1;
-    const name = `TEMPLATE_${nextId}`;
+    const name = `TEMPLATE_${templates.length + 1}`;
     
-    const id = await db.letter_templates.add({
+    const id = await db.lettertemplates_v6.add({
       name,
       type: 'HTML',
       content: '<h1>TITLE</h1>\n<p>Dear {{NAME}}:</p>\n<p>Message content here...</p>\n<p>Regards,</p>',
       config: DEFAULT_COMPOSITION,
       updatedAt: Date.now()
     });
-    setSelectedId(id as number);
+    setSelectedId(id as string);
     setActiveTab('content');
     setIsRegistryExpanded(false); // Auto-collapse to focus on editing
   };
@@ -154,13 +153,13 @@ const TemplateEditor: React.FC = () => {
           const text = await file.text();
           const data = JSON.parse(text);
           if (data.type === 'abdfn_template' && data.payload) {
-            const id = await db.letter_templates.add({
+            const id = await db.lettertemplates_v6.add({
               ...data.payload,
               name: data.name + '_IMPORTED',
               type: 'HTML',
               updatedAt: Date.now()
             });
-            setSelectedId(id as number);
+            setSelectedId(id as string);
             setIsRegistryExpanded(false);
           }
         } catch (err) {}
@@ -172,7 +171,7 @@ const TemplateEditor: React.FC = () => {
   const handleSave = async () => {
     if (!selectedId) return;
     recordSnapshot();
-    await db.letter_templates.update(selectedId, {
+    await db.lettertemplates_v6.update(selectedId, {
       name: editName,
       content: editContent,
       config: editConfig,
@@ -183,9 +182,9 @@ const TemplateEditor: React.FC = () => {
     // Visual feedback 
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm(t('common.confirm_delete').toUpperCase())) return;
-    await db.letter_templates.delete(id);
+    await db.lettertemplates_v6.delete(id);
     if (selectedId === id) setSelectedId(null);
   };
 
@@ -205,7 +204,7 @@ const TemplateEditor: React.FC = () => {
   };
 
   const handleExportAll = async () => {
-    const data = await db.letter_templates.toArray();
+    const data = await db.lettertemplates_v6.toArray();
     const exportPath = {
       type: 'abdfn_templates_backup',
       payload: data,

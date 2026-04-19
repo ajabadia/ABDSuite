@@ -44,3 +44,22 @@
   --header-text: #0f172a;
   --input-bg: #ffffff;
 }
+
+/* MIDNIGHT: Industrial High-Contrast */
+[data-theme='midnight'] {
+  --bg-color: #000000;
+  --surface-color: #0c0c0c;
+  --border-color: #1a1a1a;
+  --primary-color: #ff9d00;   /* Amber industrial */
+  --secondary-color: #00ff00; /* Phosphor Green */
+  --text-primary: #e0e0e0;
+  --text-secondary: #888888;
+  --accent-color: #ff3e00;
+  --status-ok: #00ff41;    /* Matrix Green */
+  --status-warn: #ffcc00;
+  --status-err: #ff0000;
+  --header-bg: #050505;
+  --header-text: #ff9d00;
+  --input-bg: #000000;
+}
+

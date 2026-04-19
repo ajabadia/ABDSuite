@@ -3,10 +3,8 @@ import { Space_Mono, Roboto_Mono } from 'next/font/google';
 import { LanguageProvider } from '@/lib/context/LanguageContext';
 import { ThemeProvider } from '@/lib/context/ThemeContext';
 import { LogProvider } from '@/lib/context/LogContext';
-import { Sidebar } from '@/components/shell/Sidebar';
-import { TopBar } from '@/components/shell/TopBar';
-import { StatusBar } from '@/components/shell/StatusBar';
-import { LogDrawer } from '@/components/shell/LogDrawer';
+import { ConfigProvider } from '@/lib/context/ConfigContext';
+import { ShellWrapper } from '@/components/shell/ShellWrapper';
 import './globals.css';
 
 const spaceMono = Space_Mono({
@@ -23,6 +21,14 @@ const robotoMono = Roboto_Mono({
 export const metadata: Metadata = {
   title: 'ABDFN SUITE - Aseptic Unified Hub',
   description: 'Procesamiento local seguro y herramientas de integridad. Zero-Knowledge Platform.',
+  manifest: '/manifest.json',
+  themeColor: '#0a0a0a',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'ABDFN Suite',
+  },
 };
 
 export default function RootLayout({
@@ -35,21 +41,20 @@ export default function RootLayout({
       <body className={`${spaceMono.className} ${spaceMono.variable} ${robotoMono.variable}`} suppressHydrationWarning>
         <LanguageProvider initialLang="es">
           <ThemeProvider>
-            <LogProvider>
-              <div className="crt-overlay" />
-              <div className="shell-container">
-                <Sidebar />
-                <TopBar />
-                <main className="shell-content">
+            <ConfigProvider>
+              <LogProvider>
+                <div className="crt-overlay" />
+                <ShellWrapper>
                   {children}
-                </main>
-                <LogDrawer />
-                <StatusBar />
-              </div>
-            </LogProvider>
+                </ShellWrapper>
+              </LogProvider>
+            </ConfigProvider>
           </ThemeProvider>
         </LanguageProvider>
       </body>
     </html>
   );
 }
+
+
+

@@ -14,7 +14,9 @@ import {
   PlayIcon,
   UnlockIcon,
   MapIcon,
-  HelpIcon
+  HelpIcon,
+  DownloadIcon,
+  UploadIcon
 } from '@/components/common/Icons';
 import { HelpModal } from './HelpModal';
 
@@ -168,7 +170,56 @@ export const Sidebar: React.FC = () => {
         })}
       </nav>
 
-      <div style={{ padding: '8px 12px', borderTop: '1px solid var(--border-color)' }}>
+      <div style={{ padding: '8px 12px', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <button 
+          className="station-nav-item" 
+          onClick={async () => {
+             const { DbSyncService } = await import('@/lib/services/db-sync.service');
+             const blob = await DbSyncService.exportSuite();
+             const url = URL.createObjectURL(blob);
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = `abdfn_suite_dump_${new Date().toISOString().split('T')[0]}.json`;
+             a.click();
+             URL.revokeObjectURL(url);
+          }}
+          style={{ width: '100%', border: 'none', background: 'transparent' }}
+        >
+          <span className="station-nav-icon"><DownloadIcon size={20} /></span>
+          {!isCollapsed && <span className="station-nav-label">{t('shell.full_dump')}</span>}
+        </button>
+        
+        <button 
+          className="station-nav-item" 
+          onClick={async () => {
+             const input = document.createElement('input');
+             input.type = 'file';
+             input.accept = '.json';
+             input.onchange = async (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (!file) return;
+                
+                const confirmed = confirm(t('shell.full_restore_confirm') || '¿Está seguro de restaurar el sistema? Esta acción fusionará o reemplazará sus datos actuales.');
+                if (!confirmed) return;
+                
+                const { DbSyncService } = await import('@/lib/services/db-sync.service');
+                try {
+                  await DbSyncService.importSuite(file, 'MERGE');
+                  alert(t('shell.full_restore_success') || 'Sistema restaurado con éxito. Por favor, recargue la aplicación.');
+                  window.location.reload();
+                } catch (err) {
+                  console.error('Import failed', err);
+                  alert('Error al importar: ' + (err as Error).message);
+                }
+             };
+             input.click();
+          }}
+          style={{ width: '100%', border: 'none', background: 'transparent' }}
+        >
+          <span className="station-nav-icon"><UploadIcon size={20} /></span>
+          {!isCollapsed && <span className="station-nav-label">{t('shell.full_restore')}</span>}
+        </button>
+
         <button 
           className="station-nav-item" 
           onClick={() => setIsHelpOpen(true)}

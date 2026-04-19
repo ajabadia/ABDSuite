@@ -66,7 +66,55 @@ export interface GawebAuditResult {
 }
 
 /**
- * Validates a GAWEB file (fixed-width .txt)
+ * Validates a single line of a GAWEB file.
+ * Used by streaming workers to process GBs of data without memory overhead.
+ */
+export function auditGawebLine(line: string, lineNum: number): { record: Record<string, string>, errors: GawebError[], warnings: GawebError[] } {
+  const result: { errors: GawebError[], warnings: GawebError[] } = {
+    errors: [],
+    warnings: []
+  };
+
+  // Spec compliance: Trimmed lines are valid if they were naturally short.
+  // We pad them virtualization to 251 for field extraction.
+  const paddedLine = line.padEnd(251, ' ');
+
+  if (line.length < 212) {
+    result.errors.push({
+      line: lineNum,
+      field: 'LINE_LENGTH',
+      position: `1-${line.length}`,
+      severity: 'ERROR',
+      messageKey: 'audit.errors.insufficient_length',
+      value: `${line.length} bytes`
+    });
+    return { record: {}, errors: result.errors, warnings: result.warnings };
+  }
+
+  const record: Record<string, string> = {};
+  let currentPos = 0;
+
+  GAWEB_FIELDS.forEach(field => {
+    const start = currentPos;
+    const end = currentPos + field.length;
+    const value = paddedLine.substring(start, end);
+    const posLabel = `${start + 1}-${end}`;
+    
+    record[field.name] = value;
+    validateField(field, value, lineNum, posLabel, result);
+    
+    currentPos = end;
+  });
+
+  // Cross-field validations
+  validateCrossFields(record, lineNum, result);
+
+  return { record, errors: result.errors, warnings: result.warnings };
+}
+
+/**
+ * Validates a GAWEB file (fixed-width .txt) - Legacy Synchronous version.
+ * Deprecated for large files. Use streaming instead.
  */
 export function auditGaweb(content: string): GawebAuditResult {
   const lines = content.split(/\r?\n/);
@@ -79,50 +127,19 @@ export function auditGaweb(content: string): GawebAuditResult {
 
   lines.forEach((line, index) => {
     if (line.trim() === '') return;
+    const { record, errors, warnings } = auditGawebLine(line, index + 1);
     result.lines++;
-    const lineNum = index + 1;
-
-    // Spec compliance: Trimmed lines are valid if they were naturally short.
-    // We pad them virtualization to 251 for field extraction.
-    const paddedLine = line.padEnd(251, ' ');
-
-    if (line.length < 212) {
-      result.errors.push({
-        line: lineNum,
-        field: 'LINE_LENGTH',
-        position: `1-${line.length}`,
-        severity: 'ERROR',
-        messageKey: 'audit.errors.insufficient_length',
-        value: `${line.length} bytes`
-      });
-      return;
+    result.errors.push(...errors);
+    result.warnings.push(...warnings);
+    if (record && Object.keys(record).length > 0) {
+      result.parsedData.push(record);
     }
-
-    const record: Record<string, string> = {};
-    let currentPos = 0;
-
-    GAWEB_FIELDS.forEach(field => {
-      const start = currentPos;
-      const end = currentPos + field.length;
-      const value = paddedLine.substring(start, end);
-      const posLabel = `${start + 1}-${end}`;
-      
-      record[field.name] = value;
-      validateField(field, value, lineNum, posLabel, result);
-      
-      currentPos = end;
-    });
-
-    // Cross-field validations
-    validateCrossFields(record, lineNum, result);
-
-    result.parsedData.push(record);
   });
 
   return result;
 }
 
-function validateField(field: GawebField, value: string, line: number, pos: string, audit: GawebAuditResult) {
+function validateField(field: GawebField, value: string, line: number, pos: string, audit: { errors: GawebError[], warnings: GawebError[] }) {
   const addError = (msgKey: string) => audit.errors.push({ line, field: field.name, position: pos, severity: 'ERROR', messageKey: msgKey, value });
 
   switch (field.name) {
@@ -170,7 +187,7 @@ function validateField(field: GawebField, value: string, line: number, pos: stri
   }
 }
 
-function validateCrossFields(record: Record<string, string>, line: number, audit: GawebAuditResult) {
+function validateCrossFields(record: Record<string, string>, line: number, audit: { errors: GawebError[], warnings: GawebError[] }) {
   // Destino Validation: CLALF or CodContrato must be filled
   const clalf = record['CLALF'].trim();
   const contract = record['ContractCode'].trim();

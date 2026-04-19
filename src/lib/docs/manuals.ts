@@ -1,26 +1,27 @@
 /**
  * ABDFN Unified Suite - Manuales Técnicos Era 5
+ * ABDFN Unified Suite - Manuales Técnicos Era 6
  * Idioma: Castellano (ES)
  * Filosofía: Offline-First / Zero-Knowledge
  */
 
 export const MANUALS = {
   general: {
-    title: 'MANUAL GENERAL: ABDFN HUB v5.0',
+    title: 'MANUAL GENERAL: ABDFN HUB v6.0',
     content: `
-# ⚔️ ABDFN UNIFIED SUITE - ERA 5
+# ⚔️ ABDFN UNIFIED SUITE - ERA 6
 
-Bienvenido al centro de operaciones asépticas. Esta suite ha sido diseñada para el procesamiento masivo de datos con paridad bancaria total y blindaje criptográfico de grado industrial.
+Bienvenido al centro de operaciones asépticas de sexta generación. Esta suite ha sido diseñada para la excelencia en el procesamiento masivo con paridad bancaria total y **portabilidad universal**.
 
-## 🏛️ Filosofía del Sistema
-- **Offline-First**: Toda la lógica ocurre en su navegador. Nada sale a la red.
-- **Zero-Knowledge**: El sistema no conoce sus contraseñas. Si pierde su clave maestra, los datos cifrados son irrecuperables.
-- **Asepsia Técnica**: Interfaces minimalistas diseñadas para la eficiencia operativa y reducción de fatiga visual.
+## 🏛️ Filosofía del Sistema (Era 6)
+- **Offline-First**: Toda la lógica ocurre en el cliente. Ni un solo bit sale a la red.
+- **Portabilidad Universal (UUID)**: A diferencia de versiones anteriores, la Era 6 utiliza identificadores únicos universales (UUID). Los datos exportados desde un equipo pueden importarse en cualquier otro sin colisiones de IDs.
+- **Zero-Knowledge**: Si pierde su clave maestra, los datos cifrados son irrecuperables.
+- **Persistencia Versionada**: El sistema utiliza esquemas de datos versionados (**_v6**) para asegurar migraciones no destructivas y estabilidad a largo plazo.
 
-## 🧭 Navegación Global
-- **Dashboard**: Vista de telemetría real y acceso rápido a módulos.
-- **Centro de Ayuda**: Acceso a esta documentación en cualquier momento.
-- **Sidebar**: Control de flujo entre las distintas estaciones de trabajo.
+## 🧭 Mantenimiento y Backup
+- **Vuelco Maestro**: Ubicado en la barra lateral, permite realizar copias completas de la base de datos para restauraciones críticas o migración de puesto de trabajo.
+- **Dashboard**: Monitoreo de telemetría real y salud del núcleo v6.0.
     `
   },
   crypt: {
@@ -28,18 +29,18 @@ Bienvenido al centro de operaciones asépticas. Esta suite ha sido diseñada par
     content: `
 # 🔐 CRYPT STATION - CONTROL CRIPTOGRÁFICO
 
-Módulo dedicado a la protección de datos sensibles mediante algoritmos simétricos.
+Blindaje simétrico de grado industrial para la protección de activos de información.
 
 ## 🛠️ Tecnologías de Blindaje
-- **AES-GCM (256-bit)**: Estándar industrial para cifrado autenticado.
-- **PBKDF2**: Derivación de claves con 100,000 iteraciones para máxima resistencia.
+- **AES-GCM (256-bit)**: Cifrado autenticado de vanguardia.
+- **PBKDF2**: Derivación robusta con 100,000 iteraciones.
 
-## 🚀 Operativas Comunes
-1. **Shield Vault**: Arrastre archivos para cifrarlos masivamente. Requiere una contraseña maestra.
-2. **Open Key**: Proceso inverso para restaurar archivos .ENC a su estado original.
+## 🚀 Operativas Era 6
+1. **Shield Vault**: Blindaje masivo de archivos mediante arrastre. 
+2. **Open Key**: Restauración de archivos .ENC garantizando la integridad mediante IV (Vector de Inicialización).
 
 > [!IMPORTANT]
-> Las contraseñas se mantienen exclusivamente en la memoria volátil de la sesión actual.
+> Las llaves nunca se almacenan en disco; residen solo en memoria volátil por sesión.
     `
   },
   etl: {
@@ -47,31 +48,31 @@ Módulo dedicado a la protección de datos sensibles mediante algoritmos simétr
     content: `
 # 📊 ETL STUDIO - TRANSFORMACIÓN ESTRUCTURAL
 
-Motor para la ingesta y remodelado de registros asépticos.
+Motor de refinado estructural para registros asépticos complejos.
 
-## 🏗️ Flujo de Trabajo
-1. **Designer**: Defina los tipos de registro y los campos (offsets, longitudes, comportamientos).
-2. **Presets**: Guarde sus configuraciones como archivos JSON industriales.
-3. **Executor**: Procese archivos masivos aplicando las reglas definidas en el Designer.
+## 🏗️ Ciclo Operativo
+1. **Designer**: Definición de offsets, longitudes y disparadores (Triggers).
+2. **Presets Portables**: Los presupuestos se guardan con UUIDs, facilitando su intercambio entre departamentos.
+3. **Executor**: Ingesta masiva con soporte para buffers de gran tamaño.
 
-## 📂 Almacenamiento
-Utiliza **IndexedDB** para manejar millones de registros localmente sin degradar el rendimiento del sistema.
+## 📂 Arquitectura de Datos
+Utiliza **IndexedDB** con el motor versionado v6 para garantizar que su configuración esté siempre protegida contra cambios accidentales de esquema.
     `
   },
   letter: {
     title: 'LETTER STATION: GENERACIÓN',
     content: `
-# 📄 LETTER STATION - GENERACIÓN GAWEB
+# 📄 LETTER STATION - GENERACIÓN GAWEB v6.0
 
-Sistema de emisión masiva cumpliendo con la paridad **GAWEB v.1**.
+Sistema industrial de emisión de documentos con cumplimiento estricto **GAWEB v.1**.
 
-## 📑 Componentes Clave
-- **Plantillas**: Definición visual y estructural de los documentos.
-- **Mapeado**: Vinculación dinámica entre los campos de su ETL y los campos de la plantilla.
-- **Generación**: Creación de paquetes de datos listos para el host bancario.
+## 📑 Componentes Era 6
+- **Plantillas Universales**: Almacenamiento desacoplado mediante identificadores de cadena.
+- **Mapeado Dinámico**: Vinculación matricial entre ETL y placeholders visuales.
+- **QA Golden Loop**: Verificación de regresiones mediante comparativa visual SHA-256.
 
-## ⚙️ Configuración Industrial
-Ajuste los prefijos, backups automáticos y rutas de salida mediante la Native File System API.
+## ⚙️ Rendimiento Industrial
+Optimizado para la generación de miles de PDFs de alta fidelidad con inyección de metadatos bancarios en tiempo real.
     `
   },
   audit: {
@@ -79,16 +80,15 @@ Ajuste los prefijos, backups automáticos y rutas de salida mediante la Native F
     content: `
 # 🛡️ SYSTEM AUDIT - CONTROL TÉCNICO
 
-Última línea de defensa antes del envío a producción.
+Validación de integridad y cumplimiento normativo de paquetes GAWEB.
 
-## 🔍 Funciones de Auditoría
-- **GAWEB Auditor**: Valida archivos .txt carácter a carácter (300 bytes de paridad).
-- **Verificación ZIP**: Asegura que todos los PDFs referenciados existan en el paquete.
-- **MD5 Mismatch**: Compara hashes para detectar corrupciones en el transporte.
+## 🔍 Capacidades v6.0
+- **Super-Audit Engine**: Streaming de alto rendimiento para archivos de varios gigabytes.
+- **Detección de Anomalías**: Verificación de paridad de 300 bytes contra el estándar v.1.
+- **Traceability**: Cada auditoría se registra en el histórico industrial con marca de tiempo persistente.
 
-## ⚠️ Severidades
-- **ERROR**: Bloquea el proceso. Debe corregirse en origen (ETL o Letter).
-- **ADVERTENCIA**: Posible anomalía no crítica que requiere revisión manual.
+## ⚠️ Cumplimiento Zero-Exfiltration
+La suite opera en aislamiento total. Toda librería externa está localmente "vendorizada" y el CSP asegura que ninguna información sea extraída del entorno local.
     `
   }
 };

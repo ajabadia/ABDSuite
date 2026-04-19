@@ -22,14 +22,14 @@ export const RendererHost: React.FC<RendererHostProps> = ({ onReady }) => {
         return;
       }
 
-      // 1. Carga de docx-preview
+      // 1. Carga de docx-preview (Vendorizado)
       const docxScript = document.createElement('script');
-      docxScript.src = 'https://unpkg.com/docx-preview@0.3.2/dist/docx-preview.js';
+      docxScript.src = '/vendor/docx-preview.js';
       docxScript.async = true;
 
-      // 2. Carga de html2canvas (para fidelidad de captura en jsPDF)
+      // 2. Carga de html2canvas (Vendorizado)
       const canvasScript = document.createElement('script');
-      canvasScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      canvasScript.src = '/vendor/html2canvas.min.js';
       canvasScript.async = true;
 
       document.body.appendChild(docxScript);
@@ -53,17 +53,44 @@ export const RendererHost: React.FC<RendererHostProps> = ({ onReady }) => {
     loadScripts();
   }, [onReady]);
 
+  const renderQueue = React.useRef<Promise<any>>(Promise.resolve());
+
   const createEngine = () => ({
     renderToPdf: async (blob: Blob, filename: string): Promise<Blob> => {
+      return new Promise((resolve, reject) => {
+        renderQueue.current = renderQueue.current.then(async () => {
+          try {
+            const { pdf } = await renderAndProcess(blob, filename);
+            resolve(pdf.output('blob'));
+          } catch (err) {
+            reject(err);
+          }
+        });
+      });
+    },
+    captureFingerprint: async (blob: Blob, filename: string): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        renderQueue.current = renderQueue.current.then(async () => {
+          try {
+            const { canvas } = await renderAndProcess(blob, filename);
+            const { generateCanvasFingerprint } = await import('@/lib/logic/golden-tests.logic');
+            resolve(await generateCanvasFingerprint(canvas));
+          } catch (err) {
+            reject(err);
+          }
+        });
+      });
+    }
+  });
+
+  const renderAndProcess = async (blob: Blob, filename: string) => {
       const isDocx = filename.toLowerCase().endsWith('.docx');
-      
-      // MODO 'FORCE-PAINT' (Asegura que el navegador dibuje el elemento)
       const container = document.createElement(isDocx ? 'div' : 'iframe') as any;
       container.style.position = 'fixed';
       container.style.left = '0';
       container.style.top = '0';
-      container.style.width = '1px'; // Tamaño mínimo pero visible para el motor cromático
-      container.style.height = '1px';
+      container.style.width = '800px'; 
+      container.style.height = 'auto';
       container.style.overflow = 'visible'; 
       container.style.background = 'white';
       container.style.zIndex = '-9999';
@@ -85,65 +112,44 @@ export const RendererHost: React.FC<RendererHostProps> = ({ onReady }) => {
           const htmlContent = await blob.text();
           const doc = container.contentWindow.document;
           doc.open();
-          doc.write(`
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <style>
-                  body { background: white; margin: 0; padding: 40px; font-family: sans-serif; width: 800px; }
-                  * { color: black !important; -webkit-print-color-adjust: exact; }
-                </style>
-              </head>
-              <body>
-                <!-- TEST MARKER -->
-                <div style="background: red; color: white; padding: 5px; font-size: 10px; position: fixed; top: 0; right: 0;">ENGINE_ACTIVE</div>
-                ${htmlContent}
-              </body>
-            </html>
-          `);
+          doc.write(`<!DOCTYPE html><html><head><style>body { background: white; margin: 0; padding: 40px; font-family: sans-serif; width: 800px; } * { color: black !important; }</style></head><body>${htmlContent}</body></html>`);
           doc.close();
         }
 
-        // Sincronización de Frames (Asegura Paint)
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         await new Promise(r => setTimeout(r, 1000));
 
         const target = isDocx ? container : container.contentWindow.document.body;
-
         const canvas = await (window as any).html2canvas(target, {
           scale: 2,
           useCORS: true,
-          logging: true,
           backgroundColor: '#ffffff',
-          width: 800,
-          windowWidth: 800
+          width: 800
         });
 
-        const imgData = canvas.toDataURL('image/jpeg', 0.9);
-        
-        const pdf = new jsPDF({
-          orientation: 'p',
-          unit: 'pt',
-          format: 'a4',
-          compress: true
-        });
-
-        const imgWidth = 595.28;
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pdf = new jsPDF('p', 'pt', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pageWidth;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         
-        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight, undefined, 'FAST');
-        
-        // Firma técnica invisible (Confirmación de motor)
-        pdf.setFontSize(8);
-        pdf.setTextColor(200, 200, 200);
-        pdf.text(`ENGINE_STAMP: ${new Date().toISOString()}`, 10, 830);
+        let heightLeft = imgHeight;
+        let position = 0;
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+        heightLeft -= pageHeight;
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+          heightLeft -= pageHeight;
+        }
 
-        return pdf.output('blob');
+        return { pdf, canvas };
       } finally {
         if (container.parentNode) document.body.removeChild(container);
       }
-    }
-  });
+  };
 
 
 

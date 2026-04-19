@@ -46,7 +46,7 @@ export interface GawebConfig {
 }
 
 export interface EtlPreset {
-  id?: number; // Primary key for Dexie (auto-incremented)
+  id?: string; // Global UUID identity (Era 6)
   name: string;
   version: string;
   description: string;

@@ -33,13 +33,13 @@ import { useLanguage } from '@/lib/context/LanguageContext';
 
 const MappingMatrix: React.FC = () => {
   const { t } = useLanguage();
-  const presets = useLiveQuery(() => db.presets.toArray()) || [];
-  const templates = useLiveQuery(() => db.letter_templates.toArray()) || [];
-  const allMappings = useLiveQuery(() => db.letter_mappings.toArray()) || [];
+  const presets = useLiveQuery(() => db.presets_v6.toArray()) || [];
+  const templates = useLiveQuery(() => db.lettertemplates_v6.toArray()) || [];
+  const allMappings = useLiveQuery(() => db.lettermappings_v6.toArray()) || [];
   
-  const [selectedMappingId, setSelectedMappingId] = useState<number | null>(null);
-  const [selectedPresetId, setSelectedPresetId] = useState<number | null>(null);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
+  const [selectedMappingId, setSelectedMappingId] = useState<string | null>(null);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [templateVars, setTemplateVars] = useState<string[]>([]);
   const [currentMapping, setCurrentMapping] = useState<LetterMapping | null>(null);
 
@@ -72,24 +72,23 @@ const MappingMatrix: React.FC = () => {
   };
 
   const handleNewMapping = async () => {
-    const nextId = (allMappings.length > 0 ? Math.max(...allMappings.map(m => m.id || 0)) : 0) + 1;
-    const name = `MAPEADO_AUTO_${nextId}`;
+    const name = `MAPEADO_AUTO_${allMappings.length + 1}`;
     
     const newMapping: LetterMapping = {
       name,
-      etlPresetId: 0,
-      templateId: 0,
+      etlPresetId: '',
+      templateId: '',
       mappings: [],
       version: '1.0',
       isActive: false,
       updatedAt: Date.now()
     };
 
-    const id = await db.letter_mappings.add(newMapping);
-    setSelectedMappingId(id as number);
-    setSelectedPresetId(0);
-    setSelectedTemplateId(0);
-    setCurrentMapping({ ...newMapping, id: id as number });
+    const id = await db.lettermappings_v6.add(newMapping);
+    setSelectedMappingId(id as string);
+    setSelectedPresetId(null);
+    setSelectedTemplateId(null);
+    setCurrentMapping({ ...newMapping, id: id as string });
     setIsRegistryExpanded(false);
     setIsLinkerExpanded(true);
   };
@@ -169,23 +168,23 @@ const MappingMatrix: React.FC = () => {
     }
     try {
       recordSnapshot();
-      const payload = { ...currentMapping, etlPresetId: selectedPresetId, templateId: selectedTemplateId, updatedAt: Date.now() };
-      const id = await db.letter_mappings.put(payload);
-      setSelectedMappingId(id);
+      const payload = { ...currentMapping, etlPresetId: selectedPresetId!, templateId: selectedTemplateId!, updatedAt: Date.now() };
+      const id = await db.lettermappings_v6.put(payload);
+      setSelectedMappingId(id as string);
       setIsLinkerExpanded(false);
     } catch (err) {}
   };
 
-  const handleDeleteMapping = async (e: React.MouseEvent, id: number) => {
+  const handleDeleteMapping = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (confirm(t('common.confirm_delete').toUpperCase())) {
-      await db.letter_mappings.delete(id);
+      await db.lettermappings_v6.delete(id);
       if (selectedMappingId === id) setSelectedMappingId(null);
     }
   };
 
   const handleExportAll = async () => {
-    const data = await db.letter_mappings.toArray();
+    const data = await db.lettermappings_v6.toArray();
     const exportPath = { type: 'abdfn_mappings_backup', payload: data, exportedAt: Date.now() };
     const blob = new Blob([JSON.stringify(exportPath, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -209,7 +208,7 @@ const MappingMatrix: React.FC = () => {
           if (data.type === 'abdfn_mappings_backup' && Array.isArray(data.payload)) {
             for (const m of data.payload) {
               const { id, ...cleanMapping } = m; 
-              await db.letter_mappings.add(cleanMapping);
+              await db.lettermappings_v6.add(cleanMapping);
             }
           }
         } catch (err) {}
@@ -240,7 +239,7 @@ const MappingMatrix: React.FC = () => {
                    <button className="station-btn station-btn-primary" onClick={handleNewMapping} style={{ flex: 1, maxWidth: '300px' }}>{t('letter.ui.btn_generate').toUpperCase()}</button>
                 </div>
                 <div className="station-registry-list">
-                  {allMappings.sort((a,b) => (b.id||0)-(a.id||0)).map(m => (
+                  {allMappings.sort((a,b) => (b.updatedAt || 0) - (a.updatedAt || 0)).map(m => (
                     <div key={m.id} className={`station-registry-item ${selectedMappingId === m.id ? 'active' : ''}`} onClick={() => handleSelectMapping(m)}>
                       <div className="station-registry-item-left">
                         <div className="station-registry-item-icon"><MapIcon size={16} /></div>
@@ -288,10 +287,10 @@ const MappingMatrix: React.FC = () => {
               <div className="station-registry-title"><CogIcon size={16} /> RESOURCE_LINKER</div>
               {isLinkerExpanded ? <ArrowUpIcon size={18} /> : <ArrowDownIcon size={18} />}
            </div>
-           <div className={`station-registry-anim-container ${isLinkerExpanded ? 'expanded' : ''}`}>
+            <div className={`station-registry-anim-container ${isLinkerExpanded ? 'expanded' : ''}`}>
              <div className="station-registry-anim-content"><div className="station-registry-content"><div className="station-form-grid">
-               <div className="station-form-field"><label className="station-label">{t('letter.ui.data_file').toUpperCase()}</label><select className="station-select" value={selectedPresetId || 0} onChange={e => setSelectedPresetId(parseInt(e.target.value))}><option value={0}>-- {t('letter.ui.waiting_data').toUpperCase()} --</option>{presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
-               <div className="station-form-field"><label className="station-label">{t('letter.ui.template_visual').toUpperCase()}</label><select className="station-select" value={selectedTemplateId || 0} onChange={e => setSelectedTemplateId(parseInt(e.target.value))}><option value={0}>-- {t('letter.ui.select_template').toUpperCase()} --</option>{templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
+               <div className="station-form-field"><label className="station-label">{t('letter.ui.data_file').toUpperCase()}</label><select className="station-select" value={selectedPresetId || ''} onChange={e => setSelectedPresetId(e.target.value)}><option value="">-- {t('letter.ui.waiting_data').toUpperCase()} --</option>{presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+               <div className="station-form-field"><label className="station-label">{t('letter.ui.template_visual').toUpperCase()}</label><select className="station-select" value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(e.target.value)}><option value="">-- {t('letter.ui.select_template').toUpperCase()} --</option>{templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
              </div></div></div>
            </div>
         </section>
