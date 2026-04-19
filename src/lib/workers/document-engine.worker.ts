@@ -147,7 +147,7 @@ self.onmessage = async (e: MessageEvent) => {
           if (rt.name === 'DATA') {
              processedCount++;
              
-             const docName = GawebUtility.generateDocName(industrialBaseHash, lineCount - 1);
+             const docName = GawebUtility.generateDocName(industrialBaseHash, processedCount - 1);
              const fileName = `${docName}.${template.type === 'DOCX' ? 'docx' : 'html'}`;
              let content;
 

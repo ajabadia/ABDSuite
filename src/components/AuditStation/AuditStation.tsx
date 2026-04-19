@@ -91,24 +91,48 @@ const AuditStation: React.FC = () => {
   };
 
   return (
-    <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
-      
+    <>
+      {/* CABECERA INDUSTRIAL (Era 5) */}
+      <div className="station-card">
+        <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
+          <div className="flex-col" style={{ gap: '4px' }}>
+            <h2 className="station-title-main" style={{ margin: 0 }}>{t('dashboard.dash_audit_title').toUpperCase()}</h2>
+            <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
+               <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>AUDIT_SYS_V4.2</span>
+               <span className={`station-badge ${isValidating ? 'station-badge-orange' : (result ? 'station-badge-blue' : 'station-badge-green')}`}>
+                  {isValidating ? 'ANALYSIS_ACTIVE' : (result ? 'REPORT_READY' : 'LISTENING')}
+               </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="station-tech-summary" style={{ marginTop: '24px' }}>
+          <div className="station-tech-item"><span className="station-tech-label">SOURCE:</span> {indexFile?.name || 'NONE'}</div>
+          <div className="station-tech-item"><span className="station-tech-label">PKG:</span> {archiveFile?.name || 'NONE'}</div>
+          <div className="station-tech-item"><span className="station-tech-label">STATUS:</span> {isValidating ? 'PROCESSING' : (result ? 'COMPLETED' : 'IDLE')}</div>
+        </div>
+      </div>
+
       {/* PASO 1: SELECCIÓN DE ÍNDICE */}
-      <section className="station-card flex-col" style={{ gap: '16px' }}>
-        <span className="station-form-section-title">PASO 1: SELECCIÓN DE ÍNDICE (.TXT)</span>
-        <div className="station-form-grid" style={{ gridTemplateColumns: '1fr' }}>
-          <div className="station-form-field">
+      <section className="station-card flex-col" style={{ gap: '20px' }}>
+        <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div className="flex-col">
+            <span className="station-form-section-title">{t('audit.index_selection').toUpperCase()}</span>
+          </div>
+        </div>
+        
+        <div className="station-form-grid" style={{ marginTop: '12px' }}>
+          <div className="station-form-field large">
             <label className="station-label">{t('audit.select_file').toUpperCase()}</label>
             <div className="flex-row" style={{ gap: '8px' }}>
-              <input className="station-input" readOnly value={indexFile?.name || ''} placeholder={t('audit.index_placeholder')} />
+              <input className="station-input" style={{ flex: 1 }} readOnly value={indexFile?.name || ''} placeholder={t('audit.index_placeholder')} />
               <input type="file" id="index-input" style={{ display: 'none' }} onChange={(e) => handleFileChange(e, 'index')} />
               <button 
                 className="station-btn" 
-                style={{ minWidth: '40px' }} 
+                style={{ minWidth: '100px' }} 
                 onClick={() => document.getElementById('index-input')?.click()}
-                aria-label={t('audit.select_file')}
               >
-                <FolderIcon size={16} />
+                {t('audit.explore').toUpperCase()}
               </button>
               {indexFile && <button className="station-btn icon-only err" onClick={() => { setIndexFile(null); resetResults(); }}><XIcon size={16} /></button>}
             </div>
@@ -118,21 +142,29 @@ const AuditStation: React.FC = () => {
 
       {/* PASO 2: SELECCIÓN DE PAQUETE (Solo si hay TXT) */}
       {indexFile && (
-        <section className="station-card flex-col" style={{ gap: '16px' }}>
-          <span className="station-form-section-title">PASO 2: SELECCIÓN DE PAQUETE (.ZIP)</span>
-          <div className="station-form-grid" style={{ gridTemplateColumns: '1fr' }}>
-            <div className="station-form-field">
+        <section className="station-card flex-col fade-in" style={{ gap: '20px' }}>
+          <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="flex-col">
+              <span className="station-form-section-title">02. {t('audit.archive_selection').toUpperCase()}</span>
+              <div className="flex-row" style={{ gap: '8px', marginTop: '4px' }}>
+                <span className="station-badge station-badge-blue">INDUSTRIAL_PKG</span>
+                <span className="station-badge station-badge-orange">OPTIONAL</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="station-form-grid" style={{ marginTop: '12px' }}>
+            <div className="station-form-field large">
               <label className="station-label">{t('audit.select_archive').toUpperCase()}</label>
               <div className="flex-row" style={{ gap: '8px' }}>
-                <input className="station-input" readOnly value={archiveFile?.name || ''} placeholder={t('audit.archive_placeholder')} />
+                <input className="station-input" style={{ flex: 1 }} readOnly value={archiveFile?.name || ''} placeholder={t('audit.archive_placeholder')} />
                 <input type="file" id="archive-input" style={{ display: 'none' }} accept=".zip" onChange={(e) => handleFileChange(e, 'archive')} />
                 <button 
                   className="station-btn" 
-                  style={{ minWidth: '40px' }} 
+                  style={{ minWidth: '100px' }} 
                   onClick={() => document.getElementById('archive-input')?.click()}
-                  aria-label={t('audit.select_archive')}
                 >
-                  <FolderIcon size={16} />
+                  {t('audit.explore').toUpperCase()}
                 </button>
                 {archiveFile && <button className="station-btn icon-only err" onClick={() => { setArchiveFile(null); resetResults(); }}><XIcon size={16} /></button>}
               </div>
@@ -143,18 +175,23 @@ const AuditStation: React.FC = () => {
 
       {/* ACCIÓN DE VALIDACIÓN (Solo si hay TXT) */}
       {indexFile && (
-        <div className="flex-col" style={{ alignItems: 'center', gap: '12px', margin: '8px 0' }}>
-           <button 
+        <div className="flex-row fade-in" style={{ justifyContent: 'flex-end', alignItems: 'center', gap: '16px' }}>
+          {!result && (
+            <span style={{ fontSize: '10px', opacity: 0.5, fontWeight: 700, letterSpacing: '0.1rem', textTransform: 'uppercase' }}>
+              {t('audit.status_payload_waiting')}
+            </span>
+          )}
+          <button 
             className="station-btn station-btn-primary" 
             disabled={!indexFile || isValidating}
             onClick={runValidation}
-            style={{ width: '320px', height: '54px', fontSize: '1rem', fontWeight: 800 }}
+            style={{ width: '400px', height: '64px', fontSize: '1.4rem', fontWeight: 900 }}
           >
-            {isValidating ? t('audit.validating').toUpperCase() : t('audit.validate').toUpperCase()}
+            <ShieldCheckIcon size={24} /> {isValidating ? t('audit.validating').toUpperCase() : t('audit.validate').toUpperCase()}
           </button>
-          {!result && <span style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.1rem' }}>{t('audit.status_payload_waiting')}</span>}
         </div>
       )}
+
 
       {/* RESULTADOS (Solo tras validar) */}
       {(result || packageResult) ? (
@@ -261,7 +298,7 @@ const AuditStation: React.FC = () => {
          <ShieldCheckIcon size={14} />
          <span>AUDITORÍA DE PARIDAD OK</span>
       </div>
-    </div>
+    </>
   );
 };
 

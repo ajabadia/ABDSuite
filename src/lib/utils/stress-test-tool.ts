@@ -56,16 +56,45 @@ export const STRESS_TEMPLATE_DATA = {
   name: "NOMBRE.docx (STRESS_EMULATED)",
   type: "HTML",
   content: `
-    <div style="font-family: Arial, sans-serif; padding: 40px;">
-      <h1>NOTIFICACIÓN DE PRUEBA DE CARGA</h1>
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 60px; color: #1a1a1a; background: white; border: 20px solid #f0f0f0;">
+      <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 40px;">
+        <h1 style="margin: 0; font-size: 28px; letter-spacing: 2px;">INDUSTRIAL_NOTIFICATION</h1>
+        <div style="text-align: right;">
+           <div style="background: #333; color: white; padding: 4px 12px; font-weight: 900; font-size: 12px;">ERA_5_COMPLIANT</div>
+           <div style="font-size: 10px; margin-top: 4px;">SECURE_DOCUMENT_STREAM</div>
+        </div>
+      </div>
+      
+      <p style="font-size: 14px; color: #666;">REF_ID: <strong>{{ID_CLIENTE}}</strong></p>
+      
       <p>Estimado/a <strong>{{NOMBRE_COMPLETO}}</strong>,</p>
-      <p>Esta es una carta generada automáticamente para el registro <strong>{{ID_CLIENTE}}</strong>.</p>
-      <p>Su IBAN detectado es: {{IBAN}}</p>
-      <p>Importe total pendiente: {{IMPORTE_CENT}} céntimos.</p>
-      <br/>
-      <p>Atentamente,<br/>Departamento de Stress QA</p>
+      
+      <div style="background: #fafafa; border: 1px solid #eee; padding: 20px; margin: 30px 0;">
+        <p style="margin-top: 0;">Se ha detectado una anomalía técnica en su registro de auditoría. Por favor, verifique los siguientes detalles:</p>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: 700;">DESTINO_IBAN:</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; text-align: right; font-family: monospace;">{{IBAN}}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-weight: 700;">CUANTÍA_PTE:</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; text-align: right; font-weight: 900; color: #d32f2f;">{{IMPORTE_CENT}} CÉNTIMOS</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="font-size: 12px; line-height: 1.6; opacity: 0.8;">
+        Este documento ha sido generado por el motor de alta fidelidad ABDFN Suite. 
+        La paridad visual respecto al modelo industrial está garantizada bajo el protocolo Aseptic V4.
+      </p>
+      
+      <div style="margin-top: 60px; border-top: 1px solid #eee; padding-top: 20px; font-size: 10px; display: flex; justify-content: space-between;">
+        <span>FIRMADO DIGITALMENTE POR: ABD_SUITE_ENGINE</span>
+        <span>ID_SESIÓN: 0x88F2A1</span>
+      </div>
     </div>
   `,
+
   isActive: true,
   updatedAt: Date.now()
 };

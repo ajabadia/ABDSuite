@@ -217,7 +217,7 @@ function EtlPageContent() {
         ) : (
           <div className="station-empty-state" style={{ flex: 1 }}>
              <MapIcon size={64} style={{ marginBottom: '16px' }} />
-             <span className="station-shimmer-text">STRUCTURAL_DESIGNER_STANDBY</span>
+             <span className="station-shimmer-text">{t('etl.designer_standby').toUpperCase()}</span>
           </div>
         )}
       </div>

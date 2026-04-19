@@ -49,7 +49,7 @@ export const EtlSidebar: React.FC<EtlSidebarProps> = ({
       >
         <div className="station-registry-title">
           <ListIcon size={18} />
-          PRESETS_REGISTRY 
+          {t('etl.presets_registry').toUpperCase()} 
           {activePreset && (
             <span style={{ opacity: 0.5, fontWeight: 400 }}>
                {` > `} <span style={{ color: 'var(--primary-color)', fontWeight: 800 }}>{activePreset.name}</span>
@@ -66,8 +66,8 @@ export const EtlSidebar: React.FC<EtlSidebarProps> = ({
           <div className="station-registry-content">
             <div className="station-registry-actions" style={{ justifyContent: 'space-between' }}>
                <div className="flex-row" style={{ gap: '8px' }}>
-                 <button className="station-btn" onClick={onExportAll}><DownloadIcon size={14} /> JSON↓</button>
-                 <button className="station-btn" onClick={onImport}><UploadIcon size={14} /> ALL↑</button>
+                 <button className="station-btn" onClick={onExportAll}><DownloadIcon size={14} /> {t('etl.export_json').toUpperCase()}</button>
+                 <button className="station-btn" onClick={onImport}><UploadIcon size={14} /> {t('etl.import_all').toUpperCase()}</button>
                </div>
 
                <button className="station-btn station-btn-primary" onClick={onNew} style={{ flex: 1, maxWidth: '300px' }}>
@@ -93,7 +93,7 @@ export const EtlSidebar: React.FC<EtlSidebarProps> = ({
                          <div className="station-registry-item-info">
                             <span className="station-registry-item-name">{p.name}</span>
                             <span className="station-registry-item-meta">
-                               V{p.version} <span className={`station-registry-item-status txt-${p.isActive ? 'ok' : 'err'}`} style={{ fontWeight: 900 }}>{p.isActive ? 'ACTIVE' : 'OFF'}</span>
+                               V{p.version} <span className={`station-registry-item-status txt-${p.isActive ? 'ok' : 'err'}`} style={{ fontWeight: 900 }}>{p.isActive ? t('etl.status_active').toUpperCase() : t('etl.status_off').toUpperCase()}</span>
                             </span>
                          </div>
                       </div>

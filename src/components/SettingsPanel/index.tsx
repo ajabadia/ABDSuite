@@ -92,8 +92,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           )}
         </div>
 
-        <div className="station-form-grid" style={{ paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
-          <div className="station-checkbox-group" style={{ height: '40px' }}>
+        <div className="station-form-grid" style={{ paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className="station-checkbox-group" style={{ height: '48px', background: 'rgba(255,255,255,0.03)', borderRadius: '4px', padding: '0 12px' }}>
              <input
               type="checkbox"
               id="batchMode"
@@ -101,20 +101,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               checked={batchMode}
               onChange={(e) => setBatchMode(e.target.checked)}
             />
-             <label htmlFor="batchMode" className="station-label" style={{ margin: 0, cursor: 'pointer' }}>{t('settings.batch_mode')}</label>
+             <label htmlFor="batchMode" className="station-label" style={{ margin: 0, cursor: 'pointer', fontSize: '0.75rem' }}>{t('settings.batch_mode').toUpperCase()}</label>
           </div>
 
           <div className="station-form-field">
-            <label className="station-label">{mode === 'encrypt' ? t('crypt.suffix_encrypt') : t('crypt.suffix_decrypt')}</label>
+            <label className="station-label">{mode === 'encrypt' ? t('crypt.suffix_encrypt').toUpperCase() : t('crypt.suffix_decrypt').toUpperCase()}</label>
             <input
               id="suffix-input"
               type="text"
               value={outputSuffix}
               onChange={(e) => setOutputSuffix(e.target.value)}
               className="station-input"
+              style={{ fontWeight: 700, letterSpacing: '1px' }}
             />
           </div>
         </div>
+
 
         {canProcess && (
           <div className="flex-row" style={{ justifyContent: 'flex-end', marginTop: '12px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>

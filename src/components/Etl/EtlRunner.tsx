@@ -135,70 +135,104 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
   return (
     <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
       
+      {/* CABECERA INDUSTRIAL (Era 5) */}
       <div className="station-card">
         <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
-          <span className="station-form-section-title">CONTROL_PANEL</span>
-          {selectedPreset && (
-            <button className="station-btn icon-only" onClick={handleEditDesign}>
-              <CogIcon size={16} />
-            </button>
-          )}
+          <div className="flex-col" style={{ gap: '4px' }}>
+            <h2 className="station-title-main" style={{ margin: 0 }}>{selectedPreset?.name || t('etl.runner_title').toUpperCase()}</h2>
+            <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
+               <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>V{selectedPreset?.version || '1.0'}</span>
+               <span className={`station-badge ${isProcessing ? 'station-badge-orange' : 'station-badge-green'}`}>
+                  {isProcessing ? t('etl.status_active').toUpperCase() : (selectedPreset ? t('etl.status_ready').toUpperCase() : t('etl.status_idle').toUpperCase())}
+               </span>
+            </div>
+          </div>
+          <div className="flex-row" style={{ gap: '12px' }}>
+            {selectedPreset && (
+              <button className="station-btn" onClick={handleEditDesign}>
+                <CogIcon size={16} /> {t('settings.title').toUpperCase()}
+              </button>
+            )}
+          </div>
         </div>
 
+        <div className="station-tech-summary" style={{ marginTop: '24px' }}>
+          <div className="station-tech-item"><span className="station-tech-label">{t('etl.input').toUpperCase()}:</span> {inputFile?.name || 'NONE'}</div>
+          <div className="station-tech-item"><span className="station-tech-label">{t('etl.output').toUpperCase()}:</span> {outputHandle?.name || 'NONE'}</div>
+          <div className="station-tech-item"><span className="station-tech-label">{t('etl.status_label').toUpperCase()}:</span> {isProcessing ? t('etl.status_running').toUpperCase() : t('etl.status_standby').toUpperCase()}</div>
+        </div>
+      </div>
+
+      <div className="station-card">
+        <span className="station-form-section-title">{t('etl.source_destination').toUpperCase()}</span>
         <div className="station-form-grid" style={{ marginTop: '16px' }}>
           <div className="station-form-field medium">
             <label className="station-label">{t('etl.input_file').toUpperCase()}</label>
             <div className="flex-row" style={{ gap: '8px' }}>
               <input className="station-input" readOnly value={inputFile?.name || ''} placeholder="..." />
               <input type="file" id="etl-run-in" style={{ display: 'none' }} onChange={e => setInputFile(e.target.files?.[0] || null)} />
-              <button className="station-btn" onClick={() => document.getElementById('etl-run-in')?.click()}>...</button>
+              <button className="station-btn icon-only" onClick={() => document.getElementById('etl-run-in')?.click()}><FolderIcon size={16} /></button>
             </div>
           </div>
           <div className="station-form-field medium">
             <label className="station-label">{t('etl.output_path').toUpperCase()}</label>
             <div className="flex-row" style={{ gap: '8px' }}>
               <input className="station-input" readOnly value={outputHandle?.name || ''} placeholder="..." />
-              <button className="station-btn" onClick={handlePickOutput}>...</button>
+              <button className="station-btn icon-only" onClick={handlePickOutput}><FolderIcon size={16} /></button>
             </div>
           </div>
         </div>
       </div>
 
       <div className="station-card">
-        <span className="station-form-section-title">ENGINE_PARAMETERS</span>
+        <span className="station-form-section-title">{t('etl.engine_parameters').toUpperCase()}</span>
         <div className="station-form-grid" style={{ marginTop: '16px' }}>
            <div className="station-form-field">
              <label className="station-label">{t('etl.default_chunk').toUpperCase()}</label>
              <input type="number" className="station-input" value={options.chunkSize} onChange={e => setOptions({...options, chunkSize: parseInt(e.target.value) || 0})} />
            </div>
            <div className="station-form-field medium">
-             <label className="station-label">FORMAT</label>
+             <label className="station-label">{t('etl.format').toUpperCase()}</label>
              <select className="station-select" value={options.outputFormat} onChange={e => setOptions({...options, outputFormat: e.target.value as any})}>
-                <option value="CSV">COMMA_SEPARATED (CSV)</option>
-                <option value="JSON">DATA_STRUCTURE (JSON)</option>
+                <option value="CSV">{t('etl.format_csv').toUpperCase()}</option>
+                <option value="JSON">{t('etl.format_json').toUpperCase()}</option>
              </select>
            </div>
            <div className="station-form-field">
-             <label className="station-label">START_ROW</label>
+             <label className="station-label">{t('etl.start_row').toUpperCase()}</label>
              <input type="number" className="station-input" value={options.startRow} onChange={e => setOptions({...options, startRow: parseInt(e.target.value) || 1})} />
            </div>
            <div className="station-form-field">
-             <label className="station-label">END_ROW (0=AUTO)</label>
+             <label className="station-label">{t('etl.max_records').toUpperCase()}</label>
              <input type="number" className="station-input" value={options.endRow} onChange={e => setOptions({...options, endRow: parseInt(e.target.value) || 0})} />
            </div>
         </div>
       </div>
 
       <button 
-        className="station-btn station-btn-primary"
-        style={{ height: '64px', fontSize: '1.1rem' }}
+        className={`station-btn station-btn-primary ${isProcessing ? 'processing' : ''}`}
+        style={{ height: '72px', fontSize: '1.2rem', fontWeight: 800, letterSpacing: '2px' }}
         disabled={!inputFile || !outputHandle || !selectedPreset || isProcessing}
         onClick={startProcess}
       >
-        <PlayIcon size={20} /> {isProcessing ? 'PROCESADO LOTE...' : t('etl.run').toUpperCase()}
+        {isProcessing ? (
+          <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+            <span className="station-shimmer-text">{t('etl.status_executing').toUpperCase()}</span>
+          </div>
+        ) : (
+          <><PlayIcon size={24} /> {t('etl.runner').toUpperCase()}</>
+        )}
       </button>
+
+      {/* SELLO DE INTEGRID (Era 5) */}
+      <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
+         <div className="integrity-dot" />
+         <CogIcon size={14} />
+         <span>{t('dashboard.dash_etl_title').toUpperCase()} - {selectedPreset?.encoding?.toUpperCase() || 'UTF-8'}</span>
+      </div>
     </div>
   );
 };
+
 
 export default EtlRunner;

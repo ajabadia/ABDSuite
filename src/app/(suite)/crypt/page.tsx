@@ -60,21 +60,21 @@ function CryptPageContent() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%' }}>
-      <header className="module-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '1.2rem', fontWeight: 800 }}>
-          {mode === 'encrypt' ? (
-            <>
-              <ShieldCheckIcon size={28} style={{ opacity: 0.6 }} />
-              {t('crypt.shield_vault')}
-            </>
-          ) : (
-            <>
-              <UnlockIcon size={28} style={{ opacity: 0.6 }} />
-              {t('crypt.open_key')}
-            </>
-          )}
+      <header className="station-panel-header" style={{ padding: '0 0 20px 0' }}>
+        <div className="flex-col" style={{ gap: '4px' }}>
+          <h2 className="station-title-main" style={{ margin: 0 }}>
+            {mode === 'encrypt' ? t('crypt.shield_vault').toUpperCase() : t('crypt.open_key').toUpperCase()}
+          </h2>
+          <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
+             <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>ENGINE: AES-GCM 256</span>
+             <span className="station-badge station-badge-blue">SECURE_CONTEXT</span>
+             <span className={`station-badge ${password ? 'station-badge-green' : 'station-badge-orange'}`}>
+                {password ? 'VAULT_OPEN' : 'VAULT_LOCKED'}
+             </span>
+          </div>
         </div>
       </header>
+
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '64px', flex: 1, minHeight: 0 }}>
         <section style={{ display: 'flex', flexDirection: 'column' }}>

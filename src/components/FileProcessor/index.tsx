@@ -117,21 +117,29 @@ const FileProcessor: React.FC<FileProcessorProps> = ({
               </div>
             )
           ) : (
-            <div className="station-file-list">
+            <div className="station-registry-list" style={{ padding: '8px' }}>
               {files.map(({ file, id }) => (
-                <div key={id} className="station-file-item">
-                  <span className="fileName">{file.name}</span>
-                  <span className="fileSize">{(file.size / 1024).toFixed(1)} KB</span>
+                <div key={id} className="station-registry-item" style={{ cursor: 'default' }}>
+                  <div className="station-registry-item-left">
+                    <div className="station-registry-item-icon">
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary-color)', opacity: 0.6 }} />
+                    </div>
+                    <div className="station-registry-item-info">
+                      <span className="station-registry-item-name" style={{ fontSize: '0.85rem' }}>{file.name}</span>
+                      <span className="station-registry-item-meta">{(file.size / 1024).toFixed(1)} KB • {file.type || 'RAW_DATA'}</span>
+                    </div>
+                  </div>
                   <button 
                     onClick={() => removeFile(id)} 
-                    className="station-btn"
-                    style={{ padding: '0px', border: 'none', background: 'transparent' }}
+                    className="station-btn icon-only err"
+                    style={{ background: 'transparent', border: 'none' }}
                   >
-                    <XIcon size={16} style={{ color: 'var(--status-err)' }} />
+                    <XIcon size={14} />
                   </button>
                 </div>
               ))}
             </div>
+
           )}
         </div>
       </div>

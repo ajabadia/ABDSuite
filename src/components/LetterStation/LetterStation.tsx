@@ -44,6 +44,8 @@ const LetterStation: React.FC = () => {
   const [outputHandle, setOutputHandle] = useState<any>(null);
   const outputHandleRef = useRef<any>(null);
   const [rendererEngine, setRendererEngine] = useState<any>(null);
+  const writeQueue = useRef<Promise<void>>(Promise.resolve());
+
   
   // Sincronizar Ref para el manejador del Worker (Evita Stale Closure)
   useEffect(() => {
@@ -125,33 +127,40 @@ const LetterStation: React.FC = () => {
           }
         }
         if (type === 'DOCUMENT_READY' && outputHandleRef.current) {
-          try {
-            let finalContent = payload.content;
-            let finalName = payload.name;
+          writeQueue.current = writeQueue.current.then(async () => {
+            try {
+              let finalContent = payload.content;
+              let finalName = payload.name;
 
-            // CONVERSIÓN DE ALTA FIDELIDAD (MANTENIENDO COMPLEJIDAD)
-            if (options.outputType.startsWith('PDF') && finalName.endsWith('.docx') && rendererEngine) {
-               addLog(t('letter.motor.converting_pdf', { file: finalName }), 'info');
-               try {
-                  const docxBlob = new Blob([finalContent], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-                  const pdfBlob = await rendererEngine.renderToPdf(docxBlob, finalName);
+              // CONVERSIÓN DE ALTA FIDELIDAD (MANTENIENDO COMPLEJIDAD)
+              if (options.outputType.startsWith('PDF') && (finalName.endsWith('.docx') || finalName.endsWith('.html')) && rendererEngine) {
+                try {
+                  const isDocx = finalName.endsWith('.docx');
+                  const mimeType = isDocx ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'text/html';
+                  const docBlob = new Blob([finalContent], { type: mimeType });
+                  
+                  addLog(t('letter.motor.converting_pdf', { file: finalName }), 'info');
+                  const pdfBlob = await rendererEngine.renderToPdf(docBlob, finalName);
                   finalContent = await pdfBlob.arrayBuffer();
-                  finalName = finalName.replace('.docx', '.pdf');
-               } catch (convErr) {
-                  addLog(`ERROR CONVERSIÓN PDF: ${convErr}. SE MANTENDRÁ DOCX.`, 'warning');
-               }
-            }
+                  finalName = finalName.replace(/\.(docx|html)$/i, '.pdf');
+                } catch (convErr) {
+                  addLog(`ERROR CONVERSIÓN PDF: ${convErr}. SE MANTENDRÁ ORIGINAL.`, 'warning');
+                }
+              }
 
-            const fileHandle = await (outputHandleRef.current as any).getFileHandle(finalName, { create: true });
-            const writable = await fileHandle.createWritable();
-            await writable.write(finalContent);
-            await writable.close();
-            addLog(t('letter.motor.physical_save', { file: finalName }), 'info');
-          } catch (err: any) {
-            addLog(t('letter.motor.write_error', { file: payload.name, err: err.message }), 'error');
-            addLog(t('letter.motor.write_suggest'), 'warning');
-          }
+              const fileHandle = await (outputHandleRef.current as any).getFileHandle(finalName, { create: true });
+              const writable = await fileHandle.createWritable();
+              await writable.write(finalContent);
+              await writable.close();
+              addLog(t('letter.motor.physical_save', { file: finalName }), 'info');
+
+            } catch (err: any) {
+              addLog(t('letter.motor.write_error', { file: payload.name, err: err.message }), 'error');
+              addLog(t('letter.motor.write_suggest'), 'warning');
+            }
+          });
         }
+
       };
     }
     return () => workerRef.current?.terminate();
@@ -254,21 +263,31 @@ const LetterStation: React.FC = () => {
     } catch (err) { addLog(`ERROR AUTO-MAPEO: ${err}`, 'error'); }
   };
 
-  const handleRunStressTest = async () => {
+  const handleRunStressTest = async (count: number = 5) => {
     setIsProcessing(true);
-    addLog('INICIANDO DIAGNÓSTICO DE ESTRÉS (Volumen Reducido: 5)...', 'info');
+    addLog(`INICIANDO DIAGNÓSTICO DE ESTRÉS (Volumen: ${count})...`, 'info');
     try {
       const { presetId, templateId, mapping, template, preset } = await seedStressEnvironment();
-      setDataFile(generateIndustrialStressData(5));
+      const stressFile = generateIndustrialStressData(count);
+      
+      // Sincronización de Estado (Fuerza Reactividad)
       setSelectedPresetId(presetId);
+      setDataFile(stressFile);
       setSelectedTemplateId(templateId);
       setSelectedMapping(mapping);
+      
       (window as any).__STRESS_RESOURCES = { mapping, template, preset };
-      addLog(`RECURSOS INDUSTRIALES SINCRONIZADOS (5 REGISTROS).`);
+      
+      addLog(`RECURSOS INDUSTRIALES SINCRONIZADOS (${count} REGISTROS).`);
       addLog('ENTORNO CONFIGURADO TOTALMENTE. PULSE INICIAR MOTOR.');
-      setOptions(prev => ({ ...prev, lote: 'STRS' }));
-    } catch (err) { addLog(`ERROR EN DIAGNÓSTICO: ${err}`, 'error'); setIsProcessing(false); }
+      setOptions(prev => ({ ...prev, lote: 'STRS', outputType: count > 10 ? 'PDF' : 'PDF_GAWEB' }));
+    } catch (err) { 
+      addLog(`ERROR EN DIAGNÓSTICO: ${err}`, 'error'); 
+    } finally {
+      setIsProcessing(false);
+    }
   };
+
 
   const handleStart = async () => {
     if (!dataFile) { addLog('DIAGNOSTICO: Falta archivo de datos.', 'error'); return; }
@@ -453,11 +472,56 @@ const LetterStation: React.FC = () => {
           </div>
         )}
   
-        {isBox1Complete && (
-          <div className="station-card fade-in" style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px dashed rgba(239, 68, 68, 0.2)', marginTop: '24px' }}>
-            <button className="station-btn" style={{ width: '100%', height: '40px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-err)', fontWeight: 800 }} onClick={handleRunStressTest} disabled={isProcessing}><ZapIcon size={14} /> {t('letter.ui.stress_test_btn').toUpperCase()}</button>
+        {/* CONSOLA DE DIAGNÓSTICO (Siempre Accesible - Era 5) */}
+        <div className="station-card" style={{ 
+          background: 'rgba(239, 68, 68, 0.03)', 
+          border: '1px dashed rgba(239, 68, 68, 0.15)', 
+          marginTop: 'auto',
+          padding: '16px'
+        }}>
+          <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="flex-col">
+              <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--status-err)', letterSpacing: '0.05rem' }}>
+                INDUSTRIAL_DIAGNOSTIC_CONSOLE_V4
+              </span>
+              <span style={{ fontSize: '10px', opacity: 0.5 }}>
+                USE PARA AUTO-CONFIGURACIÓN DE ENTORNO Y PRUEBAS DE ESTRÉS PDF
+              </span>
+            </div>
+            <div className="flex-row" style={{ gap: '12px' }}>
+              <button 
+                className="station-btn" 
+                style={{ 
+                  height: '36px', 
+                  background: 'rgba(239, 68, 68, 0.1)', 
+                  color: 'var(--status-err)', 
+                  fontWeight: 800,
+                  border: '1px solid rgba(239, 68, 68, 0.2)'
+                }} 
+                onClick={() => handleRunStressTest(5)} 
+                disabled={isProcessing}
+              >
+                <ZapIcon size={14} /> {t('letter.ui.stress_test_btn').toUpperCase()} (5)
+              </button>
+              <button 
+                className="station-btn" 
+                style={{ 
+                  height: '36px', 
+                  background: 'var(--status-err)', 
+                  color: 'white', 
+                  fontWeight: 800,
+                  border: '1px solid var(--status-err)'
+                }} 
+                onClick={() => handleRunStressTest(50)} 
+                disabled={isProcessing}
+              >
+                <ZapIcon size={14} /> PDF_MASSIVE_QA (50)
+              </button>
+            </div>
+
           </div>
-        )}
+        </div>
+
 
         {/* Sello de Integridad (Era 5) */}
         <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
