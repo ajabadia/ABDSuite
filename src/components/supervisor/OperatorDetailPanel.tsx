@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Operator, UserRole, Capability } from '@/lib/types/auth.types';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { Operator, UserRole, Capability } from '@/lib/types/auth.types';
 import { operatorService } from '@/lib/services/OperatorService';
-import { SaveIcon, UserPlusIcon, ShieldCheckIcon, ZapIcon, XIcon, ListIcon } from '@/components/common/Icons';
+import { SaveIcon, UserPlusIcon, ShieldCheckIcon, ZapIcon, XIcon, ListIcon, ShieldAlertIcon, RefreshCwIcon } from '@/components/common/Icons';
+import { PermissionsService } from '@/lib/services/permissions';
+import { TelemetryConfigService } from '@/lib/services/telemetry-config.service';
 
 interface OperatorDetailPanelProps {
   selected: Operator | null;
@@ -22,6 +24,13 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
   const [newPin, setNewPin] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [maxPinAttempts, setMaxPinAttempts] = useState(5);
+
+  useEffect(() => {
+    TelemetryConfigService.loadConfig().then(cfg => {
+      setMaxPinAttempts(cfg.security.maxPinAttempts ?? 5);
+    });
+  }, []);
 
   useEffect(() => {
     if (selected) {
@@ -100,7 +109,49 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
     }
   };
 
+  const handleUnlockPin = async () => {
+    if (!selected || !currentOperator) return;
+    if (!confirm(t('operator.confirm_unlock_pin') || 'Unlock this operator PIN?')) return;
+    
+    setIsSaving(true);
+    try {
+      await operatorService.update(selected.id, { 
+        isActive: 1, 
+        failedPinAttempts: 0 
+      }, currentOperator.id);
+      onRefresh();
+    } catch (err: any) {
+      setError(err.message || 'Unlock failed');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleResetMfa = async () => {
+    if (!selected || !currentOperator) return;
+    if (!confirm(t('operator.confirm_reset_mfa') || 'Reset MFA for this operator?')) return;
+
+    setIsSaving(true);
+    try {
+      await operatorService.update(selected.id, {
+        mfaEnabled: false,
+        mfaSecret: undefined,
+        failedMfaAttempts: 0,
+        mfaLockedUntil: 0
+      }, currentOperator.id);
+      onRefresh();
+    } catch (err: any) {
+      setError(err.message || 'Reset MFA failed');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const canTransferMaster = currentOperator?.isMaster && selected && !selected.isMaster && selected.role === 'ADMIN';
+  const isPinLocked = (selected?.isActive === 0 || formData.isActive === 0) && (selected?.failedPinAttempts ?? 0) >= maxPinAttempts;
+  const canAdminSecurity = currentOperator?.role === 'ADMIN' || currentOperator?.isMaster;
+
+  const baseCaps = PermissionsService.baseCapabilitiesForRole(formData.role);
 
   return (
     <div className="flex-col" style={{ gap: '20px' }}>
@@ -109,6 +160,18 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
           {selected ? t('common.edit') : t('operator.create_btn')}
         </h3>
         <div className="flex-row" style={{ gap: '12px' }}>
+             {isPinLocked && canAdminSecurity && (
+               <button className="station-btn secondary warning" onClick={handleUnlockPin} disabled={isSaving}>
+                  <ShieldAlertIcon size={18} />
+                  <span>{t('operator.unlock_pin_btn') || 'UNLOCK PIN'}</span>
+               </button>
+             )}
+             {selected?.mfaEnabled && canAdminSecurity && (
+                <button className="station-btn secondary warning" onClick={handleResetMfa} disabled={isSaving}>
+                  <RefreshCwIcon size={18} />
+                  <span>{t('operator.reset_mfa_btn') || 'RESET MFA'}</span>
+                </button>
+             )}
              {canTransferMaster && (
                <button className="station-btn secondary warning" onClick={handleTransferMaster} disabled={isSaving}>
                   <ZapIcon size={18} />
@@ -124,6 +187,14 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
       </header>
 
       <div className="station-form-grid" style={{ gridTemplateColumns: '1fr' }}>
+        {isPinLocked && (
+          <div className="alert-box warning animate-fade-in">
+             <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+                <ShieldAlertIcon size={24} />
+                <p style={{ margin: 0, fontSize: '0.85rem' }}>{t('operator.pin_locked_banner') || 'Operator locked due to failed PIN attempts.'}</p>
+             </div>
+          </div>
+        )}
         <div className="station-form-group">
           <label className="station-label">{t('operator.username').toUpperCase()}</label>
           <input 
@@ -192,7 +263,7 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
                     ...formData, 
                     extraCapabilities: e.target.value.split(',').map(s => s.trim()).filter(s => s) as Capability[] 
                   })}
-                  placeholder="AUDIT_VIEW, ETL_RUN..."
+                  placeholder="AUDIT_VIEW, ETL_RUN, LETTER_GENERATE..."
                 />
               </div>
 
@@ -206,9 +277,32 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
                     ...formData, 
                     deniedCapabilities: e.target.value.split(',').map(s => s.trim()).filter(s => s) as Capability[] 
                   })}
-                  placeholder="CRYPT_USE, LETTER_GENERATE..."
+                  placeholder="CRYPT_USE, LETTER_CONFIG_GLOBAL, SETTINGS_GLOBAL..."
                 />
               </div>
+              
+              <div className="flex-col" style={{ gap: '8px', marginTop: '8px' }}>
+                <span className="station-label" style={{ fontSize: '0.6rem', opacity: 0.5 }}>RESULTING_CAPABILITY_MATRIX:</span>
+                <pre style={{ 
+                  fontSize: '0.65rem', 
+                  opacity: 0.7, 
+                  background: 'rgba(0,0,0,0.2)', 
+                  padding: '8px', 
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  whiteSpace: 'pre-wrap', 
+                  wordBreak: 'break-all',
+                  fontFamily: 'monospace'
+                }}>
+                  {(() => {
+                    const baseCaps = PermissionsService.baseCapabilitiesForRole(formData.role);
+                    return `BASE[${formData.role}] = ${baseCaps.join(', ') || 'NONE'}
++ EXTRA = ${formData.extraCapabilities?.join(', ') || '-'}
+- DENIED = ${formData.deniedCapabilities?.join(', ') || '-'}`;
+                  })()}
+                </pre>
+              </div>
+
               <p style={{ margin: 0, fontSize: '0.6rem', opacity: 0.5, fontStyle: 'italic' }}>
                 Priority Rule: DENIED &gt; (BASE_ROLE || EXTRAS).
               </p>

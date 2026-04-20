@@ -15,6 +15,7 @@ const ROLE_CAPABILITIES: Record<UserRole, Capability[]> = {
   ADMIN: [
     // CRYPT
     'CRYPT_USE',
+    'CRYPT_RUN',
     'CRYPT_CONFIG_GLOBAL',
     // ETL
     'ETL_VIEW',

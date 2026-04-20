@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { db } from '@/lib/db/db';
 import { AuditRecord, AuditModule } from '@/lib/types/audit-history.types';
 import { useLanguage } from '@/lib/context/LanguageContext';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { ForbiddenPanel } from '../common/ForbiddenPanel';
 import { IndustrialVirtualTable } from '../common/IndustrialVirtualTable';
 import { ListIcon, SearchIcon, AlertTriangleIcon, ActivityIcon, ShieldIcon, ClockIcon } from '../common/Icons';
 import { loadAuditRetention, saveAuditRetention, AuditRetentionSettings } from '@/lib/utils/audit-retention-settings';
@@ -160,6 +162,7 @@ export const AuditHistoryDashboard: React.FC = () => {
                         items={records}
                         totalItems={records.length}
                         itemHeight={ITEM_HEIGHT}
+                        containerHeight={600}
                         renderRow={renderRow}
                     />
                 </div>

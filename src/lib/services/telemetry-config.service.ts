@@ -20,6 +20,10 @@ const SECURITY_DEFAULTS: TelemetrySecurityConfig = {
   locksCritical: 2,
   techModeWarn: 1,
   techModeCritical: 2,
+  maxPinAttempts: 5,
+  pinCooldownMinutes: 15,
+  maxMfaAttempts: 5,
+  mfaCooldownMinutes: 15,
 };
 
 const CORPORATE_DEFAULTS = {
@@ -47,6 +51,10 @@ export class TelemetryConfigService {
         locksCritical: row?.telemetrySecurity?.locksCritical ?? SECURITY_DEFAULTS.locksCritical,
         techModeWarn: row?.telemetrySecurity?.techModeWarn ?? SECURITY_DEFAULTS.techModeWarn,
         techModeCritical: row?.telemetrySecurity?.techModeCritical ?? SECURITY_DEFAULTS.techModeCritical,
+        maxPinAttempts: row?.telemetrySecurity?.maxPinAttempts ?? SECURITY_DEFAULTS.maxPinAttempts,
+        pinCooldownMinutes: row?.telemetrySecurity?.pinCooldownMinutes ?? SECURITY_DEFAULTS.pinCooldownMinutes,
+        maxMfaAttempts: row?.telemetrySecurity?.maxMfaAttempts ?? SECURITY_DEFAULTS.maxMfaAttempts,
+        mfaCooldownMinutes: row?.telemetrySecurity?.mfaCooldownMinutes ?? SECURITY_DEFAULTS.mfaCooldownMinutes,
       },
       corporate: {
         logoBase64: row?.corporate?.logoBase64,

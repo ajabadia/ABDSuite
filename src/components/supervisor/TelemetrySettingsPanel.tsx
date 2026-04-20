@@ -165,6 +165,54 @@ export const TelemetrySettingsPanel: React.FC<TelemetrySettingsPanelProps> = ({ 
                      })}
                    />
                 </div>
+                <div className="form-group">
+                   <label>MAX PIN ATTEMPTS</label>
+                   <input 
+                     type="number" 
+                     className="station-input" 
+                     value={config.security.maxPinAttempts}
+                     onChange={(e) => setConfig({
+                       ...config, 
+                       security: { ...config.security, maxPinAttempts: Number(e.target.value) }
+                     })}
+                   />
+                </div>
+                <div className="form-group">
+                   <label>PIN COOLDOWN (MIN)</label>
+                   <input 
+                     type="number" 
+                     className="station-input" 
+                     value={config.security.pinCooldownMinutes}
+                     onChange={(e) => setConfig({
+                       ...config, 
+                       security: { ...config.security, pinCooldownMinutes: Number(e.target.value) }
+                     })}
+                   />
+                </div>
+                <div className="form-group">
+                   <label>MAX MFA ATTEMPTS</label>
+                   <input 
+                     type="number" 
+                     className="station-input" 
+                     value={config.security.maxMfaAttempts}
+                     onChange={(e) => setConfig({
+                       ...config, 
+                       security: { ...config.security, maxMfaAttempts: Number(e.target.value) }
+                     })}
+                   />
+                </div>
+                <div className="form-group">
+                   <label>MFA COOLDOWN (MIN)</label>
+                   <input 
+                     type="number" 
+                     className="station-input" 
+                     value={config.security.mfaCooldownMinutes}
+                     onChange={(e) => setConfig({
+                       ...config, 
+                       security: { ...config.security, mfaCooldownMinutes: Number(e.target.value) }
+                     })}
+                   />
+                </div>
              </div>
           </section>
 

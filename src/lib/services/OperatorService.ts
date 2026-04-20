@@ -2,6 +2,7 @@ import { coreDb } from '../db/SystemDB';
 import { auditService } from './AuditService';
 import { Operator, UserRole } from '../types/auth.types';
 import { hashPin } from '../utils/crypto.utils';
+import { generateTotpSecret, verifyTOTP } from '../utils/mfa.utils';
 
 /**
  * Industrial Operator Service (Phase 11.2)
@@ -106,7 +107,7 @@ class OperatorService {
     let severity: 'INFO' | 'WARN' | 'CRITICAL' = 'INFO';
 
     // Sensitivity check for critical capabilities
-    const SENSITIVE_CAPS: string[] = ['SETTINGS_GLOBAL', 'OPERATORS_MANAGE', 'CRYPT_CONFIG_GLOBAL', 'AUDIT_CONFIG', 'LETTER_CONFIG_GLOBAL', 'ETL_CONFIG_GLOBAL'];
+    const SENSITIVE_CAPS: string[] = ['SETTINGS_GLOBAL', 'OPERATORS_MANAGE', 'CRYPT_CONFIG_GLOBAL', 'AUDIT_CONFIG', 'LETTER_CONFIG_GLOBAL', 'ETL_CONFIG_GLOBAL', 'SYNC_EXPORT', 'SYNC_IMPORT'];
     const touchesSensitive = [...afterExtra, ...afterDenied, ...beforeExtra, ...beforeDenied].some(c => SENSITIVE_CAPS.includes(c));
 
     if (roleChanged) {
@@ -117,6 +118,17 @@ class OperatorService {
       messageKey = 'operator.capabilities.override';
       eventType = 'OPERATOR_CAPABILITY_OVERRIDE';
       severity = touchesSensitive ? 'CRITICAL' : 'WARN';
+    }
+
+    // PIN Unlock Detection (Phase 13)
+    const wasInactive = existing.isActive === 0;
+    const becomesActive = updates.isActive === 1;
+    const attemptsCleared = (updates.failedPinAttempts === 0) && (existing.failedPinAttempts || 0) > 0;
+    
+    if (wasInactive && becomesActive && attemptsCleared) {
+      messageKey = 'operator.pin.unlock';
+      eventType = 'OPERATOR_PIN_UNLOCK';
+      severity = 'INFO';
     }
 
     await coreDb.operators.update(id, updates);
@@ -131,6 +143,7 @@ class OperatorService {
         entityType: 'OPERATOR',
         entityId: id,
         actorId: actorId,
+        actorUser: (await coreDb.operators.get(actorId))?.username || 'system',
         severity,
         context: {
           username: existing.username,
@@ -145,6 +158,74 @@ class OperatorService {
         }
       }
     });
+  }
+
+  /**
+   * Starts MFA Enrollment for an operator.
+   */
+  async startMfaEnrollment(id: string, actorId: string): Promise<{ secret: string }> {
+    const existing = await coreDb.operators.get(id);
+    if (!existing) throw new Error('OPERATOR_NOT_FOUND');
+
+    const secret = generateTotpSecret();
+    
+    await coreDb.operators.update(id, {
+      mfaSecret: secret,
+      mfaEnabled: false, // Not enabled until confirmed
+      updatedAt: Date.now()
+    });
+
+    await auditService.log({
+      module: 'SECURITY',
+      messageKey: 'operator.mfa.enroll_start',
+      status: 'INFO',
+      operatorId: actorId,
+      details: {
+        eventType: 'OPERATOR_MFA_ENROLL_START',
+        entityType: 'OPERATOR',
+        entityId: id,
+        actorId,
+        severity: 'INFO',
+        context: { target: existing.username }
+      }
+    });
+
+    return { secret };
+  }
+
+  /**
+   * Confirms MFA Enrollment with a valid code.
+   */
+  async confirmMfaEnrollment(id: string, code: string, actorId: string): Promise<boolean> {
+    const existing = await coreDb.operators.get(id);
+    if (!existing || !existing.mfaSecret) throw new Error('MFA_NOT_INITIALIZED');
+
+    const isValid = await verifyTOTP(existing.mfaSecret, code);
+    if (!isValid) return false;
+
+    await coreDb.operators.update(id, {
+      mfaEnabled: true,
+      failedMfaAttempts: 0,
+      mfaLockedUntil: 0,
+      updatedAt: Date.now()
+    });
+
+    await auditService.log({
+      module: 'SECURITY',
+      messageKey: 'operator.mfa.enroll_complete',
+      status: 'SUCCESS',
+      operatorId: actorId,
+      details: {
+        eventType: 'OPERATOR_MFA_ENROLL_COMPLETE',
+        entityType: 'OPERATOR',
+        entityId: id,
+        actorId,
+        severity: 'INFO',
+        context: { target: existing.username }
+      }
+    });
+
+    return true;
   }
 
   /**

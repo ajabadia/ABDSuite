@@ -29,14 +29,26 @@ const getCategory = (log: AuditRow): EventCategory => {
   return 'OTHER';
 };
 
-export const SecurityAuditPanel: React.FC = () => {
+interface SecurityAuditPanelProps {
+  initialEventType?: string;
+}
+
+export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialEventType }) => {
   const { t } = useLanguage();
   const [logs, setLogs] = useState<AuditRow[]>([]);
   const [mode, setMode] = useState<FilterMode>('SECURITY');
-  const [typeFilter, setTypeFilter] = useState<string>('ALL');
+  const [typeFilter, setTypeFilter] = useState<string>(initialEventType ?? 'ALL');
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('ALL');
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | EventCategory>('ALL');
   const [isLoading, setIsLoading] = useState(true);
+
+  // Sync with external filters (Phase 13 Drill-down)
+  useEffect(() => {
+    if (initialEventType) {
+      setTypeFilter(initialEventType);
+      setMode('SECURITY');
+    }
+  }, [initialEventType]);
 
   const loadLogs = async () => {
     setIsLoading(true);

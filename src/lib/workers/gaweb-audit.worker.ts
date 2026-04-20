@@ -12,20 +12,21 @@ import type {
 
 declare const self: DedicatedWorkerGlobalScope;
 
-let state: {
+interface AuditWorkerState {
   isRunning: boolean;
   totalLines: number;
   totalErrors: number;
   totalWarnings: number;
   errorsByType: Record<string, number>;
-  // Buffers de previsualización (Escala Industrial)
   dataPreview: GawebRow[];
   errorsPreview: GawebErrorLite[];
   maxErrorsPreview: number;
   encoding: 'windows-1252' | 'utf-8';
-} = resetState();
+}
 
-function resetState() {
+let state: AuditWorkerState = resetState();
+
+function resetState(): AuditWorkerState {
   return {
     isRunning: false,
     totalLines: 0,
@@ -44,9 +45,11 @@ function post(msg: AuditWorkerOutMessage) {
 }
 
 self.onmessage = async (event: MessageEvent<AuditWorkerInMessage>) => {
-  const { type, payload } = event.data;
+  const data = event.data;
 
-  if (type === 'START_AUDIT') {
+  if (data.type === 'START_AUDIT') {
+    const { payload } = data;
+
     if (state.isRunning) {
         state.isRunning = false; // Cancel existing
     }
@@ -75,19 +78,19 @@ self.onmessage = async (event: MessageEvent<AuditWorkerInMessage>) => {
     }
   }
 
-  if (type === 'REQUEST_DATA_WINDOW') {
-    const { start, end } = payload;
+  if (data.type === 'REQUEST_DATA_WINDOW') {
+    const { start, end } = data.payload;
     const rows = state.dataPreview.filter(r => r.line >= start && r.line <= end);
     post({ type: 'DATA_WINDOW', payload: { start, end, rows } });
   }
 
-  if (type === 'REQUEST_ERRORS_WINDOW') {
-    const { start, end } = payload;
+  if (data.type === 'REQUEST_ERRORS_WINDOW') {
+    const { start, end } = data.payload;
     const errors = state.errorsPreview.slice(start, end + 1);
     post({ type: 'ERRORS_WINDOW', payload: { start, end, errors } });
   }
 
-  if (type === 'CANCEL_AUDIT') {
+  if (data.type === 'CANCEL_AUDIT') {
     state.isRunning = false;
   }
 };

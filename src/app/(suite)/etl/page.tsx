@@ -244,8 +244,7 @@ function EtlPageContent() {
                 <EtlRunner 
                   presets={presets}
                   selectedPreset={selectedPreset}
-                  onSelectPreset={handleSelectPreset}
-                  canRun={canRun}
+                  onSelect={handleSelectPreset}
                 />
               )}
             </div>

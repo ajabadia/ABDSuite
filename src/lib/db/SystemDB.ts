@@ -17,9 +17,9 @@ export class ABDFNCoreDB extends Dexie {
 
   constructor() {
     super('ABDFN_CORE');
-    this.version(7).stores({
+    this.version(8).stores({
       units: 'id, code, name, isActive',
-      operators: 'id, displayName, username, pinHash, unitIds, role, isActive, isMaster',
+      operators: 'id, displayName, username, pinHash, unitIds, role, isActive, isMaster, failedPinAttempts, failedMfaAttempts',
       system_log: 'id, timestamp, action, status',
       
       // ERA 6 - UUID & Registry Optimized

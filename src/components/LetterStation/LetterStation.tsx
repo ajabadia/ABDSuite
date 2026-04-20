@@ -35,11 +35,12 @@ import { RendererHost } from '@/components/common/RendererHost';
 import { useLog } from '@/lib/context/LogContext';
 import { LogLevel } from '@/lib/types/log.types';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { auditService } from '@/lib/services/AuditService';
 
 const LetterStation: React.FC = () => {
   const { t } = useLanguage();
   const { environment, isTechnicianMode } = useConfig();
-  const { can } = useWorkspace();
+  const { can, currentOperator } = useWorkspace();
   const { addLog: globalAddLog } = useLog();
   const router = useRouter();
   
@@ -58,7 +59,10 @@ const LetterStation: React.FC = () => {
   const [dataFile, setDataFile] = useState<File | null>(null);
   const [outputHandle, setOutputHandle] = useState<FileSystemHandle | null>(null);
   const outputHandleRef = useRef<FileSystemHandle | null>(null);
-  const [rendererEngine, setRendererEngine] = useState<{renderToPdf: (b: Blob, n: string) => Promise<Blob>} | null>(null);
+  const [rendererEngine, setRendererEngine] = useState<{
+    renderToPdf: (b: Blob, n: string) => Promise<Blob>,
+    captureFingerprint: (b: Blob, n: string) => Promise<string>
+  } | null>(null);
   const writeQueue = useRef<Promise<void>>(Promise.resolve());
 
   
@@ -164,20 +168,27 @@ const LetterStation: React.FC = () => {
             setPendingDownload({ blob: payload.blob, name: payload.name || 'document.zip' });
             addLog(t('letter.motor.file_ready'), 'info');
 
-            // REGISTRO DE AUDITORÍA: BATCH COMPLETADO
-            db.audit_history_v6.add({
-              id: crypto.randomUUID(),
-              timestamp: Date.now(),
+            // REGISTRO DE AUDITORÍA: BATCH COMPLETADO (Phase 12.1 refinement)
+            await auditService.log({
               module: 'LETTER',
-              action: 'LETTER_BATCH_GEN',
+              messageKey: 'letter.batch.run',
               status: 'SUCCESS',
-              details: JSON.stringify({
-                lote: options.lote,
-                templateId: selectedTemplateId,
-                outputType: options.outputType,
-                fileName: payload.name
-              })
-            } as any).catch(e => console.error('Failed to log batch audit', e));
+              operatorId: currentOperator?.id,
+              details: {
+                eventType: 'LETTER_BATCH_RUN',
+                entityType: 'LETTER_BATCH',
+                entityId: `batch_${Date.now()}`,
+                actorId: currentOperator?.id,
+                actorUser: currentOperator?.username,
+                severity: 'INFO',
+                context: {
+                  presetName: presets.find(p => p.id === selectedPresetId)?.name || 'N/A',
+                  templateName: templates.find(t => t.id === selectedTemplateId)?.name || 'N/A',
+                  totalDocs: 0,
+                  outputType: options.outputType
+                }
+              }
+            });
           }
         }
         if (type === 'DOCUMENT_READY' && payload && outputHandleRef.current) {
@@ -201,43 +212,39 @@ const LetterStation: React.FC = () => {
                     addLog('AUTOMATED_QA: Inmediata verificación de integridad visual...', 'warning');
                     const currentHash = await (rendererEngine as any).captureFingerprint(docBlob, finalName);
                     
-                    if (currentHash === goldenRef.layoutHash) {
-                      addLog('🏆 QA_MATCH: Integridad visual confirmada.', 'success');
+                    const isMatch = currentHash === goldenRef.layoutHash;
+                    const qaResult = isMatch ? 'MATCH' : 'BREAK';
+                    
+                    if (isMatch) {
+                      addLog('🏆 QA_MATCH: Integridad visual confirmada.', 'info');
                       setQaStatus('MATCH');
-                      await Promise.all([
-                        db.golden_tests_v6.update(goldenRef.id!, { lastVerifiedAt: Date.now() }),
-                        db.audit_history_v6.add({
-                          id: crypto.randomUUID(),
-                          timestamp: Date.now(),
-                          module: 'LETTER',
-                          action: 'LETTER_QA_MATCH',
-                          status: 'SUCCESS',
-                          details: JSON.stringify({
-                            templateId: selectedTemplateId,
-                            mappingId: selectedMapping.id,
-                            lote: options.lote,
-                            docName: finalName,
-                            layoutHash: currentHash
-                          })
-                        } as any)
-                      ]);
+                      await db.golden_tests_v6.update(goldenRef.id!, { lastVerifiedAt: Date.now() });
                     } else {
                       addLog('❌ QA_BREAK: Regresión de layout detectada.', 'error');
-                      await db.audit_history_v6.add({
-                        id: crypto.randomUUID(),
-                        timestamp: Date.now(),
-                        module: 'LETTER',
-                        action: 'LETTER_QA_BREAK',
-                        status: 'ERROR',
-                        details: JSON.stringify({
-                          templateId: selectedTemplateId,
-                          mappingId: selectedMapping.id,
+                    }
+
+                    // AUDIT QA BATCH (Phase 12.1 refinement)
+                    await auditService.log({
+                      module: 'LETTER',
+                      messageKey: 'letter.qa.batch',
+                      status: isMatch ? 'SUCCESS' : 'WARNING',
+                      operatorId: currentOperator?.id,
+                      details: {
+                        eventType: 'LETTER_QA_BATCH',
+                        entityType: 'LETTER_QA',
+                        entityId: options.lote,
+                        actorId: currentOperator?.id,
+                        actorUser: currentOperator?.username,
+                        severity: isMatch ? 'INFO' : 'CRITICAL',
+                        context: {
                           lote: options.lote,
-                          docName: finalName,
-                          detectedHash: currentHash,
-                          expectedHash: goldenRef.layoutHash
-                        })
-                      } as any);
+                          codDocumento: options.codDocumento,
+                          qaStatus: qaResult
+                        }
+                      }
+                    });
+
+                    if (!isMatch) {
                       setIsProcessing(false);
                       workerRef.current?.terminate(); // PARADA INDUSTRIAL AUTOMÁTICA
                       addLog('LOTE DETENIDO POR SEGURIDAD INDUSTRIAL (QA_BREAK).', 'error');
@@ -261,7 +268,7 @@ const LetterStation: React.FC = () => {
               addLog(t('letter.motor.physical_save', { file: finalName }), 'info');
 
             } catch (err: any) {
-              addLog(t('letter.motor.write_error', { file: payload.name, err: err.message }), 'error');
+              addLog(t('letter.motor.write_error', { file: payload.name || 'document', err: err.message }), 'error');
             }
           });
         }
@@ -674,12 +681,18 @@ const LetterStation: React.FC = () => {
                     addLog('GENERANDO FINGERPRINT GOLDEN...', 'info');
                     const hash = await rendererEngine.captureFingerprint(pendingDownload.blob, pendingDownload.name);
                     await db.golden_tests_v6.add({
-                      name: `Golden_${pendingDownload.name}`,
                       templateId: selectedTemplateId!,
-                      hash: hash,
-                      createdAt: Date.now()
+                      mappingId: selectedMapping?.id || '',
+                      etlPresetId: selectedPresetId!,
+                      codDocumento: options.codDocumento,
+                      version: '1.000',
+                      layoutHash: hash,
+                      hashAlgorithm: 'SHA-256',
+                      renderSpec: 'v1:page1@144dpi:gray:512x724',
+                      createdAt: Date.now(),
+                      updatedAt: Date.now()
                     });
-                    addLog('SÍMBOLO GOLDEN GUARDADO EN EL REGISTRO DE QA.', 'success');
+                    addLog('SÍMBOLO GOLDEN GUARDADO EN EL REGISTRO DE QA.', 'info');
                   }
                 }}
               >
@@ -740,7 +753,7 @@ const LetterStation: React.FC = () => {
                         };
 
                         await db.golden_tests_v6.add(newGolden);
-                        addLog('HUELLA GOLDEN REGISTRADA CON ÉXITO.', 'success');
+                        addLog('HUELLA GOLDEN REGISTRADA CON ÉXITO.', 'info');
                         setQaStatus('MATCH');
                       }
                     }}

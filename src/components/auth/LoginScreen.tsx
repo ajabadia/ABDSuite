@@ -72,7 +72,7 @@ export const LoginScreen: React.FC = () => {
           setLoginSuccess(true);
         }
       } else {
-        setError('PIN ACCESO DENEGADO');
+        setError(t('auth.login.error_pin'));
         setPin('');
       }
     } else {
@@ -81,7 +81,7 @@ export const LoginScreen: React.FC = () => {
       if (success) {
         setLoginSuccess(true);
       } else {
-        setError('CÓDIGO MFA INCORRECTO');
+        setError(t('auth.mfa.invalid'));
         setMfaToken('');
       }
     }
@@ -120,8 +120,8 @@ export const LoginScreen: React.FC = () => {
       <div className="station-modal-overlay" style={{ background: 'var(--bg-primary)' }}>
         <div className="flex-col" style={{ gap: '40px', alignItems: 'center' }}>
               <header style={{ textAlign: 'center' }}>
-                 <h1 style={{ fontSize: '2rem', letterSpacing: '4px', marginBottom: '8px' }}>SELECCIÓN DE UNIDAD</h1>
-                 <p style={{ opacity: 0.5 }}>OPERARIO: {(currentOperator.displayName || currentOperator.username || 'OPERATOR').toUpperCase()}</p>
+                 <h1 style={{ fontSize: '2rem', letterSpacing: '4px', marginBottom: '8px' }}>{t('auth.login.unit_selection_title') || 'SELECCIÓN DE UNIDAD'}</h1>
+                 <p style={{ opacity: 0.5 }}>{t('operator.role').toUpperCase()}: {(currentOperator.displayName || currentOperator.username || 'OPERATOR').toUpperCase()}</p>
               </header>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '16px', width: '400px' }}>
@@ -148,7 +148,7 @@ export const LoginScreen: React.FC = () => {
           </div>
 
           <button className="station-btn station-btn-secondary" onClick={logout}>
-            VOLVER AL LOGIN
+            {t('auth.mfa.back_btn')}
           </button>
         </div>
       </div>
@@ -176,22 +176,22 @@ export const LoginScreen: React.FC = () => {
             <header className="flex-col" style={{ alignItems: 'center', gap: '12px' }}>
                <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
                   <ShieldIcon size={40} color="var(--accent-primary)" />
-                  <h1 style={{ fontSize: '2rem', letterSpacing: '8px', margin: 0 }}>ABDFN SUITE</h1>
+                  <h1 style={{ fontSize: '2rem', letterSpacing: '8px', margin: 0 }}>{t('ui.title')}</h1>
                </div>
                <div style={{ height: '2px', width: '100%', background: 'var(--accent-primary)', opacity: 0.3 }} />
-               <p style={{ fontSize: '1rem', opacity: 0.6, letterSpacing: '4px', textTransform: 'uppercase' }}>INDUSTRIAL ACCESS NODE</p>
+               <p style={{ fontSize: '1rem', opacity: 0.6, letterSpacing: '4px', textTransform: 'uppercase' }}>{t('dashboard.sys_status_online')}</p>
             </header>
 
             <div className="flex-col" style={{ alignItems: 'center', gap: '24px', width: '100%' }}>
                <span style={{ fontSize: '0.8rem', opacity: 0.4, fontWeight: 'bold', letterSpacing: '2px' }}>
-                 {mfaPhase ? '[ DOBLE FACTOR - TOTP ]' : '[ IDENTIFICACIÓN ]'}
+                 {mfaPhase ? `[ ${t('auth.mfa.placeholder_token')} - TOTP ]` : `[ ${t('audit.tabSecurity')} ]`}
                </span>
                
                {/* PIN / MFA Digit Feedback */}
                <div className="flex-row" style={{ gap: '16px', height: '60px', alignItems: 'center', justifyContent: 'center' }}>
                   {!mfaPhase ? (
                     pin.length === 0 ? (
-                      <span style={{ opacity: 0.2, fontSize: '0.8rem', letterSpacing: '4px' }}>INTRODUZCA PIN</span>
+                      <span style={{ opacity: 0.2, fontSize: '0.8rem', letterSpacing: '4px' }}>{t('auth.login.placeholder_pin')}</span>
                     ) : (
                       pin.split('').map((_, idx) => (
                         <div key={`pin-${idx}`} className="flex-center" style={{ width: '40px', height: '56px', borderBottom: '4px solid var(--accent-primary)', fontSize: '2.5rem', color: 'var(--accent-primary)', transform: 'translateY(-4px)', animation: 'fadeIn 0.2s ease-out' }}>*</div>
@@ -199,7 +199,7 @@ export const LoginScreen: React.FC = () => {
                     )
                   ) : (
                     mfaToken.length === 0 ? (
-                      <span style={{ opacity: 0.2, fontSize: '0.8rem', letterSpacing: '4px' }}>CÓDIGO APP</span>
+                      <span style={{ opacity: 0.2, fontSize: '0.8rem', letterSpacing: '4px' }}>{t('auth.mfa.placeholder_token')}</span>
                     ) : (
                       mfaToken.split('').map((char, idx) => (
                         <div key={`mfa-${idx}`} className="flex-center" style={{ width: '40px', height: '56px', borderBottom: '4px solid var(--accent-secondary)', fontSize: '2.5rem', color: 'var(--accent-secondary)', transform: 'translateY(-4px)', animation: 'fadeIn 0.2s ease-out' }}>
@@ -226,7 +226,7 @@ export const LoginScreen: React.FC = () => {
                   onDoubleClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { ctrlKey: true, shiftKey: true, key: 'F12' }))}
                 >
                     <KeyIcon size={14} style={{ marginRight: '8px' }} />
-                    MODO TÉCNICO (DOBLE CLICK)
+                    {t('auth.login.technical_mode')}
                 </button>
               </div>
             )}
@@ -236,7 +236,7 @@ export const LoginScreen: React.FC = () => {
                 style={{ marginTop: '20px', border: 'none', background: 'transparent', opacity: 0.5 }}
                 onClick={() => { setMfaPhase(false); setMfaToken(''); setError(null); }}
               >
-                VOLVER AL PIN
+                {t('auth.mfa.back_btn')}
               </button>
             )}
           </div>
@@ -284,7 +284,7 @@ export const LoginScreen: React.FC = () => {
               onClick={handleSubmit}
              >
                 <CheckIcon size={24} style={{ marginRight: '16px' }} />
-                {mfaPhase ? 'VERIFICAR TOKEN' : 'ACCEDER'}
+                {mfaPhase ? t('auth.mfa.verify_btn') : t('auth.login.access_btn')}
              </button>
           </div>
        </div>
@@ -292,7 +292,7 @@ export const LoginScreen: React.FC = () => {
        {/* Floating Industrial Status */}
        <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px', pointerEvents: 'none' }}>
          <div className="integrity-dot" />
-         <span>SECURE NODE v6.0.0</span>
+         <span>{t('ui.title')} v6.0.0</span>
        </div>
     </div>
   );

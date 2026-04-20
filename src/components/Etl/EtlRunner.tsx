@@ -15,10 +15,10 @@ import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
 interface EtlRunnerProps {
   presets: EtlPreset[];
   selectedPreset: EtlPreset | null;
-  onSelectPreset: (preset: EtlPreset) => void;
+  onSelect: (preset: EtlPreset) => void;
 }
 
-const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelectPreset }) => {
+const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect }) => {
   const { t } = useLanguage();
   const { can } = useWorkspace();
   const router = useRouter();

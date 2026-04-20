@@ -1,128 +1,121 @@
 /**
- * MFA Utilities for ABDFN Suite (Phase 9)
- * Implementation of RFC 6238 (TOTP) and RFC 4648 (Base32) using Web Crypto API.
- * High-security, zero-dependency industrial authenticaton.
+ * ABDFN Unified Suite - MFA Utilities (Phase 13)
+ * Pure Web Crypto implementation of TOTP (RFC 6238).
  */
 
-const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+const TOTP_DIGITS = 6;
+const TOTP_PERIOD = 30; // seconds
+const TOTP_ALGO = 'SHA-1'; // Standard TOTP/HOTP algorithm
 
 /**
- * Generates a random Base32 secret for MFA enrollment.
+ * Generates a random Base32 secret for TOTP.
  */
-export function generateMfaSecret(length = 16): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
+export function generateTotpSecret(length: number = 20): string {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'; // RFC 4648 Base32 alphabet
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+
   let secret = '';
   for (let i = 0; i < bytes.length; i++) {
-    secret += BASE32_ALPHABET[bytes[i] % 32];
+    secret += charset[bytes[i] % charset.length];
   }
   return secret;
 }
 
 /**
- * Decodes a Base32 string into a Uint8Array.
+ * Builds an otpauth:// URI for QR generation.
  */
-function base32Decode(base32: string): Uint8Array {
-  const normalized = base32.toUpperCase().replace(/=+$/, '');
-  const len = normalized.length;
-  const res = new Uint8Array(((len * 5) / 8) | 0);
-  let bits = 0;
-  let value = 0;
-  let index = 0;
+export function buildOtpAuthUri(
+  secret: string,
+  accountName: string,
+  issuer: string = 'ABDFN-SUITE'
+): string {
+  const label = encodeURIComponent(`${issuer}:${accountName}`);
+  const params = new URLSearchParams({
+    secret,
+    issuer,
+    algorithm: TOTP_ALGO.replace('-', ''),
+    digits: String(TOTP_DIGITS),
+    period: String(TOTP_PERIOD)
+  });
 
-  for (let i = 0; i < len; i++) {
-    const val = BASE32_ALPHABET.indexOf(normalized[i]);
-    if (val === -1) throw new Error('INVALID_BASE32_CHARACTER');
-    value = (value << 5) | val;
-    bits += 5;
-    if (bits >= 8) {
-      res[index++] = (value >> (bits - 8)) & 0xff;
-      bits -= 8;
-    }
-  }
-  return res;
+  return `otpauth://totp/${label}?${params.toString()}`;
 }
 
 /**
- * Calculates HMAC-SHA1 using Web Crypto Subtle API.
+ * Decodes a Base32 string into a Uint8Array.
  */
-async function hmacSha1(keyData: Uint8Array, message: Uint8Array): Promise<Uint8Array> {
+function base32ToBytes(base32: string): Uint8Array {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const cleaned = base32.replace(/=+$/g, '').toUpperCase();
+
+  let bits = '';
+  for (const c of cleaned) {
+    const val = alphabet.indexOf(c);
+    if (val === -1) continue;
+    bits += val.toString(2).padStart(5, '0');
+  }
+
+  const bytes: number[] = [];
+  for (let i = 0; i + 8 <= bits.length; i += 8) {
+    bytes.push(parseInt(bits.slice(i, i + 8), 2));
+  }
+
+  return new Uint8Array(bytes);
+}
+
+/**
+ * Generates a TOTP code for a specific time.
+ */
+async function generateTotpForTime(secret: string, time: number): Promise<string> {
+  const counter = Math.floor(time / TOTP_PERIOD);
+  const counterBytes = new ArrayBuffer(8);
+  const view = new DataView(counterBytes);
+  // Write counter as 64-bit big-endian (RFC 4226)
+  view.setUint32(4, counter, false);
+  view.setUint32(0, 0, false); // Upper 32 bits are zero for current timestamps
+
+  const secretKeyData = base32ToBytes(secret);
+
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-1' },
+    secretKeyData as unknown as BufferSource,
+    { name: 'HMAC', hash: { name: TOTP_ALGO } },
     false,
     ['sign']
   );
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, message);
-  return new Uint8Array(signature);
+
+  const hmac = await crypto.subtle.sign('HMAC', cryptoKey, counterBytes);
+  const hmacBytes = new Uint8Array(hmac);
+
+  // Dynamic truncation (RFC 4226)
+  const offset = hmacBytes[hmacBytes.length - 1] & 0x0f;
+  const binary =
+    ((hmacBytes[offset] & 0x7f) << 24) |
+    ((hmacBytes[offset + 1] & 0xff) << 16) |
+    ((hmacBytes[offset + 2] & 0xff) << 8) |
+    (hmacBytes[offset + 3] & 0xff);
+
+  const otp = (binary % 10 ** TOTP_DIGITS).toString().padStart(TOTP_DIGITS, '0');
+  return otp;
 }
 
 /**
- * Generates a 6-digit TOTP code for a given Base32 secret.
- * @param secret Base32 encoded secret key
- * @param window Step window (default 30s)
+ * Verifies a TOTP token against a secret with window tolerance.
  */
-export async function generateTOTP(secret: string, time = Date.now()): Promise<string> {
-  const key = base32Decode(secret);
-  const epoch = Math.floor(time / 1000);
-  const counter = Math.floor(epoch / 30);
+export async function verifyTOTP(
+  secret: string,
+  token: string,
+  window: number = 1 // ±1 period tolerance
+): Promise<boolean> {
+  if (!/^\d+$/.test(token)) return false;
+  const now = Math.floor(Date.now() / 1000);
 
-  // Counter as 8-byte big-endian
-  const counterBuffer = new Uint8Array(8);
-  let tempCounter = counter;
-  for (let i = 7; i >= 0; i--) {
-    counterBuffer[i] = tempCounter & 0xff;
-    tempCounter = tempCounter >> 8;
+  for (let offset = -window; offset <= window; offset++) {
+    const t = now + offset * TOTP_PERIOD;
+    const expected = await generateTotpForTime(secret, t);
+    if (expected === token) return true;
   }
 
-  const hmac = await hmacSha1(key, counterBuffer);
-  const offset = hmac[hmac.length - 1] & 0x0f;
-  
-  const token = (
-    ((hmac[offset] & 0x7f) << 24) |
-    ((hmac[offset + 1] & 0xff) << 16) |
-    ((hmac[offset + 2] & 0xff) << 8) |
-    (hmac[offset + 3] & 0xff)
-  ) % 1000000;
-
-  return token.toString().padStart(6, '0');
-}
-
-/**
- * Verifies a TOTP code against a secret.
- * Supports a ±1 window (30s before/after) to account for clock drift.
- */
-export async function verifyTOTP(secret: string, code: string): Promise<boolean> {
-  const now = Date.now();
-  const windows = [0, -30000, 30000]; // current, -1, +1
-
-  for (const drift of windows) {
-    const generated = await generateTOTP(secret, now + drift);
-    if (generated === code) return true;
-  }
   return false;
-}
-
-/**
- * Generates an otpauth:// URI for enrollment.
- */
-export function generateMfaUri(label: string, secret: string, issuer = 'ABDFN_Suite'): string {
-  const encodedLabel = encodeURIComponent(`${issuer}:${label}`);
-  const encodedIssuer = encodeURIComponent(issuer);
-  return `otpauth://totp/${encodedLabel}?secret=${secret}&issuer=${encodedIssuer}&algorithm=SHA1&digits=6&period=30`;
-}
-
-/**
- * Industrial Aseptic QR Generator (Simplified SVG for TOTP URIs)
- * To avoid external deps, we implement a basic QR-style visualization or 
- * a high-density data matrix if needed. For Phase 9, a simple SVG "Simu-QR"
- * or a tiny vendorized QR logic is best.
- * 
- * NOTE: For full production, a vendorized 'qrcode' library is recommended.
- * Here we provide the URI and a placeholder UX to be replaced by 
- * a proper generator in the next step.
- */
-export function getMfaQrPlaceholder(uri: string): string {
-  // TODO: Implement actual SVG QR generation logic in a separate component/utility
-  return uri;
 }

@@ -3,8 +3,8 @@
  * Strict interfaces for Document Engine communication.
  */
 
-import { LetterGenerationOptions, GawebRecord } from './letter.types';
-import { EtlPreset, LetterTemplate, LetterMapping } from './letter.types';
+import { LetterGenerationOptions, GawebRecord, LetterTemplate, LetterMapping } from './letter.types';
+import { EtlPreset } from './etl.types';
 
 export type WorkerMessageType = 
   | 'START' 
@@ -21,7 +21,7 @@ export interface LetterWorkerPayload {
   etlPreset: EtlPreset;
   options: LetterGenerationOptions;
   isStreaming?: boolean;
-  gawebFields?: string[];
+  gawebFields?: any[];
 }
 
 export interface WorkerEvent {
@@ -33,5 +33,6 @@ export interface WorkerEvent {
     content?: ArrayBuffer;
     blob?: Blob;
     count?: number;
+    isFirst?: boolean;
   };
 }

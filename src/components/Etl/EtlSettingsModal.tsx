@@ -10,13 +10,15 @@ interface EtlSettingsModalProps {
   onClose: () => void;
   onSave: (settings: EtlGlobalSettings) => void;
   initialSettings: EtlGlobalSettings;
+  readOnly?: boolean;
 }
 
 const EtlSettingsModal: React.FC<EtlSettingsModalProps> = ({ 
   isOpen, 
   onClose, 
   onSave, 
-  initialSettings 
+  initialSettings,
+  readOnly = false
 }) => {
   const { t, language: appLanguage, setLanguage } = useLanguage();
   const [settings, setSettings] = useState<EtlGlobalSettings>(initialSettings);
@@ -54,8 +56,9 @@ const EtlSettingsModal: React.FC<EtlSettingsModalProps> = ({
                 className="station-input" 
                 value={settings.defaultPath}
                 onChange={(e) => setSettings({ ...settings, defaultPath: e.target.value })}
+                readOnly={readOnly}
               />
-              <button className="station-btn">...</button>
+              {!readOnly && <button className="station-btn">...</button>}
             </div>
           </div>
 
@@ -65,6 +68,7 @@ const EtlSettingsModal: React.FC<EtlSettingsModalProps> = ({
               className="station-select"
               value={settings.language}
               onChange={(e) => setSettings({ ...settings, language: e.target.value })}
+              disabled={readOnly}
             >
               <option value="es">es-ES (Español)</option>
               <option value="en">en-US (English)</option>
@@ -79,6 +83,7 @@ const EtlSettingsModal: React.FC<EtlSettingsModalProps> = ({
               className="station-select"
               value={settings.defaultEncoding}
               onChange={(e) => setSettings({ ...settings, defaultEncoding: e.target.value })}
+              disabled={readOnly}
             >
               <option value="utf-8">UTF-8</option>
               <option value="windows-1252">Windows-1252</option>
@@ -92,6 +97,7 @@ const EtlSettingsModal: React.FC<EtlSettingsModalProps> = ({
               className="station-input"
               value={settings.defaultChunkSize}
               onChange={(e) => setSettings({ ...settings, defaultChunkSize: parseInt(e.target.value) || 0 })}
+              readOnly={readOnly}
             />
           </div>
         </div>
@@ -100,9 +106,11 @@ const EtlSettingsModal: React.FC<EtlSettingsModalProps> = ({
           <button className="station-btn" onClick={onClose}>
             {t('common.cancel')}
           </button>
-          <button className="station-btn station-btn-primary" style={{ padding: '0 24px' }} onClick={handleSave}>
-            {t('common.save')}
-          </button>
+          {!readOnly && (
+            <button className="station-btn station-btn-primary" style={{ padding: '0 24px' }} onClick={handleSave}>
+              {t('common.save')}
+            </button>
+          )}
         </footer>
       </div>
     </div>

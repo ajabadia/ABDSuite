@@ -10,6 +10,7 @@ import { useFileBatchProcessor } from '@/lib/hooks/useFileBatchProcessor';
 import { useInactivityPurge } from '@/lib/hooks/useInactivityPurge';
 import { ShieldCheckIcon, UnlockIcon } from '@/components/common/Icons';
 import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
+import { auditService } from '@/lib/services/AuditService';
 
 interface SelectedFile {
   file: File;
@@ -18,13 +19,15 @@ interface SelectedFile {
 
 function CryptPageContent() {
   const { t } = useLanguage();
-  const { can } = useWorkspace();
+  const { can, currentOperator } = useWorkspace();
   const searchParams = useSearchParams();
   const mode = (searchParams.get('view') === 'decrypt') ? 'decrypt' : 'encrypt';
   
   if (!can('CRYPT_USE')) {
     return <ForbiddenPanel />;
   }
+
+  const canRun = can('CRYPT_RUN');
 
   // Elevated state from FileProcessor
   const [files, setFiles] = useState<SelectedFile[]>([]);
@@ -60,8 +63,33 @@ function CryptPageContent() {
     }
   });
 
-  const handleProcess = () => {
-    processFiles(files.map(f => f.file), mode);
+  const handleProcess = async () => {
+    if (!canRun) return;
+    
+    const count = files.length;
+    await processFiles(files.map(f => f.file), mode);
+    
+    // Audit Batch Execution (Phase 12.1 refinement)
+    await auditService.log({
+      module: 'CRYPT',
+      messageKey: 'crypt.batch.run',
+      status: 'INFO',
+      operatorId: currentOperator?.id,
+      details: {
+        eventType: 'CRYPT_BATCH_RUN',
+        entityType: 'CRYPT_BATCH',
+        entityId: `batch_${Date.now()}`,
+        actorId: currentOperator?.id,
+        actorUser: currentOperator?.username,
+        severity: 'INFO',
+        context: {
+          mode,
+          total: count,
+          batchMode
+        }
+      }
+    });
+
     if (!batchMode) setFiles([]);
   };
 

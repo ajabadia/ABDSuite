@@ -18,8 +18,9 @@
 
 | Capability            | Descripción                                              |
 |-----------------------|----------------------------------------------------------|
-| CRYPT_USE             | Usar CRYPT STATION para cifrar/descifrar.               |
-| CRYPT_CONFIG_GLOBAL   | Cambiar políticas globales de cifrado (PBKDF2, etc.).   |
+| CRYPT_USE             | Ver el módulo CRYPT STATION.                            |
+| CRYPT_RUN             | Ejecutar procesos de cifrado/descifrado (AES-GCM 256).  |
+| CRYPT_CONFIG_GLOBAL   | Cambiar políticas globales de cifrado.                  |
 
 ### ETL
 

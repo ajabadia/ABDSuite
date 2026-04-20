@@ -50,7 +50,7 @@ export class TelemetryService {
       }
     }
 
-    const globalSnapshot = this.aggregateGlobal(unitSnapshots, now);
+    const globalSnapshot = await this.aggregateGlobal(unitSnapshots, now);
     
     this.snapshotCache = globalSnapshot;
     this.cacheTimestamp = now;
@@ -130,7 +130,11 @@ export class TelemetryService {
     }
 
     // Storage estimation
-    let storageDetails = { estimatedUsageBytes: null, estimatedQuotaBytes: null, usagePercent: null };
+    let storageDetails: { 
+      estimatedUsageBytes: number | null; 
+      estimatedQuotaBytes: number | null; 
+      usagePercent: number | null; 
+    } = { estimatedUsageBytes: null, estimatedQuotaBytes: null, usagePercent: null };
     if (typeof navigator !== 'undefined' && navigator.storage?.estimate) {
         const est = await navigator.storage.estimate();
         if (est.usage && est.quota) {
@@ -199,7 +203,7 @@ export class TelemetryService {
     return 'OK';
   }
 
-  private static aggregateGlobal(units: UnitTelemetrySnapshot[], now: number): GlobalTelemetrySnapshot {
+  private static async aggregateGlobal(units: UnitTelemetrySnapshot[], now: number): Promise<GlobalTelemetrySnapshot> {
     const totals = {
       totalUnits: units.length,
       totalDocs24h: 0,
@@ -232,6 +236,35 @@ export class TelemetryService {
        totalTech += u.security.techModeActivations;
     }
 
+    // Governance Aggregation (Phase 12.1)
+    const dayStart = now - (24 * 60 * 60 * 1000);
+    const systemEvents = await coreDb.table('system_log')
+      .where('timestamp')
+      .aboveOrEqual(dayStart)
+      .toArray();
+
+    let operatorRoleChanges24h = 0;
+    let operatorOverrideChanges24h = 0;
+    let configChanges24h = 0;
+
+    for (const r of systemEvents) {
+      try {
+        const details = JSON.parse(r.details || '{}');
+        const ev = details.eventType as string;
+
+        if (ev === 'OPERATOR_ROLE_CHANGE') operatorRoleChanges24h++;
+        if (ev === 'OPERATOR_CAPABILITY_OVERRIDE') operatorOverrideChanges24h++;
+        if (
+          ev === 'TELEMETRY_CONFIG_UPDATE' ||
+          ev === 'ETL_CONFIG_UPDATE' || 
+          ev === 'LETTER_CONFIG_UPDATE' ||
+          ev === 'CRYPT_CONFIG_UPDATE'
+        ) {
+          configChanges24h++;
+        }
+      } catch { /* skip malformed */ }
+    }
+
     return {
       generatedAt: now,
       suiteVersion: 'ASEPTIC v6.0-IND ERA 6',
@@ -241,6 +274,11 @@ export class TelemetryService {
         totalFailedLogins: totalFailed,
         totalLocksTriggered: totalLocks,
         totalTechModeActivations: totalTech
+      },
+      governance: {
+        operatorRoleChanges24h,
+        operatorOverrideChanges24h,
+        configChanges24h
       }
     };
   }

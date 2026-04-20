@@ -6,6 +6,7 @@ import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { coreDb } from '@/lib/db/SystemDB';
 import { hashPin } from '@/lib/utils/crypto.utils';
 import { ShieldAlertIcon, UserPlusIcon, BuildingIcon, CheckIcon, LoaderIcon } from '../common/Icons';
+import { UserRole } from '@/lib/types/auth.types';
 
 export const BootstrapWizard: React.FC = () => {
   const { t } = useLanguage();
@@ -87,8 +88,8 @@ export const BootstrapWizard: React.FC = () => {
           <div className="flex-row" style={{ gap: '12px' }}>
             <ShieldAlertIcon size={24} color="var(--accent-primary)" />
             <div className="flex-col">
-              <h2 className="station-modal-title" style={{ fontSize: '1.2rem' }}>ABDFN SUITE</h2>
-              <p className="station-modal-subtitle" style={{ color: 'var(--accent-primary)' }}>ASEPTIC BOOTSTRAP v6.0</p>
+              <h2 className="station-modal-title" style={{ fontSize: '1.2rem' }}>{t('bootstrap.title')}</h2>
+              <p className="station-modal-subtitle" style={{ color: 'var(--accent-primary)' }}>{t('bootstrap.subtitle')}</p>
             </div>
           </div>
         </header>
@@ -98,7 +99,7 @@ export const BootstrapWizard: React.FC = () => {
             <div className="flex-col animate-fade-in" style={{ gap: '24px' }}>
               <div className="flex-row" style={{ gap: '8px', opacity: 0.7 }}>
                 <UserPlusIcon size={16} />
-                <span className="station-label">CONFIGURACIÓN DE ADMINISTRADOR MAESTRO</span>
+                <span className="station-label">{t('bootstrap.step_master_title').toUpperCase()}</span>
               </div>
               
               <div className="flex-col" style={{ gap: '16px' }}>
@@ -125,7 +126,7 @@ export const BootstrapWizard: React.FC = () => {
                   <select 
                     className="station-input" 
                     value={adminRole}
-                    onChange={e => setAdminRole(e.target.value as any)}
+                     onChange={e => setAdminRole(e.target.value as any)}
                   >
                     <option value="ADMIN">{t('operator.roles.ADMIN')}</option>
                     <option value="TECH">{t('operator.roles.TECH')}</option>
@@ -133,7 +134,7 @@ export const BootstrapWizard: React.FC = () => {
                   <p style={{ fontSize: '10px', opacity: 0.5, marginTop: '4px' }}>{t('bootstrap.role_hint')}</p>
                 </div>
                 <div className="station-form-group">
-                  <label className="station-label">PIN INDUSTRIAL (4-6 DÍGITOS)</label>
+                  <label className="station-label">{t('bootstrap.pin_label').toUpperCase()}</label>
                   <input 
                     type="password"
                     maxLength={6}
@@ -145,7 +146,7 @@ export const BootstrapWizard: React.FC = () => {
                   />
                 </div>
                 <div className="station-form-group">
-                  <label className="station-label">CONFIRMAR PIN</label>
+                  <label className="station-label">{t('bootstrap.pin_confirm_label').toUpperCase()}</label>
                   <input 
                     type="password"
                     maxLength={6}
@@ -164,12 +165,12 @@ export const BootstrapWizard: React.FC = () => {
             <div className="flex-col animate-fade-in" style={{ gap: '24px' }}>
               <div className="flex-row" style={{ gap: '8px', opacity: 0.7 }}>
                 <BuildingIcon size={16} />
-                <span className="station-label">REGISTRO DE UNIDAD / DEPARTAMENTO</span>
+                <span className="station-label">{t('bootstrap.step_unit_title').toUpperCase()}</span>
               </div>
 
               <div className="flex-col" style={{ gap: '16px' }}>
                 <div className="station-form-group">
-                  <label className="station-label">CÓDIGO DE UNIDAD</label>
+                  <label className="station-label">{t('bootstrap.unit_code_label').toUpperCase()}</label>
                   <input 
                     className="station-input" 
                     value={unitCode} 
@@ -178,7 +179,7 @@ export const BootstrapWizard: React.FC = () => {
                   />
                 </div>
                 <div className="station-form-group">
-                  <label className="station-label">NOMBRE DEL DEPARTAMENTO</label>
+                  <label className="station-label">{t('bootstrap.unit_name_label').toUpperCase()}</label>
                   <input 
                     className="station-input" 
                     value={unitName} 
@@ -189,21 +190,21 @@ export const BootstrapWizard: React.FC = () => {
               </div>
 
               <div className="alert-box warning" style={{ fontSize: '11px', opacity: 0.8 }}>
-                <p>⚠️ SE CREARÁ UNA BASE DE DATOS FÍSICA INDEPENDIENTE PARA ESTA UNIDAD.</p>
+                <p>⚠️ {t('bootstrap.unit_warning').toUpperCase()}</p>
               </div>
             </div>
           )}
 
           {error && (
             <div className="alert-box error" style={{ marginTop: '24px' }}>
-              <p>{error}</p>
+              <p>{t(error)}</p>
             </div>
           )}
         </div>
 
         <footer className="station-modal-footer" style={{ justifyContent: 'space-between' }}>
           <div>
-             <span className="station-label" style={{ opacity: 0.5 }}>PASO {step} DE 2</span>
+             <span className="station-label" style={{ opacity: 0.5 }}>{t('bootstrap.step_counter', { current: step, total: 2 }).toUpperCase()}</span>
           </div>
           <div className="flex-row" style={{ gap: '12px' }}>
             {step === 2 && (
@@ -211,7 +212,7 @@ export const BootstrapWizard: React.FC = () => {
                 className="station-btn station-btn-secondary" 
                 onClick={() => setStep(1)}
               >
-                VOLVER
+                {t('bootstrap.btn_back')}
               </button>
             )}
             
@@ -221,7 +222,7 @@ export const BootstrapWizard: React.FC = () => {
                 disabled={!adminName || pin.length < 4}
                 onClick={() => setStep(2)}
               >
-                SIGUIENTE
+                {t('bootstrap.btn_next')}
               </button>
             ) : (
               <button 
@@ -230,7 +231,7 @@ export const BootstrapWizard: React.FC = () => {
                 onClick={handleBootstrap}
               >
                 {isLoading ? <LoaderIcon className="animate-spin" size={16} /> : <CheckIcon size={16} />}
-                {isLoading ? 'PROCESANDO...' : 'SITUAR SISTEMA'}
+                {isLoading ? t('bootstrap.btn_submitting') : t('bootstrap.btn_submit')}
               </button>
             )}
           </div>
@@ -239,7 +240,7 @@ export const BootstrapWizard: React.FC = () => {
 
       <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px', pointerEvents: 'none' }}>
          <div className="integrity-dot blink" />
-         <span>ASEPTIC BOOTSTRAP MODE</span>
+         <span>{t('bootstrap.mode_badge')}</span>
       </div>
     </div>
   );

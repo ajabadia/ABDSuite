@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
-import { generateMfaSecret, generateMfaUri } from '@/lib/utils/mfa.utils';
+import { generateTotpSecret, buildOtpAuthUri } from '@/lib/utils/mfa.utils';
 import { QrGenerator } from '@/lib/utils/qr.utils';
 import { coreDb } from '@/lib/db/SystemDB';
 import { SyncPanel } from './SyncPanel';
@@ -33,8 +33,8 @@ export const SecurityDialog: React.FC<SecurityDialogProps> = ({ isOpen, onClose 
   }, [isOpen, currentOperator]);
 
   const handleGenerateMfa = () => {
-    const secret = generateMfaSecret();
-    const uri = generateMfaUri(currentOperator?.displayName || 'Operator', secret);
+    const secret = generateTotpSecret();
+    const uri = buildOtpAuthUri(secret, currentOperator?.displayName || 'Operator');
     const svg = QrGenerator.generateSvg(uri, 200);
     setMfaSecret(secret);
     setQrSvg(svg);

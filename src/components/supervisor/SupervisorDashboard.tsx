@@ -47,6 +47,7 @@ const SupervisorDashboardContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'TELEMETRY' | 'OPERATORS' | 'SECURITY'>(
     (initialTab === 'OPERATORS' || initialTab === 'SECURITY') ? initialTab : 'TELEMETRY'
   );
+  const [securityEventTypeFilter, setSecurityEventTypeFilter] = useState<string | null>(null);
 
   const loadData = async (force = false) => {
     setIsLoading(true);
@@ -86,6 +87,13 @@ const SupervisorDashboardContent: React.FC = () => {
       setActiveTab('SECURITY');
     }
   }, [initialTab, canSeeOperators, canSeeSecurity]);
+
+  // Reset drill-down filter when navigating away
+  useEffect(() => {
+    if (activeTab !== 'SECURITY') {
+      setSecurityEventTypeFilter(null);
+    }
+  }, [activeTab]);
 
   if (!can('SUPERVISOR_VIEW')) {
     return <ForbiddenPanel capability="SUPERVISOR_VIEW" />;
@@ -196,10 +204,10 @@ const SupervisorDashboardContent: React.FC = () => {
             <UnitTable units={snapshot?.units || []} />
           </div>
 
-          {/* SECURITY GLOBAL SUMMARY */}
+          {/* SECURITY & GOVERNANCE GLOBAL SUMMARY */}
           <div className="station-form-grid" style={{ marginTop: '24px' }}>
             <div className="station-card">
-                <h3 style={{ fontSize: '0.9rem', marginBottom: '16px', opacity: 0.6 }}>GLOBAL SECURITY EVENTS</h3>
+                <h3 style={{ fontSize: '0.9rem', marginBottom: '16px', opacity: 0.6 }}>{t('audit.securityTitle').toUpperCase()}</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
                     <div className="metric-box">
                         <span className="label">{t('supervisor.sec_failed')}</span>
@@ -215,13 +223,41 @@ const SupervisorDashboardContent: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <div className="station-card">
+                <h3 style={{ fontSize: '0.9rem', marginBottom: '16px', opacity: 0.6 }}>{t('supervisor.govtitle')}</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                    <div className="metric-box clickable" onClick={() => {
+                      setSecurityEventTypeFilter('OPERATOR_ROLE_CHANGE');
+                      setActiveTab('SECURITY');
+                    }}>
+                        <span className="label">{t('supervisor.govrolechanges')}</span>
+                        <span className="val">{snapshot?.governance.operatorRoleChanges24h}</span>
+                    </div>
+                    <div className="metric-box clickable" onClick={() => {
+                        setSecurityEventTypeFilter('OPERATOR_CAPABILITY_OVERRIDE');
+                        setActiveTab('SECURITY');
+                    }}>
+                        <span className="label">{t('supervisor.govoverrides')}</span>
+                        <span className="val">{snapshot?.governance.operatorOverrideChanges24h}</span>
+                    </div>
+                    <div className="metric-box clickable" onClick={() => {
+                        // General config filter - the panel handles it
+                        setSecurityEventTypeFilter('CONFIG_UPDATE'); 
+                        setActiveTab('SECURITY');
+                    }}>
+                        <span className="label">{t('supervisor.govconfig')}</span>
+                        <span className="val">{snapshot?.governance.configChanges24h}</span>
+                    </div>
+                </div>
+            </div>
           </div>
         </>
       ) : activeTab === 'OPERATORS' ? (
         <OperatorManager initialOperatorId={initialOperatorId} />
       ) : (
         <div className="station-card" style={{ height: 'calc(100vh - 250px)' }}>
-          <SecurityAuditPanel />
+          <SecurityAuditPanel initialEventType={securityEventTypeFilter ?? undefined} />
         </div>
       )}
 
@@ -256,6 +292,13 @@ const SupervisorDashboardContent: React.FC = () => {
            border-radius: 4px;
            display: flex;
            flex-direction: column;
+           transition: all 0.2s ease;
+        }
+        .metric-box.clickable { cursor: pointer; }
+        .metric-box.clickable:hover { 
+           background: rgba(255,255,255,0.08);
+           transform: translateY(-2px);
+           border-color: var(--accent-primary);
         }
         .metric-box .label { font-size: 0.65rem; opacity: 0.5; margin-bottom: 4px; }
         .metric-box .val { font-family: 'JetBrains Mono'; font-weight: bold; }

@@ -102,7 +102,7 @@ export const Sidebar: React.FC = () => {
     },
   ];
 
-  const { can } = useWorkspace();
+  const { can, currentOperator } = useWorkspace();
   const canSeeSupervisor = can('SUPERVISOR_VIEW');
 
   if (canSeeSupervisor) {
@@ -189,7 +189,9 @@ export const Sidebar: React.FC = () => {
           className="station-nav-item" 
           onClick={async () => {
              const { DbSyncService } = await import('@/lib/services/db-sync.service');
-             const blob = await DbSyncService.exportSuite();
+            const passphrase = prompt(t('sync.passphrase_prompt') || 'Enter passphrase to export');
+            if (!passphrase) return;
+            const blob = await DbSyncService.exportSuite(passphrase, currentOperator?.id || 'system');
              const url = URL.createObjectURL(blob);
              const a = document.createElement('a');
              a.href = url;
@@ -218,7 +220,9 @@ export const Sidebar: React.FC = () => {
                 
                 const { DbSyncService } = await import('@/lib/services/db-sync.service');
                 try {
-                  await DbSyncService.importSuite(file, 'MERGE');
+                  const passphrase = prompt(t('sync.passphrase_prompt') || 'Enter passphrase to import');
+                  if (!passphrase) return;
+                  await DbSyncService.importSuite(file, passphrase, currentOperator?.id || 'system', 'MERGE');
                   alert(t('shell.full_restore_success') || 'Sistema restaurado con éxito. Por favor, recargue la aplicación.');
                   window.location.reload();
                 } catch (err) {

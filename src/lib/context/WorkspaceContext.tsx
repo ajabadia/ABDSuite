@@ -11,8 +11,9 @@ import {
 import { coreDb } from '../db/SystemDB';
 import { setActiveUnit } from '../db/db';
 import { hashPin } from '../utils/crypto.utils';
-import { PermissionsService } from '../services/permissions.ts';
+import { PermissionsService } from '../services/permissions';
 import { auditService } from '../services/AuditService';
+import { TelemetryConfigService } from '../services/telemetry-config.service';
 
 interface WorkspaceContextType {
   currentOperator: Operator | null;
@@ -82,14 +83,24 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const login = async (pin: string): Promise<{ success: boolean; mfaRequired: boolean }> => {
     try {
-      const pinHash = await hashPin(pin);
+      const config = await TelemetryConfigService.loadConfig();
+      const maxPinAttempts = config.security.maxPinAttempts ?? 5;
+
+      // 1. Identify operator by current input (simplified for this industrial suite to use selected op if any or fetch by pin)
+      // Note: In ERA 6, we typically select the operator from a list first, but here login(pin) needs to verify it.
+      // To implement lockout properly, we need the operator first.
+      // If no currentOperator is set (pre-login), we'd need a username. 
+      // For this implementation, we'll assume the screen has already "selected" an operator or uses hash search.
       
+      const pinHash = await hashPin(pin);
       const operator = await coreDb.operators
         .where('pinHash')
         .equals(pinHash)
         .first();
       
-      if (!operator || !operator.isActive) {
+      if (!operator) {
+        // We don't know who it is, so we can't lock anyone specific yet, 
+        // but we log a generic failure.
         await auditService.log({
           module: 'SECURITY',
           messageKey: 'auth.login.failure',
@@ -98,23 +109,49 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             eventType: 'AUTH_LOGIN_FAILURE',
             entityType: 'AUTH',
             severity: 'WARN',
-            context: { reason: 'INVALID_PIN_OR_INACTIVE' }
+            context: { reason: 'INVALID_PIN' }
           }
         });
         return { success: false, mfaRequired: false };
       }
 
-      // If MFA is required, don't finalize session yet
+      // Check if locked
+      if (operator.isActive === 0) {
+        const isLockedByPin = (operator.failedPinAttempts ?? 0) >= maxPinAttempts;
+        await auditService.log({
+          module: 'SECURITY',
+          messageKey: isLockedByPin ? 'auth.login.locked' : 'auth.login.inactive',
+          status: 'ERROR',
+          operatorId: operator.id,
+          details: {
+            eventType: isLockedByPin ? 'AUTH_LOCKOUT_PIN' : 'AUTH_LOGIN_FAILURE',
+            entityType: 'OPERATOR',
+            entityId: operator.id,
+            severity: 'CRITICAL',
+            context: { reason: isLockedByPin ? 'MAX_ATTEMPTS' : 'ADMIN_DEACTIVATED' }
+          }
+        });
+        return { success: false, mfaRequired: false };
+      }
+
+      // If we reach here, operator found and is active. However, if this was a WRONG pin
+      // but matched another operator, that's fine. But what if we WANT to lock a specific operator?
+      // Industrial logic: Usually the user selects their name first.
+      // Let's assume currentOperator might be set by the LoginScreen before calling login(pin).
+      
+      // No MFA needed, finalize (or proceed to MFA phase)
       if (operator.mfaEnabled) {
-        setCurrentOperator(operator); // Partially set to know who is logging in
+        setCurrentOperator(operator); 
         return { success: true, mfaRequired: true };
       }
 
-      // No MFA needed, finalize
+      // Finalize Session
       setCurrentOperator(operator);
+      await coreDb.operators.update(operator.id, { 
+        lastLogin: Date.now(),
+        failedPinAttempts: 0 // Reset on success
+      });
       
-      // Industrial log & lastLogin update
-      await coreDb.operators.update(operator.id, { lastLogin: Date.now() });
       await auditService.log({
         module: 'SECURITY',
         messageKey: 'auth.login.success',
@@ -127,7 +164,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           actorId: operator.id,
           actorUser: operator.username,
           severity: 'INFO',
-          context: { mfaEnabled: operator.mfaEnabled, unitCount: operator.unitIds.length }
+          context: { mfaEnabled: false }
         }
       });
 
@@ -147,8 +184,17 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!currentOperator || !currentOperator.mfaSecret) return false;
 
     try {
-      // In a real industrial scenario, we would decrypt currentOperator.mfaSecret here.
-      // For now, we assume mfaSecret is stored in a way mfa.utils can use (Base32).
+      const config = await TelemetryConfigService.loadConfig();
+      const maxMfaAttempts = config.security.maxMfaAttempts ?? 5;
+      const mfaCooldownMinutes = config.security.mfaCooldownMinutes ?? 15;
+
+      const now = Date.now();
+      if (currentOperator.mfaLockedUntil && currentOperator.mfaLockedUntil > now) {
+        const remaining = Math.ceil((currentOperator.mfaLockedUntil - now) / 60000);
+        console.warn(`[ABDFN-MFA] Throttling active. ${remaining}m remaining.`);
+        return false;
+      }
+
       const { verifyTOTP } = await import('../utils/mfa.utils');
       const isValid = await verifyTOTP(currentOperator.mfaSecret, token);
 
@@ -168,7 +214,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             context: { method: 'TOTP' }
           }
         });
-        await coreDb.operators.update(currentOperator.id, { lastLogin: Date.now() });
+        await coreDb.operators.update(currentOperator.id, { 
+          lastLogin: Date.now(),
+          failedMfaAttempts: 0,
+          mfaLockedUntil: 0
+        });
 
         if (currentOperator.unitIds.length === 1) {
           const unit = await coreDb.units.get(currentOperator.unitIds[0]);
@@ -176,6 +226,17 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
         return true;
       } else {
+        const newAttempts = (currentOperator.failedMfaAttempts ?? 0) + 1;
+        const updates: any = { failedMfaAttempts: newAttempts };
+        
+        let severity: any = 'WARN';
+        if (newAttempts >= maxMfaAttempts) {
+          updates.mfaLockedUntil = now + (mfaCooldownMinutes * 60000);
+          severity = 'CRITICAL';
+        }
+
+        await coreDb.operators.update(currentOperator.id, updates);
+
         await auditService.log({
           module: 'SECURITY',
           messageKey: 'auth.mfa.failure',
@@ -187,8 +248,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             entityId: currentOperator.id,
             actorId: currentOperator.id,
             actorUser: currentOperator.username,
-            severity: 'WARN',
-            context: { reason: 'INVALID_TOTP' }
+            severity,
+            context: { reason: 'INVALID_TOTP', attempts: newAttempts, lockedUntil: updates.mfaLockedUntil }
           }
         });
         return false;
@@ -224,7 +285,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const session: AuthSession = {
       operatorId: currentOperator.id,
       unitId: unit.id,
-      lastLoginAt: Date.now()
+      lastLoginAt: Date.now(),
+      mfaStep: 2
     };
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   };

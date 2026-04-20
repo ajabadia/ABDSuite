@@ -1,0 +1,24 @@
+﻿{
+    "projectName":  "abdfn-suite",
+    "rootDir":  "D:\\desarrollos\\ABDFNSuite",
+    "generatedAt":  "2026-04-20T12:21:48.7742077+02:00",
+    "compactMode":  false,
+    "excludes":  [
+
+                 ],
+    "git":  {
+                "branch":  "main",
+                "commit":  "b6c6b6e32c021501d1faef7cfff929783c727bd5",
+                "dirty":  true
+            },
+    "stats":  {
+                  "totalFiles":  112,
+                  "totalBytes":  1127267,
+                  "includedFiles":  110,
+                  "includedBytes":  704346,
+                  "skippedExcluded":  2,
+                  "skippedCompact":  0,
+                  "skippedEmpty":  0,
+                  "skippedErrors":  0
+              }
+}

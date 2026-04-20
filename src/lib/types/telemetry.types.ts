@@ -83,6 +83,12 @@ export interface GlobalTelemetrySnapshot {
     totalLocksTriggered: number;
     totalTechModeActivations: number;
   };
+
+  governance: {
+    operatorRoleChanges24h: number;
+    operatorOverrideChanges24h: number;
+    configChanges24h: number;
+  };
 }
 
 export interface TelemetryHealthConfig {
@@ -100,6 +106,10 @@ export interface TelemetrySecurityConfig {
   locksCritical: number;
   techModeWarn: number;
   techModeCritical: number;
+  maxPinAttempts: number;
+  pinCooldownMinutes: number;
+  maxMfaAttempts: number;
+  mfaCooldownMinutes: number;
 }
 
 export interface TelemetryConfig {

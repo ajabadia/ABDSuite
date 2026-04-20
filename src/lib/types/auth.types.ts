@@ -3,7 +3,8 @@
  */
 
 export type UserRole = 'ADMIN' | 'TECH' | 'OPERATOR';
-export type OperatorRole = UserRole; // Alias for backward compatibility if needed, but we'll phase it out.
+export type OperatorRole = UserRole; 
+export type AuditModule = 'AUTH' | 'ETL' | 'LETTER' | 'SYNC' | 'SYSTEM' | 'SECURITY' | 'SUPERVISOR' | 'AUDIT' | 'CRYPT';
 
 /**
  * Capability-based Permission System
@@ -11,6 +12,7 @@ export type OperatorRole = UserRole; // Alias for backward compatibility if need
 export type Capability = 
   // CRYPT
   | 'CRYPT_USE'
+  | 'CRYPT_RUN'
   | 'CRYPT_CONFIG_GLOBAL'
   // ETL
   | 'ETL_VIEW'
@@ -30,7 +32,9 @@ export type Capability =
   // SUPERVISOR / SECURITY / SETTINGS
   | 'SUPERVISOR_VIEW'
   | 'OPERATORS_MANAGE'
-  | 'SETTINGS_GLOBAL';
+  | 'SETTINGS_GLOBAL'
+  | 'SYNC_EXPORT'
+  | 'SYNC_IMPORT';
 
 /**
  * Structured details for Industrial Audit (Phase 11.2)
@@ -82,6 +86,11 @@ export interface Operator {
   // Capability Overrides (Phase 12.1)
   extraCapabilities?: Capability[];
   deniedCapabilities?: Capability[];
+
+  // Security Hardening (Phase 13)
+  failedPinAttempts?: number;
+  failedMfaAttempts?: number;
+  mfaLockedUntil?: number;
 }
 
 export interface AuthSession {

@@ -5,13 +5,14 @@ import { ListIcon, DownloadIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, UploadIc
 
 interface EtlSidebarProps {
   presets: EtlPreset[];
-  activePresetId?: number;
+  activePresetId?: string;
   onSelect: (preset: EtlPreset) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onExport: (preset: EtlPreset) => void;
   onNew: () => void;
   onImport: () => void;
   onExportAll: () => void;
+  canEdit: boolean;
 }
 
 export const EtlSidebar: React.FC<EtlSidebarProps> = ({
@@ -22,7 +23,8 @@ export const EtlSidebar: React.FC<EtlSidebarProps> = ({
   onNew,
   onImport,
   onExport,
-  onExportAll
+  onExportAll,
+  canEdit
 }) => {
   const { t } = useLanguage();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -67,12 +69,16 @@ export const EtlSidebar: React.FC<EtlSidebarProps> = ({
             <div className="station-registry-actions" style={{ justifyContent: 'space-between' }}>
                <div className="flex-row" style={{ gap: '8px' }}>
                  <button className="station-btn" onClick={onExportAll}><DownloadIcon size={14} /> {t('etl.export_json').toUpperCase()}</button>
-                 <button className="station-btn" onClick={onImport}><UploadIcon size={14} /> {t('etl.import_all').toUpperCase()}</button>
+                 {canEdit && (
+                   <button className="station-btn" onClick={onImport}><UploadIcon size={14} /> {t('etl.import_all').toUpperCase()}</button>
+                 )}
                </div>
 
-               <button className="station-btn station-btn-primary" onClick={onNew} style={{ flex: 1, maxWidth: '300px' }}>
-                  {t('etl.new_preset').toUpperCase()}
-               </button>
+               {canEdit && (
+                 <button className="station-btn station-btn-primary" onClick={onNew} style={{ flex: 1, maxWidth: '300px' }}>
+                    {t('etl.new_preset').toUpperCase()}
+                 </button>
+               )}
             </div>
 
             <div className="flex-col" style={{ gap: '8px' }}>
@@ -100,7 +106,9 @@ export const EtlSidebar: React.FC<EtlSidebarProps> = ({
 
                       <div className="station-registry-item-actions">
                         <button className="station-registry-action-btn" onClick={(e) => { e.stopPropagation(); onExport(p); }}><DownloadIcon size={16} /></button>
-                        <button className="station-registry-action-btn err" onClick={(e) => { e.stopPropagation(); if (p.id) onDelete(p.id); }}><TrashIcon size={16} /></button>
+                        {canEdit && (
+                          <button className="station-registry-action-btn err" onClick={(e) => { e.stopPropagation(); if (p.id) onDelete(p.id); }}><TrashIcon size={16} /></button>
+                        )}
                       </div>
                     </div>
                   ))

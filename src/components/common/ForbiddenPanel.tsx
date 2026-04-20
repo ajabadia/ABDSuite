@@ -4,7 +4,7 @@ import React from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { LockIcon } from '@/components/common/Icons';
 
-export const ForbiddenPanel: React.FC = () => {
+export const ForbiddenPanel: React.FC<{ capability?: string }> = ({ capability }) => {
   const { t } = useLanguage();
 
   return (

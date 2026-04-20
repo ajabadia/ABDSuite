@@ -10,7 +10,8 @@ import {
   SearchIcon, 
   DownloadIcon, 
   XIcon, 
-  FileTextIcon 
+  FileTextIcon,
+  ListIcon
 } from '@/components/common/Icons';
 
 import { useLog } from '@/lib/context/LogContext';

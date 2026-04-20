@@ -6,19 +6,27 @@
 
 import React, { useState } from 'react';
 import { DbSyncService } from '@/lib/services/db-sync.service';
-import { DownloadIcon, UploadIcon, RefreshIcon, CheckCircleIcon, AlertTriangleIcon } from '../common/Icons';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { DownloadIcon, UploadIcon, RefreshIcon, CheckCircleIcon, AlertTriangleIcon, KeyIcon } from '../common/Icons';
 
 export const SyncPanel: React.FC = () => {
+  const { currentOperator } = useWorkspace();
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [passphrase, setPassphrase] = useState('');
   const [lastSync, setLastSync] = useState<string | null>(localStorage.getItem('abdfn_last_sync'));
   const [status, setStatus] = useState<{ type: 'SUCCESS' | 'ERROR'; msg: string } | null>(null);
 
   const handleExport = async () => {
     setIsExporting(true);
     setStatus(null);
+    if (!currentOperator || !passphrase) {
+      setStatus({ type: 'ERROR', msg: 'Se requiere frase de paso.' });
+      setIsExporting(false);
+      return;
+    }
     try {
-      const blob = await DbSyncService.exportSuite();
+      const blob = await DbSyncService.exportSuite(passphrase, currentOperator.id);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
@@ -45,8 +53,13 @@ export const SyncPanel: React.FC = () => {
 
     setIsImporting(true);
     setStatus(null);
+    if (!currentOperator || !passphrase) {
+      setStatus({ type: 'ERROR', msg: 'Se requiere frase de paso para importar.' });
+      setIsImporting(false);
+      return;
+    }
     try {
-      await DbSyncService.importSuite(file, 'MERGE');
+      await DbSyncService.importSuite(file, passphrase, currentOperator.id, 'MERGE');
       
       const now = new Date().toLocaleString();
       setLastSync(now);
@@ -79,6 +92,20 @@ export const SyncPanel: React.FC = () => {
          <p style={{ fontSize: '0.75rem', opacity: 0.7, lineHeight: '1.4' }}>
            Utilice esta herramienta para intercambiar datos entre puestos de trabajo aislados (Air-Gapped).
          </p>
+
+         <div className="station-form-group" style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '4px' }}>
+            <label className="station-label" style={{ fontSize: '0.65rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <KeyIcon size={12} /> FRASE DE PASO PARA CIFRADO (AES-GCM)
+            </label>
+            <input 
+              type="password" 
+              className="station-input" 
+              placeholder="Min. 8 caracteres recomendados"
+              value={passphrase}
+              onChange={(e) => setPassphrase(e.target.value)}
+              autoComplete="new-password"
+            />
+         </div>
 
          <div className="flex-row" style={{ gap: '12px' }}>
             <button 

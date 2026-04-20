@@ -1,15 +1,36 @@
 'use client';
 
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
+import { 
+  EtlPreset, 
+  EtlRecordType, 
+  EtlField, 
+  EtlRecordBehavior 
+} from '@/lib/types/etl.types';
+import { 
+  CogIcon, 
+  SaveIcon, 
+  PlayIcon, 
+  UndoIcon, 
+  TrashIcon, 
+  EyeIcon, 
+  XIcon, 
+  ListIcon 
+} from '@/components/common/Icons';
+import { SamplePreview } from './SamplePreview';
 
 interface EtlDesignerProps {
   preset: EtlPreset;
   onUpdate: (updated: EtlPreset) => void;
   onSave: () => void;
+  canEdit?: boolean;
 }
 
-export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSave }) => {
+export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSave, canEdit = true }) => {
   const { t } = useLanguage();
   const { can } = useWorkspace();
   const router = useRouter();

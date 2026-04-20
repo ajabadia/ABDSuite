@@ -76,7 +76,7 @@ export const OperatorTable: React.FC<OperatorTableProps> = ({
                 <td>
                   <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>{op.username}</span>
-                    {op.isMaster && <ShieldCheckIcon size={12} color="var(--accent-primary)" title="MASTER" />}
+                    {op.isMaster && <ShieldCheckIcon size={12} color="var(--accent-primary)" />}
                   </div>
                 </td>
                 <td>{op.displayName}</td>
