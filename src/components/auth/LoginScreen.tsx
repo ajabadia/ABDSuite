@@ -5,11 +5,11 @@ import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { coreDb } from '@/lib/db/SystemDB';
 import { Operator, WorkspaceUnit } from '@/lib/types/auth.types';
-import { ShieldIcon, UserIcon, BuildingIcon, XIcon, DeleteIcon, CheckIcon, KeyIcon } from '../common/Icons';
+import { ShieldIcon, UserIcon, BuildingIcon, XIcon, DeleteIcon, CheckIcon, KeyIcon, ShieldCheckIcon } from '../common/Icons';
 
 export const LoginScreen: React.FC = () => {
   const { t } = useLanguage();
-  const { login, verifyMfa, selectUnit, currentOperator, logout } = useWorkspace();
+  const { login, verifyMfa, selectUnit, currentOperator, logout, isLocked, unlockSession, installationKey } = useWorkspace();
   
   const [pin, setPin] = useState('');
   const [operators, setOperators] = useState<Operator[]>([]);
@@ -75,6 +75,15 @@ export const LoginScreen: React.FC = () => {
         setError(t('auth.login.error_pin'));
         setPin('');
       }
+    } else if (isLocked) {
+      if (pin.length < 4) return;
+      const success = await unlockSession(pin);
+      if (!success) {
+        setError(t('auth.login.error_pin'));
+        setPin('');
+      } else {
+        setLoginSuccess(true);
+      }
     } else {
       if (mfaToken.length < 6) return;
       const success = await verifyMfa(mfaToken);
@@ -86,6 +95,7 @@ export const LoginScreen: React.FC = () => {
       }
     }
   };
+
 
   // Physical Keyboard Support
   useEffect(() => {
@@ -120,8 +130,8 @@ export const LoginScreen: React.FC = () => {
       <div className="station-modal-overlay" style={{ background: 'var(--bg-primary)' }}>
         <div className="flex-col" style={{ gap: '40px', alignItems: 'center' }}>
               <header style={{ textAlign: 'center' }}>
-                 <h1 style={{ fontSize: '2rem', letterSpacing: '4px', marginBottom: '8px' }}>{t('auth.login.unit_selection_title') || 'SELECCIÓN DE UNIDAD'}</h1>
-                 <p style={{ opacity: 0.5 }}>{t('operator.role').toUpperCase()}: {(currentOperator.displayName || currentOperator.username || 'OPERATOR').toUpperCase()}</p>
+                 <h1 style={{ fontSize: '2rem', letterSpacing: '4px', marginBottom: '8px' }}>{(t('auth.login.unit_selection_title') || 'SELECCIÓN DE UNIDAD').toUpperCase()}</h1>
+                 <p style={{ opacity: 0.5 }}>{ (t('operator.role') || 'ROL').toUpperCase() }: { (currentOperator.displayName || currentOperator.username || 'OPERATOR').toUpperCase() }</p>
               </header>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '16px', width: '400px' }}>
@@ -140,8 +150,8 @@ export const LoginScreen: React.FC = () => {
                >
                  <BuildingIcon size={20} style={{ marginRight: '16px', opacity: 0.5 }} />
                  <div className="flex-col" style={{ alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>[{unit.code}]</span>
-                    <span>{unit.name}</span>
+                    <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>[{ (unit.code || '???').toUpperCase() }]</span>
+                    <span>{ (unit.name || 'UNKNOWN').toUpperCase() }</span>
                  </div>
                </button>
              ))}
@@ -172,37 +182,37 @@ export const LoginScreen: React.FC = () => {
        }}>
           
           {/* Column 1: Identity & Feedback */}
-          <div className="flex-col" style={{ gap: '40px', alignItems: 'center', borderRight: '1px solid var(--border-color)', paddingRight: '64px' }}>
-            <header className="flex-col" style={{ alignItems: 'center', gap: '12px' }}>
-               <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
-                  <ShieldIcon size={40} color="var(--accent-primary)" />
-                  <h1 style={{ fontSize: '2rem', letterSpacing: '8px', margin: 0 }}>{t('ui.title')}</h1>
+          <div className="flex-col" style={{ gap: '32px', alignItems: 'center', borderRight: '1px solid var(--border-color)', paddingRight: '48px' }}>
+            <header className="flex-col" style={{ alignItems: 'center', gap: '8px' }}>
+               <div className="flex-row" style={{ gap: '10px', alignItems: 'center' }}>
+                  <ShieldIcon size={32} color="var(--accent-primary)" />
+                  <h1 style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: '4px', margin: 0 }}>{t('ui.title')}</h1>
                </div>
-               <div style={{ height: '2px', width: '100%', background: 'var(--accent-primary)', opacity: 0.3 }} />
-               <p style={{ fontSize: '1rem', opacity: 0.6, letterSpacing: '4px', textTransform: 'uppercase' }}>{t('dashboard.sys_status_online')}</p>
+               <div style={{ height: '2px', width: '100%', background: 'var(--accent-primary)', opacity: 0.2 }} />
+               <p style={{ fontSize: '0.75rem', opacity: 0.4, letterSpacing: '3px', textTransform: 'uppercase', fontWeight: 'bold' }}>{t('dashboard.sys_status_online')}</p>
             </header>
 
-            <div className="flex-col" style={{ alignItems: 'center', gap: '24px', width: '100%' }}>
-               <span style={{ fontSize: '0.8rem', opacity: 0.4, fontWeight: 'bold', letterSpacing: '2px' }}>
-                 {mfaPhase ? `[ ${t('auth.mfa.placeholder_token')} - TOTP ]` : `[ ${t('audit.tabSecurity')} ]`}
+            <div className="flex-col" style={{ alignItems: 'center', gap: '16px', width: '100%' }}>
+               <span style={{ fontSize: '0.7rem', opacity: 0.4, fontWeight: 'bold', letterSpacing: '2px' }}>
+                 {isLocked ? `[ TERMINAL_LOCKED - ${(currentOperator?.username || 'SYSTEM').toUpperCase()} ]` : mfaPhase ? `[ ${t('auth.mfa.placeholder_token')} - TOTP ]` : `[ ${t('audit.tabSecurity')} ]`}
                </span>
                
                {/* PIN / MFA Digit Feedback */}
-               <div className="flex-row" style={{ gap: '16px', height: '60px', alignItems: 'center', justifyContent: 'center' }}>
+               <div className="flex-row" style={{ gap: '12px', height: '50px', alignItems: 'center', justifyContent: 'center' }}>
                   {!mfaPhase ? (
                     pin.length === 0 ? (
-                      <span style={{ opacity: 0.2, fontSize: '0.8rem', letterSpacing: '4px' }}>{t('auth.login.placeholder_pin')}</span>
+                      <span style={{ opacity: 0.2, fontSize: '0.75rem', letterSpacing: '4px' }}>{t('auth.login.placeholder_pin')}</span>
                     ) : (
                       pin.split('').map((_, idx) => (
-                        <div key={`pin-${idx}`} className="flex-center" style={{ width: '40px', height: '56px', borderBottom: '4px solid var(--accent-primary)', fontSize: '2.5rem', color: 'var(--accent-primary)', transform: 'translateY(-4px)', animation: 'fadeIn 0.2s ease-out' }}>*</div>
+                        <div key={`pin-${idx}`} className="flex-center" style={{ width: '32px', height: '48px', borderBottom: '3px solid var(--accent-primary)', fontSize: '2rem', color: 'var(--accent-primary)', transform: 'translateY(-2px)', animation: 'fadeIn 0.2s ease-out' }}>*</div>
                       ))
                     )
                   ) : (
                     mfaToken.length === 0 ? (
-                      <span style={{ opacity: 0.2, fontSize: '0.8rem', letterSpacing: '4px' }}>{t('auth.mfa.placeholder_token')}</span>
+                      <span style={{ opacity: 0.2, fontSize: '0.75rem', letterSpacing: '4px' }}>{t('auth.mfa.placeholder_token')}</span>
                     ) : (
                       mfaToken.split('').map((char, idx) => (
-                        <div key={`mfa-${idx}`} className="flex-center" style={{ width: '40px', height: '56px', borderBottom: '4px solid var(--accent-secondary)', fontSize: '2.5rem', color: 'var(--accent-secondary)', transform: 'translateY(-4px)', animation: 'fadeIn 0.2s ease-out' }}>
+                        <div key={`mfa-${idx}`} className="flex-center" style={{ width: '32px', height: '48px', borderBottom: '3px solid var(--accent-secondary)', fontSize: '2rem', color: 'var(--accent-secondary)', transform: 'translateY(-2px)', animation: 'fadeIn 0.2s ease-out' }}>
                           {char}
                         </div>
                       ))
@@ -211,7 +221,7 @@ export const LoginScreen: React.FC = () => {
                </div>
 
                {error && (
-                 <div className="alert-box error animate-fade-in" style={{ padding: '12px 24px', fontSize: '0.9rem', width: '100%', textAlign: 'center' }}>
+                 <div className="alert-box error animate-fade-in" style={{ padding: '8px 16px', fontSize: '0.8rem', width: '100%', textAlign: 'center' }}>
                    <span>{error}</span>
                  </div>
                )}
@@ -219,36 +229,59 @@ export const LoginScreen: React.FC = () => {
 
             {/* Technical mode hint */}
             {!mfaPhase && (
-              <div style={{ marginTop: '20px' }}>
+              <div style={{ marginTop: '12px' }}>
                 <button 
                   className="station-btn" 
-                  style={{ border: 'none', background: 'transparent', opacity: 0.4, fontSize: '0.75rem', fontWeight: 'bold' }}
+                  style={{ border: 'none', background: 'transparent', opacity: 0.4, fontSize: '0.65rem', fontWeight: 'bold' }}
                   onDoubleClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { ctrlKey: true, shiftKey: true, key: 'F12' }))}
                 >
-                    <KeyIcon size={14} style={{ marginRight: '8px' }} />
+                    <KeyIcon size={12} style={{ marginRight: '6px' }} />
                     {t('auth.login.technical_mode')}
                 </button>
               </div>
             )}
+            
+            {isLocked && (
+               <button 
+                className="station-btn" 
+                style={{ marginTop: '12px', border: 'none', background: 'transparent', opacity: 0.5, fontSize: '0.75rem' }}
+                onClick={logout}
+              >
+                {t('auth.login.switch_user')}
+              </button>
+            )}
             {mfaPhase && (
               <button 
                 className="station-btn" 
-                style={{ marginTop: '20px', border: 'none', background: 'transparent', opacity: 0.5 }}
+                style={{ marginTop: '12px', border: 'none', background: 'transparent', opacity: 0.5, fontSize: '0.75rem' }}
                 onClick={() => { setMfaPhase(false); setMfaToken(''); setError(null); }}
               >
                 {t('auth.mfa.back_btn')}
               </button>
             )}
+
+            {!installationKey && (
+              <div 
+                className="alert-box warning animate-pulse" 
+                style={{ marginTop: '24px', fontSize: '0.65rem', padding: '12px', border: '1px dashed var(--status-warn)' }}
+              >
+                <div className="flex-row" style={{ gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
+                   <KeyIcon size={12} />
+                   <strong>SECURITY_ENGINE_LOCKED</strong>
+                </div>
+                <span>{t('auth.login.master_required_hint')}</span>
+              </div>
+            )}
           </div>
 
           {/* Column 2: Control Panel (Numpad) */}
-          <div className="flex-col" style={{ alignItems: 'center', gap: '32px' }}>
-             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+          <div className="flex-col" style={{ alignItems: 'center', gap: '24px' }}>
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(n => (
                   <button 
                     key={n} 
                     className="station-btn" 
-                    style={{ width: '75px', height: '75px', fontSize: '1.5rem', borderRadius: '50%', padding: 0 }}
+                    style={{ width: '70px', height: '70px', fontSize: '1.4rem', borderRadius: '50%', padding: 0 }}
                     onClick={() => handleKeyPress(n)}
                   >
                     {n}
@@ -256,35 +289,34 @@ export const LoginScreen: React.FC = () => {
                 ))}
                 <button 
                   className="station-btn" 
-                  style={{ width: '75px', height: '75px', borderRadius: '50%', background: 'transparent', border: 'none', padding: 0 }}
+                  style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'transparent', border: 'none', padding: 0 }}
                   onClick={() => { setPin(''); setError(null); }} 
                 >
-                  <XIcon size={24} style={{ opacity: 0.5 }} />
+                  <XIcon size={20} style={{ opacity: 0.5 }} />
                 </button>
                 <button 
                   className="station-btn" 
-                  style={{ width: '75px', height: '75px', fontSize: '1.5rem', borderRadius: '50%', padding: 0 }}
+                  style={{ width: '70px', height: '70px', fontSize: '1.4rem', borderRadius: '50%', padding: 0 }}
                   onClick={() => handleKeyPress('0')}
                 >
                   0
                 </button>
                 <button 
                   className="station-btn" 
-                  style={{ width: '75px', height: '75px', borderRadius: '50%', background: 'transparent', border: 'none', padding: 0 }}
+                  style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'transparent', border: 'none', padding: 0 }}
                   onClick={handleBackspace}
                 >
-                  <DeleteIcon size={24} style={{ opacity: 0.5 }} />
+                  <DeleteIcon size={20} style={{ opacity: 0.5 }} />
                 </button>
              </div>
 
              <button 
-              className="station-btn station-btn-primary" 
-              style={{ width: '100%', height: '64px', fontSize: '1.2rem', letterSpacing: '2px' }}
-              disabled={pin.length < 4}
-              onClick={handleSubmit}
+                className={`station-btn ${mfaPhase ? 'primary-secondary' : 'primary'} large`}
+                style={{ width: '100%', height: '56px', fontSize: '1rem', letterSpacing: '2px', gap: '12px' }}
+                onClick={handleSubmit}
              >
-                <CheckIcon size={24} style={{ marginRight: '16px' }} />
-                {mfaPhase ? t('auth.mfa.verify_btn') : t('auth.login.access_btn')}
+                {mfaPhase ? <ShieldCheckIcon size={20} /> : <CheckIcon size={20} />}
+                {isLocked ? (t('auth.login.unlock_btn')) : mfaPhase ? (t('auth.mfa.verify_btn')) : (t('auth.login.access_btn'))}
              </button>
           </div>
        </div>

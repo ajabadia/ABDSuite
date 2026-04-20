@@ -25,6 +25,12 @@ export const StatusBar: React.FC = () => {
         <span>[ CPU: {metrics.cpuPulse}% ]</span>
         <span>[ RAM: {metrics.ramUsage || '--'}MB ]</span>
         <span style={{ 
+          color: metrics.isEncryptionUnlocked ? 'var(--status-ok)' : 'var(--status-warn)',
+          opacity: 0.8
+        }}>
+           [ CRYPT: {metrics.isEncryptionUnlocked ? 'UNLOCKED' : 'LOCKED'} ]
+        </span>
+        <span style={{ 
           color: metrics.isSecure ? 'var(--status-ok)' : 'var(--status-err)',
           fontWeight: 900,
           opacity: 1

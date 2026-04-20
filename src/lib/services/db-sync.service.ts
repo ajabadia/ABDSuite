@@ -121,12 +121,12 @@ export class DbSyncService {
           context: { reason: 'DECRYPTION_FAILED' }
         }
       });
-      throw new Error('DECRYPTION_FAILED: Invalid passphrase or corrupted file');
+      throw new Error('DECRYPTION_FAILED');
     }
 
     const dump: SuiteDump = JSON.parse(clearJson);
     if (dump.version !== 'abdfn-suite-v6') {
-      throw new Error('PAYLOAD_MISMATCH: Invalid internal dump version');
+      throw new Error('PAYLOAD_MISMATCH');
     }
 
     // Transaction for industrial integrity

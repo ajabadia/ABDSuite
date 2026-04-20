@@ -10,6 +10,7 @@ import { purgeOldAuditRecords } from '@/lib/utils/audit-retention';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { BootstrapWizard } from '@/components/auth/BootstrapWizard';
 import { LoginScreen } from '@/components/auth/LoginScreen';
+import { StepUpAuthModal } from '@/components/auth/StepUpAuthModal';
 import { LoaderIcon } from '@/components/common/Icons';
 
 interface ShellWrapperProps {
@@ -22,7 +23,7 @@ interface ShellWrapperProps {
  * Protected by Phase 8 AuthGuard.
  */
 export const ShellWrapper: React.FC<ShellWrapperProps> = ({ children }) => {
-  const { currentOperator, currentUnit, isLoading, isBootstrapNeeded } = useWorkspace();
+  const { currentOperator, currentUnit, isLoading, isBootstrapNeeded, isLocked } = useWorkspace();
   
   // Industrial Database Maintenance (Retention & Purge)
   useRetentionPolicy(30, !!currentUnit);
@@ -40,7 +41,7 @@ export const ShellWrapper: React.FC<ShellWrapperProps> = ({ children }) => {
     return <BootstrapWizard />;
   }
 
-  if (!currentOperator || !currentUnit) {
+  if (!currentOperator || !currentUnit || isLocked) {
     return <LoginScreen />;
   }
 
@@ -53,6 +54,7 @@ export const ShellWrapper: React.FC<ShellWrapperProps> = ({ children }) => {
       </main>
       <LogDrawer />
       <StatusBar />
+      <StepUpAuthModal />
     </div>
   );
 };

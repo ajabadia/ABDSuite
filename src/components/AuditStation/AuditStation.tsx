@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { GAWEB_FIELDS } from '@/lib/logic/gaweb-auditor.logic';
 import { sanitizeFilename } from '@/lib/utils/filename.utils';
+import { auditService } from '@/lib/services/AuditService';
 import { 
   ShieldCheckIcon, 
   AlertTriangleIcon, 
@@ -85,20 +86,24 @@ const AuditStation: React.FC = () => {
       const persistAudit = async () => {
           if (!indexFile || !audit.summary) return;
           try {
-              await db.audit_history_v6.add({
-                  id: crypto.randomUUID(),
+              await auditService.log({
                   module: 'AUDIT',
-                  timestamp: Date.now(),
-                  action: 'GAWEB_AUDIT_COMPLETED',
+                  messageKey: 'GAWEB_AUDIT_COMPLETED',
                   status: audit.summary.totalErrors > 0 ? 'ERROR' : 'SUCCESS',
-                  details: JSON.stringify({
-                      fileName: indexFile.name,
-                      totalLines: audit.summary.totalLines,
-                      totalErrors: audit.summary.totalErrors,
-                      totalWarnings: audit.summary.totalWarnings
-                  })
-              } as any);
-              console.log('[ABDFN-AUDIT] Result persisted to history.');
+                  details: {
+                      eventType: 'GAWEB_AUDIT_COMPLETED',
+                      entityType: 'AUDIT_REPORT',
+                      entityId: indexFile.name,
+                      severity: audit.summary.totalErrors > 0 ? 'WARN' : 'INFO',
+                      context: {
+                        fileName: indexFile.name,
+                        totalLines: audit.summary.totalLines,
+                        totalErrors: audit.summary.totalErrors,
+                        totalWarnings: audit.summary.totalWarnings
+                      }
+                  }
+              });
+              console.log('[ABDFN-AUDIT] Result persisted via AuditService.');
           } catch (e) {
               console.error('Failed to persist audit', e);
           }

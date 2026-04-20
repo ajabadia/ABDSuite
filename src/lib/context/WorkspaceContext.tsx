@@ -14,6 +14,8 @@ import { hashPin } from '../utils/crypto.utils';
 import { PermissionsService } from '../services/permissions';
 import { auditService } from '../services/AuditService';
 import { TelemetryConfigService } from '../services/telemetry-config.service';
+import { CryptoService } from '../services/crypto.service';
+import { EncryptedFieldContainer } from '../types/crypto.types';
 
 interface WorkspaceContextType {
   currentOperator: Operator | null;
@@ -26,6 +28,17 @@ interface WorkspaceContextType {
   selectUnit: (unit: WorkspaceUnit) => Promise<void>;
   refreshBootstrapStatus: () => Promise<void>;
   can: (cap: Capability) => boolean;
+  isLocked: boolean;
+  lockSession: () => void;
+  unlockSession: (pin: string) => Promise<boolean>;
+  refreshActivity: () => void;
+  requireFreshAuth: (level: 1 | 2, cap?: Capability) => boolean;
+  requestStepUp: (level: 1 | 2) => Promise<boolean>;
+  isStepUpDialogOpen: boolean;
+  setIsStepUpDialogOpen: (open: boolean) => void;
+  pendingStepUpLevel: number;
+  installationKey: CryptoKey | null;
+  unlockIK: (pin: string) => Promise<boolean>;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -37,6 +50,21 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [currentUnit, setCurrentUnit] = useState<WorkspaceUnit | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBootstrapNeeded, setIsBootstrapNeeded] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lastActivityAt, setLastActivityAt] = useState(Date.now());
+  const [installationKey, setInstallationKey] = useState<CryptoKey | null>(null);
+  const [isStepUpDialogOpen, setIsStepUpDialogOpen] = useState(false);
+  const [pendingStepUpLevel, setPendingStepUpLevel] = useState<number>(1);
+  const [stepUpResolver, setStepUpResolver] = useState<((val: boolean) => void) | null>(null);
+
+  // Link DBs to the local IK state
+  useEffect(() => {
+    coreDb.setKeyProvider(() => installationKey);
+    // Explicitly import to avoid circular dependency issues if any
+    import('../db/db').then(m => {
+        m.ABDFNSuiteDB.setKeyProvider(() => installationKey);
+    });
+  }, [installationKey]);
 
   // Initial Sync
   useEffect(() => {
@@ -44,8 +72,13 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       try {
         const unitsCount = await coreDb.units.count();
         const operatorsCount = await coreDb.operators.count();
+        const settings = await coreDb.coreSettings.get('global');
+        const hasIK = !!settings?.encryptedInstallationKey;
 
-        if (unitsCount === 0 || operatorsCount === 0) {
+        if (unitsCount === 0 || operatorsCount === 0 || !hasIK) {
+          if (operatorsCount > 0 && !hasIK) {
+            console.warn('[ABDFN-SECURITY] Operators found but no Installation Key (IK) present. Forcing re-bootstrap for Phase 14 stability.');
+          }
           setIsBootstrapNeeded(true);
           setIsLoading(false);
           return;
@@ -58,15 +91,33 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           const operator = await coreDb.operators.get(session.operatorId);
           const unit = await coreDb.units.get(session.unitId);
 
-          if (operator && unit && operator.isActive === 1 && unit.isActive === 1) {
-            await setActiveUnit(unit.id);
-            setCurrentOperator(operator);
-            setCurrentUnit(unit);
+            // Validar expiración absoluta
+            const now = Date.now();
+            if (session.expiresAt && now > session.expiresAt) {
+              console.warn('[ABDFN-WORKSPACE] Session expired absolutely');
+              localStorage.removeItem(SESSION_KEY);
+              setIsLoading(false);
+              return;
+            }
+
+            // Validar inactividad estricta ante recarga (ej. si pasó más de timeout mientras estaba cerrado)
+            const config = await TelemetryConfigService.loadConfig();
+            const timeoutMs = (config.security.sessionInactivityTimeoutMinutes ?? 15) * 60000;
+            if (now - session.lastActivityAt > timeoutMs) {
+               console.warn('[ABDFN-WORKSPACE] Session inactive for too long on reload');
+               localStorage.removeItem(SESSION_KEY);
+               setIsLoading(false);
+               return;
+            }
+
+            if (unit) await setActiveUnit(unit.id);
+            setCurrentOperator(operator || null);
+            setCurrentUnit(unit || null);
+            setLastActivityAt(Date.now());
           } else {
             localStorage.removeItem(SESSION_KEY);
           }
-        }
-      } catch (err) {
+        } catch (err) {
         console.error('[ABDFN-WORKSPACE] Failed to initialize', err);
       } finally {
         setIsLoading(false);
@@ -78,13 +129,17 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const refreshBootstrapStatus = async () => {
     const unitsCount = await coreDb.units.count();
     const operatorsCount = await coreDb.operators.count();
-    setIsBootstrapNeeded(unitsCount === 0 || operatorsCount === 0);
+    const settings = await coreDb.coreSettings.get('global');
+    const hasIK = !!settings?.encryptedInstallationKey;
+    
+    setIsBootstrapNeeded(unitsCount === 0 || operatorsCount === 0 || !hasIK);
   };
 
   const login = async (pin: string): Promise<{ success: boolean; mfaRequired: boolean }> => {
     try {
       const config = await TelemetryConfigService.loadConfig();
       const maxPinAttempts = config.security.maxPinAttempts ?? 5;
+      const sessionMaxAge = config.security.sessionMaxAgeMinutes ?? 480;
 
       // 1. Identify operator by current input (simplified for this industrial suite to use selected op if any or fetch by pin)
       // Note: In ERA 6, we typically select the operator from a list first, but here login(pin) needs to verify it.
@@ -151,6 +206,17 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         lastLogin: Date.now(),
         failedPinAttempts: 0 // Reset on success
       });
+
+      // --- PHASE 14: AUTO-UNLOCK IK ON ADMIN LOGIN ---
+      if (operator.role === 'ADMIN') {
+        const success = await unlockIK(pin);
+        if (!success) {
+          console.error('[ABDFN-SECURITY] Failed to unlock IK during admin login.');
+          // In an ultra-strict environment we might abort, 
+          // but for now we log and continue (legacy data will still work).
+        }
+      }
+      // --- END PHASE 14 ---
       
       await auditService.log({
         module: 'SECURITY',
@@ -171,6 +237,20 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (operator.unitIds.length === 1) {
         const unit = await coreDb.units.get(operator.unitIds[0]);
         if (unit) await selectUnit(unit);
+      } else {
+        // Create skeleton session for unit selection phase
+        const now = Date.now();
+        const session: AuthSession = {
+           operatorId: operator.id,
+           unitId: '', // Pending
+           lastLoginAt: now,
+           lastActivityAt: now,
+           expiresAt: now + (sessionMaxAge * 60000),
+           mfaVerifiedAt: null,
+           mfaStep: 1,
+           authLevel: 1
+        };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
       }
 
       return { success: true, mfaRequired: false };
@@ -181,9 +261,17 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const verifyMfa = async (token: string): Promise<boolean> => {
-    if (!currentOperator || !currentOperator.mfaSecret) return false;
+    if (!currentOperator) return false;
 
     try {
+      // 1. Get secret (either from operator or enrollment temporary state)
+      // Note: If we are in Step-Up and it's a new enrollment, the secret might be temporary.
+      // But for simplicity in Phase 15.4, we assume the secret is already in the operator or we've just set it.
+      if (!currentOperator.mfaSecret) {
+         console.error('[ABDFN-MFA] Verification attempted without secret container.');
+         return false;
+      }
+
       const config = await TelemetryConfigService.loadConfig();
       const maxMfaAttempts = config.security.maxMfaAttempts ?? 5;
       const mfaCooldownMinutes = config.security.mfaCooldownMinutes ?? 15;
@@ -199,6 +287,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const isValid = await verifyTOTP(currentOperator.mfaSecret, token);
 
       if (isValid) {
+        // Log Audit
         await auditService.log({
           module: 'SECURITY',
           messageKey: 'auth.mfa.success',
@@ -211,19 +300,46 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             actorId: currentOperator.id,
             actorUser: currentOperator.username,
             severity: 'INFO',
-            context: { method: 'TOTP' }
+            context: { method: 'TOTP', flow: isStepUpDialogOpen ? 'STEP_UP' : 'LOGIN' }
           }
         });
+
+        // Update Operator state in DB if it was an enrollment
+        if (!currentOperator.mfaEnabled) {
+           await coreDb.operators.update(currentOperator.id, {
+             mfaEnabled: true,
+             mfaVerifiedAt: now
+           });
+           setCurrentOperator({ ...currentOperator, mfaEnabled: true });
+        }
+
         await coreDb.operators.update(currentOperator.id, { 
           lastLogin: Date.now(),
           failedMfaAttempts: 0,
           mfaLockedUntil: 0
         });
 
-        if (currentOperator.unitIds.length === 1) {
+        // Update Session in localStorage
+        const saved = localStorage.getItem(SESSION_KEY);
+        if (saved) {
+           const session: AuthSession = JSON.parse(saved);
+           session.mfaVerifiedAt = now;
+           session.authLevel = Math.max(session.authLevel, isStepUpDialogOpen ? (pendingStepUpLevel as 1 | 2) : 2) as (1 | 2);
+           localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        }
+
+        if (!isStepUpDialogOpen && currentOperator.unitIds.length === 1) {
           const unit = await coreDb.units.get(currentOperator.unitIds[0]);
           if (unit) await selectUnit(unit);
         }
+
+        // Resolve pending step-up if active
+        if (stepUpResolver) {
+           stepUpResolver(true);
+           setStepUpResolver(null);
+           setIsStepUpDialogOpen(false);
+        }
+
         return true;
       } else {
         const newAttempts = (currentOperator.failedMfaAttempts ?? 0) + 1;
@@ -282,13 +398,23 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     });
 
+    const config = await TelemetryConfigService.loadConfig();
+    const sessionMaxAge = config.security.sessionMaxAgeMinutes ?? 480;
+    const now = Date.now();
+
     const session: AuthSession = {
       operatorId: currentOperator.id,
       unitId: unit.id,
-      lastLoginAt: Date.now(),
-      mfaStep: 2
+      lastLoginAt: now,
+      lastActivityAt: now,
+      expiresAt: now + (sessionMaxAge * 60000),
+      mfaVerifiedAt: currentOperator.mfaEnabled ? now : null,
+      mfaStep: 2,
+      authLevel: currentOperator.mfaEnabled ? 2 : 1
     };
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    setIsLocked(false);
+    setLastActivityAt(now);
   };
 
   const logout = () => {
@@ -318,18 +444,201 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return PermissionsService.hasCapabilityForOperator(currentOperator, cap);
   };
 
+  const lockSession = () => {
+    if (!currentOperator) return;
+    setIsLocked(true);
+    auditService.log({
+      module: 'SECURITY',
+      messageKey: 'auth.session.lock',
+      status: 'INFO',
+      operatorId: currentOperator.id,
+      details: { 
+        eventType: 'AUTHSESSIONLOCK', 
+        entityType: 'OPERATOR', 
+        actorId: currentOperator.id,
+        context: { reason: 'manual' }
+      }
+    });
+  };
+
+  const unlockSession = async (pin: string): Promise<boolean> => {
+    if (!currentOperator) return false;
+    const pinHash = await hashPin(pin);
+    if (currentOperator.pinHash === pinHash) {
+      setIsLocked(false);
+      refreshActivity();
+      auditService.log({
+        module: 'SECURITY',
+        messageKey: 'auth.session.unlock',
+        status: 'SUCCESS',
+        operatorId: currentOperator.id,
+        details: { 
+          eventType: 'AUTHSESSIONUNLOCK', 
+          entityType: 'OPERATOR', 
+          actorId: currentOperator.id 
+        }
+      });
+      return true;
+    }
+    return false;
+  };
+
+  const refreshActivity = () => {
+    if (isLocked) return;
+    const now = Date.now();
+    setLastActivityAt(now);
+    
+    // Persistir actividad en disco para validación post-recarga
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (saved) {
+      const session: AuthSession = JSON.parse(saved);
+      session.lastActivityAt = now;
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }
+  };
+
+  const unlockIK = async (pin: string): Promise<boolean> => {
+    try {
+      // 1. Get encrypted IK from core settings
+      const settings = await coreDb.coreSettings.get('global');
+      if (!settings || !settings.encryptedInstallationKey) {
+        console.warn('[ABDFN-SECURITY] No encrypted IK found in coreSettings');
+        return false;
+      }
+
+      // 2. Decode the master salt from Base64
+      const masterSalt = settings.masterSalt 
+        ? CryptoService.fromBase64(settings.masterSalt)
+        : new TextEncoder().encode('ABDFN_ROOT_SALT_V6');
+
+      // 3. Derive Master Key from PIN
+      const masterKey = await CryptoService.deriveMasterKeyFromPin(pin, masterSalt);
+
+      // 4. Decrypt the IK container
+      const container = settings.encryptedInstallationKey as EncryptedFieldContainer;
+      
+      // Use the exact same AAD context used during Bootstrap
+      const ikAad = CryptoService.buildAAD('ABDFN_CORE', null, 'coreSettings', 'global', 'encryptedInstallationKey');
+      const ikBytes = await CryptoService.decryptField(container, masterKey, ikAad);
+
+      // 5. Import the bytes as the actual CryptoKey for the session
+      const ik = await crypto.subtle.importKey(
+        'raw',
+        ikBytes.buffer as ArrayBuffer,
+        { name: 'AES-GCM' },
+        true,
+        ['encrypt', 'decrypt']
+      );
+
+      setInstallationKey(ik);
+      console.info('[ABDFN-SECURITY] Installation Key UNLOCKED and loaded to memory.');
+      return true;
+    } catch (err) {
+      console.error('[ABDFN-SECURITY] Failed to unlock IK', err);
+      return false;
+    }
+  };
+
+  const requireFreshAuth = (level: 1 | 2, cap?: Capability): boolean => {
+    if (!currentOperator) return false;
+    
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (!saved) return false;
+    const session: AuthSession = JSON.parse(saved);
+
+    // Si pedimos Nivel 2 y solo tenemos Nivel 1, rechazar
+    if (level === 2 && session.authLevel < 2) return false;
+
+    const now = Date.now();
+    
+    // Verificación de frescura (Nivel 2: MFA debe ser reciente - ej. < 1h)
+    if (level === 2 && session.mfaVerifiedAt) {
+      const mfaAge = (now - session.mfaVerifiedAt) / 60000;
+      if (mfaAge > 60) return false; // Hardcoded 1h for now, can be configured
+    }
+
+    // Verificación de inactividad de seguridad (Auth Level Freshness)
+    const activityAge = (now - session.lastActivityAt) / 60000;
+    if (activityAge > 15) return false;
+
+    return true; 
+  };
+
+  const requestStepUp = async (level: 1 | 2): Promise<boolean> => {
+    if (requireFreshAuth(level)) return true;
+    
+    // If we reach here, we need to show the step-up UI
+    setPendingStepUpLevel(level);
+    setIsStepUpDialogOpen(true);
+    
+    return new Promise((resolve) => {
+      setStepUpResolver(() => resolve);
+    });
+  };
+
+  // Heartbeat & Inactivity Watcher (Phase 13.1)
+  useEffect(() => {
+    if (!currentOperator || isLocked) return;
+
+    const controller = new AbortController();
+    const refresh = () => refreshActivity();
+
+    window.addEventListener('mousemove', refresh, { signal: controller.signal });
+    window.addEventListener('keydown', refresh, { signal: controller.signal });
+    window.addEventListener('visibilitychange', refresh, { signal: controller.signal });
+
+    const interval = setInterval(async () => {
+      const config = await TelemetryConfigService.loadConfig();
+      const timeoutMs = (config.security.sessionInactivityTimeoutMinutes ?? 15) * 60000;
+      const now = Date.now();
+
+      if (now - lastActivityAt > timeoutMs) {
+        console.warn('[ABDFN-SECURITY] Inactivity timeout reached');
+        setIsLocked(true);
+        auditService.log({
+          module: 'SECURITY',
+          messageKey: 'auth.session.lock',
+          status: 'INFO',
+          operatorId: currentOperator.id,
+          details: { 
+            eventType: 'AUTHSESSIONLOCK', 
+            entityType: 'OPERATOR', 
+            actorId: currentOperator.id,
+            context: { reason: 'inactivity' }
+          }
+        });
+      }
+    }, 30000); // Check every 30s
+
+    return () => {
+      controller.abort();
+      clearInterval(interval);
+    };
+  }, [currentOperator, isLocked, lastActivityAt]);
+
   return (
     <WorkspaceContext.Provider value={{ 
       currentOperator, 
       currentUnit, 
       isLoading, 
       isBootstrapNeeded,
+      isLocked,
       login, 
       logout, 
       selectUnit,
       refreshBootstrapStatus,
       verifyMfa,
-      can
+      can,
+      lockSession,
+      unlockSession,
+      refreshActivity,
+      requireFreshAuth,
+      requestStepUp,
+      isStepUpDialogOpen,
+      setIsStepUpDialogOpen,
+      pendingStepUpLevel,
+      installationKey,
+      unlockIK
     }}>
       {children}
     </WorkspaceContext.Provider>

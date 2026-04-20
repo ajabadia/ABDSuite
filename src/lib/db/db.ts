@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 import { EtlPreset } from '../types/etl.types';
 import { LetterTemplate, LetterMapping } from '../types/letter.types';
+import { applyEncryptedMiddleware, EncryptedFieldsConfig } from './EncryptedDbAdapter';
 
 export interface GoldenTest {
   id?: string;
@@ -21,7 +22,8 @@ export interface GoldenTest {
 export interface AuditHistoryRecord {
   id?: string;
   timestamp: number;
-  module: 'LETTER' | 'AUDIT' | 'CRYPT';
+  category: string;
+  module: 'LETTER' | 'AUDIT' | 'CRYPT' | 'SECURITY' | 'SYSTEM' | 'SUPERVISOR';
   action: string;
   details: string; // JSON string with counts, errors, etc.
   status: 'SUCCESS' | 'WARNING' | 'ERROR';
@@ -38,16 +40,27 @@ export class ABDFNSuiteDB extends Dexie {
   golden_tests_v6!: Table<GoldenTest>;
   audit_history_v6!: Table<AuditHistoryRecord>;
 
+  private _unitId: string;
+  private static _keyProvider: () => CryptoKey | null = () => null;
+
   constructor(unitId: string) {
     super(`ABDFN_UNIT_${unitId}`);
+    this._unitId = unitId;
+
+    const suiteConfig: EncryptedFieldsConfig = {
+      lettertemplates_v6: ['binaryContent', 'content'],
+      audit_history_v6: ['details']
+    };
+
+    applyEncryptedMiddleware(this, 'ABDFN_SUITE', unitId, suiteConfig, () => ABDFNSuiteDB._keyProvider());
     
     // Schema Era 6 (UUID Based)
-    this.version(9).stores({
+    this.version(10).stores({
       presets_v6: 'id, name, gawebConfig.active, updatedAt',
       lettertemplates_v6: 'id, name, type, isActive, updatedAt',
       lettermappings_v6: 'id, name, templateId, etlPresetId, isActive, updatedAt',
       golden_tests_v6: 'id, templateId, mappingId, etlPresetId, codDocumento, version',
-      audit_history_v6: 'id, timestamp, module, action, status'
+      audit_history_v6: 'id, timestamp, category, module, action, status'
     });
 
     this.presets_v6 = this.table('presets_v6');
@@ -55,6 +68,13 @@ export class ABDFNSuiteDB extends Dexie {
     this.lettermappings_v6 = this.table('lettermappings_v6');
     this.golden_tests_v6 = this.table('golden_tests_v6');
     this.audit_history_v6 = this.table('audit_history_v6');
+  }
+
+  /**
+   * Set global key provider for all suite database instances
+   */
+  public static setKeyProvider(provider: () => CryptoKey | null) {
+      this._keyProvider = provider;
   }
 }
 

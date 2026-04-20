@@ -1,20 +1,34 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '@/lib/db/db';
-import { AuditRecord, AuditModule } from '@/lib/types/audit-history.types';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { ForbiddenPanel } from '../common/ForbiddenPanel';
 import { IndustrialVirtualTable } from '../common/IndustrialVirtualTable';
-import { ListIcon, SearchIcon, AlertTriangleIcon, ActivityIcon, ShieldIcon, ClockIcon } from '../common/Icons';
+import { 
+  ListIcon, 
+  SearchIcon, 
+  AlertTriangleIcon, 
+  ActivityIcon, 
+  ShieldIcon, 
+  ClockIcon,
+  CheckCircleIcon,
+  InfoIcon
+} from '../common/Icons';
 import { loadAuditRetention, saveAuditRetention, AuditRetentionSettings } from '@/lib/utils/audit-retention-settings';
 import { purgeOldAuditRecords } from '@/lib/utils/audit-retention';
 
+import { useSecurityKpis, SecurityKpis } from '@/lib/hooks/useSecurityKpis';
+import { AuditCategory } from '@/lib/types/audit.types';
 import { auditService } from '@/lib/services/AuditService';
+import { TelemetryConfigService } from '@/lib/services/telemetry-config.service';
 
 const ITEM_HEIGHT = 48;
 
+/**
+ * Enterprise Security Audit Dashboard (Phase 14.3 Refined)
+ */
 export const AuditHistoryDashboard: React.FC = () => {
     const { t } = useLanguage();
     const { can, currentOperator } = useWorkspace();
@@ -23,10 +37,18 @@ export const AuditHistoryDashboard: React.FC = () => {
         return <ForbiddenPanel capability="AUDIT_VIEW" />;
     }
 
-    const [records, setRecords] = useState<AuditRecord[]>([]);
-    const [moduleFilter, setModuleFilter] = useState<AuditModule | 'ALL'>('ALL');
+    const [records, setRecords] = useState<any[]>([]);
+    const [categoryFilter, setCategoryFilter] = useState<AuditCategory | 'ALL'>('ALL');
+    const [severityFilter, setSeverityFilter] = useState<string | 'ALL'>('ALL');
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [retention, setRetention] = useState<AuditRetentionSettings>(() => loadAuditRetention());
+    
+    // Time Range State
+    const [timeRange, setTimeRange] = useState<number>(24); // hours
+    const toTs = Date.now();
+    const fromTs = toTs - (timeRange * 60 * 60 * 1000);
+
+    const { kpis, isLoading: kpisLoading } = useSecurityKpis(fromTs, toTs);
 
     const handleRetentionChange = async (months: number) => {
         const next = { months: months as any };
@@ -53,25 +75,100 @@ export const AuditHistoryDashboard: React.FC = () => {
         });
     };
 
+    const [telemetry, setTelemetry] = useState<any>(null);
+
+    useEffect(() => {
+        TelemetryConfigService.loadConfig().then(setTelemetry);
+    }, []);
+
+    /**
+     * Security Health Summary Logic (Phase 15 Parametrized)
+     */
+    const healthSummary = useMemo(() => {
+        if (!telemetry) return [];
+        const sentences: { text: string; status: 'ok' | 'warn' | 'crit'; type: AuditCategory | 'ALL' }[] = [];
+        const thresholds = telemetry.security.securityThresholds;
+
+        // 1. Auth Failures
+        if (kpis.failedAuthCount === 0) {
+            sentences.push({ text: 'No se han detectado intentos de acceso fallidos en la ventana seleccionada.', status: 'ok', type: 'AUTH' });
+        } else if (kpis.failedAuthCount < thresholds.failedAuthLow) {
+            sentences.push({ text: `Se han registrado ${kpis.failedAuthCount} intentos de acceso fallidos; el nivel de ruido de autenticación es bajo.`, status: 'ok', type: 'AUTH' });
+        } else if (kpis.failedAuthCount < thresholds.failedAuthHigh) {
+            sentences.push({ text: `Atención: se han registrado ${kpis.failedAuthCount} intentos de acceso fallidos. Revisar patrones de acceso.`, status: 'warn', type: 'AUTH' });
+        } else {
+            sentences.push({ text: `ALERTA: volumen crítico (${kpis.failedAuthCount}) de intentos fallidos; posible ataque o desajuste grave de terminales.`, status: 'crit', type: 'AUTH' });
+        }
+
+        // 2. Session Locks
+        const totalLocks = kpis.sessionLocks.inactivity + kpis.sessionLocks.manual;
+        if (totalLocks === 0) {
+            sentences.push({ text: 'No se han producido bloqueos de estación; verifique que los timeouts de sesión son adecuados.', status: 'warn', type: 'AUTH' });
+        } else if (kpis.sessionLocks.inactivity > thresholds.inactivityLocksHigh) {
+            sentences.push({ text: `Volumen elevado de bloqueos por inactividad (${kpis.sessionLocks.inactivity}); revise la ergonomía de seguridad en la planta.`, status: 'warn', type: 'AUTH' });
+        } else {
+            sentences.push({ text: `Se han producido ${kpis.sessionLocks.inactivity} bloqueos por inactividad y ${kpis.sessionLocks.manual} bloqueos manuales.`, status: 'ok', type: 'AUTH' });
+        }
+
+        // 3. RBAC Changes
+        if (kpis.rbacChangesCount === 0) {
+            sentences.push({ text: 'No se han realizado cambios de roles ni capacidades en este periodo.', status: 'ok', type: 'RBAC' });
+        } else if (kpis.rbacChangesCount >= thresholds.rbacChangesAttention) {
+            sentences.push({ text: `Se han registrado ${kpis.rbacChangesCount} cambios en Operadores/Roles; nivel superior al umbral configurado.`, status: 'warn', type: 'RBAC' });
+        } else {
+            sentences.push({ text: `${kpis.rbacChangesCount} cambios menores de administración detectados.`, status: 'ok', type: 'RBAC' });
+        }
+
+        // 4. Data Operations
+        if (kpis.dataOps.total === 0) {
+            sentences.push({ text: 'No se han realizado volcados ni sincronizaciones de datos.', status: 'ok', type: 'DATA' });
+        } else {
+            const hasTooManyErrors = kpis.dataOps.failed >= thresholds.dataOpsErrorAttention;
+            sentences.push({ 
+                text: `Operaciones de datos: ${kpis.dataOps.total} (éxito: ${kpis.dataOps.success}, fallos: ${kpis.dataOps.failed}).`, 
+                status: hasTooManyErrors ? 'crit' : 'ok', 
+                type: 'DATA' 
+            });
+        }
+
+        return sentences;
+    }, [kpis, telemetry]);
+
     useEffect(() => {
         const fetchHistory = async () => {
-            let collection = db.audit_history_v6.orderBy('timestamp').reverse();
+            let collection = db.audit_history_v6.where('timestamp').between(fromTs, toTs, true, true);
 
-            let data = await collection.toArray() as any as AuditRecord[];
+            // Filtering at source where possible, or in memory for complex and conditions
+            let data = await collection.toArray();
 
-            if (moduleFilter !== 'ALL') {
-                data = data.filter(r => r.module === moduleFilter);
+            if (categoryFilter !== 'ALL') {
+                data = data.filter(r => r.category === categoryFilter);
+            }
+            
+            if (severityFilter !== 'ALL') {
+              data = data.filter(r => {
+                try {
+                  const details = JSON.parse(r.details || '{}');
+                  return details.severity === severityFilter;
+                } catch { return false; }
+              });
             }
 
-            setRecords(data);
+            // Reverse and limit
+            data.sort((a, b) => b.timestamp - a.timestamp);
+            setRecords(data.slice(0, 500));
         };
         fetchHistory();
-    }, [moduleFilter]);
+    }, [categoryFilter, severityFilter, fromTs, toTs]);
 
-    const renderRow = (record: AuditRecord | undefined, idx: number, style: React.CSSProperties) => {
+    const renderRow = (record: any | undefined, idx: number, style: React.CSSProperties) => {
         if (!record) return <div style={style}>...</div>;
-
         const isSelected = selectedId === record.id;
+        
+        let severity = 'INFO';
+        try {
+           severity = JSON.parse(record.details).severity || 'INFO';
+        } catch {}
 
         return (
             <div
@@ -85,25 +182,24 @@ export const AuditHistoryDashboard: React.FC = () => {
                     borderBottom: '1px solid var(--border-color)',
                     background: isSelected ? 'rgba(var(--primary-color), 0.1)' : 'transparent',
                     cursor: 'pointer',
-                    transition: 'background 0.2s ease'
+                    transition: 'background 0.2s ease',
+                    fontSize: '0.85rem'
                 }}
             >
-                <div style={{ width: '150px', fontSize: '0.8rem', opacity: 0.7 }}>
+                <div style={{ width: '140px', opacity: 0.6, fontSize: '0.75rem' }}>
                     {new Date(record.timestamp).toLocaleString()}
                 </div>
-                <div style={{ width: '120px' }}>
-                    <span className={`station-badge ${record.module === 'GAWEB_AUDIT' ? 'station-badge-blue' :
-                            record.module === 'LETTER_QA' ? 'station-badge-orange' : 'station-badge-green'
-                        }`}>
-                        {record.module}
+                <div style={{ width: '100px' }}>
+                    <span className={`station-badge station-badge-${record.category === 'AUTH' ? 'orange' : record.category === 'RBAC' ? 'green' : record.category === 'CONFIG' ? 'blue' : 'blue'}`}>
+                        {record.category}
                     </span>
                 </div>
-                <div style={{ flex: 1, fontSize: '0.9rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {t(record.messageKey) || record.messageKey}
+                <div style={{ flex: 1, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {t(record.action) || record.action}
                 </div>
                 <div style={{ width: '80px', textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.7rem', color: record.level === 'error' ? 'var(--status-err)' : 'inherit' }}>
-                        {record.level.toUpperCase()}
+                    <span className={`station-badge ${severity === 'CRITICAL' ? 'station-badge-orange' : severity === 'WARN' ? 'station-badge-blue' : ''}`} style={{ fontSize: '0.65rem' }}>
+                        {severity}
                     </span>
                 </div>
             </div>
@@ -113,98 +209,174 @@ export const AuditHistoryDashboard: React.FC = () => {
     const selectedRecord = records.find(r => r.id === selectedId);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '20px' }}>
+            
+            {/* SECURITY HEALTH SUMMARY (Phase 14.3 Template) */}
+            <div className="station-card" style={{ background: 'var(--surface-color)', borderLeft: '4px solid var(--primary-color)', padding: '16px 20px' }}>
+               <div className="flex-col" style={{ gap: '12px' }}>
+                  <div className="flex-row" style={{ alignItems: 'center', gap: '10px' }}>
+                     <ShieldIcon size={18} color="var(--primary-color)" />
+                     <div style={{ fontWeight: 800, fontSize: '0.85rem', letterSpacing: '0.5px' }}>RESUMEN DE SALUD DE SEGURIDAD (DIAGNÓSTICO AUTOMÁTICO)</div>
+                  </div>
+                  <div className="flex-col" style={{ gap: '8px' }}>
+                    {healthSummary.map((sentence, idx) => (
+                      <div 
+                        key={idx} 
+                        className="health-sentence clickable"
+                        onClick={() => setCategoryFilter(sentence.type)}
+                        style={{ 
+                          display: 'flex', 
+                          gap: '10px', 
+                          alignItems: 'baseline', 
+                          fontSize: '0.8rem',
+                          background: 'rgba(0,0,0,0.02)',
+                          padding: '6px 12px',
+                          borderRadius: '4px',
+                          border: '1px solid transparent',
+                          transition: 'all 0.2s ease',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {sentence.status === 'ok' ? <CheckCircleIcon size={14} color="var(--status-ok)" /> : 
+                         sentence.status === 'warn' ? <InfoIcon size={14} color="var(--status-warn)" /> : 
+                         <AlertTriangleIcon size={14} color="var(--error-color)" />}
+                        <span style={{ flex: 1 }}>{sentence.text}</span>
+                        <span style={{ fontSize: '0.6rem', opacity: 0.4, fontWeight: 700 }}>[FILTRAR]</span>
+                      </div>
+                    ))}
+                  </div>
+               </div>
+            </div>
+
+            {/* KPI CARDS (v2 Parametrized) */}
+            <div className="station-form-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+               <KPIItem 
+                 val={kpis.failedAuthCount} 
+                 label="AUTH_FAILURES" 
+                 status={telemetry ? (kpis.failedAuthCount >= telemetry.security.securityThresholds.failedAuthHigh ? 'crit' : kpis.failedAuthCount >= telemetry.security.securityThresholds.failedAuthLow ? 'warn' : 'ok') : 'ok'} 
+               />
+               <KPIItem 
+                 val={kpis.sessionLocks.inactivity + kpis.sessionLocks.manual} 
+                 label={`SESSION_LOCKS (I:${kpis.sessionLocks.inactivity}/M:${kpis.sessionLocks.manual})`}
+                 status={telemetry ? (kpis.sessionLocks.inactivity > telemetry.security.securityThresholds.inactivityLocksHigh ? 'warn' : 'ok') : 'ok'} 
+               />
+               <KPIItem 
+                 val={kpis.rbacChangesCount} 
+                 label="RBAC_ALTS" 
+                 status={telemetry ? (kpis.rbacChangesCount >= telemetry.security.securityThresholds.rbacChangesAttention ? 'warn' : 'ok') : 'ok'} 
+               />
+               <KPIItem 
+                 val={`${kpis.dataOps.success}/${kpis.dataOps.failed}`} 
+                 label="DATA_OPS (OK/ERR)" 
+                 status={telemetry ? (kpis.dataOps.failed >= telemetry.security.securityThresholds.dataOpsErrorAttention ? 'crit' : 'ok') : 'ok'} 
+               />
+               <KPIItem 
+                 val={kpis.ikUnlocks} 
+                 label="IK_UNLOCKS" 
+                 status={kpis.ikUnlocks > 1 ? 'warn' : 'ok'} 
+               />
+            </div>
+
             {/* TOOLBAR */}
             <div className="flex-row" style={{ gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div className="flex-col">
-                    <label className="station-label" style={{ fontSize: '0.65rem' }}>MODULE_FILTER</label>
-                    <select
-                        className="station-input"
-                        value={moduleFilter}
-                        onChange={e => setModuleFilter(e.target.value as any)}
-                        style={{ width: '180px', height: '36px' }}
-                    >
-                        <option value="ALL">ALL_MODULES</option>
-                        <option value="GAWEB_AUDIT">GAWEB_AUDIT</option>
-                        <option value="LETTER_QA">LETTER_QA</option>
-                        <option value="CRYPT">CRYPT</option>
+                    <label className="station-label" style={{ fontSize: '0.65rem' }}>CATEGORÍA</label>
+                    <select className="station-input" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value as any)} style={{ width: '130px', height: '36px' }}>
+                        <option value="ALL">TODAS</option>
+                        <option value="AUTH">AUTH</option>
+                        <option value="RBAC">RBAC</option>
+                        <option value="CONFIG">CONFIG</option>
+                        <option value="DATA">DATA</option>
+                        <option value="SYSTEM">SYSTEM</option>
+                    </select>
+                </div>
+                <div className="flex-col">
+                    <label className="station-label" style={{ fontSize: '0.65rem' }}>SEVERIDAD</label>
+                    <select className="station-input" value={severityFilter} onChange={e => setSeverityFilter(e.target.value as any)} style={{ width: '110px', height: '36px' }}>
+                        <option value="ALL">TODAS</option>
+                        <option value="CRITICAL">CRITICAL</option>
+                        <option value="WARN">WARN</option>
+                        <option value="INFO">INFO</option>
+                    </select>
+                </div>
+                <div className="flex-col">
+                    <label className="station-label" style={{ fontSize: '0.65rem' }}>VENTANA_TIEMPO</label>
+                    <select className="station-input" value={timeRange} onChange={e => setTimeRange(Number(e.target.value))} style={{ width: '120px', height: '36px' }}>
+                        <option value={1}>1_HORA</option>
+                        <option value={24}>24_HORAS</option>
+                        <option value={168}>7_DÍAS</option>
+                        <option value={720}>30_DÍAS</option>
                     </select>
                 </div>
 
-                <div className="flex-col">
-                    <label className="station-label" style={{ fontSize: '0.65rem' }}>RETENTION_PERIOD</label>
+                <div className="flex-col" style={{ marginLeft: 'auto' }}>
+                    <label className="station-label" style={{ fontSize: '0.65rem' }}>RETENCIÓN_DEXIE</label>
                     <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
-                        <select
-                            className="station-input"
-                            value={retention.months}
-                            onChange={e => handleRetentionChange(Number(e.target.value))}
-                            style={{ width: '140px', height: '36px' }}
-                        >
-                            <option value={3}>3_MONTHS</option>
-                            <option value={6}>6_MONTHS</option>
-                            <option value={12}>12_MONTHS</option>
-                            <option value={24}>24_MONTHS</option>
+                        <select className="station-input" value={retention.months} onChange={e => handleRetentionChange(Number(e.target.value))} style={{ width: '110px', height: '36px' }}>
+                            <option value={3}>3_MESES</option>
+                            <option value={6}>6_MESES</option>
+                            <option value={12}>12_MESES</option>
                         </select>
                         <ClockIcon size={14} style={{ opacity: 0.5 }} />
                     </div>
-                </div>
-
-                <div style={{ marginLeft: 'auto', textAlign: 'right', opacity: 0.5, fontSize: '0.75rem' }}>
-                    <div>AUTO_PURGE_ENABLED</div>
-                    <div style={{ fontSize: '0.6rem' }}>DATA_CLEANUP_EVERY_MONTH</div>
                 </div>
             </div>
 
             <div style={{ display: 'flex', flex: 1, gap: '20px', minHeight: 0 }}>
                 {/* TABLE SECTION */}
-                <div style={{ flex: 2, border: '1px solid var(--border-color)', background: 'var(--surface-color)', position: 'relative' }}>
+                <div style={{ flex: 2, border: '1px solid var(--border-color)', background: 'var(--surface-color)', position: 'relative', borderRadius: '4px', overflow: 'hidden' }}>
                     <IndustrialVirtualTable
                         items={records}
                         totalItems={records.length}
                         itemHeight={ITEM_HEIGHT}
-                        containerHeight={600}
+                        containerHeight={500}
                         renderRow={renderRow}
                     />
                 </div>
 
                 {/* DETAIL SECTION */}
-                <div style={{ flex: 1, border: '1px solid var(--border-color)', background: 'var(--bg-color)', padding: '20px', overflowY: 'auto' }}>
+                <div style={{ flex: 1, border: '1px solid var(--border-color)', background: 'var(--bg-color-alt)', padding: '20px', overflowY: 'auto', borderRadius: '4px' }}>
                     {selectedRecord ? (
                         <div className="flex-col" style={{ gap: '16px' }}>
                             <div style={{ paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
-                                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{selectedRecord.module}</h3>
-                                <div style={{ opacity: 0.5, fontSize: '0.8rem' }}>ID: {selectedRecord.id}</div>
+                                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary-color)' }}>{selectedRecord.category}</div>
+                                <h3 style={{ margin: '4px 0', fontSize: '1rem' }}>{t(selectedRecord.action) || selectedRecord.action}</h3>
+                                <div style={{ opacity: 0.5, fontSize: '0.75rem' }}>{new Date(selectedRecord.timestamp).toLocaleString()}</div>
                             </div>
 
-                            <div className="station-tech-summary">
-                                {selectedRecord.payload.type === 'GAWEB_AUDIT' && (
-                                    <>
-                                        <div className="station-tech-item"><span className="station-tech-label">FILE:</span> {selectedRecord.payload.data.fileName}</div>
-                                        <div className="station-tech-item"><span className="station-tech-label">LINES:</span> {selectedRecord.payload.data.totalLines}</div>
-                                        <div className="station-tech-item"><span className="station-tech-label">ERRORS:</span> {selectedRecord.payload.data.totalErrors}</div>
-                                    </>
-                                )}
-                                {selectedRecord.payload.type === 'LETTER_QA' && (
-                                    <>
-                                        <div className="station-tech-item"><span className="station-tech-label">LOTE:</span> {selectedRecord.payload.data.lote}</div>
-                                        <div className="station-tech-item"><span className="station-tech-label">DOC:</span> {selectedRecord.payload.data.codDocumento}</div>
-                                        <div className="station-tech-item"><span className="station-tech-label">STATUS:</span> {selectedRecord.payload.data.qaStatus}</div>
-                                    </>
-                                )}
-                            </div>
-
-                            <pre style={{ fontSize: '0.7rem', padding: '12px', background: 'var(--surface-color)', borderRadius: '4px', overflowX: 'auto' }}>
-                                {JSON.stringify(selectedRecord.payload.data, null, 2)}
+                            <pre style={{ fontSize: '0.75rem', padding: '12px', background: 'rgba(0,0,0,0.05)', borderRadius: '4px', overflowX: 'auto', border: '1px solid var(--border-color)' }}>
+                                {JSON.stringify(JSON.parse(selectedRecord.details), null, 2)}
                             </pre>
+                            
+                            <div style={{ fontSize: '0.65rem', opacity: 0.4 }}>EVENT_ID: {selectedRecord.id}</div>
                         </div>
                     ) : (
-                        <div className="station-empty-state">
+                        <div className="station-empty-state" style={{ height: '100%' }}>
                             <ActivityIcon size={48} className="station-shimmer-text" />
-                            <p>SELECT_RECORD_TO_VIEW_DETAILS</p>
+                            <p style={{ fontWeight: 700, marginTop: '12px', opacity: 0.5 }}>SELECCIONE_EVENTO_FORENSE</p>
                         </div>
                     )}
                 </div>
             </div>
+            <style jsx>{`
+              .health-sentence:hover {
+                background: rgba(var(--primary-color-rgb), 0.05) !important;
+                border-color: rgba(var(--primary-color-rgb), 0.1) !important;
+              }
+            `}</style>
         </div>
     );
 };
+
+const KPIItem = ({ val, label, status }: { val: string | number, label: string, status: 'ok' | 'warn' | 'crit' }) => (
+    <div className="station-card flex-col" style={{ alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+      <div style={{ 
+        fontSize: '1.4rem', 
+        fontWeight: 900, 
+        color: status === 'crit' ? 'var(--error-color)' : status === 'warn' ? 'var(--status-warn)' : 'inherit' 
+      }}>
+        {val}
+      </div>
+      <div style={{ fontSize: '0.6rem', fontWeight: 700, opacity: 0.5, textAlign: 'center' }}>{label}</div>
+    </div>
+);

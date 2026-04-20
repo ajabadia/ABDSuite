@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/lib/context/ThemeContext';
 import { LogProvider } from '@/lib/context/LogContext';
 import { ConfigProvider } from '@/lib/context/ConfigContext';
 import { WorkspaceProvider } from '@/lib/context/WorkspaceContext';
+import { TelemetryProvider } from '@/lib/context/TelemetryContext';
 import { ShellWrapper } from '@/components/shell/ShellWrapper';
 import './globals.css';
 
@@ -43,14 +44,16 @@ export default function RootLayout({
         <LanguageProvider initialLang="es">
           <ThemeProvider>
             <ConfigProvider>
-              <WorkspaceProvider>
-                <LogProvider>
-                  <div className="crt-overlay" />
-                  <ShellWrapper>
-                    {children}
-                  </ShellWrapper>
-                </LogProvider>
-              </WorkspaceProvider>
+              <TelemetryProvider>
+                <WorkspaceProvider>
+                  <LogProvider>
+                    <div className="crt-overlay" />
+                    <ShellWrapper>
+                      {children}
+                    </ShellWrapper>
+                  </LogProvider>
+                </WorkspaceProvider>
+              </TelemetryProvider>
             </ConfigProvider>
           </ThemeProvider>
         </LanguageProvider>

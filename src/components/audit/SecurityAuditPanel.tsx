@@ -131,10 +131,10 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
       <header className="flex-col" style={{ gap: '16px' }}>
         <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
           <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
-            <ShieldCheckIcon size={20} color="var(--accent-primary)" />
-            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{t('audit.securityTitle').toUpperCase()}</h3>
+            <ShieldCheckIcon size={20} color="var(--primary-color)" />
+            <h3 style={{ margin: 0, fontSize: '0.75rem', letterSpacing: '2px', opacity: 0.5 }}>{t('audit.securityTitle').toUpperCase()}</h3>
           </div>
-          <button className="station-btn secondary" onClick={loadLogs} disabled={isLoading}>
+          <button className="station-btn secondary tiny" onClick={loadLogs} disabled={isLoading}>
             <RefreshCwIcon size={14} className={isLoading ? 'spin' : ''} />
           </button>
         </div>
@@ -253,20 +253,23 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
 
       <style jsx>{`
         .status-badge {
-          font-size: 0.6rem;
-          padding: 2px 4px;
+          font-size: 0.55rem;
+          padding: 2px 6px;
           border-radius: 2px;
-          background: rgba(255,255,255,0.05);
-          letter-spacing: 0.5px;
-          font-weight: 700;
+          background: var(--bg-color);
+          border: 1px solid var(--border-color);
+          letter-spacing: 1px;
+          font-weight: 900;
+          font-family: var(--font-mono);
         }
-        .status-badge.critical { color: var(--status-err); border: 1px solid var(--status-err); }
-        .status-badge.warn { color: var(--status-warn); border: 1px solid var(--status-warn); }
-        .status-badge.info { color: var(--accent-primary); border: 1px solid var(--accent-primary); }
+        .status-badge.critical { color: var(--status-err); border-color: var(--status-err); background: rgba(239, 68, 68, 0.05); }
+        .status-badge.warn { color: var(--status-warn); border-color: var(--status-warn); }
+        .status-badge.info { color: var(--primary-color); border-color: var(--primary-color); }
         
         .audit-link {
-          color: var(--accent-primary);
+          color: var(--primary-color);
           text-decoration: none;
+          font-family: var(--font-mono);
           font-size: 0.75rem;
           font-weight: 600;
           display: inline-flex;
@@ -275,7 +278,6 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
         }
         .audit-link:hover {
           text-decoration: underline;
-          filter: brightness(1.2);
         }
       `}</style>
     </section>

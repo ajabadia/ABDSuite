@@ -11,6 +11,8 @@ const KEY_SIZE = 32;       // AES-256
 const TAG_SIZE = 16;       // 128-bit (GCM standard)
 const ITERATIONS = 100000; // PBKDF2 iterations (matching C#)
 
+import { EncryptedFieldContainer, AADPayload } from '../types/crypto.types';
+
 export interface ProcessingResult {
   success: boolean;
   fileName: string;
@@ -29,7 +31,7 @@ export class CryptoService {
     // Import the raw password as a key for PBKDF2
     const baseKey = await crypto.subtle.importKey(
       'raw',
-      passwordBytes,
+      passwordBytes.buffer as ArrayBuffer,
       'PBKDF2',
       false,
       ['deriveBits', 'deriveKey']
@@ -39,7 +41,7 @@ export class CryptoService {
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt as any, // Cast to any to avoid TypeScript type mismatch with SharedArrayBuffer on Vercel
+        salt: salt.buffer as ArrayBuffer,
         iterations: ITERATIONS,
         hash: 'SHA-256'
       },
@@ -125,16 +127,133 @@ export class CryptoService {
       const decryptedBuffer = await crypto.subtle.decrypt(
         {
           name: 'AES-GCM',
-          iv: nonce,
+          iv: nonce.buffer as ArrayBuffer,
           tagLength: TAG_SIZE * 8
         },
         key,
-        combinedData
+        combinedData.buffer as ArrayBuffer
       );
 
       return new Blob([decryptedBuffer], { type: 'application/octet-stream' });
     } catch (e) {
       throw new Error('Contraseña incorrecta o archivo dañado.');
     }
+  }
+
+  // --- PHASE 14: AT-REST ENCRYPTION (FIELD LEVEL) ---
+
+  /**
+   * Generates a new random 256-bit Installation Key (IK).
+   */
+  public static async generateInstallationKey(): Promise<CryptoKey> {
+    return crypto.subtle.generateKey(
+      { name: 'AES-GCM', length: 256 },
+      true, // Must be extractable to be wrapped/stored
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  /**
+   * Derives a Master Key from a PIN for wrapping/unwrapping the Installation Key.
+   */
+  public static async deriveMasterKeyFromPin(pin: string, salt: Uint8Array): Promise<CryptoKey> {
+    return this.deriveKey(pin, salt);
+  }
+
+  /**
+   * Encrypts a field value (string or binary) using the provided key and optional AAD.
+   */
+  public static async encryptField(
+    value: string | ArrayBuffer | Uint8Array,
+    key: CryptoKey,
+    aad?: Uint8Array
+  ): Promise<EncryptedFieldContainer> {
+    let plainBytes: Uint8Array;
+    if (typeof value === 'string') {
+      plainBytes = new TextEncoder().encode(value);
+    } else if (value instanceof ArrayBuffer) {
+      plainBytes = new Uint8Array(value);
+    } else {
+      plainBytes = value;
+    }
+
+    const iv = crypto.getRandomValues(new Uint8Array(NONCE_SIZE));
+
+    const cipherBuf = await crypto.subtle.encrypt(
+      {
+        name: 'AES-GCM',
+        iv: iv.buffer as ArrayBuffer,
+        additionalData: aad ? (aad.buffer as ArrayBuffer) : undefined,
+        tagLength: TAG_SIZE * 8
+      },
+      key,
+      plainBytes.buffer as ArrayBuffer
+    );
+
+    return {
+      v: 1,
+      alg: 'AES-GCM-256',
+      iv: this.toBase64(iv),
+      ct: this.toBase64(new Uint8Array(cipherBuf)),
+      aad: aad ? this.toBase64(aad) : undefined
+    };
+  }
+
+  /**
+   * Decrypts a field container using the provided key and optional AAD.
+   */
+  public static async decryptField(
+    container: EncryptedFieldContainer,
+    key: CryptoKey,
+    aad?: Uint8Array
+  ): Promise<Uint8Array> {
+    if (container.v !== 1 || container.alg !== 'AES-GCM-256') {
+      throw new Error('Unsupported encrypted field format or algorithm.');
+    }
+
+    const iv = this.fromBase64(container.iv);
+    const ct = this.fromBase64(container.ct);
+
+    const plainBuf = await crypto.subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv: iv.buffer as ArrayBuffer,
+        additionalData: aad ? (aad.buffer as ArrayBuffer) : undefined,
+        tagLength: TAG_SIZE * 8
+      },
+      key,
+      ct.buffer as ArrayBuffer
+    );
+
+    return new Uint8Array(plainBuf);
+  }
+
+  /**
+   * Builds the Additional Authenticated Data (AAD) for a record field.
+   */
+  public static buildAAD(
+    schema: 'ABDFN_CORE' | 'ABDFN_SUITE',
+    unitId: string | null,
+    table: string,
+    id: string,
+    field: string
+  ): Uint8Array {
+    const payload: AADPayload = { schema, unitId, table, id, field, v: 1 };
+    return new TextEncoder().encode(JSON.stringify(payload));
+  }
+
+  // --- HELPERS ---
+
+  public static toBase64(bytes: Uint8Array): string {
+    return btoa(String.fromCharCode(...bytes));
+  }
+
+  public static fromBase64(b64: string): Uint8Array {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) {
+        bytes[i] = bin.charCodeAt(i);
+    }
+    return bytes;
   }
 }

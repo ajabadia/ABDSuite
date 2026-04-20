@@ -7,14 +7,16 @@ export interface SystemMetrics {
   ramUsage: number; // MB
   isSecure: boolean;
   heartbeat: boolean;
+  isEncryptionUnlocked: boolean;
 }
 
 export function useSystemDiagnostics() {
   const [metrics, setMetrics] = useState<SystemMetrics>({
     cpuPulse: 0.02,
-    ramUsage: 0,
+    ramUsage: 0.3,
     isSecure: true,
-    heartbeat: false
+    heartbeat: false,
+    isEncryptionUnlocked: false
   });
 
   useEffect(() => {
@@ -36,7 +38,8 @@ export function useSystemDiagnostics() {
         cpuPulse: Number(pulse.toFixed(2)),
         ramUsage: ram,
         isSecure: window.isSecureContext && !!window.crypto.subtle,
-        heartbeat: !metrics.heartbeat // Toggle for visual pulse
+        heartbeat: !metrics.heartbeat, // Toggle for visual pulse
+        isEncryptionUnlocked: false // Will be updated by effect below or passed as param
       });
       
       lastTime = now;
@@ -45,5 +48,8 @@ export function useSystemDiagnostics() {
     return () => clearInterval(interval);
   }, [metrics.heartbeat]);
 
-  return metrics;
+  // Direct subscription to Workspace context for encryption status
+  const { installationKey } = require('@/lib/context/WorkspaceContext').useWorkspace();
+  
+  return { ...metrics, isEncryptionUnlocked: !!installationKey };
 }

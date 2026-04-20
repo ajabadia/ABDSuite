@@ -24,6 +24,19 @@ const SECURITY_DEFAULTS: TelemetrySecurityConfig = {
   pinCooldownMinutes: 15,
   maxMfaAttempts: 5,
   mfaCooldownMinutes: 15,
+  sessionInactivityTimeoutMinutes: 15,
+  sessionMaxAgeMinutes: 480, // 8 hours
+  securityThresholds: {
+    failedAuthLow: 5,
+    failedAuthHigh: 20,
+    rbacChangesAttention: 2,
+    dataOpsErrorAttention: 1,
+    inactivityLocksHigh: 20,
+  },
+  uiFeatures: {
+    letterWizardEnabled: true,
+    mappingMobileLayoutEnabled: true,
+  },
 };
 
 const CORPORATE_DEFAULTS = {
@@ -55,6 +68,19 @@ export class TelemetryConfigService {
         pinCooldownMinutes: row?.telemetrySecurity?.pinCooldownMinutes ?? SECURITY_DEFAULTS.pinCooldownMinutes,
         maxMfaAttempts: row?.telemetrySecurity?.maxMfaAttempts ?? SECURITY_DEFAULTS.maxMfaAttempts,
         mfaCooldownMinutes: row?.telemetrySecurity?.mfaCooldownMinutes ?? SECURITY_DEFAULTS.mfaCooldownMinutes,
+        sessionInactivityTimeoutMinutes: row?.telemetrySecurity?.sessionInactivityTimeoutMinutes ?? SECURITY_DEFAULTS.sessionInactivityTimeoutMinutes,
+        sessionMaxAgeMinutes: row?.telemetrySecurity?.sessionMaxAgeMinutes ?? SECURITY_DEFAULTS.sessionMaxAgeMinutes,
+        securityThresholds: {
+          failedAuthLow: row?.telemetrySecurity?.securityThresholds?.failedAuthLow ?? SECURITY_DEFAULTS.securityThresholds.failedAuthLow,
+          failedAuthHigh: row?.telemetrySecurity?.securityThresholds?.failedAuthHigh ?? SECURITY_DEFAULTS.securityThresholds.failedAuthHigh,
+          rbacChangesAttention: row?.telemetrySecurity?.securityThresholds?.rbacChangesAttention ?? SECURITY_DEFAULTS.securityThresholds.rbacChangesAttention,
+          dataOpsErrorAttention: row?.telemetrySecurity?.securityThresholds?.dataOpsErrorAttention ?? SECURITY_DEFAULTS.securityThresholds.dataOpsErrorAttention,
+          inactivityLocksHigh: row?.telemetrySecurity?.securityThresholds?.inactivityLocksHigh ?? SECURITY_DEFAULTS.securityThresholds.inactivityLocksHigh,
+        },
+        uiFeatures: {
+          letterWizardEnabled: row?.telemetrySecurity?.uiFeatures?.letterWizardEnabled ?? SECURITY_DEFAULTS.uiFeatures.letterWizardEnabled,
+          mappingMobileLayoutEnabled: row?.telemetrySecurity?.uiFeatures?.mappingMobileLayoutEnabled ?? SECURITY_DEFAULTS.uiFeatures.mappingMobileLayoutEnabled,
+        },
       },
       corporate: {
         logoBase64: row?.corporate?.logoBase64,

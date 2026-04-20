@@ -1,6 +1,7 @@
 import { coreDb } from '../db/SystemDB';
 import { db } from '../db/db';
 import { AuditRecord, AuditDetails } from '../types/auth.types';
+import { resolveAuditCategory } from '../types/audit.types';
 
 /**
  * Unified Audit Service (Phase 11.2)
@@ -20,29 +21,32 @@ class AuditService {
 
     try {
       const detailsJson = JSON.stringify(entry.details || {});
+      const category = resolveAuditCategory(entry.messageKey);
 
       if (entry.module === 'SECURITY' || entry.module === 'SYSTEM' || entry.module === 'SUPERVISOR') {
         // Global Audit (CoreDB)
         await coreDb.system_log.add({
           id: entry.id!,
           timestamp: entry.timestamp,
+          category,
           action: entry.messageKey,
           status: entry.status,
           details: detailsJson
         });
-        console.log(`[AUDIT-CORE] ${entry.module} - ${entry.messageKey}`, entry.details);
+        console.log(`[AUDIT-CORE] ${entry.module} [${category}] - ${entry.messageKey}`, entry.details);
       } else {
         // Operational Audit (UnitDB)
         if (db && (db as any).audit_history_v6) {
           await db.audit_history_v6.add({
             id: entry.id!,
             timestamp: entry.timestamp,
+            category,
             module: entry.module as any,
             action: entry.messageKey,
             status: entry.status as any,
             details: detailsJson
           });
-          console.log(`[AUDIT-UNIT] ${entry.module} - ${entry.messageKey}`, entry.details);
+          console.log(`[AUDIT-UNIT] ${entry.module} [${category}] - ${entry.messageKey}`, entry.details);
         } else {
           console.warn('[AUDIT-SERVICE] Unit DB not available for logging operational event:', entry);
         }

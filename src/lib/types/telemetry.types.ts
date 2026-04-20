@@ -99,6 +99,19 @@ export interface TelemetryHealthConfig {
   qaBreaksCritical: number;
 }
 
+export interface SecurityThresholds {
+  failedAuthLow: number;      // debajo de este, OK
+  failedAuthHigh: number;     // a partir de este, ALERTA
+  rbacChangesAttention: number; // cambios RBAC/día a partir de los cuales avisar
+  dataOpsErrorAttention: number; // nº de errores de dump/sync en ventana
+  inactivityLocksHigh: number;
+}
+
+export interface UiFeaturesConfig {
+  letterWizardEnabled: boolean;
+  mappingMobileLayoutEnabled: boolean;
+}
+
 export interface TelemetrySecurityConfig {
   failedLoginsWarn: number;
   failedLoginsCritical: number;
@@ -110,6 +123,10 @@ export interface TelemetrySecurityConfig {
   pinCooldownMinutes: number;
   maxMfaAttempts: number;
   mfaCooldownMinutes: number;
+  sessionInactivityTimeoutMinutes: number;
+  sessionMaxAgeMinutes: number;
+  securityThresholds: SecurityThresholds;
+  uiFeatures: UiFeaturesConfig;
 }
 
 export interface TelemetryConfig {

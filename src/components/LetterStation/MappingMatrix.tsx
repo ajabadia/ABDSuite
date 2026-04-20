@@ -32,12 +32,18 @@ import JSZip from 'jszip';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
+import { useIsNarrowLayout } from '@/lib/hooks/useIsNarrowLayout';
+import { useTelemetryConfig } from '@/lib/context/TelemetryContext';
+import { MappingMobileLayout } from './MappingMobileLayout';
 
 const MappingMatrix: React.FC = () => {
   const { t } = useLanguage();
   const { can } = useWorkspace();
+  const { config: telemetryConfig } = useTelemetryConfig();
+  const isNarrow = useIsNarrowLayout(1000);
   
   const canEdit = can('LETTER_EDIT_MAPPINGS');
+  const mobileLayoutEnabled = telemetryConfig?.security.uiFeatures.mappingMobileLayoutEnabled ?? true;
 
   if (!canEdit) {
     return <ForbiddenPanel capability="LETTER_EDIT_MAPPINGS" />;
@@ -307,39 +313,54 @@ const MappingMatrix: React.FC = () => {
       )}
 
       {selectedPresetId && selectedTemplateId && (
-        <div className="flex-col" style={{ marginTop: '24px', gap: '20px' }}>
-          <div className="station-toolbar">
-             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><span className="station-badge station-badge-blue">W</span><span style={{ fontWeight: 800 }}>{t('letter.ui.mapping_brain').toUpperCase()}: {templateVars.length}</span></div>
-             <div style={{ display: 'flex', gap: '12px' }}><button className="station-btn" onClick={handleAutoMap} disabled={!canEdit}><RefreshCwIcon size={14} /> {t('letter.ui.auto_map').toUpperCase()}</button><button className="station-btn station-btn-primary" onClick={saveMapping} disabled={!canEdit}><SaveIcon size={14} /> {t('common.save').toUpperCase()}</button></div>
-          </div>
-          <div className="station-table-container">
-            <table className="station-table">
-              <thead><tr><th style={{ width: '40px' }}>TYP</th><th>{t('etl.field_name').toUpperCase()}</th><th>SOURCE</th><th style={{ width: '120px' }}>STATUS</th></tr></thead>
-              <tbody>
-                {templateVars.map(v => {
-                   const map = currentMapping?.mappings.find(m => m.templateVar === v);
-                   return (
-                     <tr key={v}>
-                       <td>{map?.sourceType === 'TEMPLATE' ? 'W' : 'G'}</td>
-                       <td style={{ fontWeight: 800 }}>{`{{${v}}}`}</td>
-                       <td>
-                          <select className="station-select" style={{ fontSize: '0.8rem' }} value={map ? `${map.sourceType}:${map.sourceField}` : ''} onChange={e => { const [type, field] = e.target.value.split(':'); handleUpdateMapping(v, type as any, field); }} disabled={!canEdit}>
-                             <option value="">-- {t('letter.ui.select_mapping').toUpperCase()} --</option>
-                             <optgroup label="[CSV] COLUMNS">
-                                {dataRT?.fields.map((f: any, idx) => (
-                                   <option key={idx} value={`TEMPLATE:${f.Name || f.name}`}>{f.Name || f.name}</option>
-                                ))}
-                             </optgroup>
-                             <optgroup label="[GAWEB] TECHNICALS">{CANONICAL_GAWEB_FIELDS.map(g => <option key={g} value={`GAWEB:${g}`}>{g}</option>)}</optgroup>
-                          </select>
-                       </td>
-                       <td>{map ? 'LINKED' : 'PENDING'}</td>
-                     </tr>
-                   );
-                 })}
-              </tbody>
-            </table>
-          </div>
+        <div className="flex-col" style={{ marginTop: '24px', gap: '20px', minHeight: '600px' }}>
+          {(isNarrow && mobileLayoutEnabled) ? (
+            <MappingMobileLayout 
+              mapping={currentMapping}
+              dataFileFields={dataRT?.fields.map((f: any) => f.Name || f.name) || []}
+              onUpdateMapping={(v, field) => {
+                 // Determine if field is canonical or template
+                 const isGa = CANONICAL_GAWEB_FIELDS.includes(field);
+                 handleUpdateMapping(v, isGa ? 'GAWEB' : 'TEMPLATE', field);
+              }}
+              onClearMapping={(v) => handleUpdateMapping(v, 'UI_OVERRIDE', '')}
+            />
+          ) : (
+            <>
+              <div className="station-toolbar">
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><span className="station-badge station-badge-blue">W</span><span style={{ fontWeight: 800 }}>{t('letter.ui.mapping_brain').toUpperCase()}: {templateVars.length}</span></div>
+                <div style={{ display: 'flex', gap: '12px' }}><button className="station-btn" onClick={handleAutoMap} disabled={!canEdit}><RefreshCwIcon size={14} /> {t('letter.ui.auto_map').toUpperCase()}</button><button className="station-btn station-btn-primary" onClick={saveMapping} disabled={!canEdit}><SaveIcon size={14} /> {t('common.save').toUpperCase()}</button></div>
+              </div>
+              <div className="station-table-container">
+                <table className="station-table">
+                  <thead><tr><th style={{ width: '40px' }}>TYP</th><th>{t('etl.field_name').toUpperCase()}</th><th>SOURCE</th><th style={{ width: '120px' }}>STATUS</th></tr></thead>
+                  <tbody>
+                    {templateVars.map(v => {
+                      const map = currentMapping?.mappings.find(m => m.templateVar === v);
+                      return (
+                        <tr key={v}>
+                          <td>{map?.sourceType === 'TEMPLATE' ? 'W' : 'G'}</td>
+                          <td style={{ fontWeight: 800 }}>{`{{${v}}}`}</td>
+                          <td>
+                              <select className="station-select" style={{ fontSize: '0.8rem' }} value={map ? `${map.sourceType}:${map.sourceField}` : ''} onChange={e => { const [type, field] = e.target.value.split(':'); handleUpdateMapping(v, type as any, field); }} disabled={!canEdit}>
+                                <option value="">-- {t('letter.ui.select_mapping').toUpperCase()} --</option>
+                                <optgroup label="[CSV] COLUMNS">
+                                    {dataRT?.fields.map((f: any, idx: number) => (
+                                      <option key={idx} value={`TEMPLATE:${f.Name || f.name}`}>{f.Name || f.name}</option>
+                                    ))}
+                                </optgroup>
+                                <optgroup label="[GAWEB] TECHNICALS">{CANONICAL_GAWEB_FIELDS.map(g => <option key={g} value={`GAWEB:${g}`}>{g}</option>)}</optgroup>
+                              </select>
+                          </td>
+                          <td>{map?.sourceField ? 'LINKED' : 'PENDING'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
       )}
 

@@ -17,7 +17,8 @@ import {
   HelpIcon,
   DownloadIcon,
   UploadIcon,
-  ActivityIcon
+  ActivityIcon,
+  LogOutIcon
 } from '@/components/common/Icons';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { HelpModal } from './HelpModal';
@@ -102,7 +103,7 @@ export const Sidebar: React.FC = () => {
     },
   ];
 
-  const { can, currentOperator } = useWorkspace();
+  const { can, currentOperator, lockSession, logout, isLocked, requireFreshAuth, requestStepUp } = useWorkspace();
   const canSeeSupervisor = can('SUPERVISOR_VIEW');
 
   if (canSeeSupervisor) {
@@ -188,6 +189,13 @@ export const Sidebar: React.FC = () => {
         <button 
           className="station-nav-item" 
           onClick={async () => {
+             if (isLocked) {
+               alert(t('auth.locked_engine_hint') || 'Motor de cifrado bloqueado. Desbloquee la clave de instalación antes de exportar.');
+               return;
+             }
+             if (!(await requestStepUp(2))) {
+               return;
+             }
              const { DbSyncService } = await import('@/lib/services/db-sync.service');
             const passphrase = prompt(t('sync.passphrase_prompt') || 'Enter passphrase to export');
             if (!passphrase) return;
@@ -208,6 +216,13 @@ export const Sidebar: React.FC = () => {
         <button 
           className="station-nav-item" 
           onClick={async () => {
+             if (isLocked) {
+               alert(t('auth.locked_engine_hint') || 'Motor de cifrado bloqueado. Desbloquee la clave de instalación antes de importar.');
+               return;
+             }
+             if (!(await requestStepUp(2))) {
+                return;
+             }
              const input = document.createElement('input');
              input.type = 'file';
              input.accept = '.json';
@@ -248,9 +263,28 @@ export const Sidebar: React.FC = () => {
         </button>
       </div>
 
+      <div style={{ padding: '12px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+        <button 
+          className="station-btn"
+          onClick={lockSession}
+          title={t('auth.session.lock_btn') || 'Bloquear Puesto'}
+          style={{ flex: 1, padding: '8px', background: 'transparent', boxShadow: 'none', border: '1px solid var(--border-color)' }}
+        >
+          <LockIcon size={16} />
+        </button>
+        <button 
+          className="station-btn"
+          onClick={logout}
+          title={t('auth.logout')}
+          style={{ flex: 1, padding: '8px', background: 'transparent', boxShadow: 'none', border: '1px solid var(--border-color)', color: 'var(--error-color)' }}
+        >
+          <LogOutIcon size={16} color="var(--error-color)" />
+        </button>
+      </div>
+
       {!isCollapsed && (
         <div style={{ padding: '24px', fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
-          <div style={{ fontWeight: 700, marginBottom: '4px' }}>VERSION 5.0.0-IND</div>
+          <div style={{ fontWeight: 700, marginBottom: '4px' }}>VERSION 6.1.0-IND</div>
           <div>© ABD INDUSTRIAL INFRASTRUCTURES</div>
         </div>
       )}

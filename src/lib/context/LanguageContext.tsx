@@ -62,11 +62,14 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, in
 
     if (typeof current !== 'string') return path;
 
-    // Replace params: {s} -> value
+    // Replace params: {s} or {{s}} -> value
     let result = current;
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        result = result.replace(`{${key}}`, String(value));
+        const valStr = String(value);
+        // Handle both standard {key} and double {{key}}
+        result = result.split(`{{${key}}}`).join(valStr);
+        result = result.split(`{${key}}`).join(valStr);
       });
     }
 

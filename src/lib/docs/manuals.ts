@@ -1,27 +1,26 @@
 /**
  * ABDFN Unified Suite - Manuales Técnicos Era 6
- * ABDFN Unified Suite - Manuales Técnicos Era 6
  * Idioma: Castellano (ES)
- * Filosofía: Offline-First / Zero-Knowledge
+ * Filosofía: Offline-First / Zero-Knowledge / At-Rest Encryption
  */
 
 export const MANUALS = {
   general: {
-    title: 'MANUAL GENERAL: ABDFN HUB v6.0',
+    title: 'MANUAL GENERAL: ABDFN HUB v6.1-IND',
     content: `
-# ⚔️ ABDFN UNIFIED SUITE - ERA 6
+# ⚔️ ABDFN UNIFIED SUITE - ERA 6 (v6.1.0)
 
-Bienvenido al centro de operaciones asépticas de sexta generación. Esta suite ha sido diseñada para la excelencia en el procesamiento masivo con paridad bancaria total y **portabilidad universal**.
+Bienvenido al centro de operaciones asépticas de sexta generación. Esta suite ha sido diseñada para la excelencia industrial, garantizando la **Privacidad At-Rest** y la **Portabilidad Universal**.
 
-## 🏛️ Filosofía del Sistema (Era 6)
-- **Offline-First**: Toda la lógica ocurre en el cliente. Ni un solo bit sale a la red.
-- **Portabilidad Universal (UUID)**: A diferencia de versiones anteriores, la Era 6 utiliza identificadores únicos universales (UUID). Los datos exportados desde un equipo pueden importarse en cualquier otro sin colisiones de IDs.
-- **Zero-Knowledge**: Si pierde su clave maestra, los datos cifrados son irrecuperables.
-- **Persistencia Versionada**: El sistema utiliza esquemas de datos versionados (**_v6**) para asegurar migraciones no destructivas y estabilidad a largo plazo.
+## 🏛️ Filosofía de Seguridad (Era 6.1)
+- **Cifrado At-Rest Total**: Toda la base de datos IndexedDB está cifrada mediante AES-GCM-256. Ningún dato es legible fuera de esta aplicación.
+- **Root of Trust (Installation Key)**: El motor criptográfico depende de una Clave de Instalación (IK) única. Sin esta clave desbloqueada, el acceso a los datos de la unidad está restringido.
+- **Offline-First**: Toda la lógica ocurre en su navegador. Ni un solo bit sale a la red.
+- **Portabilidad Universal (UUID)**: Los datos son compatibles entre diferentes instalaciones mediante el uso de identificadores universales.
 
-## 🧭 Mantenimiento y Backup
-- **Vuelco Maestro**: Ubicado en la barra lateral, permite realizar copias completas de la base de datos para restauraciones críticas o migración de puesto de trabajo.
-- **Dashboard**: Monitoreo de telemetría real y salud del núcleo v6.0.
+## 🧭 Mantenimiento y Seguridad de Datos
+- **Vuelco de Datos Industriales**: Permite realizar copias de seguridad de plantillas, configuraciones y auditorías. Por seguridad, los operadores y las claves maestras **no** se incluyen en estos volcados para evitar colisiones entre plantas.
+- **Estado del Motor**: Si el icono de seguridad de la barra lateral está bloqueado, deberá iniciar sesión como administrador para habilitar las funciones de exportación/importación.
     `
   },
   crypt: {
@@ -32,15 +31,14 @@ Bienvenido al centro de operaciones asépticas de sexta generación. Esta suite 
 Blindaje simétrico de grado industrial para la protección de activos de información.
 
 ## 🛠️ Tecnologías de Blindaje
-- **AES-GCM (256-bit)**: Cifrado autenticado de vanguardia.
-- **PBKDF2**: Derivación robusta con 100,000 iteraciones.
+- **AES-GCM (256-bit)**: Cifrado autenticado de vanguardia para archivos externos.
+- **Industrial Key Derivation**: Uso de PBKDF2 con 100,000 iteraciones para garantizar que sus contraseñas sean resistentes a ataques de fuerza bruta.
 
-## 🚀 Operativas Era 6
-1. **Shield Vault**: Blindaje masivo de archivos mediante arrastre. 
-2. **Open Key**: Restauración de archivos .ENC garantizando la integridad mediante IV (Vector de Inicialización).
+## 🔐 Protección del Núcleo
+El sistema utiliza un motor de cifrado persistente para sus propios datos. Asegúrese de guardar su **Installation Key** en un lugar seguro; su pérdida implica la pérdida total de los datos de la suite.
 
 > [!IMPORTANT]
-> Las llaves nunca se almacenan en disco; residen solo en memoria volátil por sesión.
+> Las llaves de sesión (Session Keys) residen solo en memoria volátil y se destruyen al cerrar la pestaña o bloquear el puesto.
     `
   },
   etl: {
@@ -51,44 +49,40 @@ Blindaje simétrico de grado industrial para la protección de activos de inform
 Motor de refinado estructural para registros asépticos complejos.
 
 ## 🏗️ Ciclo Operativo
-1. **Designer**: Definición de offsets, longitudes y disparadores (Triggers).
-2. **Presets Portables**: Los presupuestos se guardan con UUIDs, facilitando su intercambio entre departamentos.
-3. **Executor**: Ingesta masiva con soporte para buffers de gran tamaño.
-
-## 📂 Arquitectura de Datos
-Utiliza **IndexedDB** con el motor versionado v6 para garantizar que su configuración esté siempre protegida contra cambios accidentales de esquema.
+1. **Designer**: Definición visual de modelos de datos.
+2. **Execution Gate**: Solo los operarios autorizados pueden ejecutar transformaciones masivas sobre la base de datos cifrada.
+3. **Persistencia Segura**: Cada registro procesado se almacena instantáneamente bajo la capa de cifrado At-Rest.
     `
   },
   letter: {
     title: 'LETTER STATION: GENERACIÓN',
     content: `
-# 📄 LETTER STATION - GENERACIÓN GAWEB v6.0
+# 📄 LETTER STATION - GENERACIÓN GAWEB v6.1
 
 Sistema industrial de emisión de documentos con cumplimiento estricto **GAWEB v.1**.
 
-## 📑 Componentes Era 6
-- **Plantillas Universales**: Almacenamiento desacoplado mediante identificadores de cadena.
-- **Mapeado Dinámico**: Vinculación matricial entre ETL y placeholders visuales.
-- **QA Golden Loop**: Verificación de regresiones mediante comparativa visual SHA-256.
-
-## ⚙️ Rendimiento Industrial
-Optimizado para la generación de miles de PDFs de alta fidelidad con inyección de metadatos bancarios en tiempo real.
+## 📑 Componentes de Seguridad
+- **Plantillas Cifradas**: Sus diseños de cartas están protegidos contra accesos no autorizados mediante IndexedDB cifrada.
+- **QA Golden Loop**: Verificación de integridad SHA-256 para asegurar que cada PDF generado sea idéntico al modelo de referencia.
     `
   },
   audit: {
     title: 'SYSTEM AUDIT: INTEGRIDAD',
     content: `
-# 🛡️ SYSTEM AUDIT - CONTROL TÉCNICO
+# 🛡️ SYSTEM AUDIT - SUPERVISIÓN FORENSE
 
-Validación de integridad y cumplimiento normativo de paquetes GAWEB.
+Monitoreo de integridad y cumplimiento normativo de la suite.
 
-## 🔍 Capacidades v6.0
-- **Super-Audit Engine**: Streaming de alto rendimiento para archivos de varios gigabytes.
-- **Detección de Anomalías**: Verificación de paridad de 300 bytes contra el estándar v.1.
-- **Traceability**: Cada auditoría se registra en el histórico industrial con marca de tiempo persistente.
+## 🔍 Taxonomía Forense v6.1
+El sistema clasifica cada acción en 5 categorías críticas para facilitar auditorías de cumplimiento:
+- **AUTH**: Fallos de login, bloqueos de sesión y accesos MFA.
+- **RBAC**: Cambios en permisos, creación de operarios y elevación de roles.
+- **CONFIG**: Cambios en seguridad global o ajustes del sistema.
+- **DATA**: Exportaciones (Dumps), importaciones y procesos masivos de datos.
+- **SYSTEM**: Ciclo de vida del núcleo, purgas de retención y mantenimiento.
 
-## ⚠️ Cumplimiento Zero-Exfiltration
-La suite opera en aislamiento total. Toda librería externa está localmente "vendorizada" y el CSP asegura que ninguna información sea extraída del entorno local.
+## 📊 Security Dashboard
+El panel ofrece KPIs en tiempo real para detectar anomalías de seguridad antes de que se conviertan en incidentes.
     `
   }
 };

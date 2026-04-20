@@ -91,11 +91,16 @@ export interface Operator {
   failedPinAttempts?: number;
   failedMfaAttempts?: number;
   mfaLockedUntil?: number;
+  mfaVerifiedAt?: number; // Last time MFA was fully verified
 }
 
 export interface AuthSession {
   operatorId: string;
   unitId: string;
   lastLoginAt: number;
-  mfaStep: number;      // 0: Initial, 1: PIN_OK, 2: MFA_OK
+  lastActivityAt: number;   // Timestamp de última interacción (heartbeat)
+  expiresAt: number;        // Timestamp de expiración absoluta de sesión
+  mfaVerifiedAt: number | null; // Timestamp de última validación TOTP parcial
+  mfaStep: number;          // 0: Initial, 1: PIN_OK, 2: MFA_OK
+  authLevel: 1 | 2;         // 1: PIN, 2: PIN+MFA
 }

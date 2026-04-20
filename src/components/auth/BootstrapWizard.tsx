@@ -15,7 +15,7 @@ export const BootstrapWizard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Admin Data
-  const [adminName, setAdminName] = useState('');
+  const [adminName, setAdminName] = useState('SISTEMAS');
   const [adminUsername, setAdminUsername] = useState('master');
   const [adminRole, setAdminRole] = useState<UserRole>('ADMIN');
   const [pin, setPin] = useState('');
@@ -45,6 +45,32 @@ export const BootstrapWizard: React.FC = () => {
       const adminId = crypto.randomUUID();
       const pinHash = await hashPin(pin);
       console.log(`[ABDFN-BOOTSTRAP] Admin initialized with PIN Hash: ${pinHash}`);
+
+      // --- PHASE 14: AT-REST SECURITY INITIALIZATION ---
+      const { CryptoService } = await import('@/lib/services/crypto.service');
+      
+      // 1. Generate Global Installation Key (IK) as bytes
+      const ik = await CryptoService.generateInstallationKey();
+      const ikBytes = await crypto.subtle.exportKey('raw', ik);
+      
+      // 2. Prepare master salt and derive Master Key from the initial PIN
+      const masterSalt = crypto.getRandomValues(new Uint8Array(16));
+      const masterKey = await CryptoService.deriveMasterKeyFromPin(pin, masterSalt);
+      
+      // 3. Wrap IK bytes into an EncryptedFieldContainer
+      // For the IK itself, we use a fixed AAD context as it's the root of the core
+      const ikAad = CryptoService.buildAAD('ABDFN_CORE', null, 'coreSettings', 'global', 'encryptedInstallationKey');
+      const encryptedIK = await CryptoService.encryptField(ikBytes, masterKey, ikAad);
+
+      // 4. Save to Core Settings (use put to overwrite existing if needed)
+      await coreDb.coreSettings.put({
+        id: 'global',
+        encryptedInstallationKey: encryptedIK,
+        masterSalt: CryptoService.toBase64(masterSalt),
+        createdAt: Date.now()
+      });
+
+      // --- END PHASE 14 ---
 
       // 1. Create Unit
       await coreDb.units.add({
