@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { TelemetryService } from '@/lib/services/TelemetryService';
@@ -21,14 +22,31 @@ import { UnitTable } from './UnitTable';
 import { TelemetrySettingsPanel } from './TelemetrySettingsPanel';
 import { OperatorManager } from './OperatorManager';
 import { SecurityAuditPanel } from '../audit/SecurityAuditPanel';
+import { ForbiddenPanel } from '../common/ForbiddenPanel';
 
 export const SupervisorDashboard: React.FC = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SupervisorDashboardContent />
+    </Suspense>
+  );
+};
+
+const SupervisorDashboardContent: React.FC = () => {
   const { t } = useLanguage();
   const { can } = useWorkspace();
+  const searchParams = useSearchParams();
+  
+  const initialTab = searchParams.get('tab')?.toUpperCase();
+  const initialOperatorId = searchParams.get('operatorId');
+
   const [snapshot, setSnapshot] = useState<GlobalTelemetrySnapshot | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [activeTab, setActiveTab] = useState<'TELEMETRY' | 'OPERATORS' | 'SECURITY'>('TELEMETRY');
+  
+  const [activeTab, setActiveTab] = useState<'TELEMETRY' | 'OPERATORS' | 'SECURITY'>(
+    (initialTab === 'OPERATORS' || initialTab === 'SECURITY') ? initialTab : 'TELEMETRY'
+  );
 
   const loadData = async (force = false) => {
     setIsLoading(true);
@@ -52,14 +70,26 @@ export const SupervisorDashboard: React.FC = () => {
     }
   };
 
+  const canSeeOperators = can('OPERATORS_MANAGE');
+  const canSeeSecurity = can('AUDIT_VIEW') || can('SUPERVISOR_VIEW');
+
   useEffect(() => {
     loadData();
     const interval = setInterval(() => loadData(), 60000); // 1 min auto-refresh
     return () => clearInterval(interval);
   }, []);
 
-  const canSeeOperators = can('OPERATORS_MANAGE');
-  const canSeeSecurity = can('AUDIT_VIEW') || can('SUPERVISOR_VIEW');
+  useEffect(() => {
+    if (initialTab === 'OPERATORS' && canSeeOperators) {
+      setActiveTab('OPERATORS');
+    } else if (initialTab === 'SECURITY' && canSeeSecurity) {
+      setActiveTab('SECURITY');
+    }
+  }, [initialTab, canSeeOperators, canSeeSecurity]);
+
+  if (!can('SUPERVISOR_VIEW')) {
+    return <ForbiddenPanel capability="SUPERVISOR_VIEW" />;
+  }
 
   if (!snapshot && isLoading) {
     return (
@@ -188,7 +218,7 @@ export const SupervisorDashboard: React.FC = () => {
           </div>
         </>
       ) : activeTab === 'OPERATORS' ? (
-        <OperatorManager />
+        <OperatorManager initialOperatorId={initialOperatorId} />
       ) : (
         <div className="station-card" style={{ height: 'calc(100vh - 250px)' }}>
           <SecurityAuditPanel />

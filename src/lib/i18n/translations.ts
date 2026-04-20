@@ -465,7 +465,21 @@ export const translations = {
       colModule: 'Módulo',
       colMessage: 'Mensaje',
       emptySecurity: 'Sin eventos de seguridad registrados.',
-      'operator.master.transfer': 'Transferencia de rol maestro de {fromUser} a {toUser} por {performedByUser}'
+      'auth.login.success': "Inicio de sesión correcto de {actorUser}",
+      'auth.login.failure': "Intento de inicio de sesión fallido ({reason})",
+      'auth.mfa.success': "Segundo factor verificado para {actorUser}",
+      'auth.mfa.failure': "Segundo factor incorrecto para {actorUser} ({reason})",
+      'auth.logout': "Cierre de sesión de {actorUser}",
+      'workspace.switch': "Cambio a unidad [{unitCode}] por {actorUser}",
+      'operator.create': "Operador {username} creado por {actorUser}",
+      'operator.update': "Operador {username} actualizado por {actorUser} (Campos: {updates})",
+      'operator.master.transfer': "Transferencia de rol maestro de {fromUser} a {toUser} por {actorUser}",
+      'operator.role.change': "Cambio de rol de {username}: {fromRole} → {toRole} por {actorUser}",
+      'operator.capabilities.override': "Ajuste de permisos granulares para {username} por {actorUser}",
+      'telemetry.config.update': "Configuración de Telemetría actualizada por {actorUser} ({updatedGroups})",
+      'audit.config.update': "Política de retención de auditoría cambiada a {retentionMonths} meses por {actorUser}",
+      'etl.config.update': "Configuración global de ETL actualizada por {actorUser} ({updatedKeys})",
+      'letter.config.update': "Modelo de carta [{modelName}] actualizado por {actorUser}"
     }
   },
   en: {
@@ -919,7 +933,21 @@ export const translations = {
       colModule: 'Module',
       colMessage: 'Message',
       emptySecurity: 'No security events recorded.',
-      'operator.master.transfer': 'Master role transfer from {fromUser} to {toUser} by {performedByUser}'
+      'auth.login.success': "Successful login by {actorUser}",
+      'auth.login.failure': "Failed login attempt ({reason})",
+      'auth.mfa.success': "Second factor verified for {actorUser}",
+      'auth.mfa.failure': "Invalid MFA code for {actorUser} ({reason})",
+      'auth.logout': "Logout by {actorUser}",
+      'workspace.switch': "Switched to unit [{unitCode}] by {actorUser}",
+      'operator.create': "Operator {username} created by {actorUser}",
+      'operator.update': "Operator {username} updated by {actorUser} (Fields: {updates})",
+      'operator.master.transfer': "Master role transfer from {fromUser} to {toUser} by {actorUser}",
+      'operator.role.change': "Role change for {username}: {fromRole} → {toRole} by {actorUser}",
+      'operator.capabilities.override': "Granular permission override for {username} by {actorUser}",
+      'telemetry.config.update': "Telemetry configuration updated by {actorUser} ({updatedGroups})",
+      'audit.config.update': "Audit retention policy changed to {retentionMonths} months by {actorUser}",
+      'etl.config.update': "ETL global configuration updated by {actorUser} ({updatedKeys})",
+      'letter.config.update': "Letter model [{modelName}] updated by {actorUser}"
     }
   },
   fr: {

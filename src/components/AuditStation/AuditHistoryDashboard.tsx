@@ -9,20 +9,46 @@ import { ListIcon, SearchIcon, AlertTriangleIcon, ActivityIcon, ShieldIcon, Cloc
 import { loadAuditRetention, saveAuditRetention, AuditRetentionSettings } from '@/lib/utils/audit-retention-settings';
 import { purgeOldAuditRecords } from '@/lib/utils/audit-retention';
 
+import { auditService } from '@/lib/services/AuditService';
+
 const ITEM_HEIGHT = 48;
 
 export const AuditHistoryDashboard: React.FC = () => {
     const { t } = useLanguage();
+    const { can, currentOperator } = useWorkspace();
+
+    if (!can('AUDIT_VIEW')) {
+        return <ForbiddenPanel capability="AUDIT_VIEW" />;
+    }
+
     const [records, setRecords] = useState<AuditRecord[]>([]);
     const [moduleFilter, setModuleFilter] = useState<AuditModule | 'ALL'>('ALL');
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [retention, setRetention] = useState<AuditRetentionSettings>(() => loadAuditRetention());
 
-    const handleRetentionChange = (months: number) => {
+    const handleRetentionChange = async (months: number) => {
         const next = { months: months as any };
         setRetention(next);
         saveAuditRetention(next);
         purgeOldAuditRecords();
+
+        await auditService.log({
+          module: 'AUDIT',
+          messageKey: 'audit.config.update',
+          status: 'WARNING',
+          operatorId: currentOperator?.id,
+          details: {
+            eventType: 'AUDIT_CONFIG_UPDATE',
+            entityType: 'AUDIT_CONFIG',
+            entityId: 'GLOBAL',
+            actorId: currentOperator?.id,
+            actorUser: currentOperator?.username,
+            severity: 'WARN',
+            context: {
+              retentionMonths: months
+            }
+          }
+        });
     };
 
     useEffect(() => {

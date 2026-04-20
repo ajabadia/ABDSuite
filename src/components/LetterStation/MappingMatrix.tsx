@@ -31,12 +31,18 @@ import {
 import JSZip from 'jszip';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
 
 const MappingMatrix: React.FC = () => {
   const { t } = useLanguage();
   const { can } = useWorkspace();
   
   const canEdit = can('LETTER_EDIT_MAPPINGS');
+
+  if (!canEdit) {
+    return <ForbiddenPanel capability="LETTER_EDIT_MAPPINGS" />;
+  }
+
   const presets = useLiveQuery(() => db.presets_v6.toArray()) || [];
   const templates = useLiveQuery(() => db.lettertemplates_v6.toArray()) || [];
   const allMappings = useLiveQuery(() => db.lettermappings_v6.toArray()) || [];

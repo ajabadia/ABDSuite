@@ -9,9 +9,9 @@
  * 
  * See full guide: docs/ROLES_AND_PERMISSIONS.md
  */
-import { OperatorRole, Capability } from '../types/auth.types';
+import { UserRole, Capability, Operator } from '../types/auth.types';
 
-const ROLE_CAPABILITIES: Record<OperatorRole, Capability[]> = {
+const ROLE_CAPABILITIES: Record<UserRole, Capability[]> = {
   ADMIN: [
     // CRYPT
     'CRYPT_USE',
@@ -54,7 +54,6 @@ const ROLE_CAPABILITIES: Record<OperatorRole, Capability[]> = {
     'AUDIT_CONFIG',
     // SUPERVISOR
     'SUPERVISOR_VIEW',
-    // No OPERATORS_MANAGE or SETTINGS_GLOBAL
   ],
   OPERATOR: [
     // CRYPT
@@ -68,16 +67,45 @@ const ROLE_CAPABILITIES: Record<OperatorRole, Capability[]> = {
     // AUDIT
     'AUDIT_VIEW',
     'AUDIT_RUN',
-    // No CONFIG_GLOBAL, EDITING of models, or SUPERVISOR
   ]
 };
 
 export const PermissionsService = {
   /**
-   * Main authority check
+   * Simple authority check based solely on role (Legacy/Base)
    */
-  hasCapability(role: OperatorRole | null | undefined, cap: Capability): boolean {
+  hasCapability(role: UserRole | null | undefined, cap: Capability): boolean {
     if (!role) return false;
     return ROLE_CAPABILITIES[role]?.includes(cap) ?? false;
+  },
+
+  /**
+   * Returns only the base capabilities for a given role (Phase 12.1)
+   */
+  baseCapabilitiesForRole(role: UserRole | null | undefined): Capability[] {
+    if (!role) return [];
+    return ROLE_CAPABILITIES[role] ?? [];
+  },
+
+  /**
+   * Advanced authority check with Overrides (Phase 12.1)
+   * PRECENDENCE RULE: Denied Capabilities > (Base Role Capabilities OR Extra Capabilities).
+   */
+  hasCapabilityForOperator(operator: Operator | null | undefined, cap: Capability): boolean {
+    if (!operator) return false;
+
+    // 1. Explicit Denial (Hard override)
+    const denied = operator.deniedCapabilities || [];
+    if (denied.includes(cap)) return false;
+
+    // 2. Base Role Power
+    const base = this.baseCapabilitiesForRole(operator.role);
+    if (base.includes(cap)) return true;
+
+    // 3. Extra Capabilities (Promoted override)
+    const extra = operator.extraCapabilities || [];
+    if (extra.includes(cap)) return true;
+
+    return false;
   }
 };

@@ -39,7 +39,7 @@ export const TopBar: React.FC = () => {
           <div className="flex-row" style={{ gap: '16px', paddingLeft: '24px', borderLeft: '1px solid var(--border-color)', opacity: 0.8 }}>
              <div className="flex-row" style={{ gap: '8px', fontSize: '0.75rem', cursor: 'pointer' }} onClick={() => setIsSecurityOpen(true)}>
                 <UserIcon size={14} />
-                <span style={{ fontWeight: 600 }}>{currentOperator.name.toUpperCase()}</span>
+                <span style={{ fontWeight: 600 }}>{(currentOperator.displayName || currentOperator.username || 'OPERATOR').toUpperCase()}</span>
                 {currentOperator.mfaEnabled && <ShieldCheckIcon size={12} color="var(--accent-primary)" style={{ marginLeft: '4px' }} />}
              </div>
              <div className="flex-row" style={{ gap: '8px', fontSize: '0.75rem' }}>

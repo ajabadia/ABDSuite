@@ -95,10 +95,10 @@
 
 ```ts
 export type Capability = /* ...lista descrita arriba... */;
-export type OperatorRole = 'ADMIN' | 'TECH' | 'OPERATOR';
+export type UserRole = 'ADMIN' | 'TECH' | 'OPERATOR';
 
-const ROLE_CAPABILITIES: Record<OperatorRole, Capability[]> = { /* ... */ };
+const ROLE_CAPABILITIES: Record<UserRole, Capability[]> = { /* ... */ };
 
-export const hasCapability = (role: OperatorRole | null | undefined, cap: Capability) =>
+export const hasCapability = (role: UserRole | null | undefined, cap: Capability) =>
   !!role && ROLE_CAPABILITIES[role]?.includes(cap);
 ```

@@ -16,8 +16,9 @@ import EtlRunner from '@/components/Etl/EtlRunner';
 import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 
+import { auditService } from '@/lib/services/AuditService';
+
 const STORAGE_KEY = 'abdfn_etl_global_settings';
-// ... (DEFAULT_SETTINGS remains)
 const DEFAULT_SETTINGS: EtlGlobalSettings = {
   defaultPath: 'C:\\ABD\\ETL',
   language: 'es',
@@ -27,7 +28,7 @@ const DEFAULT_SETTINGS: EtlGlobalSettings = {
 
 function EtlPageContent() {
   const { t } = useLanguage();
-  const { can } = useWorkspace();
+  const { can, currentOperator } = useWorkspace();
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -46,7 +47,7 @@ function EtlPageContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [etlSettings, setEtlSettings] = useState<EtlGlobalSettings>(DEFAULT_SETTINGS);
 
-  // ... (useLiveQuery and useEffects for settings/sync remains)
+  // ... (useLiveQuery remains)
   const presets = useLiveQuery(() => db.presets_v6.toArray()) || [];
 
   useEffect(() => {
@@ -69,10 +70,28 @@ function EtlPageContent() {
     }
   }, [idParam, presets, selectedPreset?.id]);
 
-  const saveGlobalSettings = (newSettings: EtlGlobalSettings) => {
+  const saveGlobalSettings = async (newSettings: EtlGlobalSettings) => {
     if (!canConfig) return;
     setEtlSettings(newSettings);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newSettings));
+
+    await auditService.log({
+      module: 'ETL',
+      messageKey: 'etl.config.update',
+      status: 'WARNING',
+      operatorId: currentOperator?.id,
+      details: {
+        eventType: 'ETL_CONFIG_UPDATE',
+        entityType: 'ETL_CONFIG',
+        entityId: 'GLOBAL',
+        actorId: currentOperator?.id,
+        actorUser: currentOperator?.username,
+        severity: 'WARN',
+        context: {
+          updatedKeys: Object.keys(newSettings).join(', ')
+        }
+      }
+    });
   };
 
   const handleNew = async () => {

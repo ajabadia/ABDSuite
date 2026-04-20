@@ -1,11 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useLanguage } from '@/lib/context/LanguageContext';
-import { EtlPreset, EtlRecordType, EtlField, EtlRecordBehavior } from '@/lib/types/etl.types';
-import { SamplePreview } from './SamplePreview';
-import { CogIcon, EyeIcon, TrashIcon, ListIcon, XIcon, SaveIcon, UndoIcon, PlayIcon, FolderIcon } from '@/components/common/Icons';
-import { useRouter } from 'next/navigation';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
 
 interface EtlDesignerProps {
   preset: EtlPreset;
@@ -15,7 +11,15 @@ interface EtlDesignerProps {
 
 export const EtlDesigner: React.FC<EtlDesignerProps> = ({ preset, onUpdate, onSave }) => {
   const { t } = useLanguage();
+  const { can } = useWorkspace();
   const router = useRouter();
+
+  const isAllowed = can('ETL_EDIT_PRESETS');
+
+  if (!isAllowed) {
+    return <ForbiddenPanel capability="ETL_EDIT_PRESETS" />;
+  }
+
   const [activeRTIndex, setActiveRTIndex] = useState(0);
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const [showConfigModal, setShowConfigModal] = useState(false);

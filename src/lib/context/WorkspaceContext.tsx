@@ -1,11 +1,18 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Operator, WorkspaceUnit, AuthSession, Capability } from '../types/auth.types';
+import { 
+  Operator, 
+  WorkspaceUnit, 
+  AuthSession, 
+  UserRole, 
+  Capability 
+} from '../types/auth.types';
 import { coreDb } from '../db/SystemDB';
 import { setActiveUnit } from '../db/db';
 import { hashPin } from '../utils/crypto.utils';
 import { PermissionsService } from '../services/permissions.ts';
+import { auditService } from '../services/AuditService';
 
 interface WorkspaceContextType {
   currentOperator: Operator | null;
@@ -83,12 +90,16 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .first();
       
       if (!operator || !operator.isActive) {
-        await coreDb.system_log.add({
-          id: crypto.randomUUID(),
-          timestamp: Date.now(),
-          action: 'AUTH_LOGIN_FAILURE',
+        await auditService.log({
+          module: 'SECURITY',
+          messageKey: 'auth.login.failure',
           status: 'ERROR',
-          details: `Intento fallido: PIN incorrecto o cuenta inactiva.`
+          details: {
+            eventType: 'AUTH_LOGIN_FAILURE',
+            entityType: 'AUTH',
+            severity: 'WARN',
+            context: { reason: 'INVALID_PIN_OR_INACTIVE' }
+          }
         });
         return { success: false, mfaRequired: false };
       }
@@ -101,12 +112,23 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       // No MFA needed, finalize
       setCurrentOperator(operator);
-      await coreDb.system_log.add({
-        id: crypto.randomUUID(),
-        timestamp: Date.now(),
-        action: 'AUTH_LOGIN_SUCCESS',
+      
+      // Industrial log & lastLogin update
+      await coreDb.operators.update(operator.id, { lastLogin: Date.now() });
+      await auditService.log({
+        module: 'SECURITY',
+        messageKey: 'auth.login.success',
         status: 'SUCCESS',
-        details: `Operador [${operator.name}] accedió (Sin MFA).`
+        operatorId: operator.id,
+        details: {
+          eventType: 'AUTH_LOGIN_SUCCESS',
+          entityType: 'OPERATOR',
+          entityId: operator.id,
+          actorId: operator.id,
+          actorUser: operator.username,
+          severity: 'INFO',
+          context: { mfaEnabled: operator.mfaEnabled, unitCount: operator.unitIds.length }
+        }
       });
 
       if (operator.unitIds.length === 1) {
@@ -131,13 +153,22 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const isValid = await verifyTOTP(currentOperator.mfaSecret, token);
 
       if (isValid) {
-        await coreDb.system_log.add({
-          id: crypto.randomUUID(),
-          timestamp: Date.now(),
-          action: 'AUTH_MFA_SUCCESS',
+        await auditService.log({
+          module: 'SECURITY',
+          messageKey: 'auth.mfa.success',
           status: 'SUCCESS',
-          details: `Operador [${currentOperator.name}] validó segundo factor.`
+          operatorId: currentOperator.id,
+          details: {
+            eventType: 'AUTH_MFA_SUCCESS',
+            entityType: 'OPERATOR',
+            entityId: currentOperator.id,
+            actorId: currentOperator.id,
+            actorUser: currentOperator.username,
+            severity: 'INFO',
+            context: { method: 'TOTP' }
+          }
         });
+        await coreDb.operators.update(currentOperator.id, { lastLogin: Date.now() });
 
         if (currentOperator.unitIds.length === 1) {
           const unit = await coreDb.units.get(currentOperator.unitIds[0]);
@@ -145,12 +176,20 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
         return true;
       } else {
-        await coreDb.system_log.add({
-          id: crypto.randomUUID(),
-          timestamp: Date.now(),
-          action: 'AUTH_MFA_FAILURE',
+        await auditService.log({
+          module: 'SECURITY',
+          messageKey: 'auth.mfa.failure',
           status: 'ERROR',
-          details: `Código MFA incorrecto para operador [${currentOperator.name}].`
+          operatorId: currentOperator.id,
+          details: {
+            eventType: 'AUTH_MFA_FAILURE',
+            entityType: 'OPERATOR',
+            entityId: currentOperator.id,
+            actorId: currentOperator.id,
+            actorUser: currentOperator.username,
+            severity: 'WARN',
+            context: { reason: 'INVALID_TOTP' }
+          }
         });
         return false;
       }
@@ -166,12 +205,20 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     await setActiveUnit(unit.id);
     setCurrentUnit(unit);
 
-    await coreDb.system_log.add({
-      id: crypto.randomUUID(),
-      timestamp: Date.now(),
-      action: 'WORKSPACE_SWITCH',
+    await auditService.log({
+      module: 'SUPERVISOR',
+      messageKey: 'workspace.switch',
       status: 'SUCCESS',
-      details: `Cambio a unidad [${unit.code}] por operador [${currentOperator.name}].`
+      operatorId: currentOperator.id,
+      details: {
+        eventType: 'WORKSPACE_UNIT_SWITCH',
+        entityType: 'UNIT',
+        entityId: unit.id,
+        actorId: currentOperator.id,
+        actorUser: currentOperator.username,
+        severity: 'INFO',
+        context: { unitCode: unit.code }
+      }
     });
 
     const session: AuthSession = {
@@ -184,12 +231,20 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const logout = () => {
     if (currentOperator) {
-      coreDb.system_log.add({
-        id: crypto.randomUUID(),
-        timestamp: Date.now(),
-        action: 'AUTH_LOGOUT',
+      auditService.log({
+        module: 'SECURITY',
+        messageKey: 'auth.logout',
         status: 'INFO',
-        details: `Cierre de sesión: ${currentOperator.name}.`
+        operatorId: currentOperator.id,
+        details: {
+          eventType: 'AUTH_LOGOUT',
+          entityType: 'OPERATOR',
+          entityId: currentOperator.id,
+          actorId: currentOperator.id,
+          actorUser: currentOperator.username,
+          severity: 'INFO',
+          context: {}
+        }
       }).catch(console.error);
     }
     setCurrentOperator(null);
@@ -198,7 +253,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const can = (cap: Capability) => {
-    return PermissionsService.hasCapability(currentOperator?.role, cap);
+    return PermissionsService.hasCapabilityForOperator(currentOperator, cap);
   };
 
   return (

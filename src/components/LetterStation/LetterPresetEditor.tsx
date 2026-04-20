@@ -56,8 +56,12 @@ const DEFAULT_CONFIG: GawebConfig = {
   savingsOpConcept: '  '
 };
 
+import { auditService } from '@/lib/services/AuditService';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
+
 const LetterPresetEditor: React.FC = () => {
   const { t } = useLanguage();
+  const { currentOperator } = useWorkspace();
   
   // Data
   const presets = useLiveQuery(() => db.presets_v6.toArray()) || [];
@@ -156,6 +160,26 @@ const LetterPresetEditor: React.FC = () => {
       await db.presets_v6.put({
         ...formData,
         updatedAt: Date.now()
+      });
+
+      // Audit Config Change
+      await auditService.log({
+        module: 'LETTER',
+        messageKey: 'letter.config.update',
+        status: 'WARNING',
+        operatorId: currentOperator?.id,
+        details: {
+          eventType: 'LETTER_CONFIG_UPDATE',
+          entityType: 'LETTER_CONFIG',
+          entityId: formData.id || 'NEW',
+          actorId: currentOperator?.id,
+          actorUser: currentOperator?.username,
+          severity: 'WARN',
+          context: {
+            modelName: formData.name,
+            version: formData.version
+          }
+        }
       });
 
       // 2. Guardado Físico (Diálogo de Sistema / Requisito Chrome)

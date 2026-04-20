@@ -16,7 +16,7 @@ export const BootstrapWizard: React.FC = () => {
   // Admin Data
   const [adminName, setAdminName] = useState('');
   const [adminUsername, setAdminUsername] = useState('master');
-  const [adminRole, setAdminRole] = useState<OperatorRole>('ADMIN');
+  const [adminRole, setAdminRole] = useState<UserRole>('ADMIN');
   const [pin, setPin] = useState('');
   const [pinConfirm, setPinConfirm] = useState('');
 
@@ -58,13 +58,14 @@ export const BootstrapWizard: React.FC = () => {
       // 2. Create Admin
       await coreDb.operators.add({
         id: adminId,
-        name: adminName || 'SISTEMAS',
+        displayName: adminName || 'SISTEMAS',
         username: adminUsername || 'master',
         pinHash,
         role: adminRole,
         unitIds: [unitId],
         createdAt: Date.now(),
         updatedAt: Date.now(),
+        lastLogin: Date.now(),
         isActive: 1,
         isMaster: true,
         mfaEnabled: false

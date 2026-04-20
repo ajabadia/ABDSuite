@@ -119,10 +119,10 @@ export const LoginScreen: React.FC = () => {
     return (
       <div className="station-modal-overlay" style={{ background: 'var(--bg-primary)' }}>
         <div className="flex-col" style={{ gap: '40px', alignItems: 'center' }}>
-          <header style={{ textAlign: 'center' }}>
-             <h1 style={{ fontSize: '2rem', letterSpacing: '4px', marginBottom: '8px' }}>SELECCIÓN DE UNIDAD</h1>
-             <p style={{ opacity: 0.5 }}>OPERARIO: {currentOperator.name.toUpperCase()}</p>
-          </header>
+              <header style={{ textAlign: 'center' }}>
+                 <h1 style={{ fontSize: '2rem', letterSpacing: '4px', marginBottom: '8px' }}>SELECCIÓN DE UNIDAD</h1>
+                 <p style={{ opacity: 0.5 }}>OPERARIO: {(currentOperator.displayName || currentOperator.username || 'OPERATOR').toUpperCase()}</p>
+              </header>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '16px', width: '400px' }}>
              {availableUnits.map(unit => (

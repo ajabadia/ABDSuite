@@ -26,6 +26,8 @@ const CORPORATE_DEFAULTS = {
   plantName: 'CENTRO INDUSTRIAL ABD'
 };
 
+import { auditService } from './AuditService';
+
 export class TelemetryConfigService {
   static async loadConfig(): Promise<TelemetryConfig> {
     const row = await coreDb.coreSettings.get('GLOBAL_SETTINGS');
@@ -53,7 +55,7 @@ export class TelemetryConfigService {
     };
   }
 
-  static async saveConfig(partial: Partial<TelemetryConfig>): Promise<void> {
+  static async saveConfig(partial: Partial<TelemetryConfig>, performedBy?: string): Promise<void> {
     const existing = await coreDb.coreSettings.get('GLOBAL_SETTINGS');
     
     const next = {
@@ -64,6 +66,24 @@ export class TelemetryConfigService {
     };
 
     await coreDb.coreSettings.put(next);
+
+    // Audit Config Change
+    await auditService.log({
+      module: 'SUPERVISOR',
+      messageKey: 'telemetry.config.update',
+      status: 'WARNING',
+      operatorId: performedBy,
+      details: {
+        eventType: 'TELEMETRY_CONFIG_UPDATE',
+        entityType: 'TELEMETRY_CONFIG',
+        entityId: 'GLOBAL',
+        actorId: performedBy,
+        severity: 'WARN',
+        context: {
+          updatedGroups: Object.keys(partial).join(', ')
+        }
+      }
+    });
   }
 
   static async resetToDefaults(): Promise<void> {

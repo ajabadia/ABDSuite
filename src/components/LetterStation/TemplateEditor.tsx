@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db/db';
 import { LetterTemplate, TemplateComposition } from '@/lib/types/letter.types';

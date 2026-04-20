@@ -9,6 +9,9 @@ import { RefreshIcon, FolderIcon, PlayIcon, SquareIcon, CogIcon } from '@/compon
 import { useLog } from '@/lib/context/LogContext';
 import { LogLevel } from '@/lib/types/log.types';
 
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
+
 interface EtlRunnerProps {
   presets: EtlPreset[];
   selectedPreset: EtlPreset | null;
@@ -17,7 +20,15 @@ interface EtlRunnerProps {
 
 const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelectPreset }) => {
   const { t } = useLanguage();
+  const { can } = useWorkspace();
   const router = useRouter();
+
+  const isAllowed = can('ETL_RUN');
+
+  if (!isAllowed) {
+    return <ForbiddenPanel capability="ETL_RUN" />;
+  }
+
   const { addLog: globalAddLog } = useLog();
   const [inputFile, setInputFile] = useState<File | null>(null);
   const [outputHandle, setOutputHandle] = useState<FileSystemDirectoryHandle | null>(null);

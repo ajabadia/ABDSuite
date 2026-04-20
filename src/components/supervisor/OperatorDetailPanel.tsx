@@ -1,13 +1,9 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
-import { Operator, OperatorRole } from '@/lib/types/auth.types';
+import { Operator, UserRole, Capability } from '@/lib/types/auth.types';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
-import { coreDb } from '@/lib/db/SystemDB';
-import { hashPin } from '@/lib/utils/crypto.utils';
 import { operatorService } from '@/lib/services/OperatorService';
-import { SaveIcon, TrashIcon, UserPlusIcon, ShieldCheckIcon, ZapIcon } from '@/components/common/Icons';
+import { SaveIcon, UserPlusIcon, ShieldCheckIcon, ZapIcon, XIcon, ListIcon } from '@/components/common/Icons';
 
 interface OperatorDetailPanelProps {
   selected: Operator | null;
@@ -41,66 +37,36 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
     }
   }, [selected]);
 
-  const validateLastAdmin = async (opId: string, nextActive: number, nextRole: OperatorRole) => {
-    if (!opId) return true; // New user is safe
-    
-    const activeAdmins = await coreDb.operators
-      .where('role').equals('ADMIN')
-      .filter(op => op.isActive === 1)
-      .toArray();
-
-    if (activeAdmins.length === 1 && activeAdmins[0].id === opId) {
-      if (nextActive === 0 || nextRole !== 'ADMIN') {
-        return false;
-      }
-    }
-    return true;
-  };
-
   const handleSave = async () => {
+    if (!currentOperator) return;
     setIsSaving(true);
     setError(null);
     try {
       const isNew = !selected;
-      const finalData = { ...formData } as Operator;
-
-      // Validation
-      if (!finalData.username || !finalData.name) {
+      
+      // Basic validation
+      if (!formData.username || !formData.displayName) {
         setError('Missing required fields');
-        return;
-      }
-
-      // Protection: Last Admin
-      const isSafe = await validateLastAdmin(selected?.id || '', finalData.isActive, finalData.role);
-      if (!isSafe) {
-        setError(t('operator.error_last_admin'));
+        setIsSaving(false);
         return;
       }
 
       if (isNew) {
         if (!newPin || newPin.length < 4) {
-          setError('PIN required for new operators');
+          setError('PIN required for new operators (min 4 chars)');
+          setIsSaving(false);
           return;
         }
-        finalData.id = crypto.randomUUID();
-        finalData.pinHash = await hashPin(newPin);
-        finalData.createdAt = Date.now();
-        finalData.updatedAt = Date.now();
-        finalData.mfaEnabled = false;
-        await coreDb.operators.add(finalData);
+        await operatorService.create(formData, newPin, currentOperator.id);
       } else {
-        if (newPin) {
-          finalData.pinHash = await hashPin(newPin);
-        }
-        finalData.updatedAt = Date.now();
-        await coreDb.operators.update(selected.id, finalData);
+        await operatorService.update(selected.id, formData, currentOperator.id, newPin || undefined);
       }
 
       onRefresh();
       if (isNew) onClear();
-    } catch (err) {
+    } catch (err: any) {
       console.error('[OPERATOR-MANAGER] Save failed', err);
-      setError('Save failed');
+      setError(err.message === 'LAST_ADMIN_PROTECTION' ? t('operator.error_last_admin') : (err.message || 'Save failed'));
     } finally {
       setIsSaving(false);
     }
@@ -126,8 +92,7 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
     try {
       await operatorService.transferMasterRole(currentOperator.id, selected.id, currentOperator.id);
       onRefresh();
-      // Session needs refresh but context handles it generally via DB state
-      window.location.reload(); // Force full reload for security state refresh
+      window.location.reload(); 
     } catch (err: any) {
       setError(err.message || 'Transfer failed');
     } finally {
@@ -153,7 +118,7 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
              <button className="station-btn secondary" onClick={onClear}>{t('common.cancel')}</button>
              <button className="station-btn primary" onClick={handleSave} disabled={isSaving}>
                 <SaveIcon size={18} />
-                <span>{t('common.save')}</span>
+                <span>{isSaving ? '...' : t('common.save')}</span>
              </button>
         </div>
       </header>
@@ -172,8 +137,8 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
           <label className="station-label">{t('operator.display_name').toUpperCase()}</label>
           <input 
             className="station-input" 
-            value={formData.name || ''} 
-            onChange={e => setFormData({ ...formData, name: e.target.value })}
+            value={formData.displayName || ''} 
+            onChange={e => setFormData({ ...formData, displayName: e.target.value })}
             placeholder="SYSTEM ADMIN"
           />
         </div>
@@ -182,7 +147,7 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
           <select 
             className="station-input" 
             value={formData.role} 
-            onChange={e => setFormData({ ...formData, role: e.target.value as any })}
+            onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })}
           >
             <option value="ADMIN">{t('operator.roles.ADMIN')}</option>
             <option value="TECH">{t('operator.roles.TECH')}</option>
@@ -210,6 +175,46 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
               <span className="station-label" style={{ marginBottom: 0 }}>{t('operator.active').toUpperCase()}</span>
            </label>
         </div>
+
+        {/* Phase 12.1: Capability Overrides (Advanced Tooling) */}
+        {useWorkspace().can('SETTINGS_GLOBAL') && (
+          <fieldset style={{ marginTop: '16px', padding: '16px', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'rgba(0,0,0,0.1)' }}>
+            <legend className="station-label" style={{ padding: '0 8px', fontWeight: 800, fontSize: '0.65rem', opacity: 0.7 }}>ADVANCED_CAPABILITY_OVERRIDES</legend>
+            
+            <div className="flex-col" style={{ gap: '12px' }}>
+              <div className="station-form-group">
+                <label className="station-label" style={{ fontSize: '0.65rem' }}>EXTRA_CAPABILITIES (Comma separated)</label>
+                <input 
+                  className="station-input"
+                  style={{ fontSize: '0.8rem', fontFamily: 'monospace' }}
+                  value={(formData.extraCapabilities || []).join(', ')}
+                  onChange={e => setFormData({ 
+                    ...formData, 
+                    extraCapabilities: e.target.value.split(',').map(s => s.trim()).filter(s => s) as Capability[] 
+                  })}
+                  placeholder="AUDIT_VIEW, ETL_RUN..."
+                />
+              </div>
+
+              <div className="station-form-group">
+                <label className="station-label" style={{ fontSize: '0.65rem' }}>DENIED_CAPABILITIES (Comma separated)</label>
+                <input 
+                  className="station-input"
+                  style={{ fontSize: '0.8rem', fontFamily: 'monospace' }}
+                  value={(formData.deniedCapabilities || []).join(', ')}
+                  onChange={e => setFormData({ 
+                    ...formData, 
+                    deniedCapabilities: e.target.value.split(',').map(s => s.trim()).filter(s => s) as Capability[] 
+                  })}
+                  placeholder="CRYPT_USE, LETTER_GENERATE..."
+                />
+              </div>
+              <p style={{ margin: 0, fontSize: '0.6rem', opacity: 0.5, fontStyle: 'italic' }}>
+                Priority Rule: DENIED &gt; (BASE_ROLE || EXTRAS).
+              </p>
+            </div>
+          </fieldset>
+        )}
 
         {error && (
           <div className="alert-box error animate-shake">

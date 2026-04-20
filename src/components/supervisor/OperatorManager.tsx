@@ -7,7 +7,11 @@ import { OperatorTable } from './OperatorTable';
 import { OperatorDetailPanel } from './OperatorDetailPanel';
 import { RefreshCwIcon, UserPlusIcon } from '@/components/common/Icons';
 
-export const OperatorManager: React.FC = () => {
+interface OperatorManagerProps {
+  initialOperatorId?: string | null;
+}
+
+export const OperatorManager: React.FC<OperatorManagerProps> = ({ initialOperatorId }) => {
   const [operators, setOperators] = useState<Operator[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
@@ -26,8 +30,20 @@ export const OperatorManager: React.FC = () => {
   };
 
   useEffect(() => {
-    loadOperators();
+    const load = async () => {
+      await loadOperators();
+    };
+    load();
   }, []);
+
+  useEffect(() => {
+    if (initialOperatorId && operators.length > 0) {
+      const exists = operators.find(o => o.id === initialOperatorId);
+      if (exists) {
+        setSelectedId(initialOperatorId);
+      }
+    }
+  }, [initialOperatorId, operators]);
 
   const selectedOperator = operators.find(o => o.id === selectedId) || null;
 

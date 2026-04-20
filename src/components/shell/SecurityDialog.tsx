@@ -34,7 +34,7 @@ export const SecurityDialog: React.FC<SecurityDialogProps> = ({ isOpen, onClose 
 
   const handleGenerateMfa = () => {
     const secret = generateMfaSecret();
-    const uri = generateMfaUri(currentOperator?.name || 'Operator', secret);
+    const uri = generateMfaUri(currentOperator?.displayName || 'Operator', secret);
     const svg = QrGenerator.generateSvg(uri, 200);
     setMfaSecret(secret);
     setQrSvg(svg);

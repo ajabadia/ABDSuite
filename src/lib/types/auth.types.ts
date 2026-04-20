@@ -2,7 +2,8 @@
  * ABDFN Unified Suite - Auth & Workspace Types (Phase 8)
  */
 
-export type OperatorRole = 'ADMIN' | 'TECH' | 'OPERATOR';
+export type UserRole = 'ADMIN' | 'TECH' | 'OPERATOR';
+export type OperatorRole = UserRole; // Alias for backward compatibility if needed, but we'll phase it out.
 
 /**
  * Capability-based Permission System
@@ -31,21 +32,25 @@ export type Capability =
   | 'OPERATORS_MANAGE'
   | 'SETTINGS_GLOBAL';
 
-export type AuditModule =
-  | 'CRYPT'
-  | 'ETL'
-  | 'LETTER'
-  | 'AUDIT'
-  | 'SUPERVISOR'
-  | 'SECURITY'
-  | 'SYSTEM';
+/**
+ * Structured details for Industrial Audit (Phase 11.2)
+ */
+export interface AuditDetails {
+  eventType: string;
+  entityType: string;
+  entityId?: string;
+  actorId?: string;
+  actorUser?: string;
+  severity?: 'INFO' | 'WARN' | 'CRITICAL';
+  context?: Record<string, string | number | boolean | null>;
+}
 
 export interface AuditRecord {
   id?: string;
   timestamp: number;
   module: AuditModule;
   messageKey: string;
-  details?: Record<string, string | number | boolean>;
+  details?: AuditDetails;
   status: 'SUCCESS' | 'WARNING' | 'ERROR' | 'INFO';
   operatorId?: string;
 }
@@ -61,17 +66,22 @@ export interface WorkspaceUnit {
 
 export interface Operator {
   id: string;          // UUID
-  name: string;        // Display Name
+  displayName: string; // Display Name
   username: string;    // Industrial Identifier
   pinHash: string;     // Hashed PIN
-  role: OperatorRole;
+  role: UserRole;
   unitIds: string[];   // Assigned units
   createdAt: number;
   updatedAt: number;
+  lastLogin?: number;  // Last successful access
   isActive: number;     // 1 for true, 0 for false
   isMaster?: boolean;   // Protected root operator
   mfaEnabled: boolean;  // MFA status
   mfaSecret?: string;   // Encrypted Base32 secret for TOTP
+  
+  // Capability Overrides (Phase 12.1)
+  extraCapabilities?: Capability[];
+  deniedCapabilities?: Capability[];
 }
 
 export interface AuthSession {

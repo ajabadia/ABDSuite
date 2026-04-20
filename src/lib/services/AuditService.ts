@@ -1,6 +1,6 @@
 import { coreDb } from '../db/SystemDB';
 import { db } from '../db/db';
-import { AuditRecord } from '../types/auth.types';
+import { AuditRecord, AuditDetails } from '../types/auth.types';
 
 /**
  * Unified Audit Service (Phase 11.2)
@@ -9,7 +9,7 @@ import { AuditRecord } from '../types/auth.types';
 class AuditService {
   /**
    * Main logging method.
-   * Redirects to Core for SECURITY/SYSTEM events, or Unit for operational events.
+   * Redirects to Core for SECURITY/SYSTEM/SUPERVISOR events, or Unit for others.
    */
   async log(record: Omit<AuditRecord, 'id' | 'timestamp'>) {
     const entry: AuditRecord = {
@@ -19,6 +19,8 @@ class AuditService {
     };
 
     try {
+      const detailsJson = JSON.stringify(entry.details || {});
+
       if (entry.module === 'SECURITY' || entry.module === 'SYSTEM' || entry.module === 'SUPERVISOR') {
         // Global Audit (CoreDB)
         await coreDb.system_log.add({
@@ -26,12 +28,11 @@ class AuditService {
           timestamp: entry.timestamp,
           action: entry.messageKey,
           status: entry.status,
-          details: JSON.stringify(entry.details || {})
+          details: detailsJson
         });
         console.log(`[AUDIT-CORE] ${entry.module} - ${entry.messageKey}`, entry.details);
       } else {
         // Operational Audit (UnitDB)
-        // Note: Unit DB must be open (setActiveUnit should have been called)
         if (db && (db as any).audit_history_v6) {
           await db.audit_history_v6.add({
             id: entry.id!,
@@ -39,7 +40,7 @@ class AuditService {
             module: entry.module as any,
             action: entry.messageKey,
             status: entry.status as any,
-            details: JSON.stringify(entry.details || {})
+            details: detailsJson
           });
           console.log(`[AUDIT-UNIT] ${entry.module} - ${entry.messageKey}`, entry.details);
         } else {
@@ -54,12 +55,12 @@ class AuditService {
   /**
    * Helper for security events
    */
-  async logSecurity(messageKey: string, details: Record<string, any>, operatorId?: string) {
+  async logSecurity(messageKey: string, details: AuditDetails, operatorId?: string) {
     await this.log({
       module: 'SECURITY',
       messageKey,
       details,
-      status: 'INFO',
+      status: details.severity === 'CRITICAL' ? 'WARNING' : 'INFO',
       operatorId
     });
   }
