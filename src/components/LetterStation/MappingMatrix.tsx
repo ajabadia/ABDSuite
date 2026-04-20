@@ -30,9 +30,13 @@ import {
 } from '@/components/common/Icons';
 import JSZip from 'jszip';
 import { useLanguage } from '@/lib/context/LanguageContext';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
 
 const MappingMatrix: React.FC = () => {
   const { t } = useLanguage();
+  const { can } = useWorkspace();
+  
+  const canEdit = can('LETTER_EDIT_MAPPINGS');
   const presets = useLiveQuery(() => db.presets_v6.toArray()) || [];
   const templates = useLiveQuery(() => db.lettertemplates_v6.toArray()) || [];
   const allMappings = useLiveQuery(() => db.lettermappings_v6.toArray()) || [];
@@ -234,9 +238,9 @@ const MappingMatrix: React.FC = () => {
                 <div className="station-registry-actions" style={{ justifyContent: 'space-between' }}>
                    <div className="flex-row" style={{ gap: '8px' }}>
                      <button className="station-btn" onClick={handleExportAll}><DownloadIcon size={14} /> JSON↓</button>
-                     <button className="station-btn" onClick={handleImport}><UploadIcon size={14} /> ALL↑</button>
+                     <button className="station-btn" onClick={handleImport} disabled={!canEdit}><UploadIcon size={14} /> ALL↑</button>
                    </div>
-                   <button className="station-btn station-btn-primary" onClick={handleNewMapping} style={{ flex: 1, maxWidth: '300px' }}>{t('letter.ui.btn_generate').toUpperCase()}</button>
+                   <button className="station-btn station-btn-primary" onClick={handleNewMapping} disabled={!canEdit} style={{ flex: 1, maxWidth: '300px' }}>{t('letter.ui.btn_generate').toUpperCase()}</button>
                 </div>
                 <div className="station-registry-list">
                   {allMappings.sort((a,b) => (b.updatedAt || 0) - (a.updatedAt || 0)).map(m => (
@@ -248,7 +252,7 @@ const MappingMatrix: React.FC = () => {
                           <span className="station-registry-item-meta">{presets.find(p => p.id === m.etlPresetId)?.name || '---'} {' -> '} {templates.find(t => t.id === m.templateId)?.name || '---'}</span>
                         </div>
                       </div>
-                      <button className="station-registry-action-btn" onClick={(e) => handleDeleteMapping(e, m.id!)}><TrashIcon size={14} /></button>
+                      <button className="station-registry-action-btn" onClick={(e) => handleDeleteMapping(e, m.id!)} disabled={!canEdit}><TrashIcon size={14} /></button>
                     </div>
                   ))}
                 </div>
@@ -269,9 +273,9 @@ const MappingMatrix: React.FC = () => {
            <div className="station-panel-header">
               <div className="flex-col"><h2 className="station-title-main" style={{ margin: 0 }}>{currentMapping?.name}</h2></div>
               <div className="flex-row" style={{ gap: '12px' }}>
-                <button className="station-btn" onClick={undo} disabled={undoStack.length === 0}><UndoIcon size={16} /></button>
+                <button className="station-btn" onClick={undo} disabled={undoStack.length === 0 || !canEdit}><UndoIcon size={16} /></button>
                 <button className="station-btn" onClick={() => setShowConfigModal(true)}><CogIcon size={16} /> {t('settings.title').toUpperCase()}</button>
-                <button className="station-btn station-btn-primary" onClick={saveMapping}><SaveIcon size={16} /> {t('common.save').toUpperCase()}</button>
+                <button className="station-btn station-btn-primary" onClick={saveMapping} disabled={!canEdit}><SaveIcon size={16} /> {t('common.save').toUpperCase()}</button>
               </div>
            </div>
            <div className="station-tech-summary" style={{ marginTop: '16px' }}>
@@ -289,8 +293,8 @@ const MappingMatrix: React.FC = () => {
            </div>
             <div className={`station-registry-anim-container ${isLinkerExpanded ? 'expanded' : ''}`}>
              <div className="station-registry-anim-content"><div className="station-registry-content"><div className="station-form-grid">
-               <div className="station-form-field"><label className="station-label">{t('letter.ui.data_file').toUpperCase()}</label><select className="station-select" value={selectedPresetId || ''} onChange={e => setSelectedPresetId(e.target.value)}><option value="">-- {t('letter.ui.waiting_data').toUpperCase()} --</option>{presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
-               <div className="station-form-field"><label className="station-label">{t('letter.ui.template_visual').toUpperCase()}</label><select className="station-select" value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(e.target.value)}><option value="">-- {t('letter.ui.select_template').toUpperCase()} --</option>{templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
+               <div className="station-form-field"><label className="station-label">{t('letter.ui.data_file').toUpperCase()}</label><select className="station-select" value={selectedPresetId || ''} onChange={e => setSelectedPresetId(e.target.value)} disabled={!canEdit}><option value="">-- {t('letter.ui.waiting_data').toUpperCase()} --</option>{presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+               <div className="station-form-field"><label className="station-label">{t('letter.ui.template_visual').toUpperCase()}</label><select className="station-select" value={selectedTemplateId || ''} onChange={e => setSelectedTemplateId(e.target.value)} disabled={!canEdit}><option value="">-- {t('letter.ui.select_template').toUpperCase()} --</option>{templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
              </div></div></div>
            </div>
         </section>
@@ -300,7 +304,7 @@ const MappingMatrix: React.FC = () => {
         <div className="flex-col" style={{ marginTop: '24px', gap: '20px' }}>
           <div className="station-toolbar">
              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><span className="station-badge station-badge-blue">W</span><span style={{ fontWeight: 800 }}>{t('letter.ui.mapping_brain').toUpperCase()}: {templateVars.length}</span></div>
-             <div style={{ display: 'flex', gap: '12px' }}><button className="station-btn" onClick={handleAutoMap}><RefreshCwIcon size={14} /> {t('letter.ui.auto_map').toUpperCase()}</button><button className="station-btn station-btn-primary" onClick={saveMapping}><SaveIcon size={14} /> {t('common.save').toUpperCase()}</button></div>
+             <div style={{ display: 'flex', gap: '12px' }}><button className="station-btn" onClick={handleAutoMap} disabled={!canEdit}><RefreshCwIcon size={14} /> {t('letter.ui.auto_map').toUpperCase()}</button><button className="station-btn station-btn-primary" onClick={saveMapping} disabled={!canEdit}><SaveIcon size={14} /> {t('common.save').toUpperCase()}</button></div>
           </div>
           <div className="station-table-container">
             <table className="station-table">
@@ -313,7 +317,7 @@ const MappingMatrix: React.FC = () => {
                        <td>{map?.sourceType === 'TEMPLATE' ? 'W' : 'G'}</td>
                        <td style={{ fontWeight: 800 }}>{`{{${v}}}`}</td>
                        <td>
-                          <select className="station-select" style={{ fontSize: '0.8rem' }} value={map ? `${map.sourceType}:${map.sourceField}` : ''} onChange={e => { const [type, field] = e.target.value.split(':'); handleUpdateMapping(v, type as any, field); }}>
+                          <select className="station-select" style={{ fontSize: '0.8rem' }} value={map ? `${map.sourceType}:${map.sourceField}` : ''} onChange={e => { const [type, field] = e.target.value.split(':'); handleUpdateMapping(v, type as any, field); }} disabled={!canEdit}>
                              <option value="">-- {t('letter.ui.select_mapping').toUpperCase()} --</option>
                              <optgroup label="[CSV] COLUMNS">
                                 {dataRT?.fields.map((f: any, idx) => (

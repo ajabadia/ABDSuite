@@ -5,9 +5,11 @@ import { useSearchParams } from 'next/navigation';
 import SettingsPanel from '@/components/SettingsPanel';
 import FileProcessor from '@/components/FileProcessor';
 import { useLanguage } from '@/lib/context/LanguageContext';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { useFileBatchProcessor } from '@/lib/hooks/useFileBatchProcessor';
 import { useInactivityPurge } from '@/lib/hooks/useInactivityPurge';
 import { ShieldCheckIcon, UnlockIcon } from '@/components/common/Icons';
+import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
 
 interface SelectedFile {
   file: File;
@@ -16,9 +18,14 @@ interface SelectedFile {
 
 function CryptPageContent() {
   const { t } = useLanguage();
+  const { can } = useWorkspace();
   const searchParams = useSearchParams();
   const mode = (searchParams.get('view') === 'decrypt') ? 'decrypt' : 'encrypt';
   
+  if (!can('CRYPT_USE')) {
+    return <ForbiddenPanel />;
+  }
+
   // Elevated state from FileProcessor
   const [files, setFiles] = useState<SelectedFile[]>([]);
   

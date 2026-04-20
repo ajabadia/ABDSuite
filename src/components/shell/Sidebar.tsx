@@ -16,8 +16,10 @@ import {
   MapIcon,
   HelpIcon,
   DownloadIcon,
-  UploadIcon
+  UploadIcon,
+  ActivityIcon
 } from '@/components/common/Icons';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { HelpModal } from './HelpModal';
 
 export const Sidebar: React.FC = () => {
@@ -99,6 +101,18 @@ export const Sidebar: React.FC = () => {
       ]
     },
   ];
+
+  const { can } = useWorkspace();
+  const canSeeSupervisor = can('SUPERVISOR_VIEW');
+
+  if (canSeeSupervisor) {
+    navItems.push({
+        href: '/supervisor',
+        icon: <ActivityIcon size={20} />,
+        label: t('supervisor.title'),
+        id: 'supervisor'
+    });
+  }
 
   return (
     <aside className={`shell-sidebar ${isCollapsed ? 'collapsed' : ''}`}>

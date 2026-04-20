@@ -23,7 +23,11 @@ const DEFAULT_COMPOSITION: TemplateComposition = {
   footerHtml: '<div style="font-size: 10px; border-top: 1px solid #ccc; padding-top: 5px;">Calle Falsa 123, 28001 Madrid | www.abdfn-suite.com</div>'
 };
 
-const TemplateEditor: React.FC = () => {
+interface TemplateEditorProps {
+  canEdit?: boolean;
+}
+
+const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
   const { t } = useLanguage();
   const templates = useLiveQuery(() => db.lettertemplates_v6.toArray()) || [];
   
@@ -240,9 +244,9 @@ const TemplateEditor: React.FC = () => {
                 <div className="station-registry-actions" style={{ justifyContent: 'space-between' }}>
                    <div className="flex-row" style={{ gap: '8px' }}>
                      <button className="station-btn" onClick={handleExportAll}><DownloadIcon size={14} /> JSON↓</button>
-                     <button className="station-btn" onClick={handleImport}><UploadIcon size={14} /> ALL↑</button>
+                     <button className="station-btn" onClick={handleImport} disabled={!canEdit}><UploadIcon size={14} /> ALL↑</button>
                    </div>
-                   <button className="station-btn station-btn-primary" onClick={handleCreate} style={{ flex: 1, maxWidth: '300px' }}>{t('letter.ui.upload').toUpperCase()}</button>
+                   <button className="station-btn station-btn-primary" onClick={handleCreate} disabled={!canEdit} style={{ flex: 1, maxWidth: '300px' }}>{t('letter.ui.upload').toUpperCase()}</button>
                 </div>
                 
                 <div className="flex-col" style={{ gap: '8px' }}>
@@ -279,13 +283,15 @@ const TemplateEditor: React.FC = () => {
                          >
                            <DownloadIcon size={16} />
                          </button>
-                         <button 
-                           className="station-registry-action-btn err"
-                           onClick={(e) => { e.stopPropagation(); handleDelete(tmpl.id!); }}
-                           title="Eliminar"
-                         >
-                           <TrashIcon size={16} />
-                         </button>
+                         {canEdit && (
+                           <button 
+                            className="station-registry-action-btn err"
+                            onClick={(e) => { e.stopPropagation(); handleDelete(tmpl.id!); }}
+                            title="Eliminar"
+                          >
+                            <TrashIcon size={16} />
+                          </button>
+                         )}
                       </div>
                     </div>
                   ))}
@@ -351,14 +357,14 @@ const TemplateEditor: React.FC = () => {
                 </div>
 
                 <div className="flex-row" style={{ gap: '12px' }}>
-                  <button className="station-btn" onClick={undo} disabled={undoStack.length === 0}><UndoIcon size={16} /></button>
+                  <button className="station-btn" onClick={undo} disabled={undoStack.length === 0 || !canEdit}><UndoIcon size={16} /></button>
                   <button className="station-btn" onClick={() => setShowSettingsModal(true)}>
                     <CogIcon size={16} /> {t('settings.title').toUpperCase()}
                   </button>
                   <button className={`station-btn ${showPreview ? 'active' : ''}`} onClick={() => setShowPreview(!showPreview)}>
                     <EyeIcon size={16} /> {t('letter.preview').toUpperCase()}
                   </button>
-                  <button className="station-btn station-btn-primary" onClick={handleSave}>
+                  <button className="station-btn station-btn-primary" onClick={handleSave} disabled={!canEdit}>
                     <SaveIcon size={16} /> {t('common.save').toUpperCase()}
                   </button>
                 </div>
@@ -392,6 +398,7 @@ const TemplateEditor: React.FC = () => {
                         value={editContent}
                         onChange={e => setEditContent(e.target.value)}
                         placeholder="..."
+                        readOnly={!canEdit}
                       />
                       <div style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.05rem' }}>
                         TIP: USE {'{{FIELD}}'} FOR ETL PAYLOAD INJECTION.

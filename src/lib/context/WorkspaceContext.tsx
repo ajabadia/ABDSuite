@@ -1,20 +1,23 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Operator, WorkspaceUnit, AuthSession } from '../types/auth.types';
+import { Operator, WorkspaceUnit, AuthSession, Capability } from '../types/auth.types';
 import { coreDb } from '../db/SystemDB';
 import { setActiveUnit } from '../db/db';
 import { hashPin } from '../utils/crypto.utils';
+import { PermissionsService } from '../services/permissions.ts';
 
 interface WorkspaceContextType {
   currentOperator: Operator | null;
   currentUnit: WorkspaceUnit | null;
   isLoading: boolean;
   isBootstrapNeeded: boolean;
-  login: (pin: string) => Promise<boolean>;
+  login: (pin: string) => Promise<{ success: boolean; mfaRequired: boolean }>;
+  verifyMfa: (token: string) => Promise<boolean>;
   logout: () => void;
   selectUnit: (unit: WorkspaceUnit) => Promise<void>;
   refreshBootstrapStatus: () => Promise<void>;
+  can: (cap: Capability) => boolean;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -70,48 +73,89 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setIsBootstrapNeeded(unitsCount === 0 || operatorsCount === 0);
   };
 
-  const login = async (pin: string): Promise<boolean> => {
+  const login = async (pin: string): Promise<{ success: boolean; mfaRequired: boolean }> => {
     try {
       const pinHash = await hashPin(pin);
-      console.log(`[ABDFN-AUTH] Checking PIN Hash: ${pinHash}`);
-
-      // Explicit Dexie query instead of object shortcut
+      
       const operator = await coreDb.operators
         .where('pinHash')
         .equals(pinHash)
         .first();
       
       if (!operator || !operator.isActive) {
-        console.warn(`[ABDFN-AUTH] Access denied for PIN hash: ${pinHash}. Found operator: ${!!operator}, Active: ${operator?.isActive}`);
         await coreDb.system_log.add({
           id: crypto.randomUUID(),
           timestamp: Date.now(),
           action: 'AUTH_LOGIN_FAILURE',
           status: 'ERROR',
-          details: `Intento de acceso fallido: PIN incorrecto o cuenta inactiva. (Hash: ${pinHash.substring(0, 8)}...)`
+          details: `Intento fallido: PIN incorrecto o cuenta inactiva.`
         });
-        return false;
+        return { success: false, mfaRequired: false };
       }
 
-      setCurrentOperator(operator);
+      // If MFA is required, don't finalize session yet
+      if (operator.mfaEnabled) {
+        setCurrentOperator(operator); // Partially set to know who is logging in
+        return { success: true, mfaRequired: true };
+      }
 
+      // No MFA needed, finalize
+      setCurrentOperator(operator);
       await coreDb.system_log.add({
         id: crypto.randomUUID(),
         timestamp: Date.now(),
         action: 'AUTH_LOGIN_SUCCESS',
         status: 'SUCCESS',
-        details: `Operador [${operator.name}] identificado.`
+        details: `Operador [${operator.name}] accedió (Sin MFA).`
       });
 
-      // If only one unit, select it automatically
       if (operator.unitIds.length === 1) {
         const unit = await coreDb.units.get(operator.unitIds[0]);
         if (unit) await selectUnit(unit);
       }
 
-      return true;
+      return { success: true, mfaRequired: false };
     } catch (err) {
       console.error('[ABDFN-AUTH] Login failed', err);
+      return { success: false, mfaRequired: false };
+    }
+  };
+
+  const verifyMfa = async (token: string): Promise<boolean> => {
+    if (!currentOperator || !currentOperator.mfaSecret) return false;
+
+    try {
+      // In a real industrial scenario, we would decrypt currentOperator.mfaSecret here.
+      // For now, we assume mfaSecret is stored in a way mfa.utils can use (Base32).
+      const { verifyTOTP } = await import('../utils/mfa.utils');
+      const isValid = await verifyTOTP(currentOperator.mfaSecret, token);
+
+      if (isValid) {
+        await coreDb.system_log.add({
+          id: crypto.randomUUID(),
+          timestamp: Date.now(),
+          action: 'AUTH_MFA_SUCCESS',
+          status: 'SUCCESS',
+          details: `Operador [${currentOperator.name}] validó segundo factor.`
+        });
+
+        if (currentOperator.unitIds.length === 1) {
+          const unit = await coreDb.units.get(currentOperator.unitIds[0]);
+          if (unit) await selectUnit(unit);
+        }
+        return true;
+      } else {
+        await coreDb.system_log.add({
+          id: crypto.randomUUID(),
+          timestamp: Date.now(),
+          action: 'AUTH_MFA_FAILURE',
+          status: 'ERROR',
+          details: `Código MFA incorrecto para operador [${currentOperator.name}].`
+        });
+        return false;
+      }
+    } catch (err) {
+      console.error('[ABDFN-AUTH] MFA verification failed', err);
       return false;
     }
   };
@@ -153,6 +197,10 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.removeItem(SESSION_KEY);
   };
 
+  const can = (cap: Capability) => {
+    return PermissionsService.hasCapability(currentOperator?.role, cap);
+  };
+
   return (
     <WorkspaceContext.Provider value={{ 
       currentOperator, 
@@ -162,7 +210,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       login, 
       logout, 
       selectUnit,
-      refreshBootstrapStatus
+      refreshBootstrapStatus,
+      verifyMfa,
+      can
     }}>
       {children}
     </WorkspaceContext.Provider>

@@ -42,8 +42,15 @@
 - [x] **Bootstrap Orchestration**: Zero-config first-run wizard for Admin and Department registration.
 - [x] **Identity Handover**: Secure session management and seamless operator/unit switching.
 
-## Future: Phase 9 (Advanced Industrial Interoperability)
-- [ ] **Peer-to-Peer Sync**: Secure industrial sync channel for decentralized, air-gapped workstations.
-- [ ] **Hardware Token Integration**: Support for physical authentication keys (FIDO2/WebAuthn).
-- [ ] **Cross-Unit Global Audit**: Aggregated reporting for supervisors across multiple isolated workspaces.
+## Done: Phase 9 (Advanced Industrial Interoperability)
+- [x] **Peer-to-Peer Sync**: Multi-node decentralized data exchange via signed sync packages.
+- [x] **MFA TOTP Integration**: Secure 2nd factor authentication using native Web Crypto (RFC 6238).
+- [x] **Industrial QR Engine**: Zero-dependency SVG generator for air-gapped MFA enrollment.
+- [x] **Last-Write-Wins Reconciliation**: Intelligent conflict resolution for P2P synchronization.
+
+## Future: Phase 10 (Global Supervision & Compliance)
+- [ ] **Cross-Unit Telemetry Engine**: Aggregated activity monitoring across all isolated departments.
+- [ ] **Supervisor Dashboard**: High-level KPI visualization for terminal performance and security.
+- [ ] **Unified Compliance Reporting**: One-click global audit generation (PDF/CSV) from centralized telemetry.
+- [ ] **Advanced Policy Enforcement**: Remote lockout and global operator management.
 

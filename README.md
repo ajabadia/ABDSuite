@@ -28,6 +28,74 @@ La suite organiza las operativas en estaciones de trabajo especializadas, guiada
 - **🔒 AES-GCM 256 Shield:** Implementación nativa de la API `SubtleCrypto` para blindaje simétrico de grado bancario.
 - **🛠️ Wizard Industrial Progresivo:** Interfaz en cascada que guía al operador, bloqueando acciones críticas hasta que se satisfacen todos los requisitos.
 
+## 🛡️ Security model (RBAC)
+
+ABDFN Suite usa un modelo de **Role‑Based Access Control (RBAC)**: cada usuario pertenece a un rol (ADMIN, TECH u OPERATOR) y cada rol tiene un conjunto de permisos sobre los módulos de la suite (CRYPT, ETL, LETTER, AUDIT, Supervisor).
+En lugar de asignar permisos uno a uno a cada usuario, definimos capacidades de alto nivel (por ejemplo `LETTER_GENERATE`, `ETL_RUN`, `AUDIT_CONFIG`) y las vinculamos a cada rol, manteniendo el sistema simple y auditable.
+
+- **ADMIN** puede gobernar toda la instalación: configuración global, gestión de operadores y acceso completo a todos los módulos.
+- **TECH** se centra en tareas técnicas: diseña modelos (ETL, LETTER), ejecuta procesos y auditorías, pero no puede cambiar la configuración global ni la estructura de usuarios.
+- **OPERATOR** utiliza los flujos diarios (cifrar, ejecutar ETL, generar cartas, lanzar auditorías) sin modificar plantillas, modelos o políticas globales.
+
+Para más detalles, consulte la [guía de roles y permisos](docs/ROLES_AND_PERMISSIONS.md).
+
+### RBAC overview
+
+```mermaid
+flowchart LR
+  subgraph Users
+    U1[User A\n(admin)]
+    U2[User B\n(tech)]
+    U3[User C\n(operator)]
+  end
+
+  subgraph Roles
+    R1[ADMIN]
+    R2[TECH]
+    R3[OPERATOR]
+  end
+
+  subgraph Capabilities
+    C1[CRYPT_USE]
+    C2[ETL_EDIT_PRESETS]
+    C3[LETTER_GENERATE]
+    C4[AUDIT_CONFIG]
+    C5[OPERATORS_MANAGE]
+  end
+
+  subgraph Modules
+    M1[CRYPT STATION]
+    M2[ETL STUDIO]
+    M3[LETTER STATION]
+    M4[SYSTEM AUDIT]
+    M5[SUPERVISOR]
+  end
+
+  U1 --> R1
+  U2 --> R2
+  U3 --> R3
+
+  R1 --> C1
+  R1 --> C2
+  R1 --> C3
+  R1 --> C4
+  R1 --> C5
+
+  R2 --> C1
+  R2 --> C2
+  R2 --> C3
+  R2 --> C4
+
+  R3 --> C1
+  R3 --> C3
+
+  C1 --> M1
+  C2 --> M2
+  C3 --> M3
+  C4 --> M4
+  C5 --> M5
+```
+
 ## 🛠️ Especificaciones Técnicas
 
 - **Core:** Next.js 16.2.3 (Turbopack), TypeScript 5.x, React 19.

@@ -7,8 +7,9 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { useLog } from '@/lib/context/LogContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
-import { TerminalIcon, LogOutIcon, UserIcon, BuildingIcon } from '@/components/common/Icons';
+import { TerminalIcon, LogOutIcon, UserIcon, BuildingIcon, ShieldCheckIcon } from '@/components/common/Icons';
 import { AboutDialog } from './AboutDialog';
+import { SecurityDialog } from './SecurityDialog';
 
 export const TopBar: React.FC = () => {
   const pathname = usePathname();
@@ -16,6 +17,7 @@ export const TopBar: React.FC = () => {
   const { isOpen, setIsOpen } = useLog();
   const { currentOperator, currentUnit, logout } = useWorkspace();
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isSecurityOpen, setIsSecurityOpen] = useState(false);
 
   const getModuleTitle = () => {
     if (pathname === '/') return t('shell.home');
@@ -35,9 +37,10 @@ export const TopBar: React.FC = () => {
 
         {currentOperator && currentUnit && (
           <div className="flex-row" style={{ gap: '16px', paddingLeft: '24px', borderLeft: '1px solid var(--border-color)', opacity: 0.8 }}>
-             <div className="flex-row" style={{ gap: '8px', fontSize: '0.75rem' }}>
+             <div className="flex-row" style={{ gap: '8px', fontSize: '0.75rem', cursor: 'pointer' }} onClick={() => setIsSecurityOpen(true)}>
                 <UserIcon size={14} />
                 <span style={{ fontWeight: 600 }}>{currentOperator.name.toUpperCase()}</span>
+                {currentOperator.mfaEnabled && <ShieldCheckIcon size={12} color="var(--accent-primary)" style={{ marginLeft: '4px' }} />}
              </div>
              <div className="flex-row" style={{ gap: '8px', fontSize: '0.75rem' }}>
                 <BuildingIcon size={14} />
@@ -84,6 +87,7 @@ export const TopBar: React.FC = () => {
       </div>
 
       <AboutDialog isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
+      <SecurityDialog isOpen={isSecurityOpen} onClose={() => setIsSecurityOpen(false)} />
     </header>
   );
 };

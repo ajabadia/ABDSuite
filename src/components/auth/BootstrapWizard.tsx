@@ -15,6 +15,8 @@ export const BootstrapWizard: React.FC = () => {
 
   // Admin Data
   const [adminName, setAdminName] = useState('');
+  const [adminUsername, setAdminUsername] = useState('master');
+  const [adminRole, setAdminRole] = useState<OperatorRole>('ADMIN');
   const [pin, setPin] = useState('');
   const [pinConfirm, setPinConfirm] = useState('');
 
@@ -50,19 +52,22 @@ export const BootstrapWizard: React.FC = () => {
         name: unitName || 'PRE-DEPÁRTAMENTO',
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        isActive: 1 // Industrial standard: use 0/1 instead of boolean for indexing
+        isActive: 1
       });
 
       // 2. Create Admin
       await coreDb.operators.add({
         id: adminId,
         name: adminName || 'SISTEMAS',
+        username: adminUsername || 'master',
         pinHash,
-        role: 'ADMIN',
+        role: adminRole,
         unitIds: [unitId],
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        isActive: 1 // Industrial standard: use 0/1 instead of boolean for indexing
+        isActive: 1,
+        isMaster: true,
+        mfaEnabled: false
       });
 
       await refreshBootstrapStatus();
@@ -97,13 +102,34 @@ export const BootstrapWizard: React.FC = () => {
               
               <div className="flex-col" style={{ gap: '16px' }}>
                 <div className="station-form-group">
-                  <label className="station-label">NOMBRE DEL OPERADOR</label>
+                  <label className="station-label">{t('operator.username').toUpperCase()}</label>
+                  <input 
+                    className="station-input" 
+                    value={adminUsername} 
+                    onChange={e => setAdminUsername(e.target.value)} 
+                    placeholder="master"
+                  />
+                </div>
+                <div className="station-form-group">
+                  <label className="station-label">{t('operator.display_name').toUpperCase()}</label>
                   <input 
                     className="station-input" 
                     value={adminName} 
                     onChange={e => setAdminName(e.target.value)} 
                     placeholder="Ej: SISTEMAS"
                   />
+                </div>
+                <div className="station-form-group">
+                  <label className="station-label">{t('operator.role').toUpperCase()}</label>
+                  <select 
+                    className="station-input" 
+                    value={adminRole}
+                    onChange={e => setAdminRole(e.target.value as any)}
+                  >
+                    <option value="ADMIN">{t('operator.roles.ADMIN')}</option>
+                    <option value="TECH">{t('operator.roles.TECH')}</option>
+                  </select>
+                  <p style={{ fontSize: '10px', opacity: 0.5, marginTop: '4px' }}>{t('bootstrap.role_hint')}</p>
                 </div>
                 <div className="station-form-group">
                   <label className="station-label">PIN INDUSTRIAL (4-6 DÍGITOS)</label>

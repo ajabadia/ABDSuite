@@ -9,7 +9,7 @@ import { ShieldIcon, UserIcon, BuildingIcon, XIcon, DeleteIcon, CheckIcon, KeyIc
 
 export const LoginScreen: React.FC = () => {
   const { t } = useLanguage();
-  const { login, selectUnit, currentOperator, logout } = useWorkspace();
+  const { login, verifyMfa, selectUnit, currentOperator, logout } = useWorkspace();
   
   const [pin, setPin] = useState('');
   const [operators, setOperators] = useState<Operator[]>([]);
@@ -17,14 +17,16 @@ export const LoginScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [availableUnits, setAvailableUnits] = useState<WorkspaceUnit[]>([]);
+  const [mfaPhase, setMfaPhase] = useState(false);
+  const [mfaToken, setMfaToken] = useState('');
 
   useEffect(() => {
     const loadOps = async () => {
       try {
         if (!coreDb.isOpen()) await coreDb.open();
-        const allOps = await coreDb.operators.where('isActive').equals(1).toArray();
+        const allOps = (await coreDb.operators.toArray()).filter(o => o.isActive);
         setOperators(allOps);
-        const allUnits = await coreDb.units.where('isActive').equals(1).toArray();
+        const allUnits = (await coreDb.units.toArray()).filter(u => u.isActive);
         setUnits(allUnits);
       } catch (err) {
         console.error('[ABDFN-AUTH] Metadata load failed', err);
@@ -42,28 +44,46 @@ export const LoginScreen: React.FC = () => {
 
   const handleKeyPress = (num: string) => {
     setError(null);
-    if (pin.length < 6) {
-      setPin(prev => prev + num);
+    if (!mfaPhase) {
+      if (pin.length < 6) setPin(prev => prev + num);
+    } else {
+      if (mfaToken.length < 6) setMfaToken(prev => prev + num);
     }
   };
 
   const handleBackspace = () => {
-    setPin(prev => prev.slice(0, -1));
+    if (!mfaPhase) {
+      setPin(prev => prev.slice(0, -1));
+    } else {
+      setMfaToken(prev => prev.slice(0, -1));
+    }
   };
 
   const handleSubmit = async () => {
-    if (pin.length < 4) return;
-    
-    // Aseptic requirement: Clear error indicator before attempt
     setError(null);
 
-    const success = await login(pin);
-    if (!success) {
-      setError('PIN ACCESO DENEGADO');
-      // Aseptic requirement: Clear PIN on failure to prevent digit accumulation
-      setPin('');
+    if (!mfaPhase) {
+      if (pin.length < 4) return;
+      const result = await login(pin);
+      if (result.success) {
+        if (result.mfaRequired) {
+          setMfaPhase(true);
+        } else {
+          setLoginSuccess(true);
+        }
+      } else {
+        setError('PIN ACCESO DENEGADO');
+        setPin('');
+      }
     } else {
-      setLoginSuccess(true);
+      if (mfaToken.length < 6) return;
+      const success = await verifyMfa(mfaToken);
+      if (success) {
+        setLoginSuccess(true);
+      } else {
+        setError('CÓDIGO MFA INCORRECTO');
+        setMfaToken('');
+      }
     }
   };
 
@@ -77,13 +97,18 @@ export const LoginScreen: React.FC = () => {
       } else if (e.key === 'Enter') {
         handleSubmit();
       } else if (e.key === 'Escape') {
-        setPin('');
+        if (mfaPhase) {
+          setMfaPhase(false);
+          setMfaToken('');
+        } else {
+          setPin('');
+        }
         setError(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [pin]);
+  }, [pin, mfaPhase, mfaToken]);
 
   const handleUnitSelect = async (unit: WorkspaceUnit) => {
     await selectUnit(unit);
@@ -158,30 +183,30 @@ export const LoginScreen: React.FC = () => {
             </header>
 
             <div className="flex-col" style={{ alignItems: 'center', gap: '24px', width: '100%' }}>
-               <span style={{ fontSize: '0.8rem', opacity: 0.4, fontWeight: 'bold', letterSpacing: '2px' }}>[ IDENTIFICACIÓN ]</span>
+               <span style={{ fontSize: '0.8rem', opacity: 0.4, fontWeight: 'bold', letterSpacing: '2px' }}>
+                 {mfaPhase ? '[ DOBLE FACTOR - TOTP ]' : '[ IDENTIFICACIÓN ]'}
+               </span>
                
-               {/* PIN Digit Feedback (CENTRED DYNAMICALLY) */}
+               {/* PIN / MFA Digit Feedback */}
                <div className="flex-row" style={{ gap: '16px', height: '60px', alignItems: 'center', justifyContent: 'center' }}>
-                  {pin.length === 0 ? (
-                    <span style={{ opacity: 0.2, fontSize: '0.8rem', letterSpacing: '4px' }}>INTRODUZCA PIN</span>
+                  {!mfaPhase ? (
+                    pin.length === 0 ? (
+                      <span style={{ opacity: 0.2, fontSize: '0.8rem', letterSpacing: '4px' }}>INTRODUZCA PIN</span>
+                    ) : (
+                      pin.split('').map((_, idx) => (
+                        <div key={`pin-${idx}`} className="flex-center" style={{ width: '40px', height: '56px', borderBottom: '4px solid var(--accent-primary)', fontSize: '2.5rem', color: 'var(--accent-primary)', transform: 'translateY(-4px)', animation: 'fadeIn 0.2s ease-out' }}>*</div>
+                      ))
+                    )
                   ) : (
-                    pin.split('').map((_, idx) => (
-                      <div 
-                        key={`filled-${idx}`}
-                        className="flex-center"
-                        style={{ 
-                          width: '40px', 
-                          height: '56px', 
-                          borderBottom: '4px solid var(--accent-primary)',
-                          fontSize: '2.5rem',
-                          color: 'var(--accent-primary)',
-                          transform: 'translateY(-4px)',
-                          animation: 'fadeIn 0.2s ease-out'
-                        }} 
-                      >
-                        *
-                      </div>
-                    ))
+                    mfaToken.length === 0 ? (
+                      <span style={{ opacity: 0.2, fontSize: '0.8rem', letterSpacing: '4px' }}>CÓDIGO APP</span>
+                    ) : (
+                      mfaToken.split('').map((char, idx) => (
+                        <div key={`mfa-${idx}`} className="flex-center" style={{ width: '40px', height: '56px', borderBottom: '4px solid var(--accent-secondary)', fontSize: '2.5rem', color: 'var(--accent-secondary)', transform: 'translateY(-4px)', animation: 'fadeIn 0.2s ease-out' }}>
+                          {char}
+                        </div>
+                      ))
+                    )
                   )}
                </div>
 
@@ -192,17 +217,28 @@ export const LoginScreen: React.FC = () => {
                )}
             </div>
 
-            {/* Technical mode hint at the bottom of the left column */}
-            <div style={{ marginTop: '20px' }}>
-               <button 
+            {/* Technical mode hint */}
+            {!mfaPhase && (
+              <div style={{ marginTop: '20px' }}>
+                <button 
+                  className="station-btn" 
+                  style={{ border: 'none', background: 'transparent', opacity: 0.4, fontSize: '0.75rem', fontWeight: 'bold' }}
+                  onDoubleClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { ctrlKey: true, shiftKey: true, key: 'F12' }))}
+                >
+                    <KeyIcon size={14} style={{ marginRight: '8px' }} />
+                    MODO TÉCNICO (DOBLE CLICK)
+                </button>
+              </div>
+            )}
+            {mfaPhase && (
+              <button 
                 className="station-btn" 
-                style={{ border: 'none', background: 'transparent', opacity: 0.4, fontSize: '0.75rem', fontWeight: 'bold' }}
-                onDoubleClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { ctrlKey: true, shiftKey: true, key: 'F12' }))}
-               >
-                  <KeyIcon size={14} style={{ marginRight: '8px' }} />
-                  MODO TÉCNICO (DOBLE CLICK)
-               </button>
-            </div>
+                style={{ marginTop: '20px', border: 'none', background: 'transparent', opacity: 0.5 }}
+                onClick={() => { setMfaPhase(false); setMfaToken(''); setError(null); }}
+              >
+                VOLVER AL PIN
+              </button>
+            )}
           </div>
 
           {/* Column 2: Control Panel (Numpad) */}
@@ -248,7 +284,7 @@ export const LoginScreen: React.FC = () => {
               onClick={handleSubmit}
              >
                 <CheckIcon size={24} style={{ marginRight: '16px' }} />
-                ACCEDER
+                {mfaPhase ? 'VERIFICAR TOKEN' : 'ACCEDER'}
              </button>
           </div>
        </div>

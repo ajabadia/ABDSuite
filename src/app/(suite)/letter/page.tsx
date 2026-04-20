@@ -9,25 +9,32 @@ import MappingMatrix from '@/components/LetterStation/MappingMatrix';
 import LetterPresetEditor from '@/components/LetterStation/LetterPresetEditor';
 import AuditStation from '@/components/AuditStation/AuditStation';
 import { FileTextIcon, MapIcon, PlayIcon, ShieldCheckIcon, CogIcon } from '@/components/common/Icons';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
 
 function LetterPageContent() {
   const { t } = useLanguage();
+  const { can } = useWorkspace();
   const searchParams = useSearchParams();
   const view = searchParams.get('view') || 'templates';
+
+  if (!can('LETTER_VIEW')) {
+    return <ForbiddenPanel />;
+  }
 
   const renderView = () => {
     switch (view) {
       case 'mapping':
-        return <MappingMatrix />;
+        return can('LETTER_EDIT_MAPPINGS') ? <MappingMatrix /> : <ForbiddenPanel />;
       case 'config':
-        return <LetterPresetEditor />;
+        return can('LETTER_CONFIG_GLOBAL') ? <LetterPresetEditor /> : <ForbiddenPanel />;
       case 'generation':
-        return <LetterStation />; // mapping is now a separate view
+        return can('LETTER_GENERATE') ? <LetterStation /> : <ForbiddenPanel />;
       case 'audit':
-        return <AuditStation />;
+        return can('AUDIT_VIEW') ? <AuditStation /> : <ForbiddenPanel />;
       case 'templates':
       default:
-        return <TemplateEditor />;
+        return <TemplateEditor canEdit={can('LETTER_EDIT_TEMPLATES')} />;
     }
   };
 

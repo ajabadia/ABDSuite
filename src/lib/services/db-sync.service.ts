@@ -47,7 +47,7 @@ export class DbSyncService {
   }
 
   /**
-   * Imports a SuiteDump JSON into the local IndexedDB.
+   * Imports a SuiteDump JSON into the local IndexedDB with industrial reconciliation.
    */
   static async importSuite(file: File, mode: 'REPLACE' | 'MERGE' = 'MERGE'): Promise<void> {
     const text = await file.text();
@@ -76,9 +76,21 @@ export class DbSyncService {
         ]);
       }
 
+      const reconcile = async (table: any, incoming: any) => {
+        if (mode === 'REPLACE') {
+          await table.put(incoming);
+          return;
+        }
+        
+        const existing = await table.get(incoming.id);
+        if (!existing || (incoming.updatedAt && incoming.updatedAt > (existing.updatedAt || 0))) {
+          await table.put(incoming);
+        }
+      };
+
       // 1. Presets
       for (const p of dump.presets) {
-        await db.presets_v6.put(p); // put = update if exists, add if not
+        await reconcile(db.presets_v6, p);
       }
 
       // 2. Templates (Recover binary DOCX)
@@ -90,25 +102,25 @@ export class DbSyncService {
           record.binaryContent = this.base64ToArrayBuffer(binaryBase64);
         }
         
-        await db.lettertemplates_v6.put(record);
+        await reconcile(db.lettertemplates_v6, record);
       }
 
       // 3. Mappings
       for (const m of dump.mappings) {
-        await db.lettermappings_v6.put(m);
+        await reconcile(db.lettermappings_v6, m);
       }
 
       // 4. Goldens
       if (dump.goldenTests) {
         for (const g of dump.goldenTests) {
-          await db.golden_tests_v6.put(g);
+          await reconcile(db.golden_tests_v6, g);
         }
       }
 
       // 5. History
       if (dump.auditHistory) {
         for (const h of dump.auditHistory) {
-          await db.audit_history_v6.put(h);
+          await reconcile(db.audit_history_v6, h);
         }
       }
     });

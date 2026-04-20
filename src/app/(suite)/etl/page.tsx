@@ -13,9 +13,11 @@ import { CogIcon, MapIcon, PlayIcon } from '@/components/common/Icons';
 import EtlSettingsModal from '@/components/Etl/EtlSettingsModal';
 import { EtlGlobalSettings } from '@/lib/types/etl.types';
 import EtlRunner from '@/components/Etl/EtlRunner';
+import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
 
 const STORAGE_KEY = 'abdfn_etl_global_settings';
-
+// ... (DEFAULT_SETTINGS remains)
 const DEFAULT_SETTINGS: EtlGlobalSettings = {
   defaultPath: 'C:\\ABD\\ETL',
   language: 'es',
@@ -25,20 +27,28 @@ const DEFAULT_SETTINGS: EtlGlobalSettings = {
 
 function EtlPageContent() {
   const { t } = useLanguage();
+  const { can } = useWorkspace();
   const searchParams = useSearchParams();
   const router = useRouter();
   
+  if (!can('ETL_VIEW')) {
+    return <ForbiddenPanel />;
+  }
+
   const activeTab = (searchParams.get('view') === 'executor' || searchParams.get('view') === 'runner') ? 'runner' : 'designer';
   const idParam = searchParams.get('id');
+
+  const canEditPresets = can('ETL_EDIT_PRESETS');
+  const canRun = can('ETL_RUN');
+  const canConfig = can('ETL_CONFIG_GLOBAL');
   
   const [selectedPreset, setSelectedPreset] = useState<EtlPreset | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [etlSettings, setEtlSettings] = useState<EtlGlobalSettings>(DEFAULT_SETTINGS);
 
-  // Persistence (Dexie)
+  // ... (useLiveQuery and useEffects for settings/sync remains)
   const presets = useLiveQuery(() => db.presets_v6.toArray()) || [];
 
-  // Load Global Settings
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -50,7 +60,6 @@ function EtlPageContent() {
     }
   }, []);
 
-  // Sync selectedPreset with URL ID param
   useEffect(() => {
     if (idParam && presets.length > 0) {
       if (selectedPreset?.id !== idParam) {
@@ -61,11 +70,13 @@ function EtlPageContent() {
   }, [idParam, presets, selectedPreset?.id]);
 
   const saveGlobalSettings = (newSettings: EtlGlobalSettings) => {
+    if (!canConfig) return;
     setEtlSettings(newSettings);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newSettings));
   };
 
   const handleNew = async () => {
+    if (!canEditPresets) return;
     const newPreset: EtlPreset = {
       name: 'NEW_PRESET_' + (presets.length + 1),
       version: '1.0',
@@ -86,11 +97,12 @@ function EtlPageContent() {
   };
 
   const handleSave = async () => {
-    if (!selectedPreset || !selectedPreset.id) return;
+    if (!canEditPresets || !selectedPreset || !selectedPreset.id) return;
     await db.presets_v6.put(selectedPreset);
   };
 
   const handleDelete = async (id: string) => {
+    if (!canEditPresets) return;
     if (confirm(t('common.confirm_delete') || 'DELETE?')) {
       await db.presets_v6.delete(id);
       if (selectedPreset?.id === id) {
@@ -101,6 +113,7 @@ function EtlPageContent() {
   };
 
   const handleExport = (preset: EtlPreset) => {
+    // Export is usually safe for VIEWERS too, but we could restrict it.
     const data = JSON.stringify(preset, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -123,6 +136,7 @@ function EtlPageContent() {
   };
 
   const handleImport = async () => {
+    if (!canEditPresets) return;
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
@@ -179,6 +193,7 @@ function EtlPageContent() {
         initialSettings={etlSettings}
         onClose={() => setIsSettingsOpen(false)}
         onSave={saveGlobalSettings}
+        readOnly={!canConfig}
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '64px', flex: 1, minHeight: 0 }}>
@@ -192,6 +207,7 @@ function EtlPageContent() {
             onNew={handleNew}
             onImport={handleImport}
             onExportAll={handleExportAll}
+            canEdit={canEditPresets}
           />
         </section>
 
@@ -203,12 +219,14 @@ function EtlPageContent() {
                   preset={selectedPreset} 
                   onUpdate={setSelectedPreset} 
                   onSave={handleSave}
+                  canEdit={canEditPresets}
                 />
               ) : (
                 <EtlRunner 
                   presets={presets}
                   selectedPreset={selectedPreset}
                   onSelectPreset={handleSelectPreset}
+                  canRun={canRun}
                 />
               )}
             </div>

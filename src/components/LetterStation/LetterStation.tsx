@@ -34,12 +34,17 @@ import { RendererHost } from '@/components/common/RendererHost';
 
 import { useLog } from '@/lib/context/LogContext';
 import { LogLevel } from '@/lib/types/log.types';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
 
 const LetterStation: React.FC = () => {
   const { t } = useLanguage();
   const { environment, isTechnicianMode } = useConfig();
+  const { can } = useWorkspace();
   const { addLog: globalAddLog } = useLog();
   const router = useRouter();
+  
+  const canGenerate = can('LETTER_GENERATE');
+  const canDiag = can('SETTINGS_GLOBAL') || isTechnicianMode;
   
   // Resources
   const presets = useLiveQuery(() => db.presets_v6.toArray()) || [];
@@ -457,7 +462,7 @@ const LetterStation: React.FC = () => {
               >
                 QA: {qaStatus === 'MATCH' ? 'INTEGRITY_OK' : qaStatus === 'BREAK' ? 'LAYOUT_BREAK' : qaStatus === 'PENDING' ? 'READY' : 'NO_GOLDEN'}
               </div>
-              {(environment !== 'PROD' || isTechnicianMode) && (
+              {canDiag && (environment !== 'PROD' || isTechnicianMode) && (
                 <button 
                   className={`station-btn icon-only ${isLabMode ? 'active' : ''}`} 
                   onClick={() => setIsLabMode(!isLabMode)}
@@ -640,11 +645,11 @@ const LetterStation: React.FC = () => {
             {isReadyForStart && (
               <button 
                 className="station-btn station-btn-primary" 
-                disabled={isProcessing} 
+                disabled={isProcessing || !canGenerate} 
                 style={{ minWidth: '320px', height: '56px', fontSize: '1.2rem', fontWeight: 900 }} 
                 onClick={handleStart}
               >
-                <PlayIcon size={24} /> {isProcessing ? t('common.processing').toUpperCase() : t('letter.ui.btn_generate').toUpperCase()}
+                <PlayIcon size={24} /> {!canGenerate ? 'UNAUTHORIZED' : (isProcessing ? t('common.processing').toUpperCase() : t('letter.ui.btn_generate').toUpperCase())}
               </button>
             )}
           </div>
@@ -685,7 +690,7 @@ const LetterStation: React.FC = () => {
         )}
   
         {/* CONSOLA DE DIAGNÓSTICO (Oculta en PROD a menos que sea Técnico) */}
-        {(environment !== 'PROD' || isTechnicianMode) && (
+        {canDiag && (environment !== 'PROD' || isTechnicianMode) && (
           <div className="station-card" style={{ 
             background: 'rgba(239, 68, 68, 0.03)', 
             border: '1px dashed rgba(239, 68, 68, 0.15)', 
