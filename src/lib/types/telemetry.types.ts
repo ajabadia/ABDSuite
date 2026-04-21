@@ -107,9 +107,18 @@ export interface SecurityThresholds {
   inactivityLocksHigh: number;
 }
 
+export interface MappingThresholds {
+  minCoverage: number; // 0.0 - 1.0 (eg. 1.0 = 100% required)
+}
+
 export interface UiFeaturesConfig {
   letterWizardEnabled: boolean;
   mappingMobileLayoutEnabled: boolean;
+}
+
+export interface AuditSamplingSettings {
+  enabled: boolean;
+  maxPerType: number; // Maximum errors to preview per type (sampling)
 }
 
 export interface TelemetrySecurityConfig {
@@ -125,8 +134,11 @@ export interface TelemetrySecurityConfig {
   mfaCooldownMinutes: number;
   sessionInactivityTimeoutMinutes: number;
   sessionMaxAgeMinutes: number;
+  sessionWarningThresholdMinutes: number; // minutes before expiry to show warning
   securityThresholds: SecurityThresholds;
+  mappingThresholds: MappingThresholds;
   uiFeatures: UiFeaturesConfig;
+  auditSampling: AuditSamplingSettings;
 }
 
 export interface TelemetryConfig {

@@ -3,7 +3,7 @@
 import React from 'react';
 import { Operator, UserRole } from '@/lib/types/auth.types';
 import { useLanguage } from '@/lib/context/LanguageContext';
-import { SearchIcon, PlusIcon, ShieldCheckIcon } from '@/components/common/Icons';
+import { SearchIcon, PlusIcon, ShieldCheckIcon, DownloadIcon } from '@/components/common/Icons';
 
 interface OperatorTableProps {
   operators: Operator[];
@@ -36,9 +36,14 @@ export const OperatorTable: React.FC<OperatorTableProps> = ({
            <h3 style={{ margin: 0, fontSize: '0.7rem', letterSpacing: '2px', opacity: 0.4 }}>{t('operator.panel_title').toUpperCase()}</h3>
            <span className="station-badge-technical">{operators.length} NODES</span>
         </div>
-        <button className="station-btn secondary tiny" onClick={() => onSelect(null)} style={{ padding: '4px' }}>
-           <PlusIcon size={16} />
-        </button>
+        <div className="flex-row" style={{ gap: '8px' }}>
+           <button className="station-btn secondary tiny" onClick={() => (window as any).dispatchOperatorExport?.()} title={t('common.export')}>
+              <DownloadIcon size={16} />
+           </button>
+           <button className="station-btn secondary tiny" onClick={() => onSelect(null)} style={{ padding: '4px' }}>
+              <PlusIcon size={16} />
+           </button>
+        </div>
       </header>
 
       <div className="flex-row search-row" style={{ marginBottom: '16px' }}>

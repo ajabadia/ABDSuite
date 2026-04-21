@@ -83,7 +83,13 @@ export interface Operator {
   mfaEnabled: boolean;  // MFA status
   mfaSecret?: string;   // Encrypted Base32 secret for TOTP
   
-  // Capability Overrides (Phase 12.1)
+  // Capability Overrides (Phase 17 - Consolidated)
+  overrideCapabilities?: {
+    add: Capability[];
+    remove: Capability[];
+  };
+
+  // Deprecated (Phase 12 compatibility) - to be removed in future migration
   extraCapabilities?: Capability[];
   deniedCapabilities?: Capability[];
 

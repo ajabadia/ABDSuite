@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db/db';
 import { 
@@ -36,6 +36,20 @@ import { useIsNarrowLayout } from '@/lib/hooks/useIsNarrowLayout';
 import { useTelemetryConfig } from '@/lib/context/TelemetryContext';
 import { MappingMobileLayout } from './MappingMobileLayout';
 
+/**
+ * Industrial Mapping Coverage Core Logic
+ */
+export function getMappingCoverage(templateVars: string[], currentMapping: LetterMapping | null) {
+  const totalVars = templateVars.length;
+  const mappedCount = currentMapping
+    ? currentMapping.mappings.filter(m => !!m.sourceField).length
+    : 0;
+  const pendingCount = totalVars - mappedCount;
+  const coverage = totalVars > 0 ? mappedCount / totalVars : 0;
+
+  return { totalVars, mappedCount, pendingCount, coverage };
+}
+
 const MappingMatrix: React.FC = () => {
   const { t } = useLanguage();
   const { can } = useWorkspace();
@@ -65,6 +79,11 @@ const MappingMatrix: React.FC = () => {
   // UI State
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [undoStack, setUndoStack] = useState<string[]>([]);
+
+  const coverageStats = useMemo(
+    () => getMappingCoverage(templateVars, currentMapping),
+    [templateVars, currentMapping]
+  );
 
   // LOGIC: Select Mapping from Registry
   const handleSelectMapping = (mapping: LetterMapping) => {
@@ -317,19 +336,39 @@ const MappingMatrix: React.FC = () => {
           {(isNarrow && mobileLayoutEnabled) ? (
             <MappingMobileLayout 
               mapping={currentMapping}
-              dataFileFields={dataRT?.fields.map((f: any) => f.Name || f.name) || []}
-              onUpdateMapping={(v, field) => {
-                 // Determine if field is canonical or template
-                 const isGa = CANONICAL_GAWEB_FIELDS.includes(field);
-                 handleUpdateMapping(v, isGa ? 'GAWEB' : 'TEMPLATE', field);
-              }}
+              templateVars={templateVars}
+              dataFields={dataRT?.fields.map((f: any) => f.Name || f.name) || []}
+              gawebFields={CANONICAL_GAWEB_FIELDS}
+              coverageStats={coverageStats}
+              onUpdateMapping={handleUpdateMapping}
               onClearMapping={(v) => handleUpdateMapping(v, 'UI_OVERRIDE', '')}
+              onAutoMap={handleAutoMap}
+              onSave={saveMapping}
+              onUndo={undo}
             />
           ) : (
             <>
               <div className="station-toolbar">
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}><span className="station-badge station-badge-blue">W</span><span style={{ fontWeight: 800 }}>{t('letter.ui.mapping_brain').toUpperCase()}: {templateVars.length}</span></div>
-                <div style={{ display: 'flex', gap: '12px' }}><button className="station-btn" onClick={handleAutoMap} disabled={!canEdit}><RefreshCwIcon size={14} /> {t('letter.ui.auto_map').toUpperCase()}</button><button className="station-btn station-btn-primary" onClick={saveMapping} disabled={!canEdit}><SaveIcon size={14} /> {t('common.save').toUpperCase()}</button></div>
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span className="station-badge station-badge-blue">M</span>
+                    <span style={{ fontWeight: 800 }}>{t('letter.ui.mapping_brain').toUpperCase()}</span>
+                  </div>
+                  <div className="flex-row" style={{ gap: '8px' }}>
+                    <span className="station-badge" style={{ background: 'rgba(56, 189, 248, 0.1)', color: 'var(--primary-color)' }}>
+                      {coverageStats.mappedCount}/{coverageStats.totalVars} ({Math.round(coverageStats.coverage * 100)}%)
+                    </span>
+                    {coverageStats.pendingCount > 0 && (
+                      <span className="station-badge err">
+                        {coverageStats.pendingCount} PENDIENTES
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button className="station-btn" onClick={handleAutoMap} disabled={!canEdit}><RefreshCwIcon size={14} /> {t('letter.ui.auto_map').toUpperCase()}</button>
+                  <button className="station-btn station-btn-primary" onClick={saveMapping} disabled={!canEdit}><SaveIcon size={14} /> {t('common.save').toUpperCase()}</button>
+                </div>
               </div>
               <div className="station-table-container">
                 <table className="station-table">

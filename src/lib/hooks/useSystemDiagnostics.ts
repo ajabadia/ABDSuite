@@ -8,6 +8,8 @@ export interface SystemMetrics {
   isSecure: boolean;
   heartbeat: boolean;
   isEncryptionUnlocked: boolean;
+  sessionState: 'ACTIVE' | 'LOCKED' | 'EXPIRED';
+  sessionExpiresInMinutes?: number;
 }
 
 export function useSystemDiagnostics() {
@@ -16,7 +18,8 @@ export function useSystemDiagnostics() {
     ramUsage: 0.3,
     isSecure: true,
     heartbeat: false,
-    isEncryptionUnlocked: false
+    isEncryptionUnlocked: false,
+    sessionState: 'ACTIVE'
   });
 
   useEffect(() => {
@@ -38,8 +41,9 @@ export function useSystemDiagnostics() {
         cpuPulse: Number(pulse.toFixed(2)),
         ramUsage: ram,
         isSecure: window.isSecureContext && !!window.crypto.subtle,
-        heartbeat: !metrics.heartbeat, // Toggle for visual pulse
-        isEncryptionUnlocked: false // Will be updated by effect below or passed as param
+        heartbeat: !metrics.heartbeat, 
+        isEncryptionUnlocked: false,
+        sessionState: metrics.sessionState
       });
       
       lastTime = now;
@@ -48,8 +52,35 @@ export function useSystemDiagnostics() {
     return () => clearInterval(interval);
   }, [metrics.heartbeat]);
 
-  // Direct subscription to Workspace context for encryption status
-  const { installationKey } = require('@/lib/context/WorkspaceContext').useWorkspace();
+  // Direct subscription to Workspace context for encryption and session status
+  const { installationKey, isLocked } = require('@/lib/context/WorkspaceContext').useWorkspace();
   
-  return { ...metrics, isEncryptionUnlocked: !!installationKey };
+  // Calculate expiry from localStorage for reactivity (simplified)
+  const [expiresAt, setExpiresAt] = useState<number | null>(null);
+  
+  useEffect(() => {
+    const checkSession = () => {
+        const saved = localStorage.getItem('abdfn_active_session');
+        if (saved) {
+            const session = JSON.parse(saved);
+            setExpiresAt(session.expiresAt);
+        }
+    };
+    checkSession();
+    const interval = setInterval(checkSession, 30000); // sync every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const sessionExpiresInMinutes = expiresAt 
+    ? Math.max(0, Math.round((expiresAt - Date.now()) / 60000)) 
+    : undefined;
+
+  const sessionState = isLocked ? 'LOCKED' : (sessionExpiresInMinutes === 0 ? 'EXPIRED' : 'ACTIVE');
+
+  return { 
+    ...metrics, 
+    isEncryptionUnlocked: !!installationKey,
+    sessionState,
+    sessionExpiresInMinutes
+  };
 }

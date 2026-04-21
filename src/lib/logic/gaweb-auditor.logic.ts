@@ -8,6 +8,8 @@
  * - i18n key-based error reporting (06-i18n-ux-feedback)
  */
 
+import { GawebGoldenProfile } from '../types/gaweb-golden.types';
+
 export interface GawebField {
   name: string;
   length: number;
@@ -69,7 +71,11 @@ export interface GawebAuditResult {
  * Validates a single line of a GAWEB file.
  * Used by streaming workers to process GBs of data without memory overhead.
  */
-export function auditGawebLine(line: string, lineNum: number): { record: Record<string, string>, errors: GawebError[], warnings: GawebError[] } {
+export function auditGawebLine(
+  line: string, 
+  lineNum: number, 
+  profile?: GawebGoldenProfile
+): { record: Record<string, string>, errors: GawebError[], warnings: GawebError[] } {
   const result: { errors: GawebError[], warnings: GawebError[] } = {
     errors: [],
     warnings: []
@@ -109,7 +115,114 @@ export function auditGawebLine(line: string, lineNum: number): { record: Record<
   // Cross-field validations
   validateCrossFields(record, lineNum, result);
 
+  // Golden Validation (Phase 17)
+  if (profile) {
+    validateGoldenLayout(record, lineNum, profile, result);
+    executeValidationRules(record, lineNum, profile, result);
+  }
+
   return { record, errors: result.errors, warnings: result.warnings };
+}
+
+/**
+ * Validates a record against the Golden Profile layout specs.
+ */
+function validateGoldenLayout(
+  record: Record<string, string>, 
+  line: number, 
+  profile: GawebGoldenProfile, 
+  audit: { errors: GawebError[], warnings: GawebError[] }
+) {
+  const paddedLine = serializeGawebRecord(GAWEB_FIELDS, record);
+
+  profile.recordLayout.forEach(spec => {
+    const value = paddedLine.substring(spec.start - 1, spec.end).trim();
+    const pos = `${spec.start}-${spec.end}`;
+    const isBreaking = profile.breakingRuleIds?.includes(spec.name) || false;
+
+    const addIssue = (key: string) => {
+      const issue = { line, field: spec.name, position: pos, severity: isBreaking ? 'ERROR' : 'WARNING' as any, messageKey: key, value };
+      if (isBreaking) audit.errors.push(issue);
+      else audit.warnings.push(issue);
+    };
+
+    // 1. Mandatory check
+    if (spec.required && value === '') {
+       addIssue('audit.errors.golden.required');
+    }
+
+    // 2. Format check
+    if (value !== '') {
+      switch (spec.format) {
+        case 'NUMERICO':
+          if (!/^\d+$/.test(value)) addIssue('audit.errors.must_be_numeric');
+          break;
+        case 'FECHA_YYYYMMDD':
+          if (!isValidGawebDate(value)) addIssue('audit.errors.invalid_date_format');
+          break;
+        case 'MONEDA':
+          if (!/^[A-Z]{3}$/.test(value)) addIssue('audit.errors.golden.invalid_currency');
+          break;
+        // email_fax, iso, alfanumerico are generally loose or checked via regex if needed
+      }
+    }
+
+    // 3. Allowed Values
+    if (spec.allowedValues && spec.allowedValues.length > 0 && !spec.allowedValues.includes(value)) {
+       addIssue('audit.errors.golden.value_not_allowed');
+    }
+  });
+}
+
+/**
+ * Executes high-level business rules from Golden Profile.
+ */
+function executeValidationRules(
+  record: Record<string, string>, 
+  line: number, 
+  profile: GawebGoldenProfile, 
+  audit: { errors: GawebError[], warnings: GawebError[] }
+) {
+  const paddedLine = serializeGawebRecord(GAWEB_FIELDS, record);
+
+  profile.validationRules.forEach(rule => {
+    const isBreaking = profile.breakingRuleIds?.includes(rule.id) || false;
+    const addIssue = () => {
+      const issue = { line, field: rule.id, position: 'GOLDEN_RULE', severity: isBreaking ? 'ERROR' : 'WARNING' as any, messageKey: `audit.rule.${rule.id}`, value: rule.description };
+      if (isBreaking) audit.errors.push(issue);
+      else audit.warnings.push(issue);
+    };
+
+    const getVal = (fName: string) => {
+      const spec = profile.recordLayout.find(s => s.name === fName);
+      if (!spec) return record[fName]?.trim() || '';
+      return paddedLine.substring(spec.start - 1, spec.end).trim();
+    };
+
+    switch (rule.type) {
+      case 'REQUIRED_FIELD':
+        if (rule.fields.some(f => getVal(f) === '')) addIssue();
+        break;
+      case 'AT_LEAST_ONE_IN_GROUP':
+        const selected = rule.fields.filter(f => getVal(f) !== '');
+        if (selected.length < (rule.params?.minSelected ?? 1)) addIssue();
+        break;
+      case 'MUTUALLY_EXCLUSIVE_GROUP':
+        const filled = rule.fields.filter(f => getVal(f) !== '');
+        if (filled.length > (rule.params?.maxSelected ?? 1)) addIssue();
+        break;
+      case 'VALUE_IN_SET':
+        if (rule.fields.some(f => !rule.params?.allowedValues?.includes(getVal(f)))) addIssue();
+        break;
+      case 'DEPENDENCY':
+        if (getVal(rule.params?.whenField || '') === rule.params?.whenValue) {
+           if (rule.params?.thenField && !rule.params?.thenAllowedValues?.includes(getVal(rule.params.thenField))) {
+              addIssue();
+           }
+        }
+        break;
+    }
+  });
 }
 
 /**

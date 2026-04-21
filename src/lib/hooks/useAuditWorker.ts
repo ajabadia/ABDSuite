@@ -101,7 +101,7 @@ export function useAuditWorker(options: { maxErrorsPreview?: number; encoding?: 
     setErrorsWindows(new Map());
   }, []);
 
-  const startAudit = useCallback(({ gawebFile, zipFile, md5Witness }: { gawebFile: File; zipFile?: File; md5Witness?: string }) => {
+  const startAudit = useCallback(({ gawebFile, zipFile, md5Witness, goldenProfile }: { gawebFile: File; zipFile?: File; md5Witness?: string, goldenProfile?: any }) => {
     if (!workerRef.current) return;
     reset();
     setIsRunning(true);
@@ -113,7 +113,8 @@ export function useAuditWorker(options: { maxErrorsPreview?: number; encoding?: 
         zipFile,
         md5Witness,
         encoding: options.encoding || 'iso-8859-1',
-        maxErrorsPreview: options.maxErrorsPreview || 1000
+        maxErrorsPreview: options.maxErrorsPreview || 1000,
+        goldenProfile
       }
     });
   }, [reset, options.encoding, options.maxErrorsPreview]);

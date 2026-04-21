@@ -132,6 +132,7 @@ export const useFileBatchProcessor = ({
     }
 
     setIsProcessing(false);
+    return { success: sCount, error: eCount, skip: kCount };
   }, [password, outputSuffix, t, addLog]);
 
   return {

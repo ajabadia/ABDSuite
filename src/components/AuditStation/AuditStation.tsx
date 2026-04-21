@@ -12,16 +12,21 @@ import {
   DownloadIcon, 
   XIcon, 
   FileTextIcon,
-  ListIcon
+  ListIcon,
+  CogIcon
 } from '@/components/common/Icons';
 
 import { useLog } from '@/lib/context/LogContext';
 import { useAuditWorker } from '@/lib/hooks/useAuditWorker';
 import { IndustrialVirtualTable } from '@/components/common/IndustrialVirtualTable';
 import { GawebRow, GawebErrorLite } from '@/lib/types/audit-worker.types';
+import { GawebGoldenProfile } from '@/lib/types/gaweb-golden.types';
 
 import { db } from '@/lib/db/db';
 import { AuditHistoryDashboard } from './AuditHistoryDashboard';
+import { TelemetryConfigService } from '@/lib/services/telemetry-config.service';
+
+type AuditPhase = 'IDLE' | 'LOADING' | 'ANALYZING' | 'SUMMARY' | 'EXPORTING';
 
 const PAGE_SIZE = 200;
 const ITEM_HEIGHT = 32;
@@ -36,6 +41,11 @@ const AuditStation: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'DATA' | 'ERRORS' | 'HISTORY'>('DATA');
   const [selectedLine, setSelectedLine] = useState<number | null>(null);
+  const [phase, setPhase] = useState<AuditPhase>('IDLE');
+  const [detectedProfile, setDetectedProfile] = useState<GawebGoldenProfile | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [warningThreshold, setWarningThreshold] = useState(2);
+  const [samplingConfig, setSamplingConfig] = useState({ enabled: true, maxPerType: 10 });
 
   // MOTOR INDUSTRIAL (Phase 2)
   const audit = useAuditWorker({ 
@@ -46,7 +56,35 @@ const AuditStation: React.FC = () => {
   const resetResults = useCallback(() => {
     audit.reset();
     setSelectedLine(null);
+    setPhase('IDLE');
   }, [audit]);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const config = await TelemetryConfigService.loadConfig();
+      setWarningThreshold(config.security.sessionWarningThresholdMinutes);
+      if (config.security.auditSampling) {
+        setSamplingConfig(config.security.auditSampling);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const saveThreshold = async (val: number) => {
+    setWarningThreshold(val);
+    await TelemetryConfigService.saveConfig({
+      security: { sessionWarningThresholdMinutes: val } as any
+    });
+    globalAddLog('SYSTEM', `Ajuste Seguridad: Umbral aviso sesión cambiado a ${val} min`, 'info');
+  };
+
+  const saveSampling = async (next: { enabled: boolean; maxPerType: number }) => {
+    setSamplingConfig(next);
+    await TelemetryConfigService.saveConfig({
+      security: { auditSampling: next } as any
+    });
+    globalAddLog('SYSTEM', `Audit Config: Muestreo industrial ${next.enabled ? 'activado' : 'desactivado'} (${next.maxPerType} err/tipo)`, 'info');
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, slot: 'index' | 'archive' | 'md5') => {
     const f = e.target.files?.[0] || null;
@@ -54,6 +92,34 @@ const AuditStation: React.FC = () => {
     if (slot === 'archive') setArchiveFile(f);
     if (slot === 'md5') setMd5File(f);
     resetResults();
+    if (slot === 'index' && f) autoDetectProfile(f);
+  };
+
+  const autoDetectProfile = async (file: File) => {
+    try {
+      // Read first 1024 bytes to get the header
+      const chunk = file.slice(0, 1024);
+      const text = await chunk.text();
+      const firstLine = text.split('\n')[0];
+      if (firstLine.length < 32) return;
+
+      const format = firstLine.substring(1, 3).trim(); // pos 2-3 (0-indexed 1-3)
+      const docCode = firstLine.substring(26, 32).trim(); // pos 27-32 (0-indexed 26-32)
+
+      console.log(`[AUDIT-GOLDEN] Auto-detecting for DocCode: ${docCode}, Format: ${format}`);
+      const profile = await db.gaweb_golden_profiles_v6
+        .where({ codigoDocumento: docCode, formatoCarta: format, active: 1 })
+        .first();
+
+      if (profile) {
+        setDetectedProfile(profile);
+        globalAddLog('AUDIT', `Perfil Golden Detectado: ${profile.name} (v${profile.version})`, 'info');
+      } else {
+        setDetectedProfile(null);
+      }
+    } catch (err) {
+      console.error('[AUDIT-GOLDEN] Detection failed', err);
+    }
   };
 
   const runValidation = async () => {
@@ -70,10 +136,13 @@ const AuditStation: React.FC = () => {
         }
     }
     
+    setPhase('ANALYZING');
     audit.startAudit({ 
       gawebFile: indexFile, 
       zipFile: archiveFile || undefined, 
-      md5Witness: md5Text 
+      md5Witness: md5Text,
+      goldenProfile: detectedProfile || undefined,
+      sampling: samplingConfig
     });
   };
 
@@ -81,25 +150,29 @@ const AuditStation: React.FC = () => {
   useEffect(() => {
     if (audit.summary && !audit.isRunning) {
       globalAddLog('AUDIT', t('audit.logs.success', { n: audit.summary.totalErrors }), audit.summary.totalErrors > 0 ? 'error' : 'success', { fileName: indexFile?.name });
-      
-      // PERSISTENCIA INDUSTRIAL (Era 6)
+      setPhase('SUMMARY');
+
+      // PERSISTENCIA INDUSTRIAL (6.0.0-IND)
       const persistAudit = async () => {
           if (!indexFile || !audit.summary) return;
           try {
               await auditService.log({
                   module: 'AUDIT',
-                  messageKey: 'GAWEB_AUDIT_COMPLETED',
-                  status: audit.summary.totalErrors > 0 ? 'ERROR' : 'SUCCESS',
+                  messageKey: 'gaweb.audit.run',
+                  status: audit.summary.totalErrors > 0 ? 'WARNING' : 'SUCCESS',
                   details: {
-                      eventType: 'GAWEB_AUDIT_COMPLETED',
-                      entityType: 'AUDIT_REPORT',
+                      eventType: 'GAWEBAUDITRUN',
+                      entityType: 'GAWEB_FILE',
                       entityId: indexFile.name,
                       severity: audit.summary.totalErrors > 0 ? 'WARN' : 'INFO',
                       context: {
                         fileName: indexFile.name,
                         totalLines: audit.summary.totalLines,
                         totalErrors: audit.summary.totalErrors,
-                        totalWarnings: audit.summary.totalWarnings
+                        totalWarnings: audit.summary.totalWarnings,
+                        md5Witness: audit.summary.md5Matches ? 'MATCH' : 'MISMATCH',
+                        goldenProfile: detectedProfile?.name || 'NONE',
+                        goldenVersion: detectedProfile?.version || 'N/A'
                       }
                   }
               });
@@ -240,12 +313,42 @@ const AuditStation: React.FC = () => {
                )}
             </div>
           </div>
+          <button 
+            className="station-btn secondary tiny" 
+            onClick={() => setIsSettingsOpen(true)}
+            title="Ajustes de Auditoría"
+          >
+            <CogIcon size={16} />
+          </button>
         </div>
 
         <div className="station-tech-summary" style={{ marginTop: '24px' }}>
           <div className="station-tech-item"><span className="station-tech-label">SOURCE:</span> {indexFile?.name || 'NONE'}</div>
           <div className="station-tech-item"><span className="station-tech-label">PKG:</span> {archiveFile?.name || 'NONE'}</div>
           <div className="station-tech-item"><span className="station-tech-label">MODE:</span> ZERO_MEMORY_STREAMING</div>
+        </div>
+
+        {/* PHASE TIMELINE (6.0.0-IND) */}
+        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between' }}>
+           {[
+             { id: 'LOADING', label: '1. CARGA' },
+             { id: 'ANALYZING', label: '2. ANÁLISIS' },
+             { id: 'SUMMARY', label: '3. RESUMEN' },
+             { id: 'EXPORTING', label: '4. REPORTE' }
+           ].map((p, i) => {
+             const active = phase === p.id || (phase === 'SUMMARY' && i < 2) || (phase === 'EXPORTING' && i < 3);
+             const isCurrent = phase === p.id;
+             return (
+               <div key={p.id} className="flex-row" style={{ alignItems: 'center', gap: '8px', opacity: active ? 1 : 0.3 }}>
+                  <div style={{ 
+                    width: '10px', height: '10px', borderRadius: '50%', 
+                    background: isCurrent ? 'var(--primary-color)' : (active ? 'var(--status-ok)' : 'var(--border-color)'),
+                    boxShadow: isCurrent ? '0 0 8px var(--primary-color)' : 'none'
+                  }} />
+                  <span style={{ fontSize: '0.65rem', fontWeight: 900, color: isCurrent ? 'var(--primary-color)' : 'inherit' }}>{p.label}</span>
+               </div>
+             );
+           })}
         </div>
       </div>
 
@@ -301,7 +404,20 @@ const AuditStation: React.FC = () => {
             <div className="flex-row" style={{ gap: '24px', fontSize: '0.75rem', fontWeight: 800 }}>
               <span>TOTAL_REC: <span className="station-badge station-badge-blue">{audit.summary?.totalLines.toLocaleString() || audit.progress?.processedLines.toLocaleString() || '0'}</span></span>
               <span>ANOMALIES: <span className={`station-badge ${audit.summary?.totalErrors || audit.progress?.errorsSoFar ? 'station-badge-orange' : 'station-badge-blue'}`}>{audit.summary?.totalErrors.toLocaleString() || audit.progress?.errorsSoFar.toLocaleString() || '0'}</span></span>
+              {detectedProfile && (
+                <span className="flex-row" style={{ gap: '8px' }}>
+                  GOLDEN_STATUS: 
+                  <span className={`station-badge ${audit.summary?.totalErrors ? 'station-badge-orange' : 'station-badge-blue'}`}>
+                     {audit.summary ? (audit.summary.totalErrors > 0 ? 'BREAK' : 'MATCH') : 'CALCULATING...'}
+                  </span>
+                </span>
+              )}
               {audit.packageResult && <span>PKG_FILES: <span className="station-badge station-badge-blue">{audit.packageResult.zipFilesCount}</span></span>}
+              {samplingConfig.enabled && (
+                <span className="animate-pulse" title={`Muestreo industrial activo: máx ${samplingConfig.maxPerType} errores por tipo/campo.`}>
+                  SAMPLING: <span className="station-badge success">ACTIVE</span>
+                </span>
+              )}
             </div>
           </div>
 
@@ -349,6 +465,70 @@ const AuditStation: React.FC = () => {
          <div className="integrity-dot" />
          <span>ZERO_MEMORY_VALIDATION OK</span>
       </div>
+
+      {/* Modal Ajustes Auditoría */}
+      {isSettingsOpen && (
+        <div className="station-modal-overlay animate-fade-in" style={{ zIndex: 1000 }}>
+          <div className="station-modal-content station-card" style={{ maxWidth: '450px' }}>
+             <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '24px' }}>
+                <h3 style={{ margin: 0, fontSize: '0.8rem', letterSpacing: '2px' }}>AJUSTES DE SEGURIDAD AUDIT</h3>
+                <button className="station-btn tiny secondary" onClick={() => setIsSettingsOpen(false)}>×</button>
+             </div>
+             
+             <div className="station-form-field">
+                <label className="station-label">UMBRAL AVISO EXPIRACIÓN (MINUTOS)</label>
+                <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+                   <input 
+                      type="range" 
+                      min="1" max="10" 
+                      value={warningThreshold} 
+                      onChange={(e) => saveThreshold(parseInt(e.target.value))}
+                      style={{ flex: 1 }}
+                   />
+                   <span style={{ width: '40px', textAlign: 'right', fontWeight: 900, fontSize: '1.2rem', color: 'var(--primary-color)' }}>
+                      {warningThreshold}m
+                   </span>
+                </div>
+                <p style={{ opacity: 0.5, fontSize: '0.65rem', marginTop: '8px' }}>
+                   Define cuántos minutos antes de que la sesión expire se mostrará la alerta visual en la interfaz.
+                </p>
+             </div>
+
+             <div className="station-form-field" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
+                <label className="station-label flex-row" style={{ justifyContent: 'space-between' }}>
+                  MUESTREO INDUSTRIAL (GAWEB)
+                  <input 
+                    type="checkbox" 
+                    checked={samplingConfig.enabled} 
+                    onChange={e => saveSampling({ ...samplingConfig, enabled: e.target.checked })}
+                  />
+                </label>
+                {samplingConfig.enabled && (
+                  <div style={{ marginTop: '12px' }}>
+                    <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>LÍMITE POR TIPO DE ERROR</span>
+                        <span style={{ fontWeight: 800, color: 'var(--primary-color)' }}>{samplingConfig.maxPerType}</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="1" max="100" 
+                      value={samplingConfig.maxPerType} 
+                      onChange={e => saveSampling({ ...samplingConfig, maxPerType: parseInt(e.target.value) })}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                )}
+                <p style={{ opacity: 0.5, fontSize: '0.65rem', marginTop: '8px' }}>
+                  Agrupa errores idénticos para optimizar el rendimiento y legibilidad en auditorías masivas.
+                </p>
+             </div>
+
+             <div className="flex-row" style={{ justifyContent: 'flex-end', marginTop: '24px' }}>
+                <button className="station-btn station-btn-primary" onClick={() => setIsSettingsOpen(false)}>ACEPTAR</button>
+             </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

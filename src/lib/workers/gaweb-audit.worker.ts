@@ -22,6 +22,9 @@ interface AuditWorkerState {
   errorsPreview: GawebErrorLite[];
   maxErrorsPreview: number;
   encoding: 'windows-1252' | 'utf-8';
+  goldenProfile?: any;
+  sampling?: { enabled: boolean; maxPerType: number };
+  sampledCounts: Record<string, number>;
 }
 
 let state: AuditWorkerState = resetState();
@@ -37,6 +40,9 @@ function resetState(): AuditWorkerState {
     errorsPreview: [],
     maxErrorsPreview: 500,
     encoding: 'windows-1252',
+    goldenProfile: undefined,
+    sampling: { enabled: true, maxPerType: 10 },
+    sampledCounts: {},
   };
 }
 
@@ -58,6 +64,8 @@ self.onmessage = async (event: MessageEvent<AuditWorkerInMessage>) => {
     state.isRunning = true;
     if (payload.encoding) state.encoding = payload.encoding;
     if (payload.maxErrorsPreview) state.maxErrorsPreview = payload.maxErrorsPreview;
+    if (payload.goldenProfile) state.goldenProfile = payload.goldenProfile;
+    if (payload.sampling) state.sampling = payload.sampling;
 
     try {
       post({ type: 'HEARTBEAT' });
@@ -155,7 +163,7 @@ async function runGawebAuditStreaming(gawebFile: File, zipFile?: File, md5Witnes
 
 function processSingleLine(rawLine: string) {
   const lineNo = state.totalLines + 1;
-  const { record, errors, warnings } = auditGawebLine(rawLine, lineNo);
+  const { record, errors, warnings } = auditGawebLine(rawLine, lineNo, state.goldenProfile);
   
   state.totalLines++;
   
@@ -175,6 +183,16 @@ function processSingleLine(rawLine: string) {
   
   for (const exp of allAnomalies) {
     if (state.errorsPreview.length >= state.maxErrorsPreview) break;
+    
+    const samplingKey = `${exp.messageKey}|${exp.field}`;
+    const currentCount = state.sampledCounts[samplingKey] || 0;
+
+    if (state.sampling?.enabled && currentCount >= (state.sampling?.maxPerType || 10)) {
+        continue; // Skip due to sampling limit
+    }
+
+    state.sampledCounts[samplingKey] = currentCount + 1;
+
     state.errorsPreview.push({
       index: state.errorsPreview.length,
       line: exp.line,

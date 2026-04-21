@@ -12,7 +12,8 @@ import {
   ShieldCheckIcon,
   CogIcon,
   RefreshCwIcon,
-  LockIcon
+  LockIcon,
+  MapIcon
 } from '@/components/common/Icons';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { EncryptionMigration } from '@/lib/utils/EncryptionMigration';
@@ -267,6 +268,41 @@ export const TelemetrySettingsPanel: React.FC<TelemetrySettingsPanelProps> = ({ 
                       <span className="label-technical" style={{ marginLeft: '8px', marginBottom: 0 }}>MAPPING_MOBILE</span>
                    </label>
                 </div>
+             </div>
+          </section>
+
+          {/* MAPPING & LETTER POLICY */}
+          <section className="settings-section-technical">
+             <div className="section-header-technical">
+                <MapIcon size={14} />
+                <h3>{t('letter.ui.mapping_brain').toUpperCase()} - POLICY</h3>
+             </div>
+             <div className="form-group-technical">
+                <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '8px' }}>
+                   <label className="label-technical">MIN_COVERAGE_THRESHOLD</label>
+                   <span style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--primary-color)', fontFamily: 'var(--font-mono)' }}>
+                      {Math.round(config.security.mappingThresholds.minCoverage * 100)}%
+                   </span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  step="5"
+                  className="technical-range"
+                  value={config.security.mappingThresholds.minCoverage * 100}
+                  onChange={(e) => setConfig({
+                    ...config,
+                    security: { 
+                      ...config.security, 
+                      mappingThresholds: { minCoverage: Number(e.target.value) / 100 }
+                    }
+                  })}
+                  style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--primary-color)' }}
+                />
+                <p style={{ fontSize: '0.6rem', opacity: 0.5, marginTop: '8px', lineHeight: 1.4 }}>
+                  Nivel de vinculación mínimo requerido en el Wizard para permitir la ejecución del motor industrial. El valor estándar es 100%.
+                </p>
              </div>
           </section>
 

@@ -3,8 +3,8 @@ import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { Operator, UserRole, Capability } from '@/lib/types/auth.types';
 import { operatorService } from '@/lib/services/OperatorService';
-import { SaveIcon, UserPlusIcon, ShieldCheckIcon, ZapIcon, XIcon, ListIcon, ShieldAlertIcon, RefreshCwIcon } from '@/components/common/Icons';
-import { PermissionsService } from '@/lib/services/permissions';
+import { SaveIcon, UserPlusIcon, ShieldCheckIcon, ZapIcon, XIcon, ListIcon, ShieldAlertIcon, RefreshCwIcon, CheckIcon, CloseIcon } from '@/components/common/Icons';
+import { PermissionsService, ALL_CAPABILITIES } from '@/lib/services/permissions';
 import { TelemetryConfigService } from '@/lib/services/telemetry-config.service';
 
 interface OperatorDetailPanelProps {
@@ -266,38 +266,83 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
             <label htmlFor="op-active-chk" className="label-technical" style={{ marginBottom: 0, cursor: 'pointer' }}>{t('operator.active').toUpperCase()}</label>
         </div>
 
-        {/* Phase 12.1: Capability Overrides (Advanced Tooling) */}
+        {/* Phase 17: Advanced Capability Overrides (Matrix Tooling) */}
         {useWorkspace().can('SETTINGS_GLOBAL') && (
           <fieldset style={{ marginTop: '16px', padding: '16px', border: '1px solid var(--border-color)', borderRadius: '2px', background: 'rgba(0,0,0,0.2)' }}>
             <legend className="label-technical" style={{ padding: '0 8px', fontSize: '0.6rem', opacity: 0.5 }}>PERM_OVERRIDE_MATRIX</legend>
             
-            <div className="flex-col" style={{ gap: '16px' }}>
-              <div className="station-form-group-technical">
-                <label className="label-technical" style={{ opacity: 0.4 }}>ADD_CAPS</label>
-                <input 
-                  className="technical-input"
-                  style={{ fontSize: '0.7rem' }}
-                  value={(formData.extraCapabilities || []).join(', ')}
-                  onChange={e => setFormData({ 
-                    ...formData, 
-                    extraCapabilities: e.target.value.split(',').map(s => s.trim()).filter(s => s) as Capability[] 
-                  })}
-                  placeholder="AUDIT_VIEW, ETL_RUN..."
-                />
+            <div className="flex-col" style={{ gap: '4px', marginTop: '8px' }}>
+              <div className="flex-row" style={{ padding: '4px 8px', fontSize: '0.55rem', opacity: 0.4, fontWeight: 900, letterSpacing: '1px' }}>
+                 <div style={{ flex: 1 }}>CAPABILITY</div>
+                 <div style={{ width: '80px', textAlign: 'center' }}>INHERIT</div>
+                 <div style={{ width: '80px', textAlign: 'center' }}>ALLOW</div>
+                 <div style={{ width: '80px', textAlign: 'center' }}>DENY</div>
               </div>
 
-              <div className="station-form-group-technical">
-                <label className="label-technical" style={{ opacity: 0.4 }}>DENY_CAPS</label>
-                <input 
-                  className="technical-input"
-                  style={{ fontSize: '0.7rem' }}
-                  value={(formData.deniedCapabilities || []).join(', ')}
-                  onChange={e => setFormData({ 
-                    ...formData, 
-                    deniedCapabilities: e.target.value.split(',').map(s => s.trim()).filter(s => s) as Capability[] 
-                  })}
-                  placeholder="CRYPT_USE, SETTINGS_GLOBAL..."
-                />
+              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {ALL_CAPABILITIES.map(cap => {
+                  const isBase = baseCaps.includes(cap);
+                  const isAdded = (formData.overrideCapabilities?.add || []).includes(cap) || (formData.extraCapabilities || []).includes(cap);
+                  const isRemoved = (formData.overrideCapabilities?.remove || []).includes(cap) || (formData.deniedCapabilities || []).includes(cap);
+                  
+                  const state: 'BASE' | 'ADD' | 'REMOVE' = isRemoved ? 'REMOVE' : (isAdded ? 'ADD' : 'BASE');
+
+                  const handleToggle = (newState: 'BASE' | 'ADD' | 'REMOVE') => {
+                    const nextOverrides = {
+                      add: [...(formData.overrideCapabilities?.add || []), ...(formData.extraCapabilities || [])].filter(c => c !== cap),
+                      remove: [...(formData.overrideCapabilities?.remove || []), ...(formData.deniedCapabilities || [])].filter(c => c !== cap)
+                    };
+
+                    if (newState === 'ADD') nextOverrides.add.push(cap);
+                    if (newState === 'REMOVE') nextOverrides.remove.push(cap);
+
+                    setFormData({ 
+                        ...formData, 
+                        overrideCapabilities: nextOverrides,
+                        // Clear old fields on write to migrate
+                        extraCapabilities: [],
+                        deniedCapabilities: [] 
+                    });
+                  };
+
+                  return (
+                    <div key={cap} className="flex-row capability-row" style={{ 
+                        padding: '8px', 
+                        borderBottom: '1px solid rgba(255,255,255,0.02)', 
+                        alignItems: 'center',
+                        background: state !== 'BASE' ? 'rgba(var(--primary-color-rgb), 0.05)' : 'transparent'
+                    }}>
+                      <div className="flex-col" style={{ flex: 1 }}>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{cap}</span>
+                        {isBase && <span style={{ fontSize: '0.5rem', opacity: 0.4 }}>HEREDADO DE ROL</span>}
+                      </div>
+
+                      <div className="flex-row" style={{ width: '240px' }}>
+                        <button 
+                          className={`matrix-btn ${state === 'BASE' ? 'active' : ''}`}
+                          onClick={() => handleToggle('BASE')}
+                          title="Inherit from role"
+                        >
+                          {state === 'BASE' && <RefreshCwIcon size={10} />}
+                        </button>
+                        <button 
+                          className={`matrix-btn allow ${state === 'ADD' ? 'active' : ''}`}
+                          onClick={() => handleToggle('ADD')}
+                          title="Force Allow"
+                        >
+                          <CheckIcon size={12} />
+                        </button>
+                        <button 
+                          className={`matrix-btn deny ${state === 'REMOVE' ? 'active' : ''}`}
+                          onClick={() => handleToggle('REMOVE')}
+                          title="Force Deny"
+                        >
+                          <CloseIcon size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </fieldset>
@@ -353,6 +398,32 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
         }
         .warning-technical:hover {
            background: rgba(245, 158, 11, 0.1) !important;
+        }
+
+        .matrix-btn {
+          width: 80px;
+          height: 28px;
+          border: 1px solid var(--border-color);
+          background: transparent;
+          color: rgba(255,255,255,0.2);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: var(--snap);
+        }
+        .matrix-btn:hover { background: rgba(255,255,255,0.05); }
+        .matrix-btn.active { 
+          background: rgba(255,255,255,0.1); 
+          color: #fff; 
+          border-color: #666;
+          box-shadow: inset 0 0 10px rgba(255,255,255,0.05);
+        }
+        .matrix-btn.allow.active { color: var(--status-ok); border-color: var(--status-ok); background: rgba(16, 185, 129, 0.1); }
+        .matrix-btn.deny.active { color: var(--status-err); border-color: var(--status-err); background: rgba(239, 68, 68, 0.1); }
+        
+        .capability-row:hover {
+          background: rgba(255,255,255,0.02);
         }
       `}</style>
     </div>

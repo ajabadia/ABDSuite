@@ -10,7 +10,9 @@ import { generateTotpSecret, buildOtpAuthUri } from '@/lib/utils/mfa.utils';
 import { QrGenerator } from '@/lib/utils/qr.utils';
 import { coreDb } from '@/lib/db/SystemDB';
 import { SyncPanel } from './SyncPanel';
-import { LockIcon, ShieldCheckIcon, RefreshIcon, XIcon, CheckIcon, KeyIcon } from '../common/Icons';
+import { LockIcon, ShieldCheckIcon, RefreshIcon, XIcon, CheckIcon, KeyIcon, EyeIcon } from '../common/Icons';
+import { PermissionsService } from '@/lib/services/permissions';
+import { Capability } from '@/lib/types/auth.types';
 
 interface SecurityDialogProps {
   isOpen: boolean;
@@ -19,7 +21,7 @@ interface SecurityDialogProps {
 
 export const SecurityDialog: React.FC<SecurityDialogProps> = ({ isOpen, onClose }) => {
   const { currentOperator } = useWorkspace();
-  const [activeTab, setActiveTab] = useState<'MFA' | 'SYNC'>('MFA');
+  const [activeTab, setActiveTab] = useState<'MFA' | 'SYNC' | 'PERMISOS'>('MFA');
   const [mfaEnabled, setMfaEnabled] = useState(currentOperator?.mfaEnabled || false);
   const [mfaSecret, setMfaSecret] = useState(currentOperator?.mfaSecret || '');
   const [qrSvg, setQrSvg] = useState<string | null>(null);
@@ -92,6 +94,14 @@ export const SecurityDialog: React.FC<SecurityDialogProps> = ({ isOpen, onClose 
                   <RefreshIcon size={18} />
                   <span style={{ fontSize: '0.7rem', fontWeight: 800 }}>P2P SYNC</span>
                 </button>
+                <button 
+                  className={`station-nav-item ${activeTab === 'PERMISOS' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('PERMISOS')}
+                  style={{ border: 'none', background: 'transparent' }}
+                >
+                  <EyeIcon size={18} />
+                  <span style={{ fontSize: '0.7rem', fontWeight: 800 }}>MIS PERMISOS</span>
+                </button>
              </div>
 
              {/* Content Area */}
@@ -149,6 +159,46 @@ export const SecurityDialog: React.FC<SecurityDialogProps> = ({ isOpen, onClose 
                 )}
 
                 {activeTab === 'SYNC' && <SyncPanel />}
+
+                {activeTab === 'PERMISOS' && currentOperator && (
+                   <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
+                      <header>
+                         <h3 className="section-title-technical" style={{ color: 'var(--primary-color)', marginBottom: '8px' }}>CAPACIDADES EFECTIVAS</h3>
+                         <p style={{ fontSize: '0.65rem', opacity: 0.5, letterSpacing: '1px' }}>
+                            LISTA INTEGRADA: ROL ({currentOperator.role}) + OVERRIDES INDUSTRIALES
+                         </p>
+                      </header>
+
+                      <div className="technical-table-container" style={{ flex: 1, overflow: 'auto', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)' }}>
+                         <table className="station-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-color)' }}>
+                               <tr>
+                                  <th style={{ textAlign: 'left', padding: '12px', fontSize: '0.6rem', opacity: 0.5 }}>PERMISO / CAPABILITY</th>
+                                  <th style={{ textAlign: 'left', padding: '12px', fontSize: '0.6rem', opacity: 0.5 }}>ORIGEN</th>
+                               </tr>
+                            </thead>
+                            <tbody>
+                               {PermissionsService.getEffectivePermissionsForOperator(
+                                 currentOperator, 
+                                 PermissionsService.baseCapabilitiesForRole(currentOperator.role)
+                               ).map((eff, i) => (
+                                 <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <td style={{ padding: '12px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', fontWeight: 800 }}>{eff.capability}</td>
+                                    <td style={{ padding: '12px' }}>
+                                       <span className={`station-badge ${
+                                         eff.source === 'ROLE' ? 'station-badge-blue' : 
+                                         eff.source === 'OVERRIDE_ADD' ? 'station-badge-green' : 'station-badge-orange'
+                                       }`} style={{ fontSize: '0.6rem' }}>
+                                          {eff.source.replace('_', ' ')}
+                                       </span>
+                                    </td>
+                                 </tr>
+                               ))}
+                            </tbody>
+                         </table>
+                      </div>
+                   </div>
+                 )}
              </div>
           </div>
           

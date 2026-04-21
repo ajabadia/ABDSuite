@@ -1,6 +1,8 @@
 import Dexie, { type Table } from 'dexie';
 import { EtlPreset } from '../types/etl.types';
 import { LetterTemplate, LetterMapping } from '../types/letter.types';
+import { GawebGoldenProfile } from '../types/gaweb-golden.types';
+import { LocalDocCatalogEntry } from '../types/doc-catalog.types';
 import { applyEncryptedMiddleware, EncryptedFieldsConfig } from './EncryptedDbAdapter';
 
 export interface GoldenTest {
@@ -39,6 +41,8 @@ export class ABDFNSuiteDB extends Dexie {
   lettermappings_v6!: Table<LetterMapping>;
   golden_tests_v6!: Table<GoldenTest>;
   audit_history_v6!: Table<AuditHistoryRecord>;
+  gaweb_golden_profiles_v6!: Table<GawebGoldenProfile>;
+  doc_catalog_v1!: Table<LocalDocCatalogEntry>;
 
   private _unitId: string;
   private static _keyProvider: () => CryptoKey | null = () => null;
@@ -54,13 +58,15 @@ export class ABDFNSuiteDB extends Dexie {
 
     applyEncryptedMiddleware(this, 'ABDFN_SUITE', unitId, suiteConfig, () => ABDFNSuiteDB._keyProvider());
     
-    // Schema Era 6 (UUID Based)
-    this.version(10).stores({
+    // Schema Era 6+ (Phase 18)
+    this.version(12).stores({
       presets_v6: 'id, name, gawebConfig.active, updatedAt',
       lettertemplates_v6: 'id, name, type, isActive, updatedAt',
       lettermappings_v6: 'id, name, templateId, etlPresetId, isActive, updatedAt',
       golden_tests_v6: 'id, templateId, mappingId, etlPresetId, codDocumento, version',
-      audit_history_v6: 'id, timestamp, category, module, action, status'
+      audit_history_v6: 'id, timestamp, category, module, action, status',
+      gaweb_golden_profiles_v6: 'id, codigoDocumento, formatoCarta, active',
+      doc_catalog_v1: 'id, codigoDocumento, name, isActive, updatedAt'
     });
 
     this.presets_v6 = this.table('presets_v6');
@@ -68,6 +74,8 @@ export class ABDFNSuiteDB extends Dexie {
     this.lettermappings_v6 = this.table('lettermappings_v6');
     this.golden_tests_v6 = this.table('golden_tests_v6');
     this.audit_history_v6 = this.table('audit_history_v6');
+    this.gaweb_golden_profiles_v6 = this.table('gaweb_golden_profiles_v6');
+    this.doc_catalog_v1 = this.table('doc_catalog_v1');
   }
 
   /**

@@ -1,4 +1,6 @@
 import { PackageAuditResult } from '../logic/package-auditor.logic';
+import { GawebGoldenProfile } from './gaweb-golden.types';
+import { AuditSamplingSettings } from './telemetry.types';
 
 export type AuditWorkerInMessage =
   | {
@@ -9,6 +11,8 @@ export type AuditWorkerInMessage =
         md5Witness?: string;          
         encoding?: 'windows-1252' | 'utf-8';
         maxErrorsPreview?: number;    
+        goldenProfile?: GawebGoldenProfile;
+        sampling?: AuditSamplingSettings;
       };
     }
   | {
@@ -34,6 +38,7 @@ export interface GawebSummary {
   totalErrors: number;
   totalWarnings: number;
   errorsByType: Record<string, number>;
+  md5Matches?: boolean;
 }
 
 export interface GawebRow {

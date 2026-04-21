@@ -3,7 +3,7 @@
  * Manages industrial thresholds and corporate identity for the supervision suite.
  */
 import { coreDb } from '../db/SystemDB';
-import { TelemetryConfig, TelemetryHealthConfig, TelemetrySecurityConfig } from '../types/telemetry.types';
+import { TelemetryConfig, TelemetryHealthConfig, TelemetrySecurityConfig, AuditSamplingSettings } from '../types/telemetry.types';
 
 const HEALTH_DEFAULTS: TelemetryHealthConfig = {
   minAuditsForRatio: 10,
@@ -11,6 +11,15 @@ const HEALTH_DEFAULTS: TelemetryHealthConfig = {
   criticalErrorRatio: 0.5,
   qaBreaksWarn: 1,
   qaBreaksCritical: 2,
+};
+
+const MAPPING_DEFAULTS = {
+  minCoverage: 1.0, 
+};
+
+const SAMPLING_DEFAULTS: AuditSamplingSettings = {
+  enabled: true,
+  maxPerType: 10
 };
 
 const SECURITY_DEFAULTS: TelemetrySecurityConfig = {
@@ -26,6 +35,7 @@ const SECURITY_DEFAULTS: TelemetrySecurityConfig = {
   mfaCooldownMinutes: 15,
   sessionInactivityTimeoutMinutes: 15,
   sessionMaxAgeMinutes: 480, // 8 hours
+  sessionWarningThresholdMinutes: 2, 
   securityThresholds: {
     failedAuthLow: 5,
     failedAuthHigh: 20,
@@ -37,6 +47,7 @@ const SECURITY_DEFAULTS: TelemetrySecurityConfig = {
     letterWizardEnabled: true,
     mappingMobileLayoutEnabled: true,
   },
+  mappingThresholds: MAPPING_DEFAULTS,
 };
 
 const CORPORATE_DEFAULTS = {
@@ -70,6 +81,7 @@ export class TelemetryConfigService {
         mfaCooldownMinutes: row?.telemetrySecurity?.mfaCooldownMinutes ?? SECURITY_DEFAULTS.mfaCooldownMinutes,
         sessionInactivityTimeoutMinutes: row?.telemetrySecurity?.sessionInactivityTimeoutMinutes ?? SECURITY_DEFAULTS.sessionInactivityTimeoutMinutes,
         sessionMaxAgeMinutes: row?.telemetrySecurity?.sessionMaxAgeMinutes ?? SECURITY_DEFAULTS.sessionMaxAgeMinutes,
+        sessionWarningThresholdMinutes: row?.telemetrySecurity?.sessionWarningThresholdMinutes ?? SECURITY_DEFAULTS.sessionWarningThresholdMinutes,
         securityThresholds: {
           failedAuthLow: row?.telemetrySecurity?.securityThresholds?.failedAuthLow ?? SECURITY_DEFAULTS.securityThresholds.failedAuthLow,
           failedAuthHigh: row?.telemetrySecurity?.securityThresholds?.failedAuthHigh ?? SECURITY_DEFAULTS.securityThresholds.failedAuthHigh,
@@ -81,6 +93,13 @@ export class TelemetryConfigService {
           letterWizardEnabled: row?.telemetrySecurity?.uiFeatures?.letterWizardEnabled ?? SECURITY_DEFAULTS.uiFeatures.letterWizardEnabled,
           mappingMobileLayoutEnabled: row?.telemetrySecurity?.uiFeatures?.mappingMobileLayoutEnabled ?? SECURITY_DEFAULTS.uiFeatures.mappingMobileLayoutEnabled,
         },
+        mappingThresholds: {
+          minCoverage: row?.telemetrySecurity?.mappingThresholds?.minCoverage ?? SECURITY_DEFAULTS.mappingThresholds.minCoverage,
+        },
+        auditSampling: {
+          enabled: row?.telemetrySecurity?.auditSampling?.enabled ?? SAMPLING_DEFAULTS.enabled,
+          maxPerType: row?.telemetrySecurity?.auditSampling?.maxPerType ?? SAMPLING_DEFAULTS.maxPerType,
+        }
       },
       corporate: {
         logoBase64: row?.corporate?.logoBase64,
@@ -124,7 +143,7 @@ export class TelemetryConfigService {
     await coreDb.coreSettings.put({
       id: 'GLOBAL_SETTINGS',
       telemetryHealth: HEALTH_DEFAULTS,
-      telemetrySecurity: SECURITY_DEFAULTS,
+      telemetrySecurity: { ...SECURITY_DEFAULTS, auditSampling: SAMPLING_DEFAULTS },
       corporate: CORPORATE_DEFAULTS
     });
   }

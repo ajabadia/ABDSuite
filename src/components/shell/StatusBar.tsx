@@ -31,6 +31,12 @@ export const StatusBar: React.FC = () => {
            [ CRYPT: {metrics.isEncryptionUnlocked ? 'UNLOCKED' : 'LOCKED'} ]
         </span>
         <span style={{ 
+          color: metrics.sessionState === 'LOCKED' ? 'var(--status-err)' : 'var(--status-ok)',
+          opacity: 0.8
+        }}>
+           [ SESIÓN: {metrics.sessionState} {metrics.sessionState === 'ACTIVE' && metrics.sessionExpiresInMinutes !== undefined ? `(${metrics.sessionExpiresInMinutes}m)` : ''} ]
+        </span>
+        <span style={{ 
           color: metrics.isSecure ? 'var(--status-ok)' : 'var(--status-err)',
           fontWeight: 900,
           opacity: 1

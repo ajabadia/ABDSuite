@@ -88,19 +88,33 @@ class OperatorService {
       updates.pinHash = await hashPin(newPin);
     }
 
-    // Advanced Audit Logic (Branch 12.1)
+    // Advanced Audit Logic (Branch 17 - Consolidated)
     const roleBefore = existing.role;
     const roleAfter = updates.role ?? existing.role;
     const roleChanged = roleBefore !== roleAfter;
 
-    const beforeExtra = existing.extraCapabilities || [];
-    const beforeDenied = existing.deniedCapabilities || [];
-    const afterExtra = updates.extraCapabilities ?? beforeExtra;
-    const afterDenied = updates.deniedCapabilities ?? beforeDenied;
+    // Consolidate old/new fields for comparison
+    const beforeAdd = [
+        ...(existing.overrideCapabilities?.add || []),
+        ...(existing.extraCapabilities || [])
+    ];
+    const beforeRemove = [
+        ...(existing.overrideCapabilities?.remove || []),
+        ...(existing.deniedCapabilities || [])
+    ];
+
+    const afterAdd = [
+        ...(updates.overrideCapabilities?.add || []),
+        ...(updates.extraCapabilities || [])
+    ];
+    const afterRemove = [
+        ...(updates.overrideCapabilities?.remove || []),
+        ...(updates.deniedCapabilities || [])
+    ];
 
     const overridesChanged = 
-      JSON.stringify(beforeExtra) !== JSON.stringify(afterExtra) ||
-      JSON.stringify(beforeDenied) !== JSON.stringify(afterDenied);
+      JSON.stringify(beforeAdd.sort()) !== JSON.stringify(afterAdd.sort()) ||
+      JSON.stringify(beforeRemove.sort()) !== JSON.stringify(afterRemove.sort());
 
     let messageKey = 'operator.update';
     let eventType = 'OPERATOR_UPDATE';
@@ -108,7 +122,7 @@ class OperatorService {
 
     // Sensitivity check for critical capabilities
     const SENSITIVE_CAPS: string[] = ['SETTINGS_GLOBAL', 'OPERATORS_MANAGE', 'CRYPT_CONFIG_GLOBAL', 'AUDIT_CONFIG', 'LETTER_CONFIG_GLOBAL', 'ETL_CONFIG_GLOBAL', 'SYNC_EXPORT', 'SYNC_IMPORT'];
-    const touchesSensitive = [...afterExtra, ...afterDenied, ...beforeExtra, ...beforeDenied].some(c => SENSITIVE_CAPS.includes(c));
+    const touchesSensitive = [...afterAdd, ...afterRemove, ...beforeAdd, ...beforeRemove].some(c => SENSITIVE_CAPS.includes(c));
 
     if (roleChanged) {
       messageKey = 'operator.role.change';
@@ -150,10 +164,10 @@ class OperatorService {
           updates: Object.keys(data).join(', '),
           ...(roleChanged && { fromRole: roleBefore, toRole: roleAfter }),
           ...(overridesChanged && { 
-            beforeExtra: beforeExtra.join(','), 
-            afterExtra: afterExtra.join(','),
-            beforeDenied: beforeDenied.join(','),
-            afterDenied: afterDenied.join(',')
+            beforeAdd: beforeAdd.join(','), 
+            afterAdd: afterAdd.join(','),
+            beforeRemove: beforeRemove.join(','),
+            afterRemove: afterRemove.join(',')
           })
         }
       }

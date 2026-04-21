@@ -3,9 +3,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { coreDb } from '@/lib/db/SystemDB';
 import { useLanguage } from '@/lib/context/LanguageContext';
-import { ShieldCheckIcon, SearchIcon, RefreshCwIcon, ArrowRightIcon } from '@/components/common/Icons';
+import { ShieldCheckIcon, SearchIcon, RefreshCwIcon, ArrowRightIcon, ChevronRightIcon } from '@/components/common/Icons';
 import { AuditDetails } from '@/lib/types/auth.types';
 import Link from 'next/link';
+import { ConfigDiffCard } from '../security/ConfigDiffCard';
 
 type FilterMode = 'ALL' | 'SECURITY' | 'SYSTEM';
 type SeverityFilter = 'ALL' | 'INFO' | 'WARN' | 'CRITICAL';
@@ -41,6 +42,7 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('ALL');
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | EventCategory>('ALL');
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
 
   // Sync with external filters (Phase 13 Drill-down)
   useEffect(() => {
@@ -126,8 +128,11 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
     return msg;
   };
 
+  const selectedLog = useMemo(() => logs.find(l => l.id === selectedLogId), [logs, selectedLogId]);
+
   return (
-    <section className="flex-col animate-fade-in" style={{ gap: '16px', height: '100%' }}>
+    <section className="flex-row animate-fade-in" style={{ gap: '20px', height: '100%', padding: '20px' }}>
+      <div className="flex-col" style={{ flex: selectedLog ? 1.5 : 1, gap: '16px', minWidth: 0 }}>
       <header className="flex-col" style={{ gap: '16px' }}>
         <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
           <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
@@ -196,7 +201,12 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
           </thead>
           <tbody>
             {filteredLogs.map(log => (
-              <tr key={log.id}>
+              <tr 
+                key={log.id} 
+                className={selectedLogId === log.id ? 'active' : ''} 
+                onClick={() => setSelectedLogId(log.id)}
+                style={{ cursor: 'pointer' }}
+              >
                 <td style={{ opacity: 0.6, fontSize: '0.75rem' }}>
                   {new Date(log.timestamp).toLocaleString()}
                 </td>
@@ -250,6 +260,32 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
           </tbody>
         </table>
       </div>
+    </div>
+
+    {selectedLog && (
+        <div className="flex-col animate-slide-in-right" style={{ width: '400px', gap: '16px', paddingLeft: '20px', borderLeft: '1px solid var(--border-color)', overflowY: 'auto' }}>
+           <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+             <h4 style={{ margin: 0, fontSize: '0.7rem', fontWeight: 900, color: 'var(--primary-color)' }}>DETALLE_FORENSE</h4>
+             <button className="station-btn tiny" onClick={() => setSelectedLogId(null)}>×</button>
+           </div>
+           
+           {selectedLog.details?.context?.before || selectedLog.details?.context?.after ? (
+             <ConfigDiffCard 
+               before={selectedLog.details.context.before} 
+               after={selectedLog.details.context.after} 
+               title={resolveMessage(selectedLog)}
+               category={selectedLog.details.entityType}
+             />
+           ) : (
+             <div className="station-card" style={{ padding: '20px', opacity: 0.5, textAlign: 'center', fontSize: '0.8rem' }}>
+                <p>NO_DIFFERENTIAL_DATA_AVAILABLE</p>
+                <pre style={{ textAlign: 'left', fontSize: '0.7rem', marginTop: '12px' }}>
+                  {JSON.stringify(selectedLog.details, null, 2)}
+                </pre>
+             </div>
+           )}
+        </div>
+      )}
 
       <style jsx>{`
         .status-badge {

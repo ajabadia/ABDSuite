@@ -25,7 +25,8 @@ import {
   FileTextIcon,
   CogIcon,
   ListIcon,
-  MapIcon
+  MapIcon,
+  RefreshCwIcon
 } from '@/components/common/Icons';
 import { seedStressEnvironment, generateIndustrialStressData } from '@/lib/utils/stress-test-tool';
 import JSZip from 'jszip';
@@ -40,6 +41,7 @@ import { useLog } from '@/lib/context/LogContext';
 import { LogLevel } from '@/lib/types/log.types';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { auditService } from '@/lib/services/AuditService';
+import { getMappingCoverage } from './MappingMatrix';
 
 const LetterStation: React.FC = () => {
   const { t } = useLanguage();
@@ -111,22 +113,67 @@ const LetterStation: React.FC = () => {
     return date.getFullYear() === year && date.getMonth() === month && date.getDate() === day;
   };
 
+  const [templateVars, setTemplateVars] = useState<string[]>([]);
+  
+  // Extract Template Variables (Same logic as MappingMatrix but for Wizard validation)
+  useEffect(() => {
+    async function extractVars() {
+      if (!selectedTemplateId) { setTemplateVars([]); return; }
+      const template = templates.find(t => t.id === selectedTemplateId);
+      if (!template) return;
+      let vars: string[] = [];
+      try {
+        if (template.type === 'DOCX' && template.binaryContent) {
+          const zip = await JSZip.loadAsync(template.binaryContent);
+          const xmlFiles = Object.keys(zip.files).filter(name => name.endsWith('.xml'));
+          const tagRegex = /\{\{(.*?)\}\}/g;
+          for (const name of xmlFiles) {
+             const content = await zip.file(name)?.async('text');
+             if (content) {
+                let match;
+                while ((match = tagRegex.exec(content)) !== null) {
+                   const tag = match[1].trim().replace(/<[^>]*>?/gm, '');
+                   if (tag) vars.push(tag);
+                }
+             }
+          }
+        } else if (template.content) {
+          const regex = /\{\{(.*?)\}\}/g;
+          let match;
+          while ((match = regex.exec(template.content)) !== null) {
+            vars.push(match[1].trim());
+          }
+        }
+      } catch (e) {}
+      setTemplateVars(Array.from(new Set(vars)));
+    }
+    extractVars();
+  }, [selectedTemplateId, templates]);
+
   const steps = useMemo(() => {
     const step1Complete = !!selectedPresetId && !!dataFile;
     const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
     const step2Complete = !!selectedTemplate && selectedTemplate.isActive !== false;
-    const step3Complete = !!selectedMapping;
+    
+    // Step 3: Logic Coverage based on Telemetry Threshold
+    const { totalVars, pendingCount, coverage } = getMappingCoverage(templateVars, selectedMapping);
+    const mappingThreshold = telemetryConfig?.security.mappingThresholds?.minCoverage ?? 1.0;
+    const step3Complete = !!selectedMapping && (totalVars === 0 || coverage >= mappingThreshold);
+
+    // Step 4: Destination WITH write permission check
     const step4Complete = !!outputHandle;
+    
+    // Step 5: Execution readiness
     const step5Complete = !!options.lote && !!options.codDocumento && options.codDocumento.length === 6 && !!options.oficina && options.oficina.length === 5 && isValidIndustrialDate(options.fechaCarta) && isValidIndustrialDate(options.fechaGeneracion);
 
     return [
       { id: 'DATA', label: t('letter.wizard.data') || 'DATOS', complete: step1Complete, error: step1Complete ? undefined : 'Selecciona un preset y carga el fichero GAWEB.' },
       { id: 'DESIGN', label: t('letter.wizard.design') || 'DISEÑO', complete: step2Complete, error: step2Complete ? undefined : 'Selecciona una plantilla activa.' },
-      { id: 'LOGIC', label: t('letter.wizard.logic') || 'MAPEO', complete: step3Complete, error: step3Complete ? undefined : 'Asigna un Mapping Brain al lote.' },
-      { id: 'DESTINATION', label: t('letter.wizard.dest') || 'DESTINO', complete: step4Complete, error: step4Complete ? undefined : 'Selecciona una carpeta de salida.' },
+      { id: 'LOGIC', label: t('letter.wizard.logic') || 'MAPEO', complete: step3Complete, error: step3Complete ? undefined : `Paso bloqueado: quedan ${pendingCount} variables sin mapear (Umbral: ${Math.round(mappingThreshold*100)}%).` },
+      { id: 'DESTINATION', label: t('letter.wizard.dest') || 'DESTINO', complete: step4Complete, error: step4Complete ? undefined : 'Selecciona una carpeta de salida válida.' },
       { id: 'EXECUTION', label: t('letter.wizard.run') || 'EJECUCIÓN', complete: step5Complete, error: step5Complete ? undefined : 'Completa los campos obligatorios del lote.' }
     ] as const;
-  }, [selectedPresetId, dataFile, selectedTemplateId, templates, selectedMapping, outputHandle, options, t]);
+  }, [selectedPresetId, dataFile, selectedTemplateId, templates, selectedMapping, templateVars, outputHandle, options, telemetryConfig, t]);
 
   const canStartEngine = steps.every(s => s.complete);
 
@@ -599,27 +646,53 @@ const LetterStation: React.FC = () => {
                 <div className="station-form-field"><label className="station-label">FECHA_CARTA</label><input className="station-input" value={options.fechaCarta} onChange={e => setOptions({...options, fechaCarta: e.target.value})} placeholder="AAAAMMDD" /></div>
              </div>
 
-             <div className="pre-flight-checklist" style={{ padding: '20px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ fontSize: '0.7rem', fontWeight: 900, marginBottom: '16px', opacity: 0.4 }}>PRE-FLIGHT CHECKLIST INDUSTRIAL</div>
-                <div className="flex-col" style={{ gap: '8px' }}>
+             <div className="pre-flight-checklist" style={{ padding: '24px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 900, opacity: 0.4, letterSpacing: '2px' }}>PRE-FLIGHT CHECKLIST INDUSTRIAL</div>
+                  {qaStatus === 'NO_GOLDEN' && (
+                    <div className="station-badge warn tiny animate-pulse">NO_GOLDEN_MASTER</div>
+                  )}
+                </div>
+
+                {/* Golden Master Section */}
+                {goldenRef && (
+                   <div style={{ marginBottom: '20px', padding: '12px', background: 'rgba(var(--primary-color-rgb), 0.05)', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
+                      <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
+                         <span style={{ fontSize: '10px', fontWeight: 900 }}>🏆 GOLDEN_MASTER_ACTIVE:</span>
+                         <span className="station-badge success tiny">v{goldenRef.version}</span>
+                      </div>
+                      <div style={{ fontSize: '11px', opacity: 0.5, marginTop: '4px' }}>
+                        ID: {goldenRef.id?.toString().substring(0,8)}... · Verificado: {new Date(goldenRef.lastVerifiedAt || 0).toLocaleDateString()}
+                      </div>
+                      {goldenRef.notes && <div style={{ fontSize: '10px', fontStyle: 'italic', marginTop: '6px', opacity: 0.7 }}>"{goldenRef.notes}"</div>}
+                   </div>
+                )}
+
+                <div className="flex-col" style={{ gap: '12px' }}>
                   {steps.map(s => (
-                    <div key={s.id} className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                      <span style={{ opacity: s.complete ? 1 : 0.4 }}>{s.label}</span>
-                      <span style={{ fontWeight: 800, color: s.complete ? 'var(--status-ok)' : 'var(--status-err)' }}>
-                        {s.complete ? 'READY' : (s.error || 'PENDING')}
-                      </span>
+                    <div key={s.id} className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.9rem', padding: '4px 0' }}>
+                      <span style={{ opacity: s.complete ? 1 : 0.4, fontWeight: s.complete ? 700 : 400 }}>{s.label}</span>
+                      <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
+                        {s.id === 'LOGIC' && (
+                          <span style={{ fontSize: '10px', opacity: 0.3 }}>({getMappingCoverage(templateVars, selectedMapping).mappedCount}/{getMappingCoverage(templateVars, selectedMapping).totalVars})</span>
+                        )}
+                        <span style={{ fontWeight: 900, fontSize: '0.75rem', color: s.complete ? 'var(--status-ok)' : 'var(--status-err)', fontFamily: 'var(--font-mono)' }}>
+                          {s.complete ? 'READY' : 'PENDING'}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
 
-                <div style={{ marginTop: '24px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '20px' }}>
+                <div style={{ marginTop: '32px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '24px' }}>
                   <button 
                     className="station-btn station-btn-primary" 
                     disabled={!canStartEngine || isProcessing}
-                    style={{ width: '100%', height: '60px', fontSize: '1.4rem', fontWeight: 900 }}
+                    style={{ width: '100%', height: '64px', fontSize: '1.5rem', fontWeight: 900, boxShadow: '0 10px 30px rgba(var(--primary-color-rgb), 0.2)' }}
                     onClick={handleStart}
                   >
-                    <ZapIcon size={24} /> INICIAR MOTOR
+                    {isProcessing ? <RefreshCwIcon size={24} className="spin" /> : <ZapIcon size={24} />}
+                    <span style={{ marginLeft: '12px' }}>INICIAR MOTOR</span>
                   </button>
                 </div>
              </div>
@@ -676,33 +749,7 @@ const LetterStation: React.FC = () => {
         </section>
       )}
 
-      {(selectedPresetId || dataFile) && (
-        <div className="station-registry-actions flex-row" style={{ 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          marginTop: '12px',
-          padding: '16px',
-          background: 'var(--surface-color)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '8px'
-        }}>
-          <div className="flex-row" style={{ gap: '12px' }}>
-            <button className="station-btn station-btn-side" title="Exportar Almacén Local (JSON↓)" onClick={() => addLog('EXPORTACIÓN_LOCAL_INICIADA', 'info')}>JSON↓</button>
-            <button className="station-btn station-btn-side" title="Importar Configuración (ALL↑)" onClick={() => addLog('IMPORTACIÓN_LOCAL_BLOQUEADA_MODO_RED_ZERO', 'warning')}>ALL↑</button>
-          </div>
-
-          {canStartEngine && (
-            <button 
-              className="station-btn station-btn-primary" 
-              disabled={isProcessing || !canGenerate} 
-              style={{ minWidth: '320px', height: '56px', fontSize: '1.2rem', fontWeight: 900 }} 
-              onClick={handleStart}
-            >
-              <PlayIcon size={24} /> {!canGenerate ? 'UNAUTHORIZED' : (isProcessing ? t('common.processing').toUpperCase() : t('letter.ui.btn_generate').toUpperCase())}
-            </button>
-          )}
-        </div>
-      )}
+      {/* LEGACY ACTIONS REMOVED (UNIFIED IN WIZARD) */}
 
       {pendingDownload && (
         <div className="station-card flex-col" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid var(--status-ok)', gap: '12px' }}>
