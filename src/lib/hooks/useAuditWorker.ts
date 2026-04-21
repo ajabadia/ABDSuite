@@ -24,7 +24,7 @@ export interface UseAuditWorkerResult {
   dataWindows: Map<string, GawebRow[]>;
   errorsWindows: Map<string, GawebErrorLite[]>;
   
-  startAudit: (args: { gawebFile: File; zipFile?: File; md5Witness?: string }) => void;
+  startAudit: (args: { gawebFile: File; zipFile?: File; md5Witness?: string; goldenProfile?: any; sampling?: any }) => void;
   requestDataWindow: (start: number, end: number) => void;
   requestErrorsWindow: (start: number, end: number) => void;
   cancelAudit: () => void;
@@ -101,7 +101,7 @@ export function useAuditWorker(options: { maxErrorsPreview?: number; encoding?: 
     setErrorsWindows(new Map());
   }, []);
 
-  const startAudit = useCallback(({ gawebFile, zipFile, md5Witness, goldenProfile }: { gawebFile: File; zipFile?: File; md5Witness?: string, goldenProfile?: any }) => {
+  const startAudit = useCallback(({ gawebFile, zipFile, md5Witness, goldenProfile, sampling }: { gawebFile: File; zipFile?: File; md5Witness?: string, goldenProfile?: any, sampling?: any }) => {
     if (!workerRef.current) return;
     reset();
     setIsRunning(true);
@@ -114,7 +114,8 @@ export function useAuditWorker(options: { maxErrorsPreview?: number; encoding?: 
         md5Witness,
         encoding: options.encoding || 'iso-8859-1',
         maxErrorsPreview: options.maxErrorsPreview || 1000,
-        goldenProfile
+        goldenProfile,
+        sampling
       }
     });
   }, [reset, options.encoding, options.maxErrorsPreview]);

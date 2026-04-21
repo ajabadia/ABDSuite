@@ -266,7 +266,7 @@ const SupervisorDashboardContent: React.FC = () => {
                       }}>
                           <span className="label">MUESTREO_POL.</span>
                           <span className="val" style={{ color: 'var(--primary-color)' }}>
-                            {snapshot?.governance.configChanges24h > 0 ? 'DIFF_ACT' : 'NO_CH'}
+                            {(snapshot?.governance?.configChanges24h ?? 0) > 0 ? 'DIFF_ACT' : 'NO_CH'}
                           </span>
                       </div>
                   </div>

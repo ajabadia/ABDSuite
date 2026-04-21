@@ -87,7 +87,7 @@ export const OperatorManager: React.FC<OperatorManagerProps> = ({ initialOperato
 
   useEffect(() => {
     (window as any).dispatchOperatorExport = handleExport;
-    return () => delete (window as any).dispatchOperatorExport;
+    return () => { delete (window as any).dispatchOperatorExport; };
   }, [operators, currentOperator]);
 
   const selectedOperator = operators.find(o => o.id === selectedId) || null;

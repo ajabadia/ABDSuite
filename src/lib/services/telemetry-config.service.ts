@@ -36,6 +36,7 @@ const SECURITY_DEFAULTS: TelemetrySecurityConfig = {
   sessionInactivityTimeoutMinutes: 15,
   sessionMaxAgeMinutes: 480, // 8 hours
   sessionWarningThresholdMinutes: 2, 
+  auditSampling: SAMPLING_DEFAULTS,
   securityThresholds: {
     failedAuthLow: 5,
     failedAuthHigh: 20,
