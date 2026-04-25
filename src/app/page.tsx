@@ -10,7 +10,8 @@ import {
   ActivityIcon, 
   CpuIcon, 
   LockIcon,
-  SearchIcon
+  SearchIcon,
+  GlobeIcon
 } from '@/components/common/Icons';
 import { db } from '@/lib/db/db';
 
