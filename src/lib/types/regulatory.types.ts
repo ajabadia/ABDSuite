@@ -15,7 +15,7 @@ export interface HolderMetadata {
     isEntity?: boolean;
 }
 
-export type TinValidationStatus = 'VALID' | 'INVALID' | 'EXEMPTED' | 'MISMATCH' | 'NOT_APPLICABLE' | 'VALID_UNOFFICIAL' | 'INVALID_CHECKSUM';
+export type TinValidationStatus = 'VALID' | 'INVALID' | 'INVALID_FORMAT' | 'EXEMPTED' | 'MISMATCH' | 'NOT_APPLICABLE' | 'VALID_UNOFFICIAL' | 'INVALID_CHECKSUM';
 
 export type TinMismatchReason = 
     | 'DOB_MISMATCH' 
@@ -83,7 +83,7 @@ export interface CountryRegulatoryInfo {
 
 export interface TinValidationPluginResult {
     isValid: boolean;
-    status: 'VALID' | 'INVALID' | 'MISMATCH' | 'VALID_UNOFFICIAL' | 'INVALID_CHECKSUM';
+    status: 'VALID' | 'INVALID' | 'INVALID_FORMAT' | 'MISMATCH' | 'VALID_UNOFFICIAL' | 'INVALID_CHECKSUM';
     reasonCode?: string;
     mismatchFields?: string[];
     message?: string;

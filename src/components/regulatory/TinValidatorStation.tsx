@@ -145,10 +145,27 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
     const lines = text.split(/\r\n|\n|\r/).filter(l => l.trim().length > 0);
     if (lines.length === 0) return;
 
-    // SMART MAPPER: Detect Headers
-    const firstLine = splitRespectingQuotes(lines[0], delimiter).map(c => c.toLowerCase());
-    const hasHeaders = firstLine.some(c => c.includes('tin') || c.includes('country') || c.includes('iso'));
+    // SMART MAPPER: Detect Headers and Column Indices
+    const headerRow = splitRespectingQuotes(lines[0], delimiter);
+    const lowerHeaders = headerRow.map(c => c.toLowerCase().trim());
     
+    const hasHeaders = lowerHeaders.some(c => c.includes('tin') || c.includes('country') || c.includes('iso'));
+    
+    // Find critical column indices
+    let countryIdx = 0;
+    let tinIdx = 1;
+    let holderTypeIdx = -1;
+
+    if (hasHeaders) {
+      const cIdx = lowerHeaders.findIndex(h => h.includes('country') || h === 'iso' || h === 'iso2');
+      const tIdx = lowerHeaders.findIndex(h => h.includes('tin') || h.includes('tax') || h === 'number');
+      const htIdx = lowerHeaders.findIndex(h => h.includes('type') || h.includes('holder') || h.includes('scope'));
+      
+      if (cIdx !== -1) countryIdx = cIdx;
+      if (tIdx !== -1) tinIdx = tIdx;
+      if (htIdx !== -1) holderTypeIdx = htIdx;
+    }
+
     const dataLines = hasHeaders ? lines.slice(1) : lines;
     const results: any[] = [];
     const stats = { total: 0, valid: 0, invalid: 0, mismatch: 0, exempted: 0 };
@@ -156,19 +173,43 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
     // Batch Processing (Pattern: Industrial Sequential)
     for (const line of dataLines) {
       const cols = splitRespectingQuotes(line, delimiter);
-      // Assuming Column 0: Country, Column 1: TIN (Simple pair mode)
-      const country = cols[0] || '??';
-      const tin = cols[1] || '';
+      if (cols.length < 2) continue;
+
+      const country = (cols[countryIdx] || '').trim().toUpperCase();
+      const tin = (cols[tinIdx] || '').trim();
       
-      const res = regulatoryService.validateTin(country, tin);
+      // Handle holderType if column exists
+      let hType: 'INDIVIDUAL' | 'ENTITY' | 'ANY' = 'ANY';
+      if (holderTypeIdx !== -1 && cols[holderTypeIdx]) {
+          const val = cols[holderTypeIdx].toUpperCase();
+          if (val.includes('IND') || val === 'PF' || val === 'NATURAL') hType = 'INDIVIDUAL';
+          else if (val.includes('ENT') || val === 'PJ' || val === 'LEGAL') hType = 'ENTITY';
+      }
+      
+      const res = regulatoryService.validateTin(country, tin, hType);
       
       stats.total++;
-      if (res.status === 'VALID') stats.valid++;
-      else if (res.status === 'INVALID') stats.invalid++;
-      else if (res.status === 'MISMATCH') stats.mismatch++;
-      else if (res.status === 'EXEMPTED') stats.exempted++;
+      
+      switch (res.status) {
+        case 'VALID':
+        case 'VALID_UNOFFICIAL':
+          stats.valid++;
+          break;
+        case 'INVALID':
+        case 'INVALID_FORMAT':
+        case 'INVALID_CHECKSUM':
+          stats.invalid++;
+          break;
+        case 'MISMATCH':
+          stats.mismatch++;
+          break;
+        case 'EXEMPTED':
+          stats.exempted++;
+          break;
+      }
 
       results.push({
+        originalCols: cols,
         country,
         tin,
         status: res.status,
@@ -181,7 +222,7 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
     setBatchStats(stats);
     setIsProcessing(false);
     
-    addLog('SYSTEM', `Batch TIN processed: ${stats.total} records. ${stats.invalid} invalid.`, 'info');
+    addLog(`Batch TIN processed: ${stats.total} records. ${stats.invalid + stats.mismatch} warnings/errors.`, 'info');
     
     // Log Batch Audit via Unified Service
     try {
@@ -198,25 +239,36 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
         }
       });
     } catch (err: any) {
-      if (err.message === 'ENCRYPTION_ENGINE_LOCKED') {
-        console.warn('[REGTECH] Batch Audit log skipped: Vault is LOCKED.');
-        addLog('Auditoría Batch omitida (Vault Bloqueado)', 'WARNING');
-      } else {
-        console.error('[REGTECH] Batch Audit failure:', err);
-      }
+      console.warn('[REGTECH] Audit skipped or failed:', err.message);
     }
   };
 
   const exportEnrichedCsv = () => {
-    if (batchResults.length === 0) return;
-    const header = `country;tin;validation_status;tin_type;engine_message\n`;
-    const body = batchResults.map(r => `${r.country};${r.tin};${r.status};${r.type || ''};"${r.message || ''}"`).join('\n');
-    const blob = new Blob([header + body], { type: 'text/csv' });
+    if (batchResults.length === 0 || !batchFile) return;
+    
+    // Get original headers or generate them
+    const text = batchFile.name; // Use file name as reference
+    const delimiter = detectedDelimiter || ';';
+    
+    let header = '';
+    // Read headers again to preserve them
+    const originalHeader = batchResults[0]?.originalCols?.length > 0 ? true : false;
+    
+    // Build Header
+    header = `_ORIGINAL_DATA_${delimiter}VALIDATION_STATUS${delimiter}TIN_TYPE${delimiter}ENGINE_MESSAGE\n`;
+    
+    const body = batchResults.map(r => {
+      const originalLine = r.originalCols.map((c: string) => `"${c.replace(/"/g, '""')}"`).join(delimiter);
+      return `${originalLine}${delimiter}${r.status}${delimiter}${r.type || ''}${delimiter}"${(r.message || '').replace(/"/g, '""')}"`;
+    }).join('\n');
+
+    const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `tin_validation_results_${new Date().getTime()}.csv`;
+    a.download = `enriched_${batchFile.name.replace('.csv', '')}_${new Date().getTime()}.csv`;
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
