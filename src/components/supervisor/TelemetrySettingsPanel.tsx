@@ -25,7 +25,7 @@ interface TelemetrySettingsPanelProps {
 
 export const TelemetrySettingsPanel: React.FC<TelemetrySettingsPanelProps> = ({ onClose }) => {
   const { t } = useLanguage();
-  const { requestStepUp, installationKey, currentUnit } = useWorkspace();
+  const { requestStepUp, installationKey, currentUnit, currentOperator } = useWorkspace();
   const [config, setConfig] = useState<TelemetryConfig | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
@@ -58,8 +58,8 @@ export const TelemetrySettingsPanel: React.FC<TelemetrySettingsPanelProps> = ({ 
 
         setMigrationStatus(`MIGRACIÓN COMPLETADA: ${coreRes.success + unitRes.success} registros cifrados. ${coreRes.skipped + unitRes.skipped} omitidos.`);
     } catch (err) {
-        console.error('[MIGRATION] Critical failure', err);
-        setError('FALLO CRÍTICO EN MIGRACIÓN. REVISA CONSOLA.');
+      console.error('[MIGRATION] Critical failure', err);
+      setError('FALLO CRÍTICO EN MIGRACIÓN. REVISA CONSOLA.');
     } finally {
         setIsMigrating(false);
     }
@@ -72,8 +72,8 @@ export const TelemetrySettingsPanel: React.FC<TelemetrySettingsPanelProps> = ({ 
     }
     setIsSaving(true);
     try {
-      await TelemetryConfigService.saveConfig(config);
-      setTimeout(onClose, 500); // UI feedback
+      await TelemetryConfigService.saveConfig(config, currentOperator?.id);
+      setTimeout(onClose, 500); 
     } catch (err) {
       console.error('[SETTINGS] Save failed', err);
     } finally {
@@ -99,40 +99,40 @@ export const TelemetrySettingsPanel: React.FC<TelemetrySettingsPanelProps> = ({ 
   if (!config) return null;
 
   return (
-    <div className="station-modal-overlay">
-      <div className="station-modal" style={{ maxWidth: '600px' }}>
-        <header className="station-modal-header technical-header-small">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div className="station-modal-overlay fade-in">
+      <div className="station-modal" style={{ maxWidth: '640px' }}>
+        <header className="station-modal-header">
+          <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
             <CogIcon size={20} color="var(--primary-color)" />
-            <h2 className="station-title" style={{ fontSize: '0.75rem', letterSpacing: '2px', fontWeight: 900, opacity: 0.5 }}>{t('supervisor.settings_title').toUpperCase()}</h2>
+            <h2 className="station-form-section-title" style={{ margin: 0 }}>{t('supervisor.settings_title').toUpperCase()}</h2>
           </div>
           <button className="station-btn secondary tiny" onClick={onClose}>
             <XIcon size={18} />
           </button>
         </header>
 
-        <div className="station-modal-content technical-content" style={{ background: 'var(--bg-color)' }}>
+        <div className="station-modal-content" style={{ padding: '24px', gap: '24px' }}>
           
           {error && (
-             <div className="alert-box-technical error" style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-err)', border: '1px solid var(--status-err)', marginBottom: '20px', padding: '12px', fontSize: '0.7rem' }}>
+             <div className="station-registry-sync-header" style={{ borderColor: 'var(--status-err)', background: 'rgba(var(--status-err-rgb), 0.1)' }}>
                 <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
-                   <AlertTriangleIcon size={16} />
-                   <span style={{ fontWeight: 800 }}>[ERR] {error.toUpperCase()}</span>
+                   <AlertTriangleIcon size={16} color="var(--status-err)" />
+                   <span className="station-title-main" style={{ color: 'var(--status-err)' }}>[ERR] {error.toUpperCase()}</span>
                 </div>
              </div>
           )}
 
           {/* CORPORATE IDENTITY */}
-          <section className="settings-section-technical">
-             <div className="section-header-technical">
+          <section className="station-card" style={{ padding: '20px', gap: '16px' }}>
+             <div className="flex-row" style={{ gap: '10px', opacity: 0.6 }}>
                 <BuildingIcon size={14} />
-                <h3>{t('supervisor.corporate_header').toUpperCase()}</h3>
+                <h3 className="station-form-section-title" style={{ fontSize: '0.65rem' }}>{t('supervisor.corporate_header').toUpperCase()}</h3>
              </div>
-             <div className="form-group-technical">
-                <label className="label-technical">{t('supervisor.plant_name').toUpperCase()}</label>
+             <div className="station-field-container">
+                <label className="station-registry-item-meta">{t('supervisor.plant_name').toUpperCase()}</label>
                 <input 
                   type="text" 
-                  className="technical-input" 
+                  className="station-input" 
                   value={config.corporate.plantName}
                   onChange={(e) => setConfig({
                     ...config,
@@ -140,147 +140,94 @@ export const TelemetrySettingsPanel: React.FC<TelemetrySettingsPanelProps> = ({ 
                   })}
                 />
              </div>
-             <div className="form-group-technical" style={{ marginTop: '16px' }}>
-                <label className="label-technical">{t('supervisor.logo_load').toUpperCase()}</label>
-                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+             <div className="station-field-container">
+                <label className="station-registry-item-meta">{t('supervisor.logo_load').toUpperCase()}</label>
+                <div className="flex-row" style={{ gap: '16px', alignItems: 'center' }}>
                     {config.corporate.logoBase64 && (
-                        <img src={config.corporate.logoBase64} alt="logo" style={{ height: '40px', background: 'white', padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
+                        <img src={config.corporate.logoBase64} alt="logo" style={{ height: '40px', background: '#fff', padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
                     )}
-                    <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ fontSize: '0.6rem', fontFamily: 'var(--font-mono)' }} />
+                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="station-registry-item-meta" style={{ fontSize: '0.65rem' }} />
                 </div>
              </div>
           </section>
 
-          {/* HEALTH THRESHOLDS */}
-          <section className="settings-section-technical">
-             <div className="section-header-technical">
-                <AlertTriangleIcon size={14} />
-                <h3>{t('supervisor.thresholds').toUpperCase()} - QA_SALUD</h3>
-             </div>
-             <div className="grid-2-technical">
-                <div className="form-group-technical">
-                   <label className="label-technical">WARN: BREAKS QA</label>
-                   <input 
-                     type="number" 
-                     className="technical-input" 
-                     value={config.health.qaBreaksWarn}
-                     onChange={(e) => setConfig({
-                       ...config, 
-                       health: { ...config.health, qaBreaksWarn: Number(e.target.value) }
-                     })}
-                   />
-                </div>
-                <div className="form-group-technical">
-                   <label className="label-technical">CRITICAL: BREAKS QA</label>
-                   <input 
-                     type="number" 
-                     className="technical-input" 
-                     value={config.health.qaBreaksCritical}
-                     onChange={(e) => setConfig({
-                       ...config, 
-                       health: { ...config.health, qaBreaksCritical: Number(e.target.value) }
-                     })}
-                   />
-                </div>
-             </div>
-          </section>
+          {/* THRESHOLDS GRID */}
+          <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+            {/* HEALTH */}
+            <section className="station-card" style={{ padding: '20px', gap: '16px' }}>
+               <div className="flex-row" style={{ gap: '10px', opacity: 0.6 }}>
+                  <AlertTriangleIcon size={14} />
+                  <h3 className="station-form-section-title" style={{ fontSize: '0.65rem' }}>HEALTH_LIMITS</h3>
+               </div>
+               <div className="station-field-container">
+                  <label className="station-registry-item-meta">WARN: QA_BREAKS</label>
+                  <input 
+                    type="number" 
+                    className="station-input" 
+                    value={config.health.qaBreaksWarn}
+                    onChange={(e) => setConfig({
+                      ...config, 
+                      health: { ...config.health, qaBreaksWarn: Number(e.target.value) }
+                    })}
+                  />
+               </div>
+               <div className="station-field-container">
+                  <label className="station-registry-item-meta">CRITICAL: QA_BREAKS</label>
+                  <input 
+                    type="number" 
+                    className="station-input" 
+                    value={config.health.qaBreaksCritical}
+                    onChange={(e) => setConfig({
+                      ...config, 
+                      health: { ...config.health, qaBreaksCritical: Number(e.target.value) }
+                    })}
+                  />
+               </div>
+            </section>
 
-          {/* SECURITY THRESHOLDS & HEALTH */}
-          <section className="settings-section-technical">
-             <div className="section-header-technical">
-                <ShieldCheckIcon size={14} />
-                <h3>{t('supervisor.thresholds').toUpperCase()} - SEC_POLICY</h3>
-             </div>
-             <div className="grid-2-technical">
-                <div className="form-group-technical">
-                   <label className="label-technical">AUTH_FAIL (LOW)</label>
-                   <input 
-                     type="number" 
-                     className="technical-input" 
-                     value={config.security.securityThresholds.failedAuthLow}
-                     onChange={(e) => setConfig({
-                       ...config, 
-                       security: { ...config.security, securityThresholds: { ...config.security.securityThresholds, failedAuthLow: Number(e.target.value) } }
-                     })}
-                   />
-                </div>
-                <div className="form-group-technical">
-                   <label className="label-technical">AUTH_FAIL (ALERT)</label>
-                   <input 
-                     type="number" 
-                     className="technical-input" 
-                     value={config.security.securityThresholds.failedAuthHigh}
-                     onChange={(e) => setConfig({
-                       ...config, 
-                       security: { ...config.security, securityThresholds: { ...config.security.securityThresholds, failedAuthHigh: Number(e.target.value) } }
-                     })}
-                   />
-                </div>
-                <div className="form-group-technical">
-                   <label className="label-technical">RBAC_CHG (ATTN)</label>
-                   <input 
-                     type="number" 
-                     className="technical-input" 
-                     value={config.security.securityThresholds.rbacChangesAttention}
-                     onChange={(e) => setConfig({
-                       ...config, 
-                       security: { ...config.security, securityThresholds: { ...config.security.securityThresholds, rbacChangesAttention: Number(e.target.value) } }
-                     })}
-                   />
-                </div>
-                <div className="form-group-technical">
-                   <label className="label-technical">DATA_ERR (ATTN)</label>
-                   <input 
-                     type="number" 
-                     className="technical-input" 
-                     value={config.security.securityThresholds.dataOpsErrorAttention}
-                     onChange={(e) => setConfig({
-                       ...config, 
-                       security: { ...config.security, securityThresholds: { ...config.security.securityThresholds, dataOpsErrorAttention: Number(e.target.value) } }
-                     })}
-                   />
-                </div>
-             </div>
+            {/* SECURITY */}
+            <section className="station-card" style={{ padding: '20px', gap: '16px' }}>
+               <div className="flex-row" style={{ gap: '10px', opacity: 0.6 }}>
+                  <ShieldCheckIcon size={14} />
+                  <h3 className="station-form-section-title" style={{ fontSize: '0.65rem' }}>SEC_POLICIES</h3>
+               </div>
+               <div className="station-field-container">
+                  <label className="station-registry-item-meta">AUTH_FAIL (WARN)</label>
+                  <input 
+                    type="number" 
+                    className="station-input" 
+                    value={config.security.securityThresholds.failedAuthLow}
+                    onChange={(e) => setConfig({
+                      ...config, 
+                      security: { ...config.security, securityThresholds: { ...config.security.securityThresholds, failedAuthLow: Number(e.target.value) } }
+                    })}
+                  />
+               </div>
+               <div className="station-field-container">
+                  <label className="station-registry-item-meta">AUTH_FAIL (ALRT)</label>
+                  <input 
+                    type="number" 
+                    className="station-input" 
+                    value={config.security.securityThresholds.failedAuthHigh}
+                    onChange={(e) => setConfig({
+                      ...config, 
+                      security: { ...config.security, securityThresholds: { ...config.security.securityThresholds, failedAuthHigh: Number(e.target.value) } }
+                    })}
+                  />
+               </div>
+            </section>
+          </div>
 
-             <div className="flex-col industrial-features-box" style={{ marginTop: '20px', gap: '12px', padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderRadius: '2px' }}>
-                <span style={{ fontSize: '0.6rem', fontWeight: 900, opacity: 0.3, letterSpacing: '1px' }}>INDUSTRIAL_UI_FLAGS_ERA_6</span>
-                <div className="flex-row" style={{ gap: '24px' }}>
-                   <label className="technical-checkbox-container">
-                      <input 
-                        type="checkbox" 
-                        checked={config.security.uiFeatures.letterWizardEnabled}
-                        onChange={(e) => setConfig({
-                          ...config,
-                          security: { ...config.security, uiFeatures: { ...config.security.uiFeatures, letterWizardEnabled: e.target.checked } }
-                        })}
-                      />
-                      <span className="label-technical" style={{ marginLeft: '8px', marginBottom: 0 }}>WIZARD_STATION</span>
-                   </label>
-                   <label className="technical-checkbox-container">
-                      <input 
-                        type="checkbox" 
-                        checked={config.security.uiFeatures.mappingMobileLayoutEnabled}
-                        onChange={(e) => setConfig({
-                          ...config,
-                          security: { ...config.security, uiFeatures: { ...config.security.uiFeatures, mappingMobileLayoutEnabled: e.target.checked } }
-                        })}
-                      />
-                      <span className="label-technical" style={{ marginLeft: '8px', marginBottom: 0 }}>MAPPING_MOBILE</span>
-                   </label>
-                </div>
-             </div>
-          </section>
-
-          {/* MAPPING & LETTER POLICY */}
-          <section className="settings-section-technical">
-             <div className="section-header-technical">
+          {/* MAPPING POLICY */}
+          <section className="station-card" style={{ padding: '20px', gap: '16px' }}>
+             <div className="flex-row" style={{ gap: '10px', opacity: 0.6 }}>
                 <MapIcon size={14} />
-                <h3>{t('letter.ui.mapping_brain').toUpperCase()} - POLICY</h3>
+                <h3 className="station-form-section-title" style={{ fontSize: '0.65rem' }}>{t('letter.ui.mapping_brain').toUpperCase()}</h3>
              </div>
-             <div className="form-group-technical">
+             <div className="station-field-container">
                 <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '8px' }}>
-                   <label className="label-technical">MIN_COVERAGE_THRESHOLD</label>
-                   <span style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--primary-color)', fontFamily: 'var(--font-mono)' }}>
+                   <label className="station-registry-item-meta">MIN_COVERAGE_THRESHOLD</label>
+                   <span className="station-title-main" style={{ color: 'var(--primary-color)' }}>
                       {Math.round(config.security.mappingThresholds.minCoverage * 100)}%
                    </span>
                 </div>
@@ -289,7 +236,7 @@ export const TelemetrySettingsPanel: React.FC<TelemetrySettingsPanelProps> = ({ 
                   min="0" 
                   max="100" 
                   step="5"
-                  className="technical-range"
+                  className="station-input"
                   value={config.security.mappingThresholds.minCoverage * 100}
                   onChange={(e) => setConfig({
                     ...config,
@@ -298,38 +245,34 @@ export const TelemetrySettingsPanel: React.FC<TelemetrySettingsPanelProps> = ({ 
                       mappingThresholds: { minCoverage: Number(e.target.value) / 100 }
                     }
                   })}
-                  style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--primary-color)' }}
+                  style={{ cursor: 'pointer', accentColor: 'var(--primary-color)' }}
                 />
-                <p style={{ fontSize: '0.6rem', opacity: 0.5, marginTop: '8px', lineHeight: 1.4 }}>
-                  Nivel de vinculación mínimo requerido en el Wizard para permitir la ejecución del motor industrial. El valor estándar es 100%.
-                </p>
              </div>
           </section>
 
            {/* AT-REST ENCRYPTION STATUS & MIGRATION */}
-           <section className="settings-section-technical at-rest-highlight">
-              <div className="section-header-technical">
+           <section className="station-card" style={{ padding: '20px', gap: '16px', border: '1px solid var(--primary-color)', background: 'rgba(var(--primary-color-rgb), 0.05)' }}>
+              <div className="flex-row" style={{ gap: '10px' }}>
                  <LockIcon size={14} color="var(--primary-color)" />
-                 <h3 style={{ color: 'var(--primary-color)' }}>SEG_AT_REST_ERA_6</h3>
+                 <h3 className="station-form-section-title" style={{ fontSize: '0.65rem', color: 'var(--primary-color)' }}>SEG_AT_REST_ERA_6</h3>
               </div>
               <div className="flex-col" style={{ gap: '16px' }}>
                  <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                     <div className="flex-col">
-                       <span style={{ fontSize: '0.75rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>STATUS: {installationKey ? 'UNLOCKED' : 'LOCKED'}</span>
-                       <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>AES-GCM INST_KEY_MEMORY_ACTIVE.</span>
+                       <span className="station-title-main" style={{ fontSize: '0.75rem' }}>STATUS: {installationKey ? 'UNLOCKED' : 'LOCKED'}</span>
+                       <span className="station-registry-item-meta">AES-GCM INST_KEY_MEMORY_ACTIVE.</span>
                     </div>
                     <button 
-                      className={`station-btn primary small ${isMigrating ? 'loading' : ''}`} 
+                      className="station-btn station-btn-primary small" 
                       disabled={!installationKey || isMigrating}
                       onClick={handleMigration}
-                      style={{ padding: '8px 16px', fontSize: '0.65rem', background: 'var(--primary-color)', color: '#000', fontWeight: 900 }}
                     >
                       {isMigrating ? <RefreshCwIcon size={14} className="spin" /> : <RefreshCwIcon size={14} />}
                       <span>MIGRAR_DATOS</span>
                     </button>
                  </div>
                  {migrationStatus && (
-                    <div className="status-text-technical" style={{ fontSize: '0.65rem', color: 'var(--primary-color)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                    <div className="station-shimmer-text" style={{ fontSize: '0.65rem', color: 'var(--primary-color)', fontWeight: 700 }}>
                        {migrationStatus.toUpperCase()}
                     </div>
                  )}
@@ -339,69 +282,15 @@ export const TelemetrySettingsPanel: React.FC<TelemetrySettingsPanelProps> = ({ 
         </div>
 
         <footer className="station-modal-footer">
-            <button className="station-btn secondary tiny" style={{ fontSize: '0.6rem' }} onClick={() => TelemetryConfigService.resetToDefaults().then(() => TelemetryConfigService.loadConfig().then(setConfig))}>
+            <button className="station-btn secondary tiny" onClick={() => TelemetryConfigService.resetToDefaults().then(() => TelemetryConfigService.loadConfig().then(setConfig))}>
                 RESET_DEFAULTS
             </button>
-            <button className="station-btn primary tiny" onClick={handleSave} disabled={isSaving} style={{ background: 'var(--primary-color)', color: '#000', padding: '10px 20px' }}>
+            <button className="station-btn station-btn-primary" onClick={handleSave} disabled={isSaving}>
                 <SaveIcon size={18} />
-                <span style={{ fontWeight: 900, fontSize: '0.7rem' }}>{isSaving ? '...' : t('supervisor.save_settings').toUpperCase()}</span>
+                <span>{isSaving ? '...' : t('supervisor.save_settings').toUpperCase()}</span>
             </button>
         </footer>
       </div>
-
-      <style jsx>{`
-        .technical-modal {
-           animation: slideUp 0.1s ease-out;
-        }
-        @keyframes slideUp {
-           from { transform: translateY(10px); opacity: 0; }
-           to { transform: translateY(0); opacity: 1; }
-        }
-        .settings-section-technical {
-          background: var(--surface-color);
-          border: 1px solid var(--border-color);
-          border-radius: 4px;
-          padding: 20px;
-          margin-bottom: 20px;
-        }
-        .settings-section-technical.at-rest-highlight {
-           border: 1px solid var(--primary-color);
-           background: rgba(56, 189, 248, 0.05);
-        }
-        .section-header-technical {
-           display: flex;
-           align-items: center;
-           gap: 10px;
-           margin-bottom: 20px;
-           opacity: 0.8;
-        }
-        .section-header-technical h3 { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 900; margin: 0; color: var(--text-primary); }
-        .grid-2-technical { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .label-technical { 
-           display: block; 
-           font-size: 0.6rem; 
-           opacity: 0.5; 
-           margin-bottom: 6px; 
-           text-transform: uppercase; 
-           letter-spacing: 1px;
-           font-weight: 800;
-           font-family: var(--font-mono);
-        }
-        .technical-input {
-           background: var(--bg-color) !important;
-           border: 1px solid var(--border-color) !important;
-           font-family: var(--font-mono) !important;
-           font-size: 0.75rem !important;
-           color: var(--text-primary) !important;
-           padding: 8px 12px;
-           width: 100%;
-        }
-        .technical-checkbox-container {
-           display: flex;
-           align-items: center;
-           cursor: pointer;
-        }
-      `}</style>
     </div>
   );
 };

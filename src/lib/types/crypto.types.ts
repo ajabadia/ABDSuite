@@ -9,6 +9,7 @@ export interface EncryptedFieldContainer {
   iv: string;           // Initialization Vector (Base64)
   ct: string;           // Ciphertext + Auth Tag (Base64)
   aad?: string;         // Additional Authenticated Data (Base64) - Optional context
+  aad_context?: Partial<AADPayload>; // Metadata to recreate AAD during fallback/migration
 }
 
 export type EncryptedFieldKind = 'binary' | 'text' | 'json';

@@ -1,0 +1,11 @@
+{
+  "common": {
+    "confirm_delete": "Sind Sie sicher, dass Sie dieses Element löschen möchten? Dieser Vorgang kann nicht rückgängig gemacht werden.",
+    "confirm_delete_with_fields": "WARNUNG: Dieser Typ hat zugehörige Felder. Trotzdem löschen? Dieser Vorgang ist nicht reversibel.",
+    "save": "SPEICHERN",
+    "cancel": "ABBRECHEN",
+    "help": "HILFE",
+    "ok": "VERSTANDEN",
+    "search": "SUCHE"
+  }
+}

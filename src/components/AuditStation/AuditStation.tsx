@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
-import { GAWEB_FIELDS } from '@/lib/logic/gaweb-auditor.logic';
+import { GAWEB_FIELDS, serializeGawebRecord } from '@/lib/logic/gaweb-auditor.logic';
+import { regulatoryService } from '@/lib/logic/RegulatoryService';
+import { regulatoryOrchestrator } from '@/lib/logic/RegulatoryOrchestrator';
+import { HolderMetadata, TinRequirement } from '@/lib/types/regulatory.types';
 import { sanitizeFilename } from '@/lib/utils/filename.utils';
-import { auditService } from '@/lib/services/AuditService';
 import { 
   ShieldCheckIcon, 
   AlertTriangleIcon, 
@@ -25,15 +27,196 @@ import { GawebGoldenProfile } from '@/lib/types/gaweb-golden.types';
 import { db } from '@/lib/db/db';
 import { AuditHistoryDashboard } from './AuditHistoryDashboard';
 import { TelemetryConfigService } from '@/lib/services/telemetry-config.service';
+import { auditStationService } from '@/lib/services/AuditStationService';
+import { useWorkspace } from '@/lib/context/WorkspaceContext';
 
 type AuditPhase = 'IDLE' | 'LOADING' | 'ANALYZING' | 'SUMMARY' | 'EXPORTING';
 
 const PAGE_SIZE = 200;
 const ITEM_HEIGHT = 32;
 
+const SEMANTIC_COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16', '#a855f7', '#14b8a6'];
+
+// COMPONENTE INDUSTRIAL: LineInspector (Era 6)
+const LineInspector: React.FC<{ line: number, content: string, errors: GawebErrorLite[], t: any }> = ({ line, content, errors, t }) => {
+  const paddedLine = content.padEnd(251, ' ');
+  
+  return (
+    <div className="station-card" style={{ marginTop: '16px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--primary-color-dim)' }}>
+      <div className="flex-row" style={{ justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <span className="station-registry-item-meta" style={{ fontWeight: 900 }}>LINE_INSPECTOR_V1 (OFFSET_HEX)</span>
+        <span className="station-registry-item-meta" style={{ color: 'var(--primary-color)' }}>LNR: {line}</span>
+      </div>
+      
+      <div style={{ padding: '16px', fontFamily: 'var(--font-roboto-mono)', fontSize: '0.85rem', position: 'relative', overflowX: 'auto', whiteSpace: 'pre' }}>
+         <div style={{ opacity: 0.3, fontSize: '0.6rem', marginBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            {'1234567890'.repeat(25).substring(0, 251)}
+         </div>
+
+         <div className="flex-row" style={{ position: 'relative', height: '24px' }}>
+            {paddedLine.split('').map((char, i) => {
+                const error = errors.find(e => i >= e.colStart && i < e.colEnd);
+                const fieldIndex = GAWEB_FIELDS.findIndex(f => i >= f.startIndex && i < f.startIndex + f.length);
+                const field = fieldIndex !== -1 ? GAWEB_FIELDS[fieldIndex] : null;
+
+                let color = 'inherit';
+                let background = 'transparent';
+                let borderBottom = 'none';
+
+                if (error) {
+                    color = error.severity === 'ERROR' ? '#ef4444' : '#f59e0b';
+                    background = `${color}22`;
+                    borderBottom = `1px solid ${color}`;
+                } else if (field) {
+                    color = SEMANTIC_COLORS[fieldIndex % SEMANTIC_COLORS.length];
+                    if (char === ' ') color = `${color}66`; // Dim espacios en blanco
+                }
+
+                return (
+                    <span 
+                        key={i} 
+                        style={{ 
+                            color, 
+                            background,
+                            borderBottom,
+                            minWidth: '8.5px',
+                            display: 'inline-block',
+                            textAlign: 'center',
+                            fontWeight: error ? 900 : (char !== ' ' ? 700 : 400)
+                        }}
+                        title={error ? `${error.field}: ${t(error.messageKey)}` : (field ? `${field.name} (Pos: ${i+1})` : `Pos: ${i+1}`)}
+                    >
+                        {char}
+                    </span>
+                );
+            })}
+         </div>
+      </div>
+      
+      {errors.length > 0 && (
+          <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.05)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              {errors.map((e, i) => {
+                  const countryIso = content.substring(130, 133).trim() || 'ES';
+                  const tinResult = regulatoryService.validateTin(countryIso, content.substring(115, 130).trim());
+                  
+                  return (
+                    <div key={i} className="flex-row" style={{ gap: '8px', fontSize: '0.75rem', marginBottom: '4px' }}>
+                        <span style={{ color: e.severity === 'ERROR' ? '#ef4444' : '#f59e0b', fontWeight: 900 }}>
+                           [{(() => {
+                               const main = t(`shell.regtech_tin_names.${countryIso}.main`);
+                               const aux = t(`shell.regtech_tin_names.${countryIso}.aux`);
+                               if (main !== `shell.regtech_tin_names.${countryIso}.main`) {
+                                   return aux && aux !== `shell.regtech_tin_names.${countryIso}.aux` ? `${main} (${aux})` : main;
+                               }
+                               return tinResult.tinType || e.field;
+                           })()}]
+                        </span>
+                        <span style={{ opacity: 0.8 }}>{tinResult.explanation || tinResult.message || t(e.messageKey, { file: e.value })}</span>
+                    </div>
+                  );
+              })}
+          </div>
+      )}
+    </div>
+  );
+};
+
+const MetadataCollectorForm: React.FC<{ 
+    requirements: any[], 
+    onValidate: (data: HolderMetadata) => void,
+    onCancel: () => void,
+    t: any 
+}> = ({ requirements, onValidate, onCancel, t }) => {
+    const [formData, setFormData] = useState<Record<string, any>>({});
+
+    return (
+        <div className="station-card" style={{ padding: '16px', background: 'rgba(0,0,0,0.6)', border: '1px solid var(--primary-color)' }}>
+            <div className="station-form-section-title" style={{ marginBottom: '16px' }}>
+                HIGH_FIDELITY_METADATA_COLLECTION
+            </div>
+            <div className="station-form-grid">
+                {requirements.filter(req => {
+                    if (typeof req === 'string') return true;
+                    if (!req.scope) return true;
+                    const hType = formData.holderType || 'ANY';
+                    if (hType === 'ANY') return true;
+                    return req.scope === hType;
+                }).map((req, idx) => {
+                    const isLegacy = typeof req === 'string';
+                    if (isLegacy) {
+                        return (
+                            <div key={`legacy-${idx}`} className="module-col-12" style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', borderRadius: '4px', fontSize: '0.65rem', opacity: 0.7, borderLeft: '2px solid rgba(255,255,255,0.1)', marginBottom: '8px' }}>
+                                {req}
+                            </div>
+                        );
+                    }
+
+                    const r = req as any;
+                    const hasSuggestions = r.suggestions && r.suggestions.length > 0;
+
+                    return (
+                        <div key={r.key} className="station-form-field">
+                            <label className="station-label">
+                                {t(`shell.regtech_fields.${r.key}`) !== `shell.regtech_fields.${r.key}` 
+                                    ? t(`shell.regtech_fields.${r.key}`)
+                                    : r.label.toUpperCase()}
+                            </label>
+                            {r.type === 'select' ? (
+                                <select 
+                                    className="station-input" 
+                                    style={{ width: '100%' }}
+                                    onChange={(e) => setFormData({...formData, [r.key]: e.target.value})}
+                                >
+                                    <option value="">---</option>
+                                    {r.options?.map((opt: any) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {t(`shell.regtech_fields.${opt.label}`) !== `shell.regtech_fields.${opt.label}`
+                                              ? t(`shell.regtech_fields.${opt.label}`)
+                                              : opt.label.toUpperCase()}
+                                        </option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <>
+                                    <input 
+                                        type={r.type === 'date' ? 'date' : (r.type === 'number' ? 'number' : 'text')} 
+                                        className="station-input" 
+                                        style={{ width: '100%' }}
+                                        placeholder={r.placeholder || (r.type === 'date' ? 'YYYY-MM-DD' : '')}
+                                        list={hasSuggestions ? `suggestions-${r.key}` : undefined}
+                                        onChange={(e) => setFormData({...formData, [r.key]: e.target.value})}
+                                    />
+                                    {hasSuggestions && (
+                                      <datalist id={`suggestions-${r.key}`}>
+                                        {r.suggestions.map((s: string, i: number) => (
+                                          <option key={i} value={s} />
+                                        ))}
+                                      </datalist>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="flex-row" style={{ marginTop: '20px', gap: '8px', justifyContent: 'flex-end' }}>
+                <button className="station-btn tiny secondary" onClick={onCancel}>CANCEL</button>
+                <button 
+                    className="station-btn tiny" 
+                    style={{ background: 'var(--primary-color)', color: 'black' }}
+                    onClick={() => onValidate(formData as HolderMetadata)}
+                >
+                    RUN_SEMANTIC_CHECK
+                </button>
+            </div>
+        </div>
+    );
+};
+
 const AuditStation: React.FC = () => {
   const { t } = useLanguage();
   const { addLog: globalAddLog } = useLog();
+  const { currentOperator } = useWorkspace();
   
   const [indexFile, setIndexFile] = useState<File | null>(null);
   const [archiveFile, setArchiveFile] = useState<File | null>(null);
@@ -41,11 +224,13 @@ const AuditStation: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'DATA' | 'ERRORS' | 'HISTORY'>('DATA');
   const [selectedLine, setSelectedLine] = useState<number | null>(null);
+  const [isCollectingMetadata, setIsCollectingMetadata] = useState(false);
+  const [semanticMetadata, setSemanticMetadata] = useState<Record<number, HolderMetadata>>({});
   const [phase, setPhase] = useState<AuditPhase>('IDLE');
   const [detectedProfile, setDetectedProfile] = useState<GawebGoldenProfile | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [warningThreshold, setWarningThreshold] = useState(2);
-  const [samplingConfig, setSamplingConfig] = useState({ enabled: true, maxPerType: 10 });
+  const [samplingConfig, setSamplingConfig] = useState({ enabled: true, maxPerType: 10, sampleEvery: 1, maxPerDay: 5000 });
 
   // MOTOR INDUSTRIAL (Phase 2)
   const audit = useAuditWorker({ 
@@ -78,12 +263,24 @@ const AuditStation: React.FC = () => {
     globalAddLog('SYSTEM', `Ajuste Seguridad: Umbral aviso sesión cambiado a ${val} min`, 'info');
   };
 
-  const saveSampling = async (next: { enabled: boolean; maxPerType: number }) => {
+  const saveSampling = async (next: { enabled: boolean; maxPerType: number; sampleEvery: number; maxPerDay: number }) => {
+    const prev = { ...samplingConfig };
     setSamplingConfig(next);
     await TelemetryConfigService.saveConfig({
       security: { auditSampling: next } as any
     });
-    globalAddLog('SYSTEM', `Audit Config: Muestreo industrial ${next.enabled ? 'activado' : 'desactivado'} (${next.maxPerType} err/tipo)`, 'info');
+
+    try {
+      await auditStationService.logAuditResult(
+        currentOperator?.id || 'system',
+        'CONFIG',
+        { totalErrors: 0, totalLines: 0 },
+        { name: 'SAMPLING_CONFIG_UPDATE', version: '1.0' }
+      );
+      globalAddLog('SYSTEM', `Audit Config: Muestreo industrial actualizado (Max: ${next.maxPerType}, Every: ${next.sampleEvery})`, 'info');
+    } catch (e) {
+      console.error('Failed to log sampling update', e);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, slot: 'index' | 'archive' | 'md5') => {
@@ -97,16 +294,14 @@ const AuditStation: React.FC = () => {
 
   const autoDetectProfile = async (file: File) => {
     try {
-      // Read first 1024 bytes to get the header
       const chunk = file.slice(0, 1024);
       const text = await chunk.text();
       const firstLine = text.split('\n')[0];
       if (firstLine.length < 32) return;
 
-      const format = firstLine.substring(1, 3).trim(); // pos 2-3 (0-indexed 1-3)
-      const docCode = firstLine.substring(26, 32).trim(); // pos 27-32 (0-indexed 26-32)
+      const format = firstLine.substring(1, 3).trim();
+      const docCode = firstLine.substring(26, 32).trim();
 
-      console.log(`[AUDIT-GOLDEN] Auto-detecting for DocCode: ${docCode}, Format: ${format}`);
       const profile = await db.gaweb_golden_profiles_v6
         .where({ codigoDocumento: docCode, formatoCarta: format, active: 1 })
         .first();
@@ -125,58 +320,52 @@ const AuditStation: React.FC = () => {
   const runValidation = async () => {
     if (!indexFile) return;
     
-    globalAddLog('AUDIT', t('audit.logs.start', { file: indexFile.name }), 'info', { fileName: indexFile.name });
-    
-    let md5Text = '';
-    if (md5File) {
-        try {
-            md5Text = await md5File.text();
-        } catch(e) {
-            console.error("Error reading MD5 file", e);
+    try {
+        auditStationService.validateOptions({ 
+            encoding: 'iso-8859-1', 
+            maxErrorsPreview: 5000,
+            sampling: samplingConfig
+        });
+
+        globalAddLog('AUDIT', t('audit.logs.start', { file: indexFile.name }), 'info', { fileName: indexFile.name });
+        
+        let md5Text = '';
+        if (md5File) {
+            try {
+                md5Text = await md5File.text();
+            } catch(e) {
+                console.error("Error reading MD5 file", e);
+            }
         }
+        
+        setPhase('ANALYZING');
+        audit.startAudit({ 
+          gawebFile: indexFile, 
+          zipFile: archiveFile || undefined, 
+          md5Witness: md5Text,
+          goldenProfile: detectedProfile || undefined,
+          sampling: samplingConfig
+        });
+    } catch (err: any) {
+        globalAddLog('AUDIT', err.message, 'error');
     }
-    
-    setPhase('ANALYZING');
-    audit.startAudit({ 
-      gawebFile: indexFile, 
-      zipFile: archiveFile || undefined, 
-      md5Witness: md5Text,
-      goldenProfile: detectedProfile || undefined,
-      sampling: samplingConfig
-    });
   };
 
-  // Efecto para feedback de logs industriales
   useEffect(() => {
     if (audit.summary && !audit.isRunning) {
       globalAddLog('AUDIT', t('audit.logs.success', { n: audit.summary.totalErrors }), audit.summary.totalErrors > 0 ? 'error' : 'success', { fileName: indexFile?.name });
       setPhase('SUMMARY');
 
-      // PERSISTENCIA INDUSTRIAL (6.0.0-IND)
       const persistAudit = async () => {
           if (!indexFile || !audit.summary) return;
           try {
-              await auditService.log({
-                  module: 'AUDIT',
-                  messageKey: 'gaweb.audit.run',
-                  status: audit.summary.totalErrors > 0 ? 'WARNING' : 'SUCCESS',
-                  details: {
-                      eventType: 'GAWEBAUDITRUN',
-                      entityType: 'GAWEB_FILE',
-                      entityId: indexFile.name,
-                      severity: audit.summary.totalErrors > 0 ? 'WARN' : 'INFO',
-                      context: {
-                        fileName: indexFile.name,
-                        totalLines: audit.summary.totalLines,
-                        totalErrors: audit.summary.totalErrors,
-                        totalWarnings: audit.summary.totalWarnings,
-                        md5Witness: audit.summary.md5Matches ? 'MATCH' : 'MISMATCH',
-                        goldenProfile: detectedProfile?.name || 'NONE',
-                        goldenVersion: detectedProfile?.version || 'N/A'
-                      }
-                  }
-              });
-              console.log('[ABDFN-AUDIT] Result persisted via AuditService.');
+              await auditStationService.logAuditResult(
+                  currentOperator?.id || 'system',
+                  indexFile.name,
+                  audit.summary,
+                  detectedProfile
+              );
+              console.log('[ABDFN-AUDIT] Result persisted via AuditStationService.');
           } catch (e) {
               console.error('Failed to persist audit', e);
           }
@@ -185,7 +374,8 @@ const AuditStation: React.FC = () => {
 
       if (audit.summary.totalErrors > 0) setActiveTab('ERRORS');
     }
-  }, [audit.summary, audit.isRunning, globalAddLog, indexFile, t]);
+  }, [audit.summary, audit.isRunning, globalAddLog, indexFile, t, currentOperator, detectedProfile]);
+
 
   const exportCsv = () => {
     if (!audit.summary || !indexFile) return;
@@ -309,6 +499,11 @@ const AuditStation: React.FC = () => {
                {audit.progress && (
                  <span className="station-badge station-badge-blue" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
                    {audit.progress.processedLines.toLocaleString()} REC_OK
+                 </span>
+               )}
+               {audit.isRunning && audit.progress && (
+                 <span className="station-badge success" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+                    {(audit.progress.processedLines / 5).toFixed(0)} REC/S
                  </span>
                )}
             </div>
@@ -452,6 +647,106 @@ const AuditStation: React.FC = () => {
             )}
           </div>
 
+          {/* INSPECTOR DE LÍNEA SELECCIONADA */}
+          {selectedLine && activeTab !== 'HISTORY' && (
+              <div style={{ padding: '0 16px 16px 16px' }}>
+                  {(() => {
+                      const row = visibleData.find(r => r?.line === selectedLine);
+                      let lineErrors = Array.from(audit.errorsWindows.values())
+                        .flat()
+                        .filter(e => e?.line === selectedLine);
+                      
+                      const rawContent = row ? serializeGawebRecord(GAWEB_FIELDS, row.fields) : ''; 
+                      const countryIso = rawContent.substring(130, 133).trim() || 'ES';
+
+                      // Re-validate semantically if metadata is available
+                      if (selectedLine && semanticMetadata[selectedLine]) {
+                          const tinValue = row?.fields['CLALF'] || '';
+                          const hType = (semanticMetadata[selectedLine] as any).holderType || 'ANY';
+                          const semanticResult = regulatoryService.validateTin(countryIso, tinValue, hType, semanticMetadata[selectedLine]);
+                          
+                          // Filter out structural CLALF errors and inject semantic results
+                          lineErrors = lineErrors.filter(e => e.field !== 'CLALF');
+                          if (semanticResult.status !== 'VALID' && semanticResult.status !== 'EXEMPTED') {
+                              lineErrors.push({
+                                  line: selectedLine,
+                                  field: 'CLALF',
+                                  colStart: GAWEB_FIELDS.find(f => f.name === 'CLALF')?.startIndex || 0,
+                                  colEnd: (GAWEB_FIELDS.find(f => f.name === 'CLALF')?.startIndex || 0) + 15,
+                                  severity: semanticResult.severity as any,
+                                  messageKey: semanticResult.message || `audit.errors.invalid_tin_${countryIso.toLowerCase()}`,
+                                  value: tinValue,
+                                  index: 0,
+                                  position: String(GAWEB_FIELDS.find(f => f.name === 'CLALF')?.startIndex || 0)
+                              });
+                          }
+                      }
+
+                      return (
+                        <div style={{ position: 'relative' }}>
+                             <button 
+                                className="station-btn tiny secondary" 
+                                style={{ position: 'absolute', top: '24px', right: '8px', zIndex: 10 }}
+                                onClick={() => setSelectedLine(null)}
+                             >
+                                <XIcon size={12} />
+                             </button>
+
+                             {/* Metadata Collector Trigger */}
+                             {(() => {
+                                 const requirements = regulatoryOrchestrator.getRequirements(countryIso);
+                                 if (requirements.length > 0 && lineErrors.some(e => e.field === 'CLALF' || semanticMetadata[selectedLine])) {
+                                     return (
+                                        <div className="flex-row" style={{ position: 'absolute', top: '24px', right: '40px', zIndex: 10, gap: '8px' }}>
+                                             {!isCollectingMetadata ? (
+                                                <>
+                                                    <span style={{ fontSize: '0.65rem', opacity: 0.6 }}>
+                                                        {semanticMetadata[selectedLine] ? 'SEMANTIC_CHECK_ACTIVE' : 'SEMANTIC_CHECK_AVAIL'}
+                                                    </span>
+                                                    <button 
+                                                        className="station-btn tiny" 
+                                                        style={{ background: semanticMetadata[selectedLine] ? '#10b981' : 'var(--primary-color)', color: 'black' }}
+                                                        onClick={() => setIsCollectingMetadata(true)}
+                                                    >
+                                                        {semanticMetadata[selectedLine] ? 'RE_COLLECT_METADATA' : 'VALIDATE_HIGH_FIDELITY'}
+                                                    </button>
+                                                </>
+                                             ) : (
+                                                 <span style={{ fontSize: '0.65rem', color: 'var(--primary-color)', fontWeight: '900' }}>COLLECTING_DATA...</span>
+                                             )}
+                                        </div>
+                                     );
+                                 }
+                                 return null;
+                             })()}
+
+                             {isCollectingMetadata ? (
+                                 <div style={{ marginTop: '16px' }}>
+                                     <MetadataCollectorForm 
+                                        requirements={regulatoryOrchestrator.getRequirements(rawContent.substring(130, 133).trim() || 'ES')}
+                                        onCancel={() => setIsCollectingMetadata(false)}
+                                        onValidate={(data) => {
+                                            setSemanticMetadata({ ...semanticMetadata, [selectedLine]: data });
+                                            setIsCollectingMetadata(false);
+                                            globalAddLog('AUDIT', t('audit.info.semantic_check_applied'), 'info', { line: selectedLine });
+                                        }}
+                                        t={t}
+                                     />
+                                 </div>
+                             ) : (
+                                <LineInspector 
+                                    line={selectedLine} 
+                                    content={rawContent} 
+                                    errors={lineErrors} 
+                                    t={t} 
+                                />
+                             )}
+                        </div>
+                      );
+                  })()}
+              </div>
+          )}
+
           {audit.summary && audit.summary.totalErrors > 0 && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px' }}>
               <button className="station-btn" onClick={exportCsv}><DownloadIcon size={16} /> EXPORT_CSV</button>
@@ -505,21 +800,33 @@ const AuditStation: React.FC = () => {
                 </label>
                 {samplingConfig.enabled && (
                   <div style={{ marginTop: '12px' }}>
-                    <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>LÍMITE POR TIPO DE ERROR</span>
-                        <span style={{ fontWeight: 800, color: 'var(--primary-color)' }}>{samplingConfig.maxPerType}</span>
+                    <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '4px', marginTop: '12px' }}>
+                        <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>FRECUENCIA DE MUESTREO (1 de N)</span>
+                        <span style={{ fontWeight: 800, color: 'var(--primary-color)' }}>{samplingConfig.sampleEvery}</span>
                     </div>
                     <input 
                       type="range" 
                       min="1" max="100" 
-                      value={samplingConfig.maxPerType} 
-                      onChange={e => saveSampling({ ...samplingConfig, maxPerType: parseInt(e.target.value) })}
+                      value={samplingConfig.sampleEvery} 
+                      onChange={e => saveSampling({ ...samplingConfig, sampleEvery: parseInt(e.target.value) })}
                       style={{ width: '100%' }}
+                    />
+
+                    <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '4px', marginTop: '12px' }}>
+                        <span style={{ fontSize: '0.65rem', opacity: 0.7 }}>LÍMITE GLOBAL DIARIO</span>
+                        <span style={{ fontWeight: 800, color: 'var(--primary-color)' }}>{samplingConfig.maxPerDay}</span>
+                    </div>
+                    <input 
+                      type="number" 
+                      className="station-input"
+                      value={samplingConfig.maxPerDay} 
+                      onChange={e => saveSampling({ ...samplingConfig, maxPerDay: parseInt(e.target.value) || 0 })}
+                      style={{ width: '100%', height: '32px', fontSize: '0.8rem' }}
                     />
                   </div>
                 )}
                 <p style={{ opacity: 0.5, fontSize: '0.65rem', marginTop: '8px' }}>
-                  Agrupa errores idénticos para optimizar el rendimiento y legibilidad en auditorías masivas.
+                  Agrupa errores idénticos y aplica cuotas de procesamiento para optimizar el rendimiento y legibilidad.
                 </p>
              </div>
 

@@ -1,0 +1,19 @@
+{
+  "operator": {
+    "role": "ROL",
+    "panel_title": "GESTIÓN DE OPERARIOS",
+    "search_placeholder": "BUSCAR OPERARIO...",
+    "username": "NOMBRE DE USUARIO",
+    "display_name": "NOMBRE A MOSTRAR",
+    "roles": {
+      "ADMIN": "ADMINISTRADOR/A",
+      "TECH": "TÉCNICO/A"
+    },
+    "active": "ACTIVO",
+    "inactive": "INACTIVO",
+    "last_login": "ÚLTIMO ACCESO",
+    "add_new": "AÑADIR_NUEVO_OPERARIO",
+    "edit_status": "ESTADO_CUENTA",
+    "permissions": "CONFIG_PERMISOS"
+  }
+}

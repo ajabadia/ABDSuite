@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Language, translations } from '@/lib/i18n/translations';
+import { detectLanguage } from '@/lib/i18n/detectLanguage';
 
 interface LanguageContextType {
   language: Language;
@@ -17,20 +18,12 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children, initialLang = 'es' }) => {
-  const [language, setLanguage] = useState<Language>(initialLang);
+    const [language, setLanguage] = useState<Language>(initialLang);
 
-  // Load from localStorage on mount
+  // Inicialización con detección mejorada
   useEffect(() => {
-    const saved = localStorage.getItem('abdfn-lang') as Language;
-    if (saved && ['es', 'en', 'fr', 'de'].includes(saved)) {
-      setLanguage(saved);
-    } else {
-      // Auto-detect browser language
-      const browserLang = navigator.language.split('-')[0] as Language;
-      if (['es', 'en', 'fr', 'de'].includes(browserLang)) {
-        setLanguage(browserLang);
-      }
-    }
+    const detected = detectLanguage();
+    setLanguage(detected);
   }, []);
 
   // Save to localStorage on change

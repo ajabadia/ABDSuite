@@ -33,6 +33,7 @@ export interface GawebConfig {
   idioma: string;
   viaReparto: string;
   copiaPapel: string;
+  contractClass?: string;
   // Ahorro (AH) Block
   savingsOpCode?: string; // AH
   savingsOpAccount?: string;

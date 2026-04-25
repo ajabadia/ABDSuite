@@ -39,6 +39,7 @@ export interface UnitTelemetrySnapshot {
     failedLogins: number;
     techModeActivations: number;
     locksTriggered: number;
+    samplingChanges24h: number;
     severity: SecuritySeverity;
   };
 
@@ -82,6 +83,7 @@ export interface GlobalTelemetrySnapshot {
     totalFailedLogins: number;
     totalLocksTriggered: number;
     totalTechModeActivations: number;
+    samplingChanges24h: number;
   };
 
   governance: {
@@ -118,7 +120,9 @@ export interface UiFeaturesConfig {
 
 export interface AuditSamplingSettings {
   enabled: boolean;
-  maxPerType: number; // Maximum errors to preview per type (sampling)
+  maxPerType: number; // Maximum errors to preview per type (sampling in UI)
+  sampleEvery: number; // 1 = every, 10 = 1 in 10, etc.
+  maxPerDay: number;   // Global limit of errors to process per day
 }
 
 export interface TelemetrySecurityConfig {

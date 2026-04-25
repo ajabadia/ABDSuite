@@ -1,0 +1,400 @@
+import { NO_TIN_JURISDICTIONS } from './no-tin-map';
+import { validateGBTIN, TIN_INFO as GB_INFO, TIN_REQUIREMENTS as GB_REQUIREMENTS } from './gb-tin';
+import { validateDETIN, TIN_INFO as DE_INFO, TIN_REQUIREMENTS as DE_REQUIREMENTS } from './de-tin';
+import { validateITTIN, TIN_INFO as IT_INFO, TIN_REQUIREMENTS as IT_REQUIREMENTS } from './it-tin';
+import { validateFRTIN, TIN_INFO as FR_INFO, TIN_REQUIREMENTS as FR_REQUIREMENTS } from './fr-tin';
+import { validateESTIN, TIN_INFO as ES_INFO, TIN_REQUIREMENTS as ES_REQUIREMENTS } from './es-tin';
+import { validatePTTIN, TIN_INFO as PT_INFO, TIN_REQUIREMENTS as PT_REQUIREMENTS } from './pt-tin';
+import { validateCHTIN, TIN_INFO as CH_INFO, TIN_REQUIREMENTS as CH_REQUIREMENTS } from './ch-tin';
+import { validateUSTIN, TIN_INFO as US_INFO, TIN_REQUIREMENTS as US_REQUIREMENTS } from './us-tin';
+import { validateMXTIN, TIN_INFO as MX_INFO, TIN_REQUIREMENTS as MX_REQUIREMENTS } from './mx-tin';
+import { validateLUTIN, TIN_INFO as LU_INFO, TIN_REQUIREMENTS as LU_REQUIREMENTS } from './lu-tin';
+import { validateCYTIN, TIN_INFO as CY_INFO, TIN_REQUIREMENTS as CY_REQUIREMENTS } from './cy-tin';
+import { validateSGTIN, TIN_INFO as SG_INFO, TIN_REQUIREMENTS as SG_REQUIREMENTS } from './sg-tin';
+import { validateNLTIN, TIN_INFO as NL_INFO, TIN_REQUIREMENTS as NL_REQUIREMENTS } from './nl-tin';
+import { validateBETIN, TIN_INFO as BE_INFO, TIN_REQUIREMENTS as BE_REQUIREMENTS } from './be-tin';
+import { validateATTIN, TIN_INFO as AT_INFO, TIN_REQUIREMENTS as AT_REQUIREMENTS } from './at-tin';
+import { validateIETIN, TIN_INFO as IE_INFO, TIN_REQUIREMENTS as IE_REQUIREMENTS } from './ie-tin';
+import { validateAUTIN, TIN_INFO as AU_INFO, TIN_REQUIREMENTS as AU_REQUIREMENTS } from './au-tin';
+import { validateCATIN, TIN_INFO as CA_INFO, TIN_REQUIREMENTS as CA_REQUIREMENTS } from './ca-tin';
+import { validateHKTIN, TIN_INFO as HK_INFO, TIN_REQUIREMENTS as HK_REQUIREMENTS } from './hk-tin';
+import { validateBRTIN, TIN_INFO as BR_INFO, TIN_REQUIREMENTS as BR_REQUIREMENTS } from './br-tin';
+import { validateARTIN, TIN_INFO as AR_INFO, TIN_REQUIREMENTS as AR_REQUIREMENTS } from './ar-tin';
+import { validateINTIN, TIN_INFO as IN_INFO, TIN_REQUIREMENTS as IN_REQUIREMENTS } from './in-tin';
+import { validatePLTIN, TIN_INFO as PL_INFO, TIN_REQUIREMENTS as PL_REQUIREMENTS } from './pl-tin';
+import { validateDKTIN, TIN_INFO as DK_INFO, TIN_REQUIREMENTS as DK_REQUIREMENTS } from './dk-tin';
+import { validateJPTIN, TIN_INFO as JP_INFO, TIN_REQUIREMENTS as JP_REQUIREMENTS } from './jp-tin';
+import { validateCNTIN, TIN_INFO as CN_INFO, TIN_REQUIREMENTS as CN_REQUIREMENTS } from './cn-tin';
+import { validateADTIN, TIN_INFO as AD_INFO, TIN_REQUIREMENTS as AD_REQUIREMENTS } from './ad-tin';
+import { validateRUTIN, TIN_INFO as RU_INFO, TIN_REQUIREMENTS as RU_REQUIREMENTS } from './ru-tin';
+import { validateTRTIN, TIN_INFO as TR_INFO, TIN_REQUIREMENTS as TR_REQUIREMENTS } from './tr-tin';
+import { validateILTIN, TIN_INFO as IL_INFO, TIN_REQUIREMENTS as IL_REQUIREMENTS } from './il-tin';
+import { validateZATIN, TIN_INFO as ZA_INFO, TIN_REQUIREMENTS as ZA_REQUIREMENTS } from './za-tin';
+import { validateNZTIN, TIN_INFO as NZ_INFO, TIN_REQUIREMENTS as NZ_REQUIREMENTS } from './nz-tin';
+import { validateCOTIN, TIN_INFO as CO_INFO, TIN_REQUIREMENTS as CO_REQUIREMENTS } from './co-tin';
+import { validateCLTIN, TIN_INFO as CL_INFO, TIN_REQUIREMENTS as CL_REQUIREMENTS } from './cl-tin';
+import { validatePETIN, TIN_INFO as PE_INFO, TIN_REQUIREMENTS as PE_REQUIREMENTS } from './pe-tin';
+import { validateSETIN, TIN_INFO as SE_INFO, TIN_REQUIREMENTS as SE_REQUIREMENTS } from './se-tin';
+import { validateFITIN, TIN_INFO as FI_INFO, TIN_REQUIREMENTS as FI_REQUIREMENTS } from './fi-tin';
+import { validatePATIN, TIN_INFO as PA_INFO, TIN_REQUIREMENTS as PA_REQUIREMENTS } from './pa-tin';
+import { validateUYTIN, TIN_INFO as UY_INFO, TIN_REQUIREMENTS as UY_REQUIREMENTS } from './uy-tin';
+import { validateKRTIN as validateKRTIN_Orig, TIN_INFO as KR_INFO, TIN_REQUIREMENTS as KR_REQUIREMENTS } from './kr-tin';
+import { validateTHTIN, TIN_INFO as TH_INFO, TIN_REQUIREMENTS as TH_REQUIREMENTS } from './th-tin';
+import { validateMYTIN, TIN_INFO as MY_INFO, TIN_REQUIREMENTS as MY_REQUIREMENTS } from './my-tin';
+import { validateIDTIN, TIN_INFO as ID_INFO, TIN_REQUIREMENTS as ID_REQUIREMENTS } from './id-tin';
+import { validateUATIN, TIN_INFO as UA_INFO, TIN_REQUIREMENTS as UA_REQUIREMENTS } from './ua-tin';
+import { validatePKTIN, TIN_INFO as PK_INFO, TIN_REQUIREMENTS as PK_REQUIREMENTS } from './pk-tin';
+import { validateLITIN, TIN_INFO as LI_INFO, TIN_REQUIREMENTS as LI_REQUIREMENTS } from './li-tin';
+import { validateSMTIN, TIN_INFO as SM_INFO, TIN_REQUIREMENTS as SM_REQUIREMENTS } from './sm-tin';
+import { validateLTTIN, TIN_INFO as LT_INFO, TIN_REQUIREMENTS as LT_REQUIREMENTS } from './lt-tin';
+import { validateROTIN, TIN_INFO as RO_INFO, TIN_REQUIREMENTS as RO_REQUIREMENTS } from './ro-tin';
+import { validateIMTIN, TIN_INFO as IM_INFO, TIN_REQUIREMENTS as IM_REQUIREMENTS } from './im-tin';
+import { validateJETIN, TIN_INFO as JE_INFO, TIN_REQUIREMENTS as JE_REQUIREMENTS } from './je-tin';
+import { validateUGTIN, TIN_INFO as UG_INFO, TIN_REQUIREMENTS as UG_REQUIREMENTS } from './ug-tin';
+import { validateBGTIN, TIN_INFO as BG_INFO, TIN_REQUIREMENTS as BG_REQUIREMENTS } from './bg-tin';
+import { validateEETIN, TIN_INFO as EE_INFO, TIN_REQUIREMENTS as EE_REQUIREMENTS } from './ee-tin';
+import { validateCZTIN, TIN_INFO as CZ_INFO, TIN_REQUIREMENTS as CZ_REQUIREMENTS } from './cz-tin';
+import { validateSKTIN, TIN_INFO as SK_INFO, TIN_REQUIREMENTS as SK_REQUIREMENTS } from './sk-tin';
+import { validateGRTIN, TIN_INFO as GR_INFO, TIN_REQUIREMENTS as GR_REQUIREMENTS } from './gr-tin';
+import { validateHRTIN, TIN_INFO as HR_INFO, TIN_REQUIREMENTS as HR_REQUIREMENTS } from './hr-tin';
+import { validateHUTIN, TIN_INFO as HU_INFO, TIN_REQUIREMENTS as HU_REQUIREMENTS } from './hu-tin';
+import { validateSITIN, TIN_INFO as SI_INFO, TIN_REQUIREMENTS as SI_REQUIREMENTS } from './si-tin';
+import { validateLVTIN, TIN_INFO as LV_INFO, TIN_REQUIREMENTS as LV_REQUIREMENTS } from './lv-tin';
+import { validateMTTIN, TIN_INFO as MT_INFO, TIN_REQUIREMENTS as MT_REQUIREMENTS } from './mt-tin';
+import { validateDOTIN, TIN_INFO as DO_INFO, TIN_REQUIREMENTS as DO_REQUIREMENTS } from './do-tin';
+import { validateGTTIN, TIN_INFO as GT_INFO, TIN_REQUIREMENTS as GT_REQUIREMENTS } from './gt-tin';
+import { validateHNTIN, TIN_INFO as HN_INFO, TIN_REQUIREMENTS as HN_REQUIREMENTS } from './hn-tin';
+import { validateNITIN, TIN_INFO as NI_INFO, TIN_REQUIREMENTS as NI_REQUIREMENTS } from './ni-tin';
+import { validatePYTIN, TIN_INFO as PY_INFO, TIN_REQUIREMENTS as PY_REQUIREMENTS } from './py-tin';
+import { validateSVTIN, TIN_INFO as SV_INFO, TIN_REQUIREMENTS as SV_REQUIREMENTS } from './sv-tin';
+import { validateTTTIN, TIN_INFO as TT_INFO, TIN_REQUIREMENTS as TT_REQUIREMENTS } from './tt-tin';
+import { validateGGTIN, TIN_INFO as GG_INFO, TIN_REQUIREMENTS as GG_REQUIREMENTS } from './gg-tin';
+import { validateGITIN, TIN_INFO as GI_INFO, TIN_REQUIREMENTS as GI_REQUIREMENTS } from './gi-tin';
+import { validateMUTIN, TIN_INFO as MU_INFO, TIN_REQUIREMENTS as MU_REQUIREMENTS } from './mu-tin';
+import { TinRequirement } from './i18n';
+
+export type TinValidationType = 'INDIVIDUAL' | 'ENTITY' | 'ANY';
+
+/**
+ * Resultado de validación enriquecido (Era 6)
+ */
+export interface TinValidationResult {
+    isValid: boolean;
+    status: 'VALID' | 'INVALID_FORMAT' | 'MISMATCH';
+    reasonCode?: string; // Ej: 'DOB_MISMATCH'
+    mismatchFields?: string[]; // Ej: ['birthDate']
+    message?: string;
+}
+
+export interface HolderMetadata {
+    firstName?: string;
+    lastName?: string;
+    birthDate?: Date | string; // YYYY-MM-DD
+    gender?: 'MALE' | 'FEMALE';
+    isEntity?: boolean;
+}
+
+export interface TinValidationParams {
+    country: string; // ISO 2-letter country code
+    value: string;
+    type?: TinValidationType;
+    metadata?: HolderMetadata;
+}
+
+
+
+/**
+ * Checks if a birth date implies minority (< 18 years)
+ */
+function isMinor(birthDate: Date | string): boolean {
+    const d = new Date(birthDate);
+    if (isNaN(d.getTime())) return false;
+    
+    const today = new Date();
+    let age = today.getFullYear() - d.getFullYear();
+    const m = today.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
+        age--;
+    }
+    return age < 18;
+}
+
+/**
+ * Metadata Requirements Map
+ * Used by the UI to generate dynamic forms (DatePicker, Select, etc.)
+ */
+export const REQUIREMENTS_MAP: Record<string, TinRequirement[]> = {
+    'IT': IT_REQUIREMENTS,
+    'FR': FR_REQUIREMENTS,
+    'ES': ES_REQUIREMENTS,
+    'US': US_REQUIREMENTS,
+    'AR': AR_REQUIREMENTS,
+    'MX': MX_REQUIREMENTS,
+    'PL': PL_REQUIREMENTS,
+    'KR': KR_REQUIREMENTS,
+    'BR': BR_REQUIREMENTS,
+    'GB': GB_REQUIREMENTS,
+    'UK': GB_REQUIREMENTS,
+    'DE': DE_REQUIREMENTS,
+    'IE': IE_REQUIREMENTS,
+    'NZ': NZ_REQUIREMENTS,
+    'SA': SA_REQUIREMENTS,
+    'IN': IN_REQUIREMENTS,
+    'HK': HK_REQUIREMENTS,
+    'ZA': ZA_REQUIREMENTS,
+    'RO': RO_REQUIREMENTS,
+    'FI': FI_REQUIREMENTS,
+    'IM': IM_REQUIREMENTS,
+    'JE': JE_REQUIREMENTS,
+    'LT': LT_REQUIREMENTS,
+    'PA': PA_REQUIREMENTS,
+    'TH': TH_REQUIREMENTS,
+    'UG': UG_REQUIREMENTS,
+    'UY': UY_REQUIREMENTS,
+    'CL': CL_REQUIREMENTS,
+    'PE': PE_REQUIREMENTS,
+    'SE': SE_REQUIREMENTS,
+    'MY': MY_REQUIREMENTS,
+    'ID': ID_REQUIREMENTS,
+    'UA': UA_REQUIREMENTS,
+    'RU': RU_REQUIREMENTS,
+    'PK': PK_REQUIREMENTS,
+    'LI': LI_REQUIREMENTS,
+    'SM': SM_REQUIREMENTS,
+    'CN': CN_REQUIREMENTS,
+    'AD': AD_REQUIREMENTS,
+    'TR': TR_REQUIREMENTS,
+    'IL': IL_REQUIREMENTS,
+    'AT': AT_REQUIREMENTS,
+    'AU': AU_REQUIREMENTS,
+    'BE': BE_REQUIREMENTS,
+    'CA': CA_REQUIREMENTS,
+    'CH': CH_REQUIREMENTS,
+    'CY': CY_REQUIREMENTS,
+    'DK': DK_REQUIREMENTS,
+    'EC': EC_REQUIREMENTS,
+    'CR': CR_REQUIREMENTS,
+    'JP': JP_REQUIREMENTS,
+    'NL': NL_REQUIREMENTS,
+    'NO': NO_REQUIREMENTS,
+    'PT': PT_REQUIREMENTS,
+    'SG': SG_REQUIREMENTS,
+    'UG': UG_REQUIREMENTS,
+    'BG': BG_REQUIREMENTS,
+    'EE': EE_REQUIREMENTS,
+    'CZ': CZ_REQUIREMENTS,
+    'SK': SK_REQUIREMENTS,
+    'GR': GR_REQUIREMENTS,
+    'HR': HR_REQUIREMENTS,
+    'HU': HU_REQUIREMENTS,
+    'SI': SI_REQUIREMENTS,
+    'LV': LV_REQUIREMENTS,
+    'MT': MT_REQUIREMENTS,
+    'DO': DO_REQUIREMENTS,
+    'GT': GT_REQUIREMENTS,
+    'HN': HN_REQUIREMENTS,
+    'NI': NI_REQUIREMENTS,
+    'PY': PY_REQUIREMENTS,
+    'SV': SV_REQUIREMENTS,
+    'TT': TT_REQUIREMENTS,
+    'GG': GG_REQUIREMENTS,
+    'GI': GI_REQUIREMENTS,
+    'MU': MU_REQUIREMENTS
+};
+
+/**
+ * Global Metadata Map
+ * Drives localized identities (NINO, SSN, RFC) in the UI
+ */
+export const TIN_INFO_MAP: Record<string, any> = {
+    'ES': ES_INFO,
+    'US': US_INFO,
+    'GB': GB_INFO,
+    'UK': GB_INFO,
+    'DE': DE_INFO,
+    'IT': IT_INFO,
+    'FR': FR_INFO,
+    'AR': AR_INFO,
+    'MX': MX_INFO,
+    'PL': PL_INFO,
+    'KR': KR_INFO,
+    'BR': BR_INFO,
+    'IN': IN_INFO,
+    'IE': IE_INFO,
+    'CH': CH_INFO,
+    'SG': SG_INFO,
+    'NZ': NZ_INFO,
+    'SA': SA_INFO,
+    'LU': LU_INFO,
+    'HK': HK_INFO,
+    'ZA': ZA_INFO,
+    'FI': FI_INFO,
+    'IM': IM_INFO,
+    'JE': JE_INFO,
+    'LT': LT_INFO,
+    'PA': PA_INFO,
+    'RO': RO_INFO,
+    'TH': TH_INFO,
+    'UG': UG_INFO,
+    'UY': UY_INFO,
+    'CL': CL_INFO,
+    'PE': PE_INFO,
+    'SE': SE_INFO,
+    'MY': MY_INFO,
+    'ID': ID_INFO,
+    'UA': UA_INFO,
+    'RU': RU_INFO,
+    'PK': PK_INFO,
+    'LI': LI_INFO,
+    'SM': SM_INFO,
+    'CN': CN_INFO,
+    'AD': AD_INFO,
+    'TR': TR_INFO,
+    'IL': IL_INFO,
+    'AT': AT_INFO,
+    'AU': AU_INFO,
+    'BE': BE_INFO,
+    'CA': CA_INFO,
+    'CH': CH_INFO,
+    'CY': CY_INFO,
+    'DK': DK_INFO,
+    'EC': EC_INFO,
+    'CR': CR_INFO,
+    'JP': JP_INFO,
+    'NL': NL_INFO,
+    'NO': NO_INFO,
+    'PT': PT_INFO,
+    'SG': SG_INFO,
+    'CO': CO_INFO,
+    'BG': BG_INFO,
+    'EE': EE_INFO,
+    'CZ': CZ_INFO,
+    'SK': SK_INFO,
+    'GR': GR_INFO,
+    'HR': HR_INFO,
+    'HU': HU_INFO,
+    'SI': SI_INFO,
+    'LV': LV_INFO,
+    'MT': MT_INFO,
+    'DO': DO_INFO,
+    'GT': GT_INFO,
+    'HN': HN_INFO,
+    'NI': NI_INFO,
+    'PY': PY_INFO,
+    'SV': SV_INFO,
+    'TT': TT_INFO,
+    'GG': GG_INFO,
+    'GI': GI_INFO,
+    'MU': MU_INFO
+};
+
+/**
+ * Standard Validator Map (Era 6)
+ * Direct mapping to jurisdictional plugins
+ */
+const VALIDATORS: Record<string, (v: string, t: any, m: any) => TinValidationResult> = {
+    'GB': validateGBTIN,
+    'UK': validateGBTIN,
+    'DE': validateDETIN,
+    'IT': validateITTIN,
+    'FR': validateFRTIN,
+    'ES': validateESTIN,
+    'PT': validatePTTIN,
+    'CH': validateCHTIN,
+    'US': validateUSTIN,
+    'MX': validateMXTIN,
+    'LU': validateLUTIN,
+    'CY': validateCYTIN,
+    'SG': validateSGTIN,
+    'NL': validateNLTIN,
+    'BE': validateBETIN,
+    'AT': validateATTIN,
+    'IE': validateIETIN,
+    'AU': validateAUTIN,
+    'CA': validateCATIN,
+    'HK': validateHKTIN,
+    'BR': validateBRTIN,
+    'AR': validateARTIN,
+    'IN': validateINTIN,
+    'PL': validatePLTIN,
+    'DK': validateDKTIN,
+    'JP': validateJPTIN,
+    'CN': validateCNTIN,
+    'AD': validateADTIN,
+    'RU': validateRUTIN,
+    'TR': validateTRTIN,
+    'IL': validateILTIN,
+    'ZA': validateZATIN,
+    'NZ': validateNZTIN,
+    'CO': validateCOTIN,
+    'CL': validateCLTIN,
+    'PE': validatePETIN,
+    'SE': validateSETIN,
+    'FI': validateFITIN,
+    'PA': validatePATIN,
+    'UY': validateUYTIN,
+    'KR': validateKRTIN_Orig,
+    'TH': validateTHTIN,
+    'MY': validateMYTIN,
+    'ID': validateIDTIN,
+    'UA': validateUATIN,
+    'PK': validatePKTIN,
+    'LI': validateLITIN,
+    'SM': validateSMTIN,
+    'LT': validateLTTIN,
+    'RO': validateROTIN,
+    'IM': validateIMTIN,
+    'JE': validateJETIN,
+    'UG': validateUGTIN,
+    'BG': validateBGTIN,
+    'EE': validateEETIN,
+    'CZ': validateCZTIN,
+    'SK': validateSKTIN,
+    'GR': validateGRTIN,
+    'HR': validateHRTIN,
+    'HU': validateHUTIN,
+    'SI': validateSITIN,
+    'LV': validateLVTIN,
+    'MT': validateMTTIN,
+    'DO': validateDOTIN,
+    'GT': validateGTTIN,
+    'HN': validateHNTIN,
+    'NI': validateNITIN,
+    'PY': validatePYTIN,
+    'SV': validateSVTIN,
+    'TT': validateTTTIN,
+    'GG': validateGGTIN,
+    'GI': validateGITIN,
+    'MU': validateMUTIN
+};
+
+/**
+ * High-Fidelity Global TIN Validation Orchestrator (Era 6)
+ * Central entry point for all jurisdictional validation requests.
+ */
+export const validateJurisdictionalTIN = ({ country, value, type = 'ANY', metadata }: TinValidationParams): TinValidationResult => {
+    const iso2 = country.toUpperCase();
+
+    // 1. Jurisdictions with no TIN requirement
+    if (iso2 in NO_TIN_JURISDICTIONS) {
+        return { isValid: true, status: 'VALID' };
+    }
+
+    // 2. Specialized Algorithmic Plugins
+    const validator = VALIDATORS[iso2];
+    if (validator) {
+        return validator(value, type, metadata);
+    }
+
+    // 3. Fallback: Generic RegTech Pattern (Min length 4, Max length 25)
+    const sanitizedValue = value.replace(/[\s-]/g, '');
+    if (sanitizedValue.length >= 4 && sanitizedValue.length <= 25) {
+        return { isValid: true, status: 'VALID' };
+    }
+
+    return { 
+        isValid: false, 
+        status: 'INVALID_FORMAT', 
+        message: 'Invalid length or format for unknown jurisdiction.' 
+    };
+};

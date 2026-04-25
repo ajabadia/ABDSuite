@@ -1,6 +1,7 @@
 /**
  * Document Engine Worker - Era 6 (Industrial Edition)
  * Unified High-Fidelity Engine for DOCX and HTML multi-format generation.
+ * PHASE 20: Added Dynamic Resource Resolution via CATDOCUM map.
  */
 
 /// <reference lib="webworker" />
@@ -52,10 +53,19 @@ async function calculateSha256(data: any) {
 // --- MANEJADOR PRINCIPAL ---
 
 self.onmessage = async (e: MessageEvent) => {
-  const { dataFile, template, mapping, etlPreset, options, isStreaming = false, gawebFields = [] } = e.data;
+  const { 
+    dataFile, 
+    template, 
+    mapping, 
+    etlPreset, 
+    options, 
+    isStreaming = false, 
+    gawebFields = [],
+    catalogResources = null
+  } = e.data;
   
-  // Naming Canonizado (Smart Loader - Worker Side Backup)
-  const codDocumento = options.codDocumento || (options as any).codDocto || 'X00000';
+  // Naming Canonizado (Base default)
+  const defaultCodDocumento = options.codDocumento || (options as any).codDocto || 'X00000';
 
   self.postMessage({ type: 'HEARTBEAT' });
 
@@ -68,11 +78,6 @@ self.onmessage = async (e: MessageEvent) => {
     const gawebLines: string[] = [];
     const auditLines = ['INDICE;DOC_NAME;SHA256;TIMESTAMP'];
     
-    let docxTemplate = null;
-    if (template.type === 'DOCX' && template.binaryContent) {
-      docxTemplate = template.binaryContent;
-    }
-
     const dataStream = dataFile.stream().getReader();
     const decoder = new TextDecoder('windows-1252'); 
     
@@ -103,7 +108,7 @@ self.onmessage = async (e: MessageEvent) => {
           _LOTE: options.lote,
           _OFICINA: options.oficina,
           _FECHA_CARTA: options.fechaCarta,
-          _COD_DOCUMENTO: codDocumento
+          _COD_DOCUMENTO: defaultCodDocumento
         };
 
         for (const type of etlPreset.recordTypes) {
@@ -116,41 +121,72 @@ self.onmessage = async (e: MessageEvent) => {
         }
 
         if (rt) {
+          // Initial mapping (fallback/standard)
           mapping.mappings.forEach((m: any) => {
             const field = rt.fields.find((f: any) => 
                (f.name || f.Name) === m.sourceField || f.id === m.sourceField
             );
-            
             if (field) {
                const s = field.start ?? field.Start;
                const l = field.length ?? field.Length;
                const idx = field.index ?? field.Index;
-
-               const val = (typeof s === 'number' && typeof l === 'number')
-                  ? line.substring(s, s + l)
-                  : line.split(';')[idx] || '';
-               
+               const val = (typeof s === 'number' && typeof l === 'number') ? line.substring(s, s + l) : line.split(';')[idx] || '';
                mergeData[m.templateVar] = val.trim();
             }
           });
 
           if (rt.name === 'DATA') {
              processedCount++;
+
+             // CATDOCUM Dynamic Resolution (Phase 20)
+             let activeTemplate = template;
+             let activeMapping = mapping;
+             let activeCodDocumento = defaultCodDocumento;
+             
+             if (catalogResources) {
+                // GAWEB standard: DocCode is at position 26-32 (length 6)
+                const lineCod = line.substring(26, 32).trim();
+                // Find in map (case insensitive to avoid mismatches)
+                if (lineCod && catalogResources[lineCod]) {
+                   const res = catalogResources[lineCod];
+                   activeTemplate = res.template || template;
+                   activeMapping = res.mapping || mapping;
+                   activeCodDocumento = lineCod;
+                }
+             }
+
              const docName = GawebUtility.generateDocName(industrialBaseHash, processedCount - 1);
-             const fileName = `${docName}.${template.type === 'DOCX' ? 'docx' : 'html'}`;
+             const fileName = `${docName}.${activeTemplate.type === 'DOCX' ? 'docx' : 'html'}`;
              let content;
 
              try {
-                if (template.type === 'DOCX' && docxTemplate) {
-                  const zip = new (self as any).PizZip(docxTemplate);
-                  const doc = new (self as any).docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
-                  doc.render(mergeData);
-                  content = doc.getZip().generate({ type: 'arraybuffer' });
+                if (activeTemplate.type === 'DOCX' && activeTemplate.binaryContent) {
+                   const zip = new (self as any).PizZip(activeTemplate.binaryContent);
+                   const doc = new (self as any).docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+                   
+                   // Overhaul mergeData with activeCodDocumento before render
+                   const finalMergeData: Record<string, any> = { ...mergeData, _COD_DOCUMENTO: activeCodDocumento };
+                   
+                   // Re-apply mapping logic if the mapping changed for this record
+                   if (activeMapping !== mapping) {
+                      activeMapping.mappings.forEach((m: any) => {
+                         const field = rt.fields.find((f: any) => (f.name || f.Name) === m.sourceField || f.id === m.sourceField);
+                         if (field) {
+                            const s = field.start ?? field.Start;
+                            const l = field.length ?? field.Length;
+                            const idx = field.index ?? field.Index;
+                            const val = (typeof s === 'number' && typeof l === 'number') ? line.substring(s, s + l) : line.split(';')[idx] || '';
+                            finalMergeData[m.templateVar] = val.trim();
+                         }
+                      });
+                   }
+
+                   doc.render(finalMergeData);
+                   content = doc.getZip().generate({ type: 'arraybuffer' });
                 } else {
-                  // UPGRADE: Handlebars Compiler para HTML
-                  const hbsTemplate = Handlebars.compile(template.content || '');
-                  const merged = hbsTemplate(mergeData);
-                  content = new TextEncoder().encode(merged).buffer;
+                   const hbsTemplate = Handlebars.compile(activeTemplate.content || '');
+                   const finalMergeData: Record<string, any> = { ...mergeData, _COD_DOCUMENTO: activeCodDocumento };
+                   content = new TextEncoder().encode(hbsTemplate(finalMergeData)).buffer;
                 }
 
                 const sha256 = await calculateSha256(content);
@@ -174,12 +210,12 @@ self.onmessage = async (e: MessageEvent) => {
                 const cfg = etlPreset.gawebConfig || {};
                 const indexData = {
                    LetterType: ' ',
-                   Format: codDocumento === 'x00054' ? '04' : (cfg.formatoCarta || '04'),
+                   Format: activeCodDocumento.toLowerCase() === 'x00054' ? '04' : (cfg.formatoCarta || '04'),
                    GenerationDate: options.fechaGeneracion || cfg.fechaGeneracion || options.fechaCarta,
                    Batch: options.lote || '0000',
                    Sequential: (lineCount - 1).toString(),
                    Page: cfg.paginasDefecto ? cfg.paginasDefecto.toString() : '0001',
-                   DocCode: codDocumento.substring(0, 6),
+                   DocCode: activeCodDocumento.substring(0, 6).toUpperCase(),
                    Version: '0000',
                    ContractClass: '00',
                    ContractCode: mergeData.CodContrato || mergeData._INDEX,
@@ -209,7 +245,7 @@ self.onmessage = async (e: MessageEvent) => {
                    self.postMessage({ type: 'LOG', payload: { type: 'info', message: `PROGRESO: [${processedCount}] generados...` } });
                 }
              } catch (renderErr) {
-               self.postMessage({ type: 'LOG', payload: { type: 'error', message: `RENDER ERROR (L ${lineCount}): ${(renderErr as any).message}` } });
+                self.postMessage({ type: 'LOG', payload: { type: 'error', message: `RENDER ERROR (L ${lineCount}): ${(renderErr as any).message}` } });
              }
           }
         }

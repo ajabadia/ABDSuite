@@ -193,6 +193,71 @@ export class ComplianceReportService {
     return new Blob([rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
   }
 
+  /**
+   * Generates a Industrial Master CSV Report (24h Summary)
+   * Includes Global metrics, Sampling Policy and Unit details.
+   */
+  static async generateGlobalCsv(
+    snapshot: GlobalTelemetrySnapshot,
+  ): Promise<Blob> {
+    const config = await TelemetryConfigService.loadConfig();
+    const rows: string[] = [];
+
+    // Header industrial
+    rows.push('ABDFN SUITE - MASTER AUDIT REPORT');
+    rows.push(`PLANT;${config.corporate.plantName}`);
+    rows.push(`DATE;${new Date(snapshot.generatedAt).toISOString()}`);
+    rows.push(`SUITE VERSION;${snapshot.suiteVersion}`);
+
+    // Global Totals
+    rows.push('');
+    rows.push('Global Totals');
+    rows.push('GLOBAL METRICS LAST 24H');
+    rows.push(`Total Units;${snapshot.globalTotals.totalUnits}`);
+    rows.push(`Total Docs;${snapshot.globalTotals.totalDocs24h}`);
+    rows.push(`Total Audits;${snapshot.globalTotals.totalAudits24h}`);
+    rows.push(`Total QA Breaks;${snapshot.globalTotals.totalQaBreaks24h}`);
+
+    // Bloque GAWEB SAMPLING POLICY (Phase 18 Refinement)
+    const sampling = config.security.auditSampling;
+    const samplingChanges24h = snapshot.security.samplingChanges24h;
+
+    rows.push('');
+    rows.push('GAWEB SAMPLING POLICY');
+    rows.push(`Sampling Enabled;${sampling.enabled ? 'YES' : 'NO'}`);
+    rows.push(`Sampling 1 of N;${sampling.sampleEvery}`);
+    rows.push(`Global Daily Limit;${sampling.maxPerDay}`);
+    rows.push(`Sampling Changes 24h;${samplingChanges24h}`);
+
+    // Unit Detail
+    rows.push('');
+    rows.push('Unit Detail');
+    rows.push(
+      'UNITCODE;HEALTH;LASTACTIVITY;DOCS24H;AUDITS24H;QAMATCH;QABREAK;QANOGOLDEN;SECFAIL;SECLOCK;SECTECH',
+    );
+
+    for (const u of snapshot.units) {
+      const b24 = u.kpiBuckets.find((b) => b.bucket === 'LAST_24H')!;
+      const row = [
+        u.unitCode,
+        u.health,
+        u.lastActivityAt ? new Date(u.lastActivityAt).toISOString() : '---',
+        b24.docsProcessed,
+        b24.auditsRun,
+        b24.letterQaLotes.match,
+        b24.letterQaLotes.break,
+        b24.letterQaLotes.noGolden,
+        u.security.failedLogins,
+        u.security.locksTriggered,
+        u.security.techModeActivations,
+      ];
+      rows.push(row.join(';'));
+    }
+
+    const content = rows.join('\n');
+    return new Blob([content], { type: 'text/csv;charset=utf-8' });
+  }
+
   static downloadBlob(blob: Blob, filename: string): void {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

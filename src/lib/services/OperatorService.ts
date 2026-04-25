@@ -3,6 +3,8 @@ import { auditService } from './AuditService';
 import { Operator, UserRole } from '../types/auth.types';
 import { hashPin } from '../utils/crypto.utils';
 import { generateTotpSecret, verifyTOTP } from '../utils/mfa.utils';
+import { OperatorCreateSchema, OperatorUpdateSchema } from '../schemas/operator.schema';
+import { ValidationError, NotFoundError, SecurityError } from '../utils/AppError';
 
 /**
  * Industrial Operator Service (Phase 11.2)
@@ -32,11 +34,14 @@ class OperatorService {
    * Creates a new operator with initial PIN and audit log.
    */
   async create(data: Partial<Operator>, rawPin: string, actorId: string): Promise<string> {
+    // Industrial Validation (Phase 11.2)
+    const validated = OperatorCreateSchema.parse(data);
+    
     const id = crypto.randomUUID();
     const pinHash = await hashPin(rawPin);
     
     const newOp: Operator = {
-      ...data,
+      ...validated,
       id,
       pinHash,
       createdAt: Date.now(),
@@ -44,6 +49,7 @@ class OperatorService {
       isActive: 1,
       isMaster: false,
       mfaEnabled: false,
+      unitIds: validated.unitIds || []
     } as Operator;
 
     await coreDb.operators.add(newOp);
@@ -71,16 +77,19 @@ class OperatorService {
    */
   async update(id: string, data: Partial<Operator>, actorId: string, newPin?: string): Promise<void> {
     const existing = await coreDb.operators.get(id);
-    if (!existing) throw new Error('OPERATOR_NOT_FOUND');
+    if (!existing) throw new NotFoundError('OPERATOR', id);
+
+    // Industrial Validation (Phase 11.2)
+    const validated = OperatorUpdateSchema.parse(data);
 
     // Safety check: Last Admin
-    if (data.isActive !== undefined || data.role !== undefined) {
-      const isSafe = await this.validateLastAdmin(id, data.isActive ?? existing.isActive, data.role ?? existing.role);
-      if (!isSafe) throw new Error('LAST_ADMIN_PROTECTION');
+    if (validated.isActive !== undefined || validated.role !== undefined) {
+      const isSafe = await this.validateLastAdmin(id, validated.isActive ?? existing.isActive, validated.role ?? (existing.role as UserRole));
+      if (!isSafe) throw new ValidationError('LAST_ADMIN_PROTECTION');
     }
 
     const updates: Partial<Operator> = {
-      ...data,
+      ...validated,
       updatedAt: Date.now(),
     };
 
@@ -93,28 +102,25 @@ class OperatorService {
     const roleAfter = updates.role ?? existing.role;
     const roleChanged = roleBefore !== roleAfter;
 
-    // Consolidate old/new fields for comparison
-    const beforeAdd = [
-        ...(existing.overrideCapabilities?.add || []),
-        ...(existing.extraCapabilities || [])
-    ];
-    const beforeRemove = [
-        ...(existing.overrideCapabilities?.remove || []),
-        ...(existing.deniedCapabilities || [])
-    ];
+    // Consolidate old/new fields for comparison (DRY logic)
+    const getCaps = (op: Partial<Operator>) => [
+        ...(op.overrideCapabilities?.add || []),
+        ...(op.extraCapabilities || [])
+    ].sort();
+    
+    const getDenied = (op: Partial<Operator>) => [
+        ...(op.overrideCapabilities?.remove || []),
+        ...(op.deniedCapabilities || [])
+    ].sort();
 
-    const afterAdd = [
-        ...(updates.overrideCapabilities?.add || []),
-        ...(updates.extraCapabilities || [])
-    ];
-    const afterRemove = [
-        ...(updates.overrideCapabilities?.remove || []),
-        ...(updates.deniedCapabilities || [])
-    ];
+    const beforeAdd = getCaps(existing);
+    const beforeRemove = getDenied(existing);
+    const afterAdd = getCaps(updates);
+    const afterRemove = getDenied(updates);
 
     const overridesChanged = 
-      JSON.stringify(beforeAdd.sort()) !== JSON.stringify(afterAdd.sort()) ||
-      JSON.stringify(beforeRemove.sort()) !== JSON.stringify(afterRemove.sort());
+      JSON.stringify(beforeAdd) !== JSON.stringify(afterAdd) ||
+      JSON.stringify(beforeRemove) !== JSON.stringify(afterRemove);
 
     let messageKey = 'operator.update';
     let eventType = 'OPERATOR_UPDATE';
@@ -179,7 +185,7 @@ class OperatorService {
    */
   async startMfaEnrollment(id: string, actorId: string): Promise<{ secret: string }> {
     const existing = await coreDb.operators.get(id);
-    if (!existing) throw new Error('OPERATOR_NOT_FOUND');
+    if (!existing) throw new NotFoundError('OPERATOR', id);
 
     const secret = generateTotpSecret();
     
@@ -212,7 +218,7 @@ class OperatorService {
    */
   async confirmMfaEnrollment(id: string, code: string, actorId: string): Promise<boolean> {
     const existing = await coreDb.operators.get(id);
-    if (!existing || !existing.mfaSecret) throw new Error('MFA_NOT_INITIALIZED');
+    if (!existing || !existing.mfaSecret) throw new ValidationError('MFA_NOT_INITIALIZED');
 
     const isValid = await verifyTOTP(existing.mfaSecret, code);
     if (!isValid) return false;
@@ -248,60 +254,53 @@ class OperatorService {
   async transferMasterRole(fromId: string, toId: string, performedById: string): Promise<void> {
     if (fromId === toId) return;
 
-    try {
-      const [from, to, actor] = await Promise.all([
-        coreDb.operators.get(fromId),
-        coreDb.operators.get(toId),
-        coreDb.operators.get(performedById),
-      ]);
+    const [from, to, actor] = await Promise.all([
+      coreDb.operators.get(fromId),
+      coreDb.operators.get(toId),
+      coreDb.operators.get(performedById),
+    ]);
 
-      if (!from || !to || !actor) throw new Error('OPERATOR_NOT_FOUND');
-      if (!from.isMaster) throw new Error('SOURCE_NOT_MASTER');
-      if (from.isActive === 0 || to.isActive === 0) throw new Error('INACTIVE_OPERATOR');
+    if (!from || !to || !actor) throw new NotFoundError('OPERATOR', 'MULTIPLE');
+    if (!from.isMaster) throw new SecurityError('SOURCE_NOT_MASTER');
+    if (from.isActive === 0 || to.isActive === 0) throw new ValidationError('INACTIVE_OPERATOR');
 
-      if (to.role !== 'ADMIN') {
-        throw new Error('TARGET_NOT_ADMIN');
-      }
+    if (to.role !== 'ADMIN') {
+      throw new ValidationError('TARGET_NOT_ADMIN');
+    }
 
-      // Execute transaction for atomicity
-      await coreDb.transaction('rw', [coreDb.operators, coreDb.system_log], async () => {
-        await coreDb.operators.update(from.id, {
-          isMaster: false,
-          updatedAt: Date.now(),
-        });
-        await coreDb.operators.update(to.id, {
-          isMaster: true,
-          updatedAt: Date.now(),
-        });
-
-        // Register in security audit
-        await auditService.log({
-          module: 'SECURITY',
-          messageKey: 'operator.master.transfer',
-          status: 'WARNING',
-          operatorId: actor.id,
-          details: {
-            eventType: 'OPERATOR_MASTER_TRANSFER',
-            entityType: 'OPERATOR',
-            entityId: to.id,
-            actorId: actor.id,
-            actorUser: actor.username,
-            severity: 'CRITICAL',
-            context: {
-              fromId: from.id,
-              fromUser: from.username,
-              toId: to.id,
-              toUser: to.username,
-            },
-          },
-        });
+    // Execute transaction for atomicity
+    await coreDb.transaction('rw', [coreDb.operators, coreDb.system_log], async () => {
+      await coreDb.operators.update(from.id, {
+        isMaster: false,
+        updatedAt: Date.now(),
+      });
+      await coreDb.operators.update(to.id, {
+        isMaster: true,
+        updatedAt: Date.now(),
       });
 
-      console.log(`[OPERATOR-SERVICE] Master role successfully transferred from ${from.username} to ${to.username}`);
-    } catch (err) {
-      console.error('[OPERATOR-SERVICE] Master transfer failed', err);
-      throw err;
-    }
+      // Register in security audit
+      await auditService.log({
+        module: 'SECURITY',
+        messageKey: 'operator.master.transfer',
+        status: 'WARNING',
+        operatorId: actor.id,
+        details: {
+          eventType: 'OPERATOR_MASTER_TRANSFER',
+          entityType: 'OPERATOR',
+          entityId: to.id,
+          actorId: actor.id,
+          actorUser: actor.username,
+          severity: 'CRITICAL',
+          context: {
+            fromId: from.id,
+            fromUser: from.username,
+            toId: to.id,
+            toUser: to.username,
+          },
+        },
+      });
+    });
   }
 
   /**

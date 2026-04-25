@@ -84,6 +84,7 @@ export class TelemetryService {
     let failedLogins = 0;
     let locksTriggered = 0;
     let techModeActivations = 0;
+    let samplingChanges24h = 0;
 
     for (const r of allRecentRecords) {
       const ts = r.timestamp;
@@ -125,6 +126,8 @@ export class TelemetryService {
             locksTriggered++;
         } else if (r.action === 'TECH_MODE_ENTER') {
             techModeActivations++;
+        } else if (r.action === 'gaweb.sampling.update') {
+            samplingChanges24h++;
         }
       } catch (e) { /* skip malformed logs */ }
     }
@@ -170,6 +173,7 @@ export class TelemetryService {
         failedLogins,
         techModeActivations,
         locksTriggered,
+        samplingChanges24h,
         severity: securitySeverity
       },
       qa: qaStats,
@@ -216,6 +220,7 @@ export class TelemetryService {
     let totalFailed = 0;
     let totalLocks = 0;
     let totalTech = 0;
+    let totalSamplingChanges = 0;
 
     for (const u of units) {
        const b24 = u.kpiBuckets.find(b => b.bucket === 'LAST_24H')!;
@@ -234,6 +239,7 @@ export class TelemetryService {
        totalFailed += u.security.failedLogins;
        totalLocks += u.security.locksTriggered;
        totalTech += u.security.techModeActivations;
+       totalSamplingChanges += u.security.samplingChanges24h;
     }
 
     // Governance Aggregation (Phase 12.1)
@@ -273,7 +279,8 @@ export class TelemetryService {
       security: {
         totalFailedLogins: totalFailed,
         totalLocksTriggered: totalLocks,
-        totalTechModeActivations: totalTech
+        totalTechModeActivations: totalTech,
+        samplingChanges24h: totalSamplingChanges
       },
       governance: {
         operatorRoleChanges24h,

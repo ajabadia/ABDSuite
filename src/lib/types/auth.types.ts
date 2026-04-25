@@ -4,7 +4,7 @@
 
 export type UserRole = 'ADMIN' | 'TECH' | 'OPERATOR';
 export type OperatorRole = UserRole; 
-export type AuditModule = 'AUTH' | 'ETL' | 'LETTER' | 'SYNC' | 'SYSTEM' | 'SECURITY' | 'SUPERVISOR' | 'AUDIT' | 'CRYPT';
+export type AuditModule = 'AUTH' | 'ETL' | 'LETTER' | 'SYNC' | 'SYSTEM' | 'SECURITY' | 'SUPERVISOR' | 'AUDIT' | 'CRYPT' | 'GAWEBAUDIT' | 'REGTECH';
 
 /**
  * Capability-based Permission System
@@ -34,7 +34,10 @@ export type Capability =
   | 'OPERATORS_MANAGE'
   | 'SETTINGS_GLOBAL'
   | 'SYNC_EXPORT'
-  | 'SYNC_IMPORT';
+  | 'SYNC_IMPORT'
+  // REGTECH
+  | 'REGTECH_VIEW'
+  | 'REGTECH_RUN';
 
 /**
  * Structured details for Industrial Audit (Phase 11.2)
@@ -47,6 +50,10 @@ export interface AuditDetails {
   actorUser?: string;
   severity?: 'INFO' | 'WARN' | 'CRITICAL';
   context?: Record<string, string | number | boolean | null>;
+  summary?: {
+    from: any;
+    to: any;
+  };
 }
 
 export interface AuditRecord {

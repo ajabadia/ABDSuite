@@ -110,6 +110,7 @@ const MappingMatrix: React.FC = () => {
     const name = `MAPEADO_AUTO_${allMappings.length + 1}`;
     
     const newMapping: LetterMapping = {
+      id: crypto.randomUUID(),
       name,
       etlPresetId: '',
       templateId: '',
@@ -242,8 +243,11 @@ const MappingMatrix: React.FC = () => {
           const data = JSON.parse(text);
           if (data.type === 'abdfn_mappings_backup' && Array.isArray(data.payload)) {
             for (const m of data.payload) {
-              const { id, ...cleanMapping } = m; 
-              await db.lettermappings_v6.add(cleanMapping);
+              const { id: _, ...cleanMapping } = m; 
+              await db.lettermappings_v6.add({
+                ...cleanMapping,
+                id: crypto.randomUUID()
+              });
             }
           }
         } catch (err) {}
@@ -271,7 +275,9 @@ const MappingMatrix: React.FC = () => {
                      <button className="station-btn" onClick={handleExportAll}><DownloadIcon size={14} /> JSON↓</button>
                      <button className="station-btn" onClick={handleImport} disabled={!canEdit}><UploadIcon size={14} /> ALL↑</button>
                    </div>
-                   <button className="station-btn station-btn-primary" onClick={handleNewMapping} disabled={!canEdit} style={{ flex: 1, maxWidth: '300px' }}>{t('letter.ui.btn_generate').toUpperCase()}</button>
+                    <button className="station-btn station-btn-primary" onClick={handleNewMapping} disabled={!canEdit} style={{ flex: 1, maxWidth: '300px' }}>
+                       + NUEVO MAPEADO
+                    </button>
                 </div>
                 <div className="station-registry-list">
                   {allMappings.sort((a,b) => (b.updatedAt || 0) - (a.updatedAt || 0)).map(m => (

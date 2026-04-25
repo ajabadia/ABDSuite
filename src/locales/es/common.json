@@ -1,0 +1,11 @@
+{
+  "common": {
+    "confirm_delete": "¿Está seguro de que desea eliminar este elemento? Esta acción no se puede deshacer.",
+    "confirm_delete_with_fields": "AVISO: Este tipo tiene campos asociados. ¿Desea borrarlo de todos modos? Esta acción no es reversible.",
+    "save": "GUARDAR",
+    "cancel": "CANCELAR",
+    "help": "AYUDA",
+    "ok": "ENTENDIDO",
+    "search": "BUSCAR"
+  }
+}

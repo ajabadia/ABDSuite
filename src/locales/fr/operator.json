@@ -1,0 +1,13 @@
+{
+  "operator": {
+    "role": "RÔLE",
+    "panel_title": "GESTIÓN DES OPÉRATEURS",
+    "search_placeholder": "RECHERCHER OPÉRATEUR...",
+    "active": "ACTIF",
+    "inactive": "INACTIVO",
+    "last_login": "DERNIÈRE CONNEXION",
+    "add_new": "AJOUTER_OPERATEUR",
+    "edit_status": "ÉTAT_COMPTE",
+    "permissions": "CONFIG_PERMISSIONS"
+  }
+}

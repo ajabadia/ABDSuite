@@ -1,15 +1,18 @@
 :root {
-  /* Common Design Tokens (Uncodixy Standard) */
+  /* Common Industrial Tokens (Aseptic v6.1) */
   --font-mono: 'Space Mono', 'Roboto Mono', monospace;
-  --panel-padding: 30px;
-  --border-thick: 1px;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --panel-padding: 24px;
+  --border-thick: 2px;
   --border-thin: 1px;
-  --radius-std: 8px;
-  --shadow-std: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --snap: 0.1s ease;
+  --radius-std: 4px; /* Industrial max */
+  --radius-sm: 2px;
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-none: none;
+  --snap: 0.1s linear;
 }
 
-/* DARK: Slate Noir */
+/* THEME: 1984 PC (DEFAULT DARK) */
 [data-theme='dark'] {
   --bg-color: #0f172a;
   --surface-color: #1e293b;
@@ -27,7 +30,7 @@
   --input-bg: #0f172a;
 }
 
-/* LIGHT: Cloud Canvas */
+/* THEME: MONOCHROME LIGHT */
 [data-theme='light'] {
   --bg-color: #fafafa;
   --surface-color: #ffffff;
@@ -45,11 +48,11 @@
   --input-bg: #ffffff;
 }
 
-/* MIDNIGHT: Industrial High-Contrast */
+/* THEME: MIDNIGHT INDUSTRIAL (HIGH CONTRAST) */
 [data-theme='midnight'] {
   --bg-color: #000000;
   --surface-color: #0c0c0c;
-  --border-color: #1a1a1a;
+  --border-color: #222222;
   --primary-color: #ff9d00;   /* Amber industrial */
   --secondary-color: #00ff00; /* Phosphor Green */
   --text-primary: #e0e0e0;

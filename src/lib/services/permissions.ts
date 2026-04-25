@@ -17,7 +17,8 @@ export const ALL_CAPABILITIES: Capability[] = [
   'LETTER_VIEW', 'LETTER_EDIT_TEMPLATES', 'LETTER_EDIT_MAPPINGS', 'LETTER_GENERATE', 'LETTER_CONFIG_GLOBAL',
   'AUDIT_VIEW', 'AUDIT_RUN', 'AUDIT_CONFIG',
   'SUPERVISOR_VIEW', 'OPERATORS_MANAGE', 'SETTINGS_GLOBAL',
-  'SYNC_EXPORT', 'SYNC_IMPORT'
+  'SYNC_EXPORT', 'SYNC_IMPORT',
+  'REGTECH_VIEW', 'REGTECH_RUN'
 ];
 
 const ROLE_CAPABILITIES: Record<UserRole, Capability[]> = {
@@ -45,6 +46,8 @@ const ROLE_CAPABILITIES: Record<UserRole, Capability[]> = {
     'SUPERVISOR_VIEW',
     'OPERATORS_MANAGE',
     'SETTINGS_GLOBAL',
+    'REGTECH_VIEW',
+    'REGTECH_RUN',
   ],
   TECH: [
     // CRYPT
@@ -64,6 +67,8 @@ const ROLE_CAPABILITIES: Record<UserRole, Capability[]> = {
     'AUDIT_CONFIG',
     // SUPERVISOR
     'SUPERVISOR_VIEW',
+    'REGTECH_VIEW',
+    'REGTECH_RUN',
   ],
   OPERATOR: [
     // CRYPT
@@ -77,6 +82,7 @@ const ROLE_CAPABILITIES: Record<UserRole, Capability[]> = {
     // AUDIT
     'AUDIT_VIEW',
     'AUDIT_RUN',
+    'REGTECH_VIEW',
   ]
 };
 

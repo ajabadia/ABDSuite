@@ -51,6 +51,8 @@ export interface GawebErrorLite {
   line: number;
   field: string;
   position: string;
+  colStart: number;
+  colEnd: number;
   severity: 'ERROR' | 'WARNING';
   messageKey: string;
   value: string;

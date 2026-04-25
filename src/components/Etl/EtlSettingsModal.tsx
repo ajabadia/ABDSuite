@@ -36,13 +36,13 @@ const EtlSettingsModal: React.FC<EtlSettingsModalProps> = ({
   return (
     <div className="station-modal-overlay" onClick={onClose}>
       <div 
-        className="station-modal" 
-        style={{ maxWidth: '600px', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }} 
+        className="station-modal flex-col" 
+        style={{ maxWidth: '600px', padding: 0, overflow: 'hidden' }} 
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="station-registry-header" style={{ cursor: 'default' }}>
+        <header className="station-registry-header">
           <h2 className="station-registry-item-name" style={{ fontSize: '1rem' }}>AJUSTES ETL CORE</h2>
-          <button className="station-btn" style={{ border: 'none', padding: '4px' }} onClick={onClose}>
+          <button className="station-btn icon-only" style={{ border: 'none' }} onClick={onClose}>
             <XIcon size={20} />
           </button>
         </header>
@@ -102,12 +102,12 @@ const EtlSettingsModal: React.FC<EtlSettingsModalProps> = ({
           </div>
         </div>
 
-        <footer style={{ padding: '24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
+        <footer className="flex-row" style={{ padding: '24px', borderTop: '1px solid var(--border-color)', justifyContent: 'flex-end', gap: '16px' }}>
           <button className="station-btn" onClick={onClose}>
             {t('common.cancel')}
           </button>
           {!readOnly && (
-            <button className="station-btn station-btn-primary" style={{ padding: '0 24px' }} onClick={handleSave}>
+            <button className="station-btn station-btn-primary" style={{ minWidth: '100px' }} onClick={handleSave}>
               {t('common.save')}
             </button>
           )}

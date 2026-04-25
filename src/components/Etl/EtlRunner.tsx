@@ -4,13 +4,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { EtlPreset } from '@/lib/types/etl.types';
-import { EtlProcessorOptions, ProcessorLogEntry } from '@/lib/types/etl-processor.types';
-import { RefreshIcon, FolderIcon, PlayIcon, SquareIcon, CogIcon } from '@/components/common/Icons';
+import { EtlProcessorOptions } from '@/lib/types/etl-processor.types';
+import { RefreshIcon, FolderIcon, PlayIcon, CogIcon } from '@/components/common/Icons';
 import { useLog } from '@/lib/context/LogContext';
 import { LogLevel } from '@/lib/types/log.types';
 
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
+import { etlService } from '@/lib/services/EtlService';
 
 interface EtlRunnerProps {
   presets: EtlPreset[];
@@ -20,7 +21,7 @@ interface EtlRunnerProps {
 
 const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect }) => {
   const { t } = useLanguage();
-  const { can } = useWorkspace();
+  const { can, currentOperator } = useWorkspace();
   const router = useRouter();
 
   const isAllowed = can('ETL_RUN');
@@ -50,13 +51,8 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
     };
   }, []);
 
-  const addLog = (entry: any) => {
-    let level: LogLevel = 'info';
-    if (entry.type === 'success') level = 'success';
-    if (entry.type === 'error') level = 'error';
-    if (entry.type === 'warn') level = 'warn';
-    
-    globalAddLog('ETL', entry.message, level);
+  const addLog = (message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') => {
+    globalAddLog('ETL', message, type as LogLevel);
   };
 
   const handlePickOutput = async () => {
@@ -75,32 +71,42 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
   const startProcess = async () => {
     if (!inputFile || !selectedPreset || !outputHandle) return;
 
-    setIsProcessing(true);
-    outputStreamsRef.current = new Map();
+    try {
+      // Industrial Validation
+      etlService.validateOptions(options);
+      
+      setIsProcessing(true);
+      outputStreamsRef.current = new Map();
 
-    addLog({ type: 'info', message: `${t('etl.logs.start')}: ${selectedPreset.name}` });
+      addLog(`${t('etl.logs.start')}: ${selectedPreset.name}`, 'info');
+      await etlService.logEtlStart(currentOperator?.id || 'system', selectedPreset.name, inputFile.name);
 
-    const worker = new Worker(new URL('../../lib/workers/etl-processor.worker.ts', import.meta.url));
-    workerRef.current = worker;
+      const worker = new Worker(new URL('../../lib/workers/etl-processor.worker.ts', import.meta.url));
+      workerRef.current = worker;
 
-    worker.onmessage = async (e) => {
-      const { type, payload } = e.data;
-      switch (type) {
-        case 'LOG': addLog(payload); break;
-        case 'RECORD': await handleRecord(payload); break;
-        case 'COMPLETE':
-          cleanupStreams();
-          setIsProcessing(false);
-          addLog({ type: 'success', message: t('etl.logs.complete') });
-          break;
-      }
-    };
+      worker.onmessage = async (e) => {
+        const { type, payload } = e.data;
+        switch (type) {
+          case 'LOG': addLog(payload.message, payload.type); break;
+          case 'RECORD': await handleRecord(payload); break;
+          case 'COMPLETE':
+            await cleanupStreams();
+            setIsProcessing(false);
+            addLog(t('etl.logs.complete'), 'success');
+            await etlService.logEtlComplete(currentOperator?.id || 'system', selectedPreset.name, { fileName: inputFile.name });
+            break;
+        }
+      };
 
-    worker.postMessage({
-      file: inputFile,
-      preset: selectedPreset,
-      options: { ...options, encoding: selectedPreset.encoding as any || options.encoding }
-    });
+      worker.postMessage({
+        file: inputFile,
+        preset: selectedPreset,
+        options: { ...options, encoding: selectedPreset.encoding as any || options.encoding }
+      });
+    } catch (err: any) {
+      addLog(err.message, 'error');
+      setIsProcessing(false);
+    }
   };
 
   const handleRecord = async (payload: { typeName: string, data: any, headers: string[] }) => {
@@ -144,15 +150,15 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
   };
 
   return (
-    <div className="flex-col" style={{ gap: '24px', height: '100%' }}>
+    <div className="flex-col fade-in" style={{ gap: '24px', height: '100%' }}>
       
       {/* CABECERA INDUSTRIAL (Era 6) */}
-      <div className="station-card">
-        <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
+      <section className="station-card">
+        <header className="station-panel-header" style={{ borderBottom: 'none' }}>
           <div className="flex-col" style={{ gap: '4px' }}>
             <h2 className="station-title-main" style={{ margin: 0 }}>{selectedPreset?.name || t('etl.runner_title').toUpperCase()}</h2>
             <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
-               <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>V{selectedPreset?.version || '1.0'}</span>
+               <span className="station-registry-item-meta" style={{ fontWeight: 700 }}>V{selectedPreset?.version || '1.0'}</span>
                <span className={`station-badge ${isProcessing ? 'station-badge-orange' : 'station-badge-green'}`}>
                   {isProcessing ? t('etl.status_active').toUpperCase() : (selectedPreset ? t('etl.status_ready').toUpperCase() : t('etl.status_idle').toUpperCase())}
                </span>
@@ -165,19 +171,19 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
               </button>
             )}
           </div>
-        </div>
+        </header>
 
         <div className="station-tech-summary" style={{ marginTop: '24px' }}>
           <div className="station-tech-item"><span className="station-tech-label">{t('etl.input').toUpperCase()}:</span> {inputFile?.name || 'NONE'}</div>
           <div className="station-tech-item"><span className="station-tech-label">{t('etl.output').toUpperCase()}:</span> {outputHandle?.name || 'NONE'}</div>
           <div className="station-tech-item"><span className="station-tech-label">{t('etl.status_label').toUpperCase()}:</span> {isProcessing ? t('etl.status_running').toUpperCase() : t('etl.status_standby').toUpperCase()}</div>
         </div>
-      </div>
+      </section>
 
-      <div className="station-card">
+      <section className="station-card flex-col" style={{ gap: '16px' }}>
         <span className="station-form-section-title">{t('etl.source_destination').toUpperCase()}</span>
-        <div className="station-form-grid" style={{ marginTop: '16px' }}>
-          <div className="station-form-field medium">
+        <div className="station-form-grid">
+          <div className="station-form-field full">
             <label className="station-label">{t('etl.input_file').toUpperCase()}</label>
             <div className="flex-row" style={{ gap: '8px' }}>
               <input className="station-input" readOnly value={inputFile?.name || ''} placeholder="..." />
@@ -185,7 +191,7 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
               <button className="station-btn icon-only" onClick={() => document.getElementById('etl-run-in')?.click()}><FolderIcon size={16} /></button>
             </div>
           </div>
-          <div className="station-form-field medium">
+          <div className="station-form-field full">
             <label className="station-label">{t('etl.output_path').toUpperCase()}</label>
             <div className="flex-row" style={{ gap: '8px' }}>
               <input className="station-input" readOnly value={outputHandle?.name || ''} placeholder="..." />
@@ -193,16 +199,16 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="station-card">
+      <section className="station-card flex-col" style={{ gap: '16px' }}>
         <span className="station-form-section-title">{t('etl.engine_parameters').toUpperCase()}</span>
-        <div className="station-form-grid" style={{ marginTop: '16px' }}>
+        <div className="station-form-grid">
            <div className="station-form-field">
              <label className="station-label">{t('etl.default_chunk').toUpperCase()}</label>
              <input type="number" className="station-input" value={options.chunkSize} onChange={e => setOptions({...options, chunkSize: parseInt(e.target.value) || 0})} />
            </div>
-           <div className="station-form-field medium">
+           <div className="station-form-field">
              <label className="station-label">{t('etl.format').toUpperCase()}</label>
              <select className="station-select" value={options.outputFormat} onChange={e => setOptions({...options, outputFormat: e.target.value as any})}>
                 <option value="CSV">{t('etl.format_csv').toUpperCase()}</option>
@@ -218,7 +224,7 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
              <input type="number" className="station-input" value={options.endRow} onChange={e => setOptions({...options, endRow: parseInt(e.target.value) || 0})} />
            </div>
         </div>
-      </div>
+      </section>
 
       <button 
         className={`station-btn station-btn-primary ${isProcessing ? 'processing' : ''}`}
@@ -236,14 +242,13 @@ const EtlRunner: React.FC<EtlRunnerProps> = ({ presets, selectedPreset, onSelect
       </button>
 
       {/* SELLO DE INTEGRIDAD (Era 6) */}
-      <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
-         <div className="integrity-dot" />
+      <div className="station-integrity-badge flex-row" style={{ position: 'fixed', bottom: '24px', right: '24px', gap: '8px', opacity: 0.6 }}>
+         <div className="integrity-dot" style={{ background: 'var(--status-ok)' }} />
          <CogIcon size={14} />
          <span>{t('dashboard.dash_etl_title').toUpperCase()} - {selectedPreset?.encoding?.toUpperCase() || 'UTF-8'}</span>
       </div>
     </div>
   );
 };
-
 
 export default EtlRunner;

@@ -22,6 +22,11 @@ export interface LetterWorkerPayload {
   options: LetterGenerationOptions;
   isStreaming?: boolean;
   gawebFields?: any[];
+  catalogResources?: Record<string, {
+    catDoc: any, 
+    template: LetterTemplate, 
+    mapping: LetterMapping 
+  }>;
 }
 
 export interface WorkerEvent {

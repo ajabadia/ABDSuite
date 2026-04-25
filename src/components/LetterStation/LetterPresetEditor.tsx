@@ -47,6 +47,7 @@ const DEFAULT_CONFIG: GawebConfig = {
   idioma: '  ',
   viaReparto: '  ',
   copiaPapel: ' ',
+  contractClass: '  ',
   savingsOpCode: '',
   savingsOpAccount: '',
   savingsOpSign: '+',
@@ -96,6 +97,7 @@ const LetterPresetEditor: React.FC = () => {
 
   const handleCreate = async () => {
     const newPreset: EtlPreset = {
+      id: crypto.randomUUID(),
       name: 'NUEVO_MODELO_CARTA',
       version: '1.0',
       description: 'Generación industrial',
@@ -233,8 +235,11 @@ const LetterPresetEditor: React.FC = () => {
           const data = JSON.parse(text);
           if (data.type === 'abdfn_presets_backup' && Array.isArray(data.payload)) {
             for (const p of data.payload) {
-              const { id, ...cleanPreset } = p;
-              await db.presets_v6.add(cleanPreset);
+              const { id: _, ...cleanPreset } = p;
+              await db.presets_v6.add({
+                ...cleanPreset,
+                id: crypto.randomUUID()
+              });
             }
             alert('IMPORT_COMPLETE');
           }
@@ -425,6 +430,10 @@ const LetterPresetEditor: React.FC = () => {
                   <select className="station-select" value={formData.gawebConfig?.tipoDestino} onChange={e => updateGaweb('tipoDestino', e.target.value)}>
                     {DESTINOS_GAWEB.map(d => <option key={d.globalId} value={d.globalId}>{d.label}</option>)}
                   </select>, undefined, 'small')}
+                
+                {formData.gawebConfig?.tipoDestino !== 'CL' && renderField('CLASE DE CONTRATO', null,
+                  <input className="station-input" maxLength={2} value={formData.gawebConfig?.contractClass} onChange={e => updateGaweb('contractClass', e.target.value.toUpperCase())} placeholder="EJ: 99" />, undefined, 'small')}
+                
                 {renderField(t('audit.fields.DestinationIndicator'), null,
                   <select className="station-select" value={formData.gawebConfig?.indicadorDestino} onChange={e => updateGaweb('indicadorDestino', e.target.value)}>
                     {INDICADORES_DESTINO.map(i => <option key={i.globalId} value={i.globalId}>{i.label}</option>)}

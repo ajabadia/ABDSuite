@@ -23,7 +23,7 @@ interface ShellWrapperProps {
  * Protected by Phase 8 AuthGuard.
  */
 export const ShellWrapper: React.FC<ShellWrapperProps> = ({ children }) => {
-  const { currentOperator, currentUnit, isLoading, isBootstrapNeeded, isLocked } = useWorkspace();
+  const { currentOperator, currentUnit, isLoading, isBootstrapNeeded, isLocked, isVaultChallengeOpen } = useWorkspace();
   
   // Industrial Database Maintenance (Retention & Purge)
   useRetentionPolicy(30, !!currentUnit);
@@ -55,6 +55,7 @@ export const ShellWrapper: React.FC<ShellWrapperProps> = ({ children }) => {
       <LogDrawer />
       <StatusBar />
       <StepUpAuthModal />
+      {isVaultChallengeOpen && <LoginScreen />}
     </div>
   );
 };

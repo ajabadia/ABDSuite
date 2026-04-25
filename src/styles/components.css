@@ -740,6 +740,82 @@
   transition: width 0.4s var(--snap), background-color 0.4s var(--snap);
 }
 
+/* --- WIZARD SYSTEM (Uncodixfy) --- */
+.wizard-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.wizard-step-btn {
+  flex: 1;
+  padding: 16px;
+  background: var(--surface-color);
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all var(--snap);
+  position: relative;
+  min-height: 80px;
+  justify-content: center;
+}
+
+.wizard-step-btn:not(:last-child) {
+  border-right: 1px solid var(--border-color);
+}
+
+.wizard-step-btn:hover {
+  background: rgba(var(--primary-color-rgb), 0.03);
+}
+
+.wizard-step-btn.active {
+  background: rgba(var(--primary-color-rgb), 0.1);
+  box-shadow: inset 0 -3px 0 var(--primary-color);
+}
+
+.wizard-step-btn.active .wizard-step-label {
+  color: var(--primary-color);
+}
+
+.wizard-step-btn.complete::after {
+  content: "✓";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 0.7rem;
+  color: var(--status-ok);
+  font-weight: 900;
+}
+
+.wizard-step-id {
+  font-size: 0.65rem;
+  font-weight: 800;
+  opacity: 0.7;
+  letter-spacing: 0.15rem;
+  font-family: var(--font-mono);
+  color: var(--primary-color);
+}
+
+.wizard-step-label {
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.wizard-step-btn.error {
+  box-shadow: inset 0 -3px 0 var(--error-color);
+}
+
 /* --- FILE PROCESSING & DROPZONES --- */
 .station-dropzone {
   display: flex;

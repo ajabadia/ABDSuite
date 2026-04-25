@@ -1,0 +1,11 @@
+{
+  "common": {
+    "confirm_delete": "Voulez-vous vraiment supprimer cet élément? Cette action est irréversible.",
+    "confirm_delete_with_fields": "ATTENTION: Ce type possède des champs associés. Supprimer quand même? Cette action n'est pas réversible.",
+    "save": "SAUVER",
+    "cancel": "ANNULER",
+    "help": "AIDE",
+    "ok": "ENTENDU",
+    "search": "RECHERCHE"
+  }
+}

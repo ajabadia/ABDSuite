@@ -8,7 +8,7 @@
 
 import JSZip from 'jszip';
 import { GawebAuditResult } from './gaweb-auditor.logic';
-import { md5 } from '../utils/crypto.utils';
+import { md5Binary } from '../utils/crypto.utils';
 
 export interface PackageAuditResult {
   zipFilesCount: number;
@@ -39,8 +39,7 @@ export async function auditPackageIntegrity(
   // 1. MD5 Witness Check (Optional)
   if (md5Witness) {
      const buffer = await zipBlob.arrayBuffer();
-     const textContent = new TextDecoder().decode(new Uint8Array(buffer));
-     const calculatedMd5 = md5(textContent); // Simplified for browser blobs
+     const calculatedMd5 = md5Binary(new Uint8Array(buffer));
      result.md5Match = (calculatedMd5.toLowerCase() === md5Witness.trim().toLowerCase());
   }
 
@@ -61,7 +60,9 @@ export async function auditPackageIntegrity(
         gaweb.errors.push({
           line: index + 1,
           field: 'PdfName',
-          position: '212-251', // Modern position for PdfName
+          position: '212-251',
+          colStart: 211,
+          colEnd: 251,
           severity: 'ERROR',
           messageKey: 'audit.errors.missing_pdf',
           value: cleanPdfName
@@ -81,6 +82,8 @@ export async function auditPackageIntegrity(
         line: 0,
         field: 'ZIP',
         position: 'N/A',
+        colStart: 0,
+        colEnd: 0,
         severity: 'WARNING',
         messageKey: 'audit.errors.orphaned_pdf',
         value: zipFile

@@ -77,24 +77,24 @@ export const SyncPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex-col" style={{ gap: '20px', padding: '24px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
-      <header className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
-         <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+    <div className="station-card flex-col" style={{ gap: '20px' }}>
+      <header className="flex-row" style={{ justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+         <div className="flex-row" style={{ gap: '12px' }}>
             <RefreshIcon size={18} color="var(--primary-color)" />
-            <span style={{ fontWeight: '800', fontSize: '0.8rem', letterSpacing: '2px', textTransform: 'uppercase' }}>Sincronización P2P</span>
+            <span className="station-registry-item-name" style={{ letterSpacing: '2px', textTransform: 'uppercase' }}>Sincronización P2P</span>
          </div>
          {lastSync && (
-           <span style={{ fontSize: '0.65rem', opacity: 0.5 }}>ÚLTIMA SYNC: {lastSync}</span>
+           <span className="station-registry-item-meta">ÚLTIMA SYNC: {lastSync}</span>
          )}
       </header>
 
       <div className="flex-col" style={{ gap: '12px' }}>
-         <p style={{ fontSize: '0.75rem', opacity: 0.7, lineHeight: '1.4' }}>
+         <p className="station-registry-item-meta" style={{ opacity: 0.7, lineHeight: '1.4' }}>
            Utilice esta herramienta para intercambiar datos entre puestos de trabajo aislados (Air-Gapped).
          </p>
 
-         <div className="station-form-group" style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '4px' }}>
-            <label className="station-label" style={{ fontSize: '0.65rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+         <div className="station-form-field full" style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: 'var(--radius-std)' }}>
+            <label className="station-label flex-row" style={{ gap: '8px' }}>
               <KeyIcon size={12} /> FRASE DE PASO PARA CIFRADO (AES-GCM)
             </label>
             <input 
@@ -123,6 +123,7 @@ export const SyncPanel: React.FC = () => {
                {isImporting ? 'IMPORTANDO...' : 'IMPORTAR'}
                <input 
                 type="file" 
+                className="station-input-file-hidden"
                 accept=".abdfn-sync,.json" 
                 style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} 
                 onChange={handleImport}
@@ -133,9 +134,9 @@ export const SyncPanel: React.FC = () => {
       </div>
 
       {status && (
-        <div className={`alert-box ${status.type === 'SUCCESS' ? 'success' : 'error'} animate-fade-in`} style={{ padding: '8px 12px', fontSize: '0.75rem', display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className={`flex-row fade-in ${status.type === 'SUCCESS' ? 'station-badge-green' : 'station-badge-orange'}`} style={{ padding: '8px 12px', borderRadius: 'var(--radius-std)', fontSize: '0.75rem', gap: '8px' }}>
            {status.type === 'SUCCESS' ? <CheckCircleIcon size={14} /> : <AlertTriangleIcon size={14} />}
-           <span>{status.msg}</span>
+           <span style={{ fontWeight: 800 }}>{status.msg}</span>
         </div>
       )}
     </div>

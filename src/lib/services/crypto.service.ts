@@ -31,7 +31,7 @@ export class CryptoService {
     // Import the raw password as a key for PBKDF2
     const baseKey = await crypto.subtle.importKey(
       'raw',
-      passwordBytes.buffer as ArrayBuffer,
+      passwordBytes as any,
       'PBKDF2',
       false,
       ['deriveBits', 'deriveKey']
@@ -41,7 +41,7 @@ export class CryptoService {
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt.buffer as ArrayBuffer,
+        salt: salt as any,
         iterations: ITERATIONS,
         hash: 'SHA-256'
       },
@@ -72,11 +72,11 @@ export class CryptoService {
     const encryptedContent = await crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
-        iv: nonce,
+        iv: nonce as any,
         tagLength: TAG_SIZE * 8
       },
       key,
-      fileBytes
+      fileBytes as any
     );
 
     // 4. Assemble: [Salt][Nonce][Ciphertext+Tag]
@@ -127,11 +127,11 @@ export class CryptoService {
       const decryptedBuffer = await crypto.subtle.decrypt(
         {
           name: 'AES-GCM',
-          iv: nonce.buffer as ArrayBuffer,
+          iv: nonce as any,
           tagLength: TAG_SIZE * 8
         },
         key,
-        combinedData.buffer as ArrayBuffer
+        combinedData as any
       );
 
       return new Blob([decryptedBuffer], { type: 'application/octet-stream' });
@@ -166,7 +166,8 @@ export class CryptoService {
   public static async encryptField(
     value: string | ArrayBuffer | Uint8Array,
     key: CryptoKey,
-    aad?: Uint8Array
+    aad?: Uint8Array,
+    aadContext?: Partial<AADPayload>
   ): Promise<EncryptedFieldContainer> {
     let plainBytes: Uint8Array;
     if (typeof value === 'string') {
@@ -182,12 +183,12 @@ export class CryptoService {
     const cipherBuf = await crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
-        iv: iv.buffer as ArrayBuffer,
-        additionalData: aad ? (aad.buffer as ArrayBuffer) : undefined,
+        iv: iv as any,
+        additionalData: aad as any,
         tagLength: TAG_SIZE * 8
       },
       key,
-      plainBytes.buffer as ArrayBuffer
+      plainBytes as any
     );
 
     return {
@@ -195,7 +196,8 @@ export class CryptoService {
       alg: 'AES-GCM-256',
       iv: this.toBase64(iv),
       ct: this.toBase64(new Uint8Array(cipherBuf)),
-      aad: aad ? this.toBase64(aad) : undefined
+      aad: aad ? this.toBase64(aad) : undefined,
+      aad_context: aadContext
     };
   }
 
@@ -214,32 +216,109 @@ export class CryptoService {
     const iv = this.fromBase64(container.iv);
     const ct = this.fromBase64(container.ct);
 
-    const plainBuf = await crypto.subtle.decrypt(
-      {
-        name: 'AES-GCM',
-        iv: iv.buffer as ArrayBuffer,
-        additionalData: aad ? (aad.buffer as ArrayBuffer) : undefined,
-        tagLength: TAG_SIZE * 8
-      },
-      key,
-      ct.buffer as ArrayBuffer
-    );
-
-    return new Uint8Array(plainBuf);
+    try {
+      // Primary Attempt: Use provided AAD
+      const plainBuf = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv as any, additionalData: aad as any, tagLength: TAG_SIZE * 8 },
+        key,
+        ct as any
+      );
+      return new Uint8Array(plainBuf);
+    } catch (err: any) {
+      // Secondary Recovery: Brute-force probable AAD candidates if it's an integrity error
+      if (err.name === 'OperationError') {
+        const context = container.aad_context;
+        if (context) {
+          const candidates = this.getAADPermutations(
+            context.schema as any, 
+            context.unitId as any, 
+            context.table as any, 
+            context.id as any, 
+            context.field as any
+          );
+          
+          for (const candidate of candidates) {
+            try {
+              const plainBuf = await crypto.subtle.decrypt(
+                { 
+                  name: 'AES-GCM', 
+                  iv: iv as any, 
+                  additionalData: candidate.bytes.length === 0 ? undefined : candidate.bytes as any, 
+                  tagLength: TAG_SIZE * 8 
+                },
+                key,
+                ct as any
+              );
+              console.warn(`[ABDFN-CRYPTO] Recovery successful via AAD permutation: ${candidate.label}`);
+              return new Uint8Array(plainBuf);
+            } catch {
+              continue; // Try next candidate
+            }
+          }
+        }
+      }
+      throw err;
+    }
   }
 
-  /**
-   * Builds the Additional Authenticated Data (AAD) for a record field.
-   */
   public static buildAAD(
     schema: 'ABDFN_CORE' | 'ABDFN_SUITE',
     unitId: string | null,
     table: string,
     id: string,
-    field: string
+    field: string,
+    includeVersion = true
   ): Uint8Array {
-    const payload: AADPayload = { schema, unitId, table, id, field, v: 1 };
+    const payload: any = { schema, unitId, table, id, field };
+    if (includeVersion) payload.v = 1;
     return new TextEncoder().encode(JSON.stringify(payload));
+  }
+
+  /**
+   * Generates multiple AAD candidates to recover from past schema evolutions.
+   */
+  public static getAADPermutations(
+    schema: 'ABDFN_CORE' | 'ABDFN_SUITE',
+    unitId: string | null,
+    table: string,
+    id: string,
+    field: string
+  ): { label: string; bytes: Uint8Array }[] {
+    const encoder = new TextEncoder();
+    const candidates: { label: string; bytes: Uint8Array }[] = [];
+
+    // 1. V1 (Deterministic JSON)
+    candidates.push({ label: 'V1_JSON', bytes: this.buildAAD(schema, unitId, table, id, field, true) });
+
+    // 2. V0 (Legacy JSON with nulls)
+    candidates.push({ label: 'V0_JSON_NULL', bytes: this.buildAAD(schema, unitId, table, id, field, false) });
+
+    // 3. V0-Compact (Omit key if null)
+    let payloadCompact: any = { schema, table, id, field };
+    if (unitId) payloadCompact.unitId = unitId;
+    candidates.push({ label: 'V0_JSON_COMPACT', bytes: encoder.encode(JSON.stringify(payloadCompact)) });
+
+    // 4. V0-Alphabetical (Order check)
+    const payloadAlpha: any = { field, id, schema, table };
+    if (unitId !== undefined) payloadAlpha.unitId = unitId;
+    candidates.push({ label: 'V0_JSON_ALPHA', bytes: encoder.encode(JSON.stringify(payloadAlpha)) });
+
+    // 5. V0-Null-String (Explicit "null" text)
+    const payloadNullStr: any = { schema, unitId: "null", table, id, field };
+    candidates.push({ label: 'V0_JSON_NULL_STR', bytes: encoder.encode(JSON.stringify(payloadNullStr)) });
+
+    // 6. V0-Concatenated (The "Colon" protocol)
+    const rawStr = `${schema}:${unitId || ''}:${table}:${id}:${field}`;
+    candidates.push({ label: 'V0_CONCAT', bytes: encoder.encode(rawStr) });
+
+    // 7. V0-Concatenated-Compact (Skip unitId segment)
+    const rawStrCompact = `${schema}:${table}:${id}:${field}`;
+    candidates.push({ label: 'V0_CONCAT_COMPACT', bytes: encoder.encode(rawStrCompact) });
+
+    // 8. NO_AAD (Early ERA 6 fallback)
+    candidates.push({ label: 'NO_AAD', bytes: new Uint8Array(0) });
+
+    return candidates;
   }
 
   // --- HELPERS ---

@@ -1,0 +1,19 @@
+{
+  "operator": {
+    "role": "ROLE",
+    "panel_title": "OPERATOR MANAGEMENT",
+    "search_placeholder": "SEARCH OPERATOR...",
+    "username": "USERNAME",
+    "display_name": "DISPLAY NAME",
+    "roles": {
+      "ADMIN": "ADMINISTRATOR",
+      "TECH": "TECHNICIAN"
+    },
+    "active": "ACTIVE",
+    "inactive": "INACTIVE",
+    "last_login": "LAST LOGIN",
+    "add_new": "ADD_NEW_OPERATOR",
+    "edit_status": "ACCOUNT_STATUS",
+    "permissions": "PERMISSIONS_CONFIG"
+  }
+}

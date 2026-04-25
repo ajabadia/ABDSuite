@@ -8,6 +8,15 @@
  * Optimized for performance and parity with legacy industrial witnesses.
  */
 export function md5(text: string): string {
+  const encoder = new TextEncoder();
+  return md5Binary(encoder.encode(text));
+}
+
+/**
+ * Calculates MD5 directly from a Uint8Array.
+ * Crucial for multi-GB file integrity without string memory overhead.
+ */
+export function md5Binary(msg: Uint8Array): string {
   const s = [
     7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
     5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
@@ -19,7 +28,6 @@ export function md5(text: string): string {
   
   const rotateLeft = (l: number, r: number) => (l << r) | (l >>> (32 - r));
 
-  const msg = new TextEncoder().encode(text);
   const words = new Int32Array(((msg.length + 8) >> 6 << 4) + 16);
   for (let i = 0; i < msg.length; i++) words[i >> 2] |= msg[i] << (i % 4 << 3);
   words[msg.length >> 2] |= 0x80 << (msg.length % 4 << 3);

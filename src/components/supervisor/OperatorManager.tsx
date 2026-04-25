@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Operator } from '@/lib/types/auth.types';
-import { coreDb } from '@/lib/db/SystemDB';
+import { operatorService } from '@/lib/services/OperatorService';
 import { OperatorTable } from './OperatorTable';
 import { OperatorDetailPanel } from './OperatorDetailPanel';
-import { RefreshCwIcon, UserPlusIcon } from '@/components/common/Icons';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { auditService } from '@/lib/services/AuditService';
 
@@ -23,7 +22,7 @@ export const OperatorManager: React.FC<OperatorManagerProps> = ({ initialOperato
   const loadOperators = async () => {
     setIsLoading(true);
     try {
-      const all = await coreDb.operators.toArray();
+      const all = await operatorService.list();
       setOperators(all);
     } catch (err) {
       console.error('[OPERATOR-MANAGER] Load failed', err);
@@ -33,10 +32,7 @@ export const OperatorManager: React.FC<OperatorManagerProps> = ({ initialOperato
   };
 
   useEffect(() => {
-    const load = async () => {
-      await loadOperators();
-    };
-    load();
+    loadOperators();
   }, []);
 
   useEffect(() => {
@@ -68,7 +64,7 @@ export const OperatorManager: React.FC<OperatorManagerProps> = ({ initialOperato
       a.click();
       URL.revokeObjectURL(url);
 
-      auditService.log({
+      await auditService.log({
           module: 'SUPERVISOR',
           messageKey: 'operator.export.success',
           status: 'SUCCESS',
@@ -77,6 +73,7 @@ export const OperatorManager: React.FC<OperatorManagerProps> = ({ initialOperato
               eventType: 'OPERATOR_EXPORT',
               entityType: 'OPERATOR_DATABASE',
               actorId: currentOperator?.id,
+              actorUser: currentOperator?.username,
               severity: 'WARN'
           }
       });
@@ -85,40 +82,30 @@ export const OperatorManager: React.FC<OperatorManagerProps> = ({ initialOperato
     }
   };
 
-  useEffect(() => {
-    (window as any).dispatchOperatorExport = handleExport;
-    return () => { delete (window as any).dispatchOperatorExport; };
-  }, [operators, currentOperator]);
-
   const selectedOperator = operators.find(o => o.id === selectedId) || null;
 
   return (
-    <div className="operator-manager-layout animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '24px', height: 'calc(100vh - 250px)' }}>
+    <div className="flex-row fade-in" style={{ gap: '24px', height: 'calc(100vh - 250px)', marginTop: '24px' }}>
       {/* LEFT: MASTER LIST */}
-      <section className="station-card flex-col" style={{ height: '100%', overflow: 'hidden' }}>
+      <section className="station-card flex-col" style={{ flex: 1.2, height: '100%', overflow: 'hidden', padding: 0 }}>
         <OperatorTable 
           operators={operators}
           selectedId={selectedId}
           onSelect={setSelectedId}
           filter={filter}
           onFilterChange={setFilter}
+          onExport={handleExport}
         />
       </section>
 
       {/* RIGHT: DETAIL / EDITOR */}
-      <section className="station-card flex-col" style={{ height: '100%', overflow: 'auto' }}>
+      <section className="station-card flex-col" style={{ flex: 0.8, height: '100%', overflow: 'auto' }}>
         <OperatorDetailPanel 
           selected={selectedOperator} 
           onRefresh={loadOperators}
           onClear={() => setSelectedId(null)}
         />
       </section>
-
-      <style jsx>{`
-        .operator-manager-layout {
-          margin-top: 24px;
-        }
-      `}</style>
     </div>
   );
 };

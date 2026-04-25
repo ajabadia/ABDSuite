@@ -9,53 +9,58 @@
  */
 
 import { GawebGoldenProfile } from '../types/gaweb-golden.types';
+import { regulatoryOrchestrator } from './RegulatoryOrchestrator';
+import '@/lib/regulatory'; // Initialize plugins
 
 export interface GawebField {
   name: string;
   length: number;
+  startIndex: number; // 0-based
   isNumeric?: boolean;
 }
 
 export const GAWEB_FIELDS: GawebField[] = [
-  { name: 'LetterType', length: 1 },         // 1-1 (Fijo Blanco)
-  { name: 'Format', length: 2 },             // 2-3 (01-05)
-  { name: 'GenerationDate', length: 8, isNumeric: true }, // 4-11 (AAAAMMDD)
-  { name: 'Batch', length: 4, isNumeric: true },          // 12-15 (Lote)
-  { name: 'Sequential', length: 7, isNumeric: true },     // 16-22 (Secuencial)
-  { name: 'Page', length: 4, isNumeric: true },           // 23-26 (Página)
-  { name: 'DocCode', length: 6 },            // 27-32 (Cód Documento)
-  { name: 'Version', length: 4, isNumeric: true },        // 33-36 (Versión Ceros)
-  { name: 'ContractClass', length: 2 },      // 37-38 (Clase)
-  { name: 'ContractCode', length: 25 },      // 39-63 (Código Contrato)
-  { name: 'TIREL', length: 1 },              // 64-64 (Tipo Relación)
-  { name: 'NUREL', length: 3, isNumeric: true },          // 65-67 (Núm Relación)
-  { name: 'CLALF', length: 15 },             // 68-82 (ID Cliente)
-  { name: 'INDOM', length: 2, isNumeric: true },          // 83-84 (Cod Domicilio)
-  { name: 'ForceSend', length: 1 },          // 85-85 (Forzar Envío - Vacío)
-  { name: 'Language', length: 2 },           // 86-87 (Idioma - Vacío)
-  { name: 'SavingOpCode', length: 2 },       // 88-89 (Ahorro - AH)
-  { name: 'SavingOpAccount', length: 25 },   // 90-114 (CCC)
-  { name: 'SavingOpSign', length: 1 },       // 115-115 (Signo +/-)
-  { name: 'SavingOpAmount', length: 13, isNumeric: true }, // 116-128 (Importe)
-  { name: 'SavingOpCurrency', length: 2 },   // 129-130 (Moneda)
-  { name: 'SavingOpISO', length: 3 },        // 131-133 (Cod ISO)
-  { name: 'SavingOpConcept', length: 2 },    // 134-135 (Concepto)
-  { name: 'LetterDate', length: 8, isNumeric: true },     // 136-143 (Fecha AAAAMMDD)
-  { name: 'DestinationIndicator', length: 1 }, // 144-144 (0, O, 7)
-  { name: 'LoadDetail', length: 4, isNumeric: true },      // 145-148 (Fijo Cero)
-  { name: 'DeliveryWay', length: 2 },        // 149-150 (Vacío)
-  { name: 'PaperCopy', length: 1 },          // 151-151 (Vacío)
-  { name: 'OfficeCode', length: 5 },         // 152-156 (Cód Oficina)
-  { name: 'EmailFax', length: 50 },          // 157-206 (Vacío)
-  { name: 'ContentLength', length: 5, isNumeric: true },   // 207-211 (Longitud Cero)
-  { name: 'PdfName', length: 40 }            // 212-251 (Nombre PDF)
+  { name: 'LetterType', length: 1, startIndex: 0 },         // 1-1 (Fijo Blanco)
+  { name: 'Format', length: 2, startIndex: 1 },             // 2-3 (01-05)
+  { name: 'GenerationDate', length: 8, startIndex: 3, isNumeric: true }, // 4-11 (AAAAMMDD)
+  { name: 'Batch', length: 4, startIndex: 11, isNumeric: true },          // 12-15 (Lote)
+  { name: 'Sequential', length: 7, startIndex: 15, isNumeric: true },     // 16-22 (Secuencial)
+  { name: 'Page', length: 4, startIndex: 22, isNumeric: true },           // 23-26 (Página)
+  { name: 'DocCode', length: 6, startIndex: 26 },            // 27-32 (Cód Documento)
+  { name: 'Version', length: 4, startIndex: 32, isNumeric: true },        // 33-36 (Versión Ceros)
+  { name: 'ContractClass', length: 2, startIndex: 36 },      // 37-38 (Clase)
+  { name: 'ContractCode', length: 25, startIndex: 38 },      // 39-63 (Código Contrato)
+  { name: 'TIREL', length: 1, startIndex: 63 },              // 64-64 (Tipo Relación)
+  { name: 'NUREL', length: 3, startIndex: 64, isNumeric: true },          // 65-67 (Núm Relación)
+  { name: 'CLALF', length: 15, startIndex: 67 },             // 68-82 (ID Cliente)
+  { name: 'INDOM', length: 2, startIndex: 82, isNumeric: true },          // 83-84 (Cod Domicilio)
+  { name: 'ForceSend', length: 1, startIndex: 84 },          // 85-85 (Forzar Envío - Vacío)
+  { name: 'Language', length: 2, startIndex: 85 },           // 86-87 (Idioma - Vacío)
+  { name: 'SavingOpCode', length: 2, startIndex: 87 },       // 88-89 (Ahorro - AH)
+  { name: 'SavingOpAccount', length: 25, startIndex: 89 },   // 90-114 (CCC)
+  { name: 'SavingOpSign', length: 1, startIndex: 114 },       // 115-115 (Signo +/-)
+  { name: 'SavingOpAmount', length: 13, startIndex: 115, isNumeric: true }, // 116-128 (Importe)
+  { name: 'SavingOpCurrency', length: 2, startIndex: 128 },   // 129-130 (Moneda)
+  { name: 'SavingOpISO', length: 3, startIndex: 130 },        // 131-133 (Cod ISO)
+  { name: 'SavingOpConcept', length: 2, startIndex: 133 },    // 134-135 (Concepto)
+  { name: 'LetterDate', length: 8, startIndex: 135, isNumeric: true },     // 136-143 (Fecha AAAAMMDD)
+  { name: 'DestinationIndicator', length: 1, startIndex: 143 }, // 144-144 (0, O, 7)
+  { name: 'LoadDetail', length: 4, startIndex: 144, isNumeric: true },      // 145-148 (Fijo Cero)
+  { name: 'DeliveryWay', length: 2, startIndex: 148 },        // 149-150 (Vacío)
+  { name: 'PaperCopy', length: 1, startIndex: 150 },          // 151-151 (Vacío)
+  { name: 'OfficeCode', length: 5, startIndex: 151 },         // 152-156 (Cód Oficina)
+  { name: 'EmailFax', length: 50, startIndex: 156 },          // 157-206 (Vacío)
+  { name: 'ContentLength', length: 5, startIndex: 206, isNumeric: true },   // 207-211 (Longitud Cero)
+  { name: 'PdfName', length: 40, startIndex: 211 }            // 212-251 (Nombre PDF)
 ];
 
 export interface GawebError {
   line: number;
   field: string;
   position: string;
-  severity: 'ERROR' | 'WARNING';
+  colStart: number;
+  colEnd: number;
+  severity: 'ERROR' | 'WARNING' | 'INFO';
   messageKey: string;
   value: string;
 }
@@ -90,6 +95,8 @@ export function auditGawebLine(
       line: lineNum,
       field: 'LINE_LENGTH',
       position: `1-${line.length}`,
+      colStart: 0,
+      colEnd: line.length,
       severity: 'ERROR',
       messageKey: 'audit.errors.insufficient_length',
       value: `${line.length} bytes`
@@ -98,19 +105,23 @@ export function auditGawebLine(
   }
 
   const record: Record<string, string> = {};
-  let currentPos = 0;
 
+  // 1. Extraction Pass
   GAWEB_FIELDS.forEach(field => {
-    const start = currentPos;
-    const end = currentPos + field.length;
-    const value = paddedLine.substring(start, end);
-    const posLabel = `${start + 1}-${end}`;
-    
-    record[field.name] = value;
-    validateField(field, value, lineNum, posLabel, result);
-    
-    currentPos = end;
+    const start = field.startIndex;
+    const end = field.startIndex + field.length;
+    record[field.name] = paddedLine.substring(start, end);
   });
+
+  // 2. Validation Pass (with full record context)
+  GAWEB_FIELDS.forEach(field => {
+    const value = record[field.name];
+    const start = field.startIndex;
+    const end = field.startIndex + field.length;
+    const posLabel = `${start + 1}-${end}`;
+    validateField(field, value, lineNum, posLabel, result, record);
+  });
+
 
   // Cross-field validations
   validateCrossFields(record, lineNum, result);
@@ -138,10 +149,20 @@ function validateGoldenLayout(
   profile.recordLayout.forEach(spec => {
     const value = paddedLine.substring(spec.start - 1, spec.end).trim();
     const pos = `${spec.start}-${spec.end}`;
+    const startIdx = spec.start - 1;
+    const endIdx = spec.end;
     const isBreaking = profile.breakingRuleIds?.includes(spec.name) || false;
 
     const addIssue = (key: string) => {
-      const issue = { line, field: spec.name, position: pos, severity: isBreaking ? 'ERROR' : 'WARNING' as any, messageKey: key, value };
+      const issue: GawebError = { 
+        line, 
+        field: spec.name, 
+        position: pos, 
+        colStart: startIdx,
+        colEnd: endIdx,
+        severity: isBreaking ? 'ERROR' : 'WARNING' as any, 
+        messageKey: key, value 
+      };
       if (isBreaking) audit.errors.push(issue);
       else audit.warnings.push(issue);
     };
@@ -187,8 +208,24 @@ function executeValidationRules(
 
   profile.validationRules.forEach(rule => {
     const isBreaking = profile.breakingRuleIds?.includes(rule.id) || false;
+    
+    // Resolve colStart/colEnd from the first field in the rule if possible
+    const primaryFieldName = rule.fields[0];
+    const spec = profile.recordLayout.find(s => s.name === primaryFieldName);
+    const startIdx = spec ? spec.start - 1 : 0;
+    const endIdx = spec ? spec.end : 0;
+
     const addIssue = () => {
-      const issue = { line, field: rule.id, position: 'GOLDEN_RULE', severity: isBreaking ? 'ERROR' : 'WARNING' as any, messageKey: `audit.rule.${rule.id}`, value: rule.description };
+      const issue: GawebError = { 
+        line, 
+        field: rule.id, 
+        position: 'GOLDEN_RULE', 
+        colStart: startIdx,
+        colEnd: endIdx,
+        severity: isBreaking ? 'ERROR' : 'WARNING' as any, 
+        messageKey: `audit.rule.${rule.id}`, 
+        value: rule.description 
+      };
       if (isBreaking) audit.errors.push(issue);
       else audit.warnings.push(issue);
     };
@@ -252,8 +289,17 @@ export function auditGaweb(content: string): GawebAuditResult {
   return result;
 }
 
-function validateField(field: GawebField, value: string, line: number, pos: string, audit: { errors: GawebError[], warnings: GawebError[] }) {
-  const addError = (msgKey: string) => audit.errors.push({ line, field: field.name, position: pos, severity: 'ERROR', messageKey: msgKey, value });
+function validateField(field: GawebField, value: string, line: number, pos: string, audit: { errors: GawebError[], warnings: GawebError[] }, record: Record<string, string>) {
+  const addError = (msgKey: string) => audit.errors.push({ 
+    line, 
+    field: field.name, 
+    position: pos, 
+    colStart: field.startIndex,
+    colEnd: field.startIndex + field.length,
+    severity: 'ERROR', 
+    messageKey: msgKey, 
+    value 
+  });
 
   switch (field.name) {
     case 'LetterType':
@@ -291,7 +337,26 @@ function validateField(field: GawebField, value: string, line: number, pos: stri
       if (value.trim() !== '' && value !== 'AH') addError('audit.errors.invalid_ah_code');
       break;
     case 'DestinationIndicator':
-      if (!['0', 'O', '7'].includes(value)) addError('audit.errors.invalid_destination');
+    case 'CLALF':
+      if (value.trim() === '') {
+        addError('audit.errors.not_empty');
+      } else {
+        // Regulatory Plugin Integration (Sync-Plug)
+        const countryIso = record['SavingOpISO']?.trim() || 'ES'; // Default fallback
+        const regResult = regulatoryOrchestrator.validateTin(countryIso, value);
+        if (!regResult.isValid) {
+          audit.errors.push({ 
+            line, 
+            field: field.name, 
+            position: pos, 
+            colStart: field.startIndex,
+            colEnd: field.startIndex + field.length,
+            severity: regResult.severity || 'ERROR', 
+            messageKey: regResult.message || `audit.errors.invalid_tin_${countryIso.toLowerCase()}`, 
+            value 
+          });
+        }
+      }
       break;
     case 'PdfName':
     case 'DocCode':
@@ -310,6 +375,8 @@ function validateCrossFields(record: Record<string, string>, line: number, audit
       line,
       field: 'DESTINO',
       position: '39-82',
+      colStart: 38,
+      colEnd: 82,
       severity: 'ERROR',
       messageKey: 'audit.errors.destino_required',
       value: 'CLALF & CONTRACT MISSING'
@@ -323,6 +390,8 @@ function validateCrossFields(record: Record<string, string>, line: number, audit
          line,
          field: 'SavingOpAccount',
          position: '90-114',
+         colStart: 89,
+         colEnd: 114,
          severity: 'WARNING',
          messageKey: 'audit.errors.not_empty',
          value: 'AH_ACCOUNT_MISSING'

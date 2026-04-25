@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Space_Mono, Roboto_Mono } from 'next/font/google';
 import { LanguageProvider } from '@/lib/context/LanguageContext';
 import { ThemeProvider } from '@/lib/context/ThemeContext';
@@ -24,13 +24,19 @@ export const metadata: Metadata = {
   title: 'ABDFN SUITE - Aseptic Unified Hub',
   description: 'Procesamiento local seguro y herramientas de integridad. Zero-Knowledge Platform.',
   manifest: '/manifest.json',
-  themeColor: '#0a0a0a',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'ABDFN Suite',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0a0a0a',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

@@ -91,41 +91,41 @@ export const AuditHistoryDashboard: React.FC = () => {
 
         // 1. Auth Failures
         if (kpis.failedAuthCount === 0) {
-            sentences.push({ text: 'No se han detectado intentos de acceso fallidos en la ventana seleccionada.', status: 'ok', type: 'AUTH' });
+            sentences.push({ text: t('audit.diagnostics.auth_ok'), status: 'ok', type: 'AUTH' });
         } else if (kpis.failedAuthCount < thresholds.failedAuthLow) {
-            sentences.push({ text: `Se han registrado ${kpis.failedAuthCount} intentos de acceso fallidos; el nivel de ruido de autenticación es bajo.`, status: 'ok', type: 'AUTH' });
+            sentences.push({ text: t('audit.diagnostics.auth_noise', { n: kpis.failedAuthCount }), status: 'ok', type: 'AUTH' });
         } else if (kpis.failedAuthCount < thresholds.failedAuthHigh) {
-            sentences.push({ text: `Atención: se han registrado ${kpis.failedAuthCount} intentos de acceso fallidos. Revisar patrones de acceso.`, status: 'warn', type: 'AUTH' });
+            sentences.push({ text: t('audit.diagnostics.auth_warn', { n: kpis.failedAuthCount }), status: 'warn', type: 'AUTH' });
         } else {
-            sentences.push({ text: `ALERTA: volumen crítico (${kpis.failedAuthCount}) de intentos fallidos; posible ataque o desajuste grave de terminales.`, status: 'crit', type: 'AUTH' });
+            sentences.push({ text: t('audit.diagnostics.auth_crit', { n: kpis.failedAuthCount }), status: 'crit', type: 'AUTH' });
         }
 
         // 2. Session Locks
         const totalLocks = kpis.sessionLocks.inactivity + kpis.sessionLocks.manual;
         if (totalLocks === 0) {
-            sentences.push({ text: 'No se han producido bloqueos de estación; verifique que los timeouts de sesión son adecuados.', status: 'warn', type: 'AUTH' });
+            sentences.push({ text: t('audit.diagnostics.locks_none'), status: 'warn', type: 'AUTH' });
         } else if (kpis.sessionLocks.inactivity > thresholds.inactivityLocksHigh) {
-            sentences.push({ text: `Volumen elevado de bloqueos por inactividad (${kpis.sessionLocks.inactivity}); revise la ergonomía de seguridad en la planta.`, status: 'warn', type: 'AUTH' });
+            sentences.push({ text: t('audit.diagnostics.locks_warn', { n: kpis.sessionLocks.inactivity }), status: 'warn', type: 'AUTH' });
         } else {
-            sentences.push({ text: `Se han producido ${kpis.sessionLocks.inactivity} bloqueos por inactividad y ${kpis.sessionLocks.manual} bloqueos manuales.`, status: 'ok', type: 'AUTH' });
+            sentences.push({ text: t('audit.diagnostics.locks_ok', { inactivity: kpis.sessionLocks.inactivity, manual: kpis.sessionLocks.manual }), status: 'ok', type: 'AUTH' });
         }
 
         // 3. RBAC Changes
         if (kpis.rbacChangesCount === 0) {
-            sentences.push({ text: 'No se han realizado cambios de roles ni capacidades en este periodo.', status: 'ok', type: 'RBAC' });
+            sentences.push({ text: t('audit.diagnostics.rbac_ok'), status: 'ok', type: 'RBAC' });
         } else if (kpis.rbacChangesCount >= thresholds.rbacChangesAttention) {
-            sentences.push({ text: `Se han registrado ${kpis.rbacChangesCount} cambios en Operadores/Roles; nivel superior al umbral configurado.`, status: 'warn', type: 'RBAC' });
+            sentences.push({ text: t('audit.diagnostics.rbac_warn', { n: kpis.rbacChangesCount }), status: 'warn', type: 'RBAC' });
         } else {
-            sentences.push({ text: `${kpis.rbacChangesCount} cambios menores de administración detectados.`, status: 'ok', type: 'RBAC' });
+            sentences.push({ text: t('audit.diagnostics.rbac_minor', { n: kpis.rbacChangesCount }), status: 'ok', type: 'RBAC' });
         }
 
         // 4. Data Operations
         if (kpis.dataOps.total === 0) {
-            sentences.push({ text: 'No se han realizado volcados ni sincronizaciones de datos.', status: 'ok', type: 'DATA' });
+            sentences.push({ text: t('audit.diagnostics.data_none'), status: 'ok', type: 'DATA' });
         } else {
             const hasTooManyErrors = kpis.dataOps.failed >= thresholds.dataOpsErrorAttention;
             sentences.push({ 
-                text: `Operaciones de datos: ${kpis.dataOps.total} (éxito: ${kpis.dataOps.success}, fallos: ${kpis.dataOps.failed}).`, 
+                text: t('audit.diagnostics.data_stats', { total: kpis.dataOps.total, success: kpis.dataOps.success, failed: kpis.dataOps.failed }), 
                 status: hasTooManyErrors ? 'crit' : 'ok', 
                 type: 'DATA' 
             });
@@ -197,10 +197,13 @@ export const AuditHistoryDashboard: React.FC = () => {
                 <div style={{ flex: 1, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {t(record.action) || record.action}
                 </div>
-                <div style={{ width: '80px', textAlign: 'right' }}>
+                <div style={{ width: '80px', textAlign: 'right', display: 'flex', gap: '4px', justifyContent: 'flex-end', alignItems: 'center' }}>
                     <span className={`station-badge ${severity === 'CRITICAL' ? 'station-badge-orange' : severity === 'WARN' ? 'station-badge-blue' : ''}`} style={{ fontSize: '0.65rem' }}>
                         {severity}
                     </span>
+                    {record.action === 'LETTERSMOKETESTFAILED' && (
+                        <span className="station-badge" style={{ fontSize: '0.55rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--error-color)', borderColor: 'var(--error-color)' }}>SMOKE</span>
+                    )}
                 </div>
             </div>
         );
@@ -339,10 +342,66 @@ export const AuditHistoryDashboard: React.FC = () => {
                     {selectedRecord ? (
                         <div className="flex-col" style={{ gap: '16px' }}>
                             <div style={{ paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary-color)' }}>{selectedRecord.category}</div>
-                                <h3 style={{ margin: '4px 0', fontSize: '1rem' }}>{t(selectedRecord.action) || selectedRecord.action}</h3>
+                                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary-color)' }}>{selectedRecord.module}</div>
+                                <h3 style={{ margin: '4px 0', fontSize: '1rem' }}>{t(JSON.parse(selectedRecord.details).data?.messageKey) || t(selectedRecord.action) || selectedRecord.action}</h3>
                                 <div style={{ opacity: 0.5, fontSize: '0.75rem' }}>{new Date(selectedRecord.timestamp).toLocaleString()}</div>
+                                {selectedRecord.action === 'LETTERSMOKETESTFAILED' && (
+                                    <div style={{ marginTop: '8px', padding: '8px', background: 'rgba(239, 68, 68, 0.05)', borderLeft: '3px solid var(--error-color)', fontSize: '0.75rem' }}>
+                                        <strong>SMOKE TEST ERROR:</strong> {t('audit.smoke.failed')}
+                                    </div>
+                                )}
                             </div>
+
+                            {/* LETTERQA Enriched Details (Phase 20) */}
+                            {selectedRecord.module === 'LETTERQA' && (() => {
+                                const data = JSON.parse(selectedRecord.details).data || {};
+                                return (
+                                    <div className="station-tech-summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', background: 'rgba(2, 132, 199, 0.05)', padding: '16px', borderRadius: '4px', border: '1px solid rgba(2, 132, 199, 0.1)' }}>
+                                        <div className="station-tech-item">
+                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.lote').toUpperCase()}</span>
+                                            <div style={{ fontWeight: 700 }}>{data.lote || 'N/A'}</div>
+                                        </div>
+                                        <div className="station-tech-item">
+                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.doc').toUpperCase()}</span>
+                                            <div style={{ fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{data.codDocumento || 'N/A'}</div>
+                                        </div>
+                                        <div className="station-tech-item">
+                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.preset').toUpperCase()}</span>
+                                            <div style={{ fontSize: '0.75rem' }}>{data.presetName || data.presetId || 'N/A'}</div>
+                                        </div>
+                                        <div className="station-tech-item">
+                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.catdoc').toUpperCase()}</span>
+                                            <div style={{ fontSize: '0.75rem' }}>{data.catDocName || data.catDocId || 'N/A'}</div>
+                                        </div>
+                                        <div className="station-tech-item">
+                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.template').toUpperCase()}</span>
+                                            <div style={{ fontSize: '0.75rem' }}>{data.templateName || data.templateId || 'N/A'}</div>
+                                        </div>
+                                        <div className="station-tech-item">
+                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.mapping').toUpperCase()}</span>
+                                            <div style={{ fontSize: '0.75rem' }}>{data.mappingName || data.mappingId || 'N/A'}</div>
+                                        </div>
+                                        <div className="station-tech-item" style={{ gridColumn: 'span 2' }}>
+                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.resolution').toUpperCase()}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <span style={{ fontWeight: 700, color: 'var(--primary-color)' }}>
+                                                    {t(`audit.letterqa.reason_${data.reason?.toLowerCase()}`) || data.reason}
+                                                </span>
+                                                {data.isOperational === false && (
+                                                    <span style={{ color: 'var(--error-color)', fontSize: '0.7rem' }}>
+                                                        • {t('audit.letterqa.incomplete').toUpperCase()}
+                                                    </span>
+                                                )}
+                                                {data.scoringDebug && (
+                                                    <span className="station-badge" style={{ marginLeft: 'auto', background: 'var(--primary-color)', color: 'white' }}>
+                                                        SCORE: {data.scoringDebug.total}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
 
                             <pre style={{ fontSize: '0.75rem', padding: '12px', background: 'rgba(0,0,0,0.05)', borderRadius: '4px', overflowX: 'auto', border: '1px solid var(--border-color)' }}>
                                 {JSON.stringify(JSON.parse(selectedRecord.details), null, 2)}

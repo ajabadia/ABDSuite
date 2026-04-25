@@ -3,6 +3,7 @@ import { EtlPreset } from '../types/etl.types';
 import { LetterTemplate, LetterMapping } from '../types/letter.types';
 import { GawebGoldenProfile } from '../types/gaweb-golden.types';
 import { LocalDocCatalogEntry } from '../types/doc-catalog.types';
+import { CatDocumRecord } from '../types/catdocum.types';
 import { applyEncryptedMiddleware, EncryptedFieldsConfig } from './EncryptedDbAdapter';
 
 export interface GoldenTest {
@@ -25,10 +26,10 @@ export interface AuditHistoryRecord {
   id?: string;
   timestamp: number;
   category: string;
-  module: 'LETTER' | 'AUDIT' | 'CRYPT' | 'SECURITY' | 'SYSTEM' | 'SUPERVISOR';
+  module: 'LETTER' | 'AUDIT' | 'CRYPT' | 'SECURITY' | 'SYSTEM' | 'SUPERVISOR' | 'GAWEBAUDIT' | 'LETTERQA' | 'REGTECH';
   action: string;
   details: string; // JSON string with counts, errors, etc.
-  status: 'SUCCESS' | 'WARNING' | 'ERROR';
+  status: 'SUCCESS' | 'WARNING' | 'ERROR' | 'INFO';
 }
 
 /**
@@ -43,6 +44,7 @@ export class ABDFNSuiteDB extends Dexie {
   audit_history_v6!: Table<AuditHistoryRecord>;
   gaweb_golden_profiles_v6!: Table<GawebGoldenProfile>;
   doc_catalog_v1!: Table<LocalDocCatalogEntry>;
+  catdocumv6!: Table<CatDocumRecord>;
 
   private _unitId: string;
   private static _keyProvider: () => CryptoKey | null = () => null;
@@ -59,14 +61,15 @@ export class ABDFNSuiteDB extends Dexie {
     applyEncryptedMiddleware(this, 'ABDFN_SUITE', unitId, suiteConfig, () => ABDFNSuiteDB._keyProvider());
     
     // Schema Era 6+ (Phase 18)
-    this.version(12).stores({
+    this.version(13).stores({
       presets_v6: 'id, name, gawebConfig.active, updatedAt',
       lettertemplates_v6: 'id, name, type, isActive, updatedAt',
       lettermappings_v6: 'id, name, templateId, etlPresetId, isActive, updatedAt',
-      golden_tests_v6: 'id, templateId, mappingId, etlPresetId, codDocumento, version',
+      golden_tests_v6: 'id, templateId, mappingId, etlPresetId, codDocumento, version, [templateId+mappingId+etlPresetId+codDocumento]',
       audit_history_v6: 'id, timestamp, category, module, action, status',
       gaweb_golden_profiles_v6: 'id, codigoDocumento, formatoCarta, active',
-      doc_catalog_v1: 'id, codigoDocumento, name, isActive, updatedAt'
+      doc_catalog_v1: 'id, codigoDocumento, name, isActive, updatedAt',
+      catdocumv6: 'id, codDocumento, businessName, category, isActive, updatedAt'
     });
 
     this.presets_v6 = this.table('presets_v6');
@@ -76,6 +79,7 @@ export class ABDFNSuiteDB extends Dexie {
     this.audit_history_v6 = this.table('audit_history_v6');
     this.gaweb_golden_profiles_v6 = this.table('gaweb_golden_profiles_v6');
     this.doc_catalog_v1 = this.table('doc_catalog_v1');
+    this.catdocumv6 = this.table('catdocumv6');
   }
 
   /**
@@ -103,16 +107,34 @@ export async function setActiveUnit(unitId: string): Promise<ABDFNSuiteDB> {
 }
 
 /**
+ * Returns the active DB instance bypassing the Proxy.
+ */
+export function getActiveDb(): ABDFNSuiteDB | null {
+  return activeDbInstance;
+}
+
+/**
  * DB PROXY (Industrial Logic)
  * Intercepts property access and redirects to the active instance.
  * Allows components to do `import { db } from ...` without refactoring.
  */
 export const db = new Proxy({} as ABDFNSuiteDB, {
-  get: (_, prop) => {
-    if (!activeDbInstance) {
-       // On clean starts (Bootstrap), we allow calling getUnitDb later
-       return undefined;
+  get: (target, prop) => {
+    // 1. Transparency for Internal Symbols ($$typeof, etc.)
+    if (typeof prop === 'symbol') {
+      return (target as any)[prop];
     }
-    return (activeDbInstance as any)[prop];
+
+    // 2. If active instance exists, use it (Transparent)
+    if (activeDbInstance) {
+      const val = (activeDbInstance as any)[prop];
+      if (typeof val === 'function') {
+        return val.bind(activeDbInstance);
+      }
+      return val;
+    }
+
+    // 3. Deferred access
+    return undefined;
   }
 });

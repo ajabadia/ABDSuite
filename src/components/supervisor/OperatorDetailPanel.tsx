@@ -1,9 +1,11 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
-import { Operator, UserRole, Capability } from '@/lib/types/auth.types';
+import { Operator, UserRole } from '@/lib/types/auth.types';
 import { operatorService } from '@/lib/services/OperatorService';
-import { SaveIcon, UserPlusIcon, ShieldCheckIcon, ZapIcon, XIcon, ListIcon, ShieldAlertIcon, RefreshCwIcon, CheckIcon, CloseIcon } from '@/components/common/Icons';
+import { SaveIcon, ShieldCheckIcon, ZapIcon, RefreshCwIcon, ShieldAlertIcon, CheckIcon, CloseIcon } from '@/components/common/Icons';
 import { PermissionsService, ALL_CAPABILITIES } from '@/lib/services/permissions';
 import { TelemetryConfigService } from '@/lib/services/telemetry-config.service';
 
@@ -57,7 +59,6 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
     try {
       const isNew = !selected;
       
-      // Basic validation
       if (!formData.username || !formData.displayName) {
         setError('Missing required fields');
         setIsSaving(false);
@@ -87,8 +88,8 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
 
   const handleTransferMaster = async () => {
     if (!selected || !currentOperator) return;
-    if (!requireFreshAuth(2, 'OPERATORS_MANAGE')) { // Master transfer is extreme high risk
-      setError(t('auth.error_insufficient_auth_level') || 'Se requiere autenticación MFA reciente.');
+    if (!requireFreshAuth(2, 'OPERATORS_MANAGE')) {
+      setError(t('auth.error_insufficient_auth_level'));
       return;
     }
     if (!currentOperator.isMaster) return;
@@ -119,7 +120,7 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
 
   const handleUnlockPin = async () => {
     if (!selected || !currentOperator) return;
-    if (!requireFreshAuth(1, 'OPERATORS_MANAGE')) { // Unlock PIN might only need Fresh PIN, but let's stick to policy
+    if (!requireFreshAuth(1, 'OPERATORS_MANAGE')) {
        setError(t('auth.error_insufficient_auth_level'));
        return;
     }
@@ -170,121 +171,90 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
   const baseCaps = PermissionsService.baseCapabilitiesForRole(formData.role);
 
   return (
-    <div className="flex-col obsidian-form-technical" style={{ gap: '24px', padding: '24px', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
-      <header className="flex-row technical-header-small" style={{ justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
-        <h3 style={{ fontSize: '0.75rem', margin: 0, letterSpacing: '2px', fontWeight: 900, opacity: 0.5 }}>
+    <div className="flex-col fade-in" style={{ gap: '24px' }}>
+      <header className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3 className="station-form-section-title" style={{ margin: 0 }}>
           {(selected ? t('common.edit') : t('operator.create_btn')).toUpperCase()}
         </h3>
         <div className="flex-row" style={{ gap: '8px' }}>
              {isPinLocked && canAdminSecurity && (
-               <button className="station-btn secondary tiny warning-technical" onClick={handleUnlockPin} disabled={isSaving}>
-                  <ShieldAlertIcon size={14} />
-                  <span>{t('operator.unlock_pin_btn') || 'UNLOCK'}</span>
+               <button className="station-btn secondary tiny" style={{ borderColor: 'var(--status-warn)', color: 'var(--status-warn)' }} onClick={handleUnlockPin} disabled={isSaving}>
+                  <ShieldAlertIcon size={14} /> UNLOCK
                </button>
              )}
              {selected?.mfaEnabled && canAdminSecurity && (
-                <button className="station-btn secondary tiny warning-technical" onClick={handleResetMfa} disabled={isSaving}>
-                  <RefreshCwIcon size={14} />
-                  <span>{t('operator.reset_mfa_btn') || 'RESET MFA'}</span>
+                <button className="station-btn secondary tiny" style={{ borderColor: 'var(--status-warn)', color: 'var(--status-warn)' }} onClick={handleResetMfa} disabled={isSaving}>
+                  <RefreshCwIcon size={14} /> RESET MFA
                 </button>
              )}
              {canTransferMaster && (
-               <button className="station-btn secondary tiny warning-technical" onClick={handleTransferMaster} disabled={isSaving}>
-                  <ZapIcon size={14} />
-                  <span>MASTER XFER</span>
+               <button className="station-btn secondary tiny" style={{ borderColor: 'var(--status-err)', color: 'var(--status-err)' }} onClick={handleTransferMaster} disabled={isSaving}>
+                  <ZapIcon size={14} /> MASTER XFER
                </button>
              )}
-             <button className="station-btn secondary tiny" onClick={onClear} style={{ fontSize: '0.65rem' }}>{t('common.cancel').toUpperCase()}</button>
-             <button className="station-btn primary tiny" onClick={handleSave} disabled={isSaving} style={{ background: 'var(--primary-color)', color: '#000', fontWeight: 900 }}>
-                <SaveIcon size={14} />
-                <span style={{ fontSize: '0.65rem' }}>{isSaving ? '...' : t('common.save').toUpperCase()}</span>
+             <button className="station-btn secondary tiny" onClick={onClear}>{t('common.cancel').toUpperCase()}</button>
+             <button className="station-btn station-btn-primary tiny" onClick={handleSave} disabled={isSaving}>
+                <SaveIcon size={14} /> {isSaving ? '...' : t('common.save').toUpperCase()}
              </button>
         </div>
       </header>
 
       <div className="flex-col" style={{ gap: '16px' }}>
         {isPinLocked && (
-          <div className="alert-box-technical warning" style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid #f59e0b', padding: '10px', borderRadius: '2px' }}>
+          <div className="station-registry-sync-header" style={{ borderColor: 'var(--status-warn)', background: 'rgba(var(--status-warn-rgb), 0.1)', padding: '12px' }}>
              <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
-                <ShieldAlertIcon size={20} color="#f59e0b" />
-                <p style={{ margin: 0, fontSize: '0.65rem', fontWeight: 800, color: '#f59e0b' }}>{t('operator.pin_locked_banner') || 'NODE_LOCKED: FAILED_PIN_THRESHOLD'}</p>
+                <ShieldAlertIcon size={20} color="var(--status-warn)" />
+                <span className="station-title-main" style={{ fontSize: '0.65rem', color: 'var(--status-warn)' }}>NODE_LOCKED: FAILED_PIN_THRESHOLD</span>
              </div>
           </div>
         )}
         
-        <div className="station-form-group-technical">
-          <label className="label-technical">{t('operator.username').toUpperCase()}</label>
-          <input 
-            className="technical-input" 
-            value={formData.username || ''} 
-            onChange={e => setFormData({ ...formData, username: e.target.value })}
-            placeholder="master.root"
-          />
+        <div className="station-field-container">
+          <label className="station-registry-item-meta">{t('operator.username').toUpperCase()}</label>
+          <input className="station-input" value={formData.username || ''} onChange={e => setFormData({ ...formData, username: e.target.value })} placeholder="master.root" />
         </div>
 
-        <div className="station-form-group-technical">
-          <label className="label-technical">{t('operator.display_name').toUpperCase()}</label>
-          <input 
-            className="technical-input" 
-            value={formData.displayName || ''} 
-            onChange={e => setFormData({ ...formData, displayName: e.target.value })}
-            placeholder="SYSTEM ADMIN"
-          />
+        <div className="station-field-container">
+          <label className="station-registry-item-meta">{t('operator.display_name').toUpperCase()}</label>
+          <input className="station-input" value={formData.displayName || ''} onChange={e => setFormData({ ...formData, displayName: e.target.value })} placeholder="SYSTEM ADMIN" />
         </div>
 
-        <div className="station-form-group-technical">
-          <label className="label-technical">{t('operator.role').toUpperCase()}</label>
-          <select 
-            className="technical-input" 
-            value={formData.role} 
-            onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })}
-          >
+        <div className="station-field-container">
+          <label className="station-registry-item-meta">{t('operator.role').toUpperCase()}</label>
+          <select className="station-input" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })}>
             <option value="ADMIN">{t('operator.roles.ADMIN').toUpperCase()}</option>
             <option value="TECH">{t('operator.roles.TECH').toUpperCase()}</option>
             <option value="OPERATOR">{t('operator.roles.OPERATOR').toUpperCase()}</option>
           </select>
         </div>
 
-        <div className="station-form-group-technical">
-          <label className="label-technical">{selected ? 'UPDATE PIN_CODE (OPTIONAL)' : 'INITIAL PIN_CODE'}</label>
-          <input 
-            type="password" 
-            className="technical-input" 
-            value={newPin} 
-            onChange={e => setNewPin(e.target.value)}
-            placeholder="****"
-          />
+        <div className="station-field-container">
+          <label className="station-registry-item-meta">{selected ? 'UPDATE PIN_CODE (OPTIONAL)' : 'INITIAL PIN_CODE'}</label>
+          <input type="password" className="station-input" value={newPin} onChange={e => setNewPin(e.target.value)} placeholder="****" />
         </div>
         
-        <div className="station-form-group-technical flex-row" style={{ alignItems: 'center', gap: '12px' }}>
-            <input 
-              type="checkbox" 
-              checked={formData.isActive === 1} 
-              id="op-active-chk"
-              onChange={e => setFormData({ ...formData, isActive: e.target.checked ? 1 : 0 })}
-            />
-            <label htmlFor="op-active-chk" className="label-technical" style={{ marginBottom: 0, cursor: 'pointer' }}>{t('operator.active').toUpperCase()}</label>
+        <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
+            <input type="checkbox" checked={formData.isActive === 1} id="op-active-chk" onChange={e => setFormData({ ...formData, isActive: e.target.checked ? 1 : 0 })} />
+            <label htmlFor="op-active-chk" className="station-registry-item-meta" style={{ marginBottom: 0, cursor: 'pointer' }}>{t('operator.active').toUpperCase()}</label>
         </div>
 
-        {/* Phase 17: Advanced Capability Overrides (Matrix Tooling) */}
         {useWorkspace().can('SETTINGS_GLOBAL') && (
-          <fieldset style={{ marginTop: '16px', padding: '16px', border: '1px solid var(--border-color)', borderRadius: '2px', background: 'rgba(0,0,0,0.2)' }}>
-            <legend className="label-technical" style={{ padding: '0 8px', fontSize: '0.6rem', opacity: 0.5 }}>PERM_OVERRIDE_MATRIX</legend>
+          <div className="flex-col" style={{ marginTop: '16px', gap: '12px' }}>
+            <span className="station-form-section-title">PERM_OVERRIDE_MATRIX</span>
             
-            <div className="flex-col" style={{ gap: '4px', marginTop: '8px' }}>
-              <div className="flex-row" style={{ padding: '4px 8px', fontSize: '0.55rem', opacity: 0.4, fontWeight: 900, letterSpacing: '1px' }}>
+            <div className="flex-col" style={{ gap: '4px', border: '1px solid var(--border-color)', borderRadius: '2px', background: 'rgba(0,0,0,0.2)' }}>
+              <header className="flex-row" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-color)', background: 'var(--surface-color)', fontSize: '0.55rem', opacity: 0.4, fontWeight: 900 }}>
                  <div style={{ flex: 1 }}>CAPABILITY</div>
-                 <div style={{ width: '80px', textAlign: 'center' }}>INHERIT</div>
-                 <div style={{ width: '80px', textAlign: 'center' }}>ALLOW</div>
-                 <div style={{ width: '80px', textAlign: 'center' }}>DENY</div>
-              </div>
+                 <div style={{ width: '60px', textAlign: 'center' }}>BASE</div>
+                 <div style={{ width: '60px', textAlign: 'center' }}>ALLOW</div>
+                 <div style={{ width: '60px', textAlign: 'center' }}>DENY</div>
+              </header>
 
-              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              <div className="station-registry-scroller" style={{ maxHeight: '300px' }}>
                 {ALL_CAPABILITIES.map(cap => {
                   const isBase = baseCaps.includes(cap);
                   const isAdded = (formData.overrideCapabilities?.add || []).includes(cap) || (formData.extraCapabilities || []).includes(cap);
                   const isRemoved = (formData.overrideCapabilities?.remove || []).includes(cap) || (formData.deniedCapabilities || []).includes(cap);
-                  
                   const state: 'BASE' | 'ADD' | 'REMOVE' = isRemoved ? 'REMOVE' : (isAdded ? 'ADD' : 'BASE');
 
                   const handleToggle = (newState: 'BASE' | 'ADD' | 'REMOVE') => {
@@ -292,140 +262,45 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
                       add: [...(formData.overrideCapabilities?.add || []), ...(formData.extraCapabilities || [])].filter(c => c !== cap),
                       remove: [...(formData.overrideCapabilities?.remove || []), ...(formData.deniedCapabilities || [])].filter(c => c !== cap)
                     };
-
                     if (newState === 'ADD') nextOverrides.add.push(cap);
                     if (newState === 'REMOVE') nextOverrides.remove.push(cap);
-
-                    setFormData({ 
-                        ...formData, 
-                        overrideCapabilities: nextOverrides,
-                        // Clear old fields on write to migrate
-                        extraCapabilities: [],
-                        deniedCapabilities: [] 
-                    });
+                    setFormData({ ...formData, overrideCapabilities: nextOverrides, extraCapabilities: [], deniedCapabilities: [] });
                   };
 
                   return (
-                    <div key={cap} className="flex-row capability-row" style={{ 
-                        padding: '8px', 
-                        borderBottom: '1px solid rgba(255,255,255,0.02)', 
-                        alignItems: 'center',
-                        background: state !== 'BASE' ? 'rgba(var(--primary-color-rgb), 0.05)' : 'transparent'
-                    }}>
+                    <div key={cap} className={`flex-row fade-in`} style={{ padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.02)', alignItems: 'center', background: state !== 'BASE' ? 'rgba(var(--primary-color-rgb), 0.05)' : 'transparent' }}>
                       <div className="flex-col" style={{ flex: 1 }}>
-                        <span style={{ fontSize: '0.7rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{cap}</span>
-                        {isBase && <span style={{ fontSize: '0.5rem', opacity: 0.4 }}>HEREDADO DE ROL</span>}
+                        <span className="station-title-main" style={{ fontSize: '0.7rem' }}>{cap}</span>
+                        {isBase && <span className="station-registry-item-meta" style={{ fontSize: '0.5rem' }}>INHERITED</span>}
                       </div>
-
-                      <div className="flex-row" style={{ width: '240px' }}>
-                        <button 
-                          className={`matrix-btn ${state === 'BASE' ? 'active' : ''}`}
-                          onClick={() => handleToggle('BASE')}
-                          title="Inherit from role"
-                        >
-                          {state === 'BASE' && <RefreshCwIcon size={10} />}
-                        </button>
-                        <button 
-                          className={`matrix-btn allow ${state === 'ADD' ? 'active' : ''}`}
-                          onClick={() => handleToggle('ADD')}
-                          title="Force Allow"
-                        >
-                          <CheckIcon size={12} />
-                        </button>
-                        <button 
-                          className={`matrix-btn deny ${state === 'REMOVE' ? 'active' : ''}`}
-                          onClick={() => handleToggle('REMOVE')}
-                          title="Force Deny"
-                        >
-                          <CloseIcon size={12} />
-                        </button>
+                      <div className="flex-row" style={{ width: '180px', gap: '4px' }}>
+                        <button className={`station-btn tiny ${state === 'BASE' ? 'station-btn-primary' : 'secondary'}`} onClick={() => handleToggle('BASE')} style={{ width: '56px', padding: 0 }}><RefreshCwIcon size={10} /></button>
+                        <button className={`station-btn tiny ${state === 'ADD' ? 'station-btn-primary' : 'secondary'}`} onClick={() => handleToggle('ADD')} style={{ width: '56px', padding: 0, color: state === 'ADD' ? '#000' : 'var(--status-ok)' }}><CheckIcon size={12} /></button>
+                        <button className={`station-btn tiny ${state === 'REMOVE' ? 'station-btn-primary' : 'secondary'}`} onClick={() => handleToggle('REMOVE')} style={{ width: '56px', padding: 0, color: state === 'REMOVE' ? '#000' : 'var(--status-err)' }}><CloseIcon size={12} /></button>
                       </div>
                     </div>
                   );
                 })}
               </div>
             </div>
-          </fieldset>
+          </div>
         )}
 
         {error && (
-          <div className="alert-box-technical error" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--status-err)', padding: '10px', marginTop: '12px' }}>
-            <p style={{ margin: 0, color: 'var(--status-err)', fontSize: '0.7rem', fontWeight: 800 }}>[ERR] {error.toUpperCase()}</p>
+          <div className="station-registry-sync-header" style={{ borderColor: 'var(--status-err)', background: 'rgba(var(--status-err-rgb), 0.1)', padding: '10px' }}>
+            <span className="station-title-main" style={{ color: 'var(--status-err)', fontSize: '0.7rem' }}>[ERR] {error.toUpperCase()}</span>
           </div>
         )}
 
         {formData.isMaster && (
-          <div className="alert-box-technical info" style={{ border: '1px solid var(--primary-color)', padding: '10px', marginTop: '12px', background: 'rgba(56, 189, 248, 0.05)' }}>
+          <div className="station-registry-sync-header" style={{ borderColor: 'var(--primary-color)', padding: '10px', background: 'rgba(var(--primary-color-rgb), 0.05)' }}>
              <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
                 <ShieldCheckIcon size={20} color="var(--primary-color)" />
-                <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--primary-color)', letterSpacing: '1px' }}>ROOT_IDENTITY_PROTECTED</span>
+                <span className="station-title-main" style={{ fontSize: '0.65rem', color: 'var(--primary-color)' }}>ROOT_IDENTITY_PROTECTED</span>
              </div>
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        .label-technical {
-          font-family: var(--font-mono);
-          font-size: 0.6rem;
-          font-weight: 800;
-          letter-spacing: 1px;
-          margin-bottom: 6px;
-          display: block;
-          opacity: 0.6;
-        }
-        .technical-input {
-          background: var(--bg-color);
-          border: 1px solid var(--border-color);
-          color: var(--text-primary);
-          padding: 8px 12px;
-          font-family: var(--font-mono);
-          font-size: 0.75rem;
-          width: 100%;
-          border-radius: 2px;
-          transition: var(--snap);
-        }
-        .technical-input:focus {
-           outline: none;
-           border-color: var(--primary-color);
-           background: var(--surface-color);
-        }
-        .warning-technical {
-           border-color: var(--status-warn) !important;
-           color: var(--status-warn) !important;
-           font-size: 0.6rem !important;
-           font-weight: 900 !important;
-        }
-        .warning-technical:hover {
-           background: rgba(245, 158, 11, 0.1) !important;
-        }
-
-        .matrix-btn {
-          width: 80px;
-          height: 28px;
-          border: 1px solid var(--border-color);
-          background: transparent;
-          color: rgba(255,255,255,0.2);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: var(--snap);
-        }
-        .matrix-btn:hover { background: rgba(255,255,255,0.05); }
-        .matrix-btn.active { 
-          background: rgba(255,255,255,0.1); 
-          color: #fff; 
-          border-color: #666;
-          box-shadow: inset 0 0 10px rgba(255,255,255,0.05);
-        }
-        .matrix-btn.allow.active { color: var(--status-ok); border-color: var(--status-ok); background: rgba(16, 185, 129, 0.1); }
-        .matrix-btn.deny.active { color: var(--status-err); border-color: var(--status-err); background: rgba(239, 68, 68, 0.1); }
-        
-        .capability-row:hover {
-          background: rgba(255,255,255,0.02);
-        }
-      `}</style>
     </div>
   );
 };

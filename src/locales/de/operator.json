@@ -1,0 +1,13 @@
+{
+  "operator": {
+    "role": "ROLLE",
+    "panel_title": "OPERATOR-MANAGEMENT",
+    "search_placeholder": "OPERATOR SUCHEN...",
+    "active": "AKTIV",
+    "inactive": "INAKTIV",
+    "last_login": "LETZTER LOGIN",
+    "add_new": "OPERATOR_HINZUFÜGEN",
+    "edit_status": "KONTOSTATUS",
+    "permissions": "BERECHTIGUNGSCONFIG"
+  }
+}

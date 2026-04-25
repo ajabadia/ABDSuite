@@ -39,6 +39,8 @@ interface WorkspaceContextType {
   pendingStepUpLevel: number;
   installationKey: CryptoKey | null;
   unlockIK: (pin: string) => Promise<boolean>;
+  isVaultChallengeOpen: boolean;
+  setIsVaultChallengeOpen: (open: boolean) => void;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -56,6 +58,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isStepUpDialogOpen, setIsStepUpDialogOpen] = useState(false);
   const [pendingStepUpLevel, setPendingStepUpLevel] = useState<number>(1);
   const [stepUpResolver, setStepUpResolver] = useState<((val: boolean) => void) | null>(null);
+  const [isVaultChallengeOpen, setIsVaultChallengeOpen] = useState(false);
 
   // Link DBs to the local IK state
   useEffect(() => {
@@ -498,7 +501,10 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const unlockIK = async (pin: string): Promise<boolean> => {
+    if (!pin) return false;
     try {
+      const cleanPin = pin.trim();
+
       // 1. Get encrypted IK from core settings
       const settings = await coreDb.coreSettings.get('global');
       if (!settings || !settings.encryptedInstallationKey) {
@@ -512,14 +518,32 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         : new TextEncoder().encode('ABDFN_ROOT_SALT_V6');
 
       // 3. Derive Master Key from PIN
-      const masterKey = await CryptoService.deriveMasterKeyFromPin(pin, masterSalt);
+      const masterKey = await CryptoService.deriveMasterKeyFromPin(cleanPin, masterSalt);
 
       // 4. Decrypt the IK container
       const container = settings.encryptedInstallationKey as EncryptedFieldContainer;
       
-      // Use the exact same AAD context used during Bootstrap
-      const ikAad = CryptoService.buildAAD('ABDFN_CORE', null, 'coreSettings', 'global', 'encryptedInstallationKey');
-      const ikBytes = await CryptoService.decryptField(container, masterKey, ikAad);
+      // Industrial Fallback (Phase 18.5): Absolute Recovery Strategy
+      // We brute-force all plausible AAD permutations to recover from past schema evolutions.
+      const candidates = CryptoService.getAADPermutations('ABDFN_CORE', null, 'coreSettings', 'global', 'encryptedInstallationKey');
+      
+      let ikBytes: Uint8Array | null = null;
+      let lastErr: any = null;
+
+      for (const candidate of candidates) {
+        try {
+          ikBytes = await CryptoService.decryptField(container, masterKey, candidate.bytes);
+          console.warn(`[ABDFN-SECURITY] Vault recovered via AAD permutation: ${candidate.label}`);
+          break; // Success!
+        } catch (err: any) {
+          lastErr = err;
+          continue; // Try next candidate
+        }
+      }
+
+      if (!ikBytes) {
+        throw lastErr || new Error('All AAD recovery candidates failed.');
+      }
 
       // 5. Import the bytes as the actual CryptoKey for the session
       const ik = await crypto.subtle.importKey(
@@ -592,7 +616,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const timeoutMs = (config.security.sessionInactivityTimeoutMinutes ?? 15) * 60000;
       const now = Date.now();
 
-      if (now - lastActivityAt > timeoutMs) {
+      if (!isLocked && now - lastActivityAt > timeoutMs) {
         console.warn('[ABDFN-SECURITY] Inactivity timeout reached');
         setIsLocked(true);
         auditService.log({
@@ -638,7 +662,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsStepUpDialogOpen,
       pendingStepUpLevel,
       installationKey,
-      unlockIK
+      unlockIK,
+      isVaultChallengeOpen,
+      setIsVaultChallengeOpen
     }}>
       {children}
     </WorkspaceContext.Provider>

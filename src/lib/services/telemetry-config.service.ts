@@ -19,7 +19,9 @@ const MAPPING_DEFAULTS = {
 
 const SAMPLING_DEFAULTS: AuditSamplingSettings = {
   enabled: true,
-  maxPerType: 10
+  maxPerType: 10,
+  sampleEvery: 1, // Every document
+  maxPerDay: 5000 // Global threshold
 };
 
 const SECURITY_DEFAULTS: TelemetrySecurityConfig = {
@@ -100,6 +102,8 @@ export class TelemetryConfigService {
         auditSampling: {
           enabled: row?.telemetrySecurity?.auditSampling?.enabled ?? SAMPLING_DEFAULTS.enabled,
           maxPerType: row?.telemetrySecurity?.auditSampling?.maxPerType ?? SAMPLING_DEFAULTS.maxPerType,
+          sampleEvery: row?.telemetrySecurity?.auditSampling?.sampleEvery ?? SAMPLING_DEFAULTS.sampleEvery,
+          maxPerDay: row?.telemetrySecurity?.auditSampling?.maxPerDay ?? SAMPLING_DEFAULTS.maxPerDay,
         }
       },
       corporate: {

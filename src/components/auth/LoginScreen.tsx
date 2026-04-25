@@ -9,7 +9,7 @@ import { ShieldIcon, UserIcon, BuildingIcon, XIcon, DeleteIcon, CheckIcon, KeyIc
 
 export const LoginScreen: React.FC = () => {
   const { t } = useLanguage();
-  const { login, verifyMfa, selectUnit, currentOperator, logout, isLocked, unlockSession, installationKey } = useWorkspace();
+  const { login, verifyMfa, selectUnit, currentOperator, logout, isLocked, unlockSession, installationKey, isVaultChallengeOpen, setIsVaultChallengeOpen, unlockIK } = useWorkspace();
   
   const [pin, setPin] = useState('');
   const [operators, setOperators] = useState<Operator[]>([]);
@@ -93,6 +93,23 @@ export const LoginScreen: React.FC = () => {
         setError(t('auth.mfa.invalid'));
         setMfaToken('');
       }
+    }
+  };
+
+  const handleVaultUnlock = async () => {
+    setError(null);
+    if (pin.length < 4) return;
+    try {
+      const success = await unlockIK(pin);
+      if (success) {
+        setIsVaultChallengeOpen(false);
+        setPin('');
+      } else {
+        setError(t('auth.login.error_pin') || 'PIN_INVALIDO');
+        setPin('');
+      }
+    } catch (err) {
+      setError('ERROR_SISTEMA');
     }
   };
 
@@ -180,6 +197,15 @@ export const LoginScreen: React.FC = () => {
          borderRadius: 'var(--radius-std)',
          position: 'relative'
        }}>
+          {isVaultChallengeOpen && (
+            <button 
+              onClick={() => setIsVaultChallengeOpen(false)}
+              className="station-btn icon-only" 
+              style={{ position: 'absolute', top: '10px', right: '10px', border: 'none', background: 'transparent', zIndex: 10 }}
+            >
+              <XIcon size={24} style={{ opacity: 0.5 }} />
+            </button>
+          )}
           
           {/* Column 1: Identity & Feedback */}
           <div className="flex-col" style={{ gap: '32px', alignItems: 'center', borderRight: '1px solid var(--border-color)', paddingRight: '48px' }}>
@@ -194,7 +220,7 @@ export const LoginScreen: React.FC = () => {
 
             <div className="flex-col" style={{ alignItems: 'center', gap: '16px', width: '100%' }}>
                <span style={{ fontSize: '0.7rem', opacity: 0.4, fontWeight: 'bold', letterSpacing: '2px' }}>
-                 {isLocked ? `[ TERMINAL_LOCKED - ${(currentOperator?.username || 'SYSTEM').toUpperCase()} ]` : mfaPhase ? `[ ${t('auth.mfa.placeholder_token')} - TOTP ]` : `[ ${t('audit.tabSecurity')} ]`}
+                 {isVaultChallengeOpen ? '[ SECURITY_VAULT_CHALLENGE ]' : isLocked ? `[ TERMINAL_LOCKED - ${(currentOperator?.username || 'SYSTEM').toUpperCase()} ]` : mfaPhase ? `[ ${t('auth.mfa.placeholder_token')} - TOTP ]` : `[ ${t('audit.tabSecurity')} ]`}
                </span>
                
                {/* PIN / MFA Digit Feedback */}
@@ -313,10 +339,10 @@ export const LoginScreen: React.FC = () => {
              <button 
                 className={`station-btn ${mfaPhase ? 'primary-secondary' : 'primary'} large`}
                 style={{ width: '100%', height: '56px', fontSize: '1rem', letterSpacing: '2px', gap: '12px' }}
-                onClick={handleSubmit}
+                onClick={isVaultChallengeOpen ? handleVaultUnlock : handleSubmit}
              >
                 {mfaPhase ? <ShieldCheckIcon size={20} /> : <CheckIcon size={20} />}
-                {isLocked ? (t('auth.login.unlock_btn')) : mfaPhase ? (t('auth.mfa.verify_btn')) : (t('auth.login.access_btn'))}
+                {isVaultChallengeOpen ? 'DESBLOQUEAR MOTOR' : isLocked ? (t('auth.login.unlock_btn')) : mfaPhase ? (t('auth.mfa.verify_btn')) : (t('auth.login.access_btn'))}
              </button>
           </div>
        </div>

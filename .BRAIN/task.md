@@ -1,0 +1,15 @@
+- [ ] Evolución del Núcleo RegTech (Era 6)
+    - [ ] Actualizar `regulatory.types.ts` (Status: VALID, INVALID, EXEMPTED, MISMATCH)
+    - [ ] Crear `exemption-map.ts` (OECD Jurisdictions)
+    - [ ] Implementar `RegulatoryService.ts` (Servicio Transversal)
+- [ ] Utilidades Industriales
+    - [ ] Implementar `csv-detector.ts` (Smart Delimiter Priority: ; , \t |)
+    - [ ] Crear `csv-mapper.ts` (Detección inteligente de cabeceras)
+- [ ] UI: Validation Station
+    - [ ] Crear componente `TinStatusBadge` (Sistema cromático industrial)
+    - [ ] Crear componente `MismatchDetails` (Árbol de discrepancias)
+    - [ ] Implementar `TinValidatorStation` (Manual + Batch)
+- [ ] Integración Global
+    - [ ] Añadir `TIN_VALIDATOR` a `Sidebar.tsx`
+    - [ ] Registrar nueva estación en el Shell
+    - [ ] Actualizar `AuditStation` para usar el nuevo motor

@@ -8,9 +8,9 @@ import { AuditDetails } from '@/lib/types/auth.types';
 import Link from 'next/link';
 import { ConfigDiffCard } from '../security/ConfigDiffCard';
 
-type FilterMode = 'ALL' | 'SECURITY' | 'SYSTEM';
+type FilterMode = 'ALL' | 'SECURITY' | 'SYSTEM' | 'REGTECH';
 type SeverityFilter = 'ALL' | 'INFO' | 'WARN' | 'CRITICAL';
-type EventCategory = 'AUTH' | 'WORKSPACE' | 'OPERATORS' | 'CONFIG' | 'OTHER';
+type EventCategory = 'AUTH' | 'WORKSPACE' | 'OPERATORS' | 'CONFIG' | 'DATA' | 'OTHER';
 
 interface AuditRow {
   id: string;
@@ -27,30 +27,47 @@ const getCategory = (log: AuditRow): EventCategory => {
   if (type.startsWith('WORKSPACE')) return 'WORKSPACE';
   if (type.startsWith('OPERATOR')) return 'OPERATORS';
   if (type.endsWith('CONFIG_UPDATE')) return 'CONFIG';
+  if (type.startsWith('REGTECH')) return 'DATA';
   return 'OTHER';
 };
 
 interface SecurityAuditPanelProps {
   initialEventType?: string;
+  initialEntityType?: string;
+  onFiltersCleared?: () => void;
 }
 
-export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialEventType }) => {
+const ENTITY_TYPE_LABELS: Record<string, string> = {
+  'GAWEBSAMPLING': 'GAWEB Sampling',
+  'TELEMETRYCONFIG': 'Configuración de Telemetría',
+  'OPERATOR': 'Operador',
+  'WORKSPACE': 'Espacio de Trabajo',
+  'IK_OVERRIDE': 'Bypass de Integridad',
+  'SESSION_LOCK': 'Bloqueo de Sesión'
+};
+
+export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialEventType, initialEntityType, onFiltersCleared }) => {
   const { t } = useLanguage();
   const [logs, setLogs] = useState<AuditRow[]>([]);
   const [mode, setMode] = useState<FilterMode>('SECURITY');
-  const [typeFilter, setTypeFilter] = useState<string>(initialEventType ?? 'ALL');
+  const [typeFilter, setTypeFilter] = useState<string | null>(initialEventType || null);
+  const [entityTypeFilter, setEntityTypeFilter] = useState<string | null>(initialEntityType || null);
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('ALL');
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | EventCategory>('ALL');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
 
-  // Sync with external filters (Phase 13 Drill-down)
+  // Sync with external filters (Phase 13 Drill-down + Phase 18 Sync)
   useEffect(() => {
     if (initialEventType) {
       setTypeFilter(initialEventType);
       setMode('SECURITY');
     }
-  }, [initialEventType]);
+    if (initialEntityType) {
+      setEntityTypeFilter(initialEntityType);
+      setMode('SECURITY');
+    }
+  }, [initialEventType, initialEntityType]);
 
   const loadLogs = async () => {
     setIsLoading(true);
@@ -71,7 +88,7 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
         return {
           id: log.id,
           timestamp: log.timestamp,
-          module: 'SECURITY', // Heuristic for system_log events
+          module: log.action.startsWith('REGTECH') ? 'REGTECH' : 'SECURITY', 
           action: log.action,
           status: log.status,
           details
@@ -100,13 +117,22 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
 
   const filteredLogs = useMemo(() => {
     return logs.filter(log => {
-      if (mode === 'SECURITY' && log.module !== 'SECURITY') return false;
-      if (typeFilter !== 'ALL' && log.details?.eventType !== typeFilter) return false;
-      if (severityFilter !== 'ALL' && log.details?.severity !== severityFilter) return false;
-      if (categoryFilter !== 'ALL' && getCategory(log) !== categoryFilter) return false;
-      return true;
+      const details = log.details;
+      const rowEntityType = details?.entityType;
+      const rowEventType = details?.eventType;
+
+      const matchesMode = 
+        mode === 'ALL' ? true : 
+        mode === 'REGTECH' ? log.module === 'REGTECH' : 
+        log.module === 'SECURITY';
+      const matchesType = !typeFilter || typeFilter === 'ALL' || rowEventType === typeFilter;
+      const matchesEntity = !entityTypeFilter || rowEntityType === entityTypeFilter;
+      const matchesSeverity = severityFilter === 'ALL' || details?.severity === severityFilter;
+      const matchesCategory = categoryFilter === 'ALL' || getCategory(log) === categoryFilter;
+
+      return matchesMode && matchesType && matchesEntity && matchesSeverity && matchesCategory;
     });
-  }, [logs, mode, typeFilter, severityFilter, categoryFilter]);
+  }, [logs, mode, typeFilter, entityTypeFilter, severityFilter, categoryFilter]);
 
   const resolveMessage = (entry: AuditRow) => {
     const i18nKey = `audit.${entry.action}`;
@@ -131,8 +157,8 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
   const selectedLog = useMemo(() => logs.find(l => l.id === selectedLogId), [logs, selectedLogId]);
 
   return (
-    <section className="flex-row animate-fade-in" style={{ gap: '20px', height: '100%', padding: '20px' }}>
-      <div className="flex-col" style={{ flex: selectedLog ? 1.5 : 1, gap: '16px', minWidth: 0 }}>
+    <section className="flex-row animate-fade-in" style={{ gap: '20px', height: '100%', padding: '24px', overflow: 'hidden' }}>
+      <div className="flex-col" style={{ flex: selectedLog ? 1.5 : 1, gap: '16px', minWidth: 0, height: '100%', overflow: 'hidden' }}>
       <header className="flex-col" style={{ gap: '16px' }}>
         <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
           <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
@@ -144,11 +170,46 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
           </button>
         </div>
 
+        {/* ACTIVE FILTERS CHIPS (Industrial UX) */}
+        {(typeFilter && typeFilter !== 'ALL' || entityTypeFilter) && (
+          <div className="flex-row" style={{ gap: '8px', marginBottom: '8px' }}>
+             {entityTypeFilter && (
+               <button 
+                 className="station-badge success clickable animate-fade-in" 
+                 style={{ border: 'none', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem' }}
+                 onClick={() => {
+                   setEntityTypeFilter(null);
+                   setTypeFilter(null);
+                   onFiltersCleared?.();
+                 }}
+               >
+                 <span>●</span> 
+                 {ENTITY_TYPE_LABELS[entityTypeFilter] || entityTypeFilter}
+                 <span style={{ marginLeft: '4px', opacity: 0.5 }}>✕</span>
+               </button>
+             )}
+             {typeFilter && typeFilter !== 'ALL' && !entityTypeFilter && (
+               <button 
+                 className="station-badge info clickable animate-fade-in" 
+                 style={{ border: 'none', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem' }}
+                 onClick={() => {
+                    setTypeFilter(null);
+                    onFiltersCleared?.();
+                 }}
+               >
+                 <span>●</span> {typeFilter}
+                 <span style={{ marginLeft: '4px', opacity: 0.5 }}>✕</span>
+               </button>
+             )}
+          </div>
+        )}
+
         <div className="flex-row" style={{ gap: '16px', flexWrap: 'wrap' }}>
           <div className="flex-col">
             <label className="station-label" style={{ fontSize: '0.65rem' }}>MODULE</label>
             <select className="station-input" value={mode} onChange={e => setMode(e.target.value as any)} style={{ height: '32px', fontSize: '0.75rem' }}>
               <option value="SECURITY">SECURITY_ONLY</option>
+              <option value="REGTECH">REGTECH_AUDIT</option>
               <option value="ALL">ALL_GLOBAL_SYSTEM</option>
             </select>
           </div>
@@ -161,13 +222,14 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
               <option value="WORKSPACE">WORKSPACE</option>
               <option value="OPERATORS">OPERATORS</option>
               <option value="CONFIG">CONFIG</option>
+              <option value="DATA">DATA_OPERATIONS</option>
               <option value="OTHER">OTHER</option>
             </select>
           </div>
 
           <div className="flex-col">
             <label className="station-label" style={{ fontSize: '0.65rem' }}>EVENT_TYPE</label>
-            <select className="station-input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ height: '32px', fontSize: '0.75rem' }}>
+            <select className="station-input" value={typeFilter || 'ALL'} onChange={e => setTypeFilter(e.target.value)} style={{ height: '32px', fontSize: '0.75rem' }}>
               <option value="ALL">ALL_TYPES</option>
               {eventTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
@@ -225,13 +287,17 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
                   ) : '—'}
                 </td>
                 <td>
-                  {log.details?.entityType === 'OPERATOR' && log.details.entityId ? (
-                    <Link 
-                      href={`/supervisor?tab=operators&operatorId=${encodeURIComponent(log.details.entityId)}`}
-                      className="audit-link"
+                  {log.details?.entityType ? (
+                    <button 
+                      className={`station-pill ${entityTypeFilter === log.details.entityType ? 'active' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEntityTypeFilter(prev => prev === log.details?.entityType ? null : (log.details?.entityType || null));
+                      }}
+                      style={{ fontSize: '0.6rem', padding: '2px 6px', borderRadius: '4px' }}
                     >
-                      OP:{log.details.entityId.split('-')[0]}
-                    </Link>
+                      {ENTITY_TYPE_LABELS[log.details.entityType] || log.details.entityType}
+                    </button>
                   ) : (
                     <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>
                       {log.details?.entityType || '—'}{log.details?.entityId ? `:${log.details.entityId.split('-')[0]}` : ''}
@@ -269,14 +335,15 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
              <button className="station-btn tiny" onClick={() => setSelectedLogId(null)}>×</button>
            </div>
            
-           {selectedLog.details?.context?.before || selectedLog.details?.context?.after ? (
-             <ConfigDiffCard 
-               before={selectedLog.details.context.before} 
-               after={selectedLog.details.context.after} 
-               title={resolveMessage(selectedLog)}
-               category={selectedLog.details.entityType}
-             />
-           ) : (
+           {selectedLog.details?.context?.before || selectedLog.details?.context?.after || selectedLog.details?.summary ? (
+              <ConfigDiffCard 
+                before={selectedLog.details.context?.before || selectedLog.details.summary?.from} 
+                after={selectedLog.details.context?.after || selectedLog.details.summary?.to} 
+                title={resolveMessage(selectedLog)}
+                category={selectedLog.details.entityType}
+                ignoreKeys={['corporate', 'logoBase64', 'witness']}
+              />
+            ) : (
              <div className="station-card" style={{ padding: '20px', opacity: 0.5, textAlign: 'center', fontSize: '0.8rem' }}>
                 <p>NO_DIFFERENTIAL_DATA_AVAILABLE</p>
                 <pre style={{ textAlign: 'left', fontSize: '0.7rem', marginTop: '12px' }}>
@@ -314,6 +381,24 @@ export const SecurityAuditPanel: React.FC<SecurityAuditPanelProps> = ({ initialE
         }
         .audit-link:hover {
           text-decoration: underline;
+        }
+
+        .station-pill {
+          background: rgba(255,255,255,0.05);
+          border: 1px solid var(--border-color);
+          color: var(--text-primary);
+          cursor: pointer;
+          transition: var(--snap);
+        }
+        .station-pill:hover {
+          background: rgba(255,255,255,0.1);
+          border-color: var(--primary-color);
+        }
+        .station-pill.active {
+          background: var(--primary-color);
+          color: #000;
+          border-color: var(--primary-color);
+          font-weight: 800;
         }
       `}</style>
     </section>

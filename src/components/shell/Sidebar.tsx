@@ -14,11 +14,13 @@ import {
   PlayIcon,
   UnlockIcon,
   MapIcon,
+  GlobeIcon,
   HelpIcon,
   DownloadIcon,
   UploadIcon,
   ActivityIcon,
-  LogOutIcon
+  LogOutIcon,
+  UserIcon
 } from '@/components/common/Icons';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { HelpModal } from './HelpModal';
@@ -32,6 +34,7 @@ export const Sidebar: React.FC = () => {
   const [etlExpanded, setEtlExpanded] = useState(pathname.startsWith('/etl'));
   const [cryptExpanded, setCryptExpanded] = useState(pathname.startsWith('/crypt'));
   const [letterExpanded, setLetterExpanded] = useState(pathname.startsWith('/letter'));
+  const [regulatoryExpanded, setRegulatoryExpanded] = useState(pathname.startsWith('/regulatory'));
   
   // Auto-collapse logic
   useEffect(() => {
@@ -54,6 +57,13 @@ export const Sidebar: React.FC = () => {
       setLetterExpanded(false);
     } else if (!letterExpanded && pathname.startsWith('/letter')) {
       setLetterExpanded(true);
+    }
+
+    // Regulatory
+    if (!pathname.startsWith('/regulatory')) {
+      setRegulatoryExpanded(false);
+    } else if (!regulatoryExpanded && pathname.startsWith('/regulatory')) {
+      setRegulatoryExpanded(true);
     }
   }, [pathname]);
 
@@ -97,8 +107,23 @@ export const Sidebar: React.FC = () => {
         { href: '/letter?view=templates', icon: <FileTextIcon size={14} />, label: t('shell.letter_templates'), id: 'letter-templates' },
         { href: '/letter?view=config', icon: <CogIcon size={14} />, label: t('shell.letter_config') || 'CONFIGURACIÓN', id: 'letter-config' },
         { href: '/letter?view=mapping', icon: <MapIcon size={14} />, label: t('shell.letter_mapping'), id: 'letter-mapping' },
+        { href: '/letter?view=catdocum', icon: <ListIcon size={14} />, label: t('shell.letter_catdocum'), id: 'letter-catdocum' },
         { href: '/letter?view=generation', icon: <PlayIcon size={14} />, label: t('shell.letter_generation'), id: 'letter-generation' },
         { href: '/letter?view=audit', icon: <ShieldCheckIcon size={14} />, label: t('shell.letter_audit'), id: 'letter-audit' },
+      ]
+    },
+    { 
+      id: 'regtech', 
+      icon: <ShieldCheckIcon size={20} />, 
+      label: t('shell.regtech'),
+      isAccordion: true,
+      expanded: regulatoryExpanded,
+      setExpanded: setRegulatoryExpanded,
+      activePath: '/regulatory',
+      subItems: [
+        { href: '/regulatory?view=one-by-one', icon: <UserIcon size={14} />, label: t('shell.regtech_one_by_one'), id: 'regtech-one' },
+        { href: '/regulatory?view=batch', icon: <ListIcon size={14} />, label: t('shell.regtech_batch'), id: 'regtech-batch' },
+        { href: '/regulatory/registry', icon: <GlobeIcon size={14} />, label: t('shell.regtech_registry') || 'REGISTRO GLOBAL', id: 'regtech-registry' },
       ]
     },
   ];

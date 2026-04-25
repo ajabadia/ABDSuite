@@ -33,7 +33,7 @@ export default function Dashboard() {
       if (typeof navigator !== 'undefined' && navigator.storage) {
         const est = await navigator.storage.estimate();
         if (est.usage && est.quota) {
-          storagePercent = (est.usage / est.quota) * 10000; // Small usage expanded for visibility
+          storagePercent = (est.usage / est.quota) * 100; // Small usage expanded for visibility
         }
       }
 
@@ -133,8 +133,8 @@ export default function Dashboard() {
         </section>
 
         {/* 📊 SYSTEM TELEMETRY (BIOS STYLE) */}
-        <aside className="dash-sidebar">
-          <div className="station-card telemetry-panel">
+        <aside className="dash-sidebar flex-col">
+          <div className="station-card telemetry-panel flex-col">
             <h3 className="telemetry-title"><ActivityIcon size={16} /> {t('dashboard.sys_info')}</h3>
             <div className="telemetry-grid">
               <div 
@@ -158,7 +158,7 @@ export default function Dashboard() {
                   title={t(`ui.core_${i}_desc`)}
                   aria-label={`${t(`ui.core_${i}`)}: ${Math.round(v)}%. ${t(`ui.core_${i}_desc`)}`}
                 >
-                  <div className="core-label" style={{ fontSize: '0.55rem', opacity: 0.8 }}>
+                  <div className="core-label">
                     {t(`ui.core_${i}`).toUpperCase()}
                   </div>
                   <div className="segmented-bar">
@@ -183,14 +183,14 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <div className="station-integrity-badge" style={{ marginTop: 'auto', alignSelf: 'flex-start' }}>
-              <div className="integrity-dot"></div>
+            <div className="station-integrity-badge flex-row" style={{ marginTop: 'auto', alignSelf: 'flex-start', gap: '8px', fontSize: '0.6rem', opacity: 0.6 }}>
+              <div className="integrity-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--status-ok)' }}></div>
               <CpuIcon size={14} />
               <span>KERNEL_INTEGRITY_v6.0</span>
             </div>
           </div>
 
-          <div className="station-card dash-report">
+          <div className="station-card dash-report flex-col">
             <h3 className="telemetry-title"><SearchIcon size={16} /> {t('dashboard.ready_prompt')}</h3>
             <div className="system-logs-preview">
               <div className="log-line">{" > "}BOOT_SEQUENCE: OK</div>
@@ -231,7 +231,7 @@ export default function Dashboard() {
       <style jsx>{`
         .interactive-kernel {
           cursor: pointer;
-          border-radius: 4px;
+          border-radius: var(--radius-sm);
           padding: 2px 4px;
           margin: -2px -4px;
           transition: background 0.2s;
@@ -250,7 +250,7 @@ export default function Dashboard() {
 
         .diagnostics-panel {
           max-width: 450px;
-          border: 2px solid var(--primary-color);
+          border: var(--border-thick) solid var(--primary-color);
           box-shadow: 0 0 30px rgba(var(--primary-color-rgb), 0.3);
         }
         .diag-grid {
@@ -291,13 +291,11 @@ export default function Dashboard() {
         .crt-monitor {
           background: #050505;
           border: 12px solid #1a1a1a;
-          border-radius: 4px;
+          border-radius: var(--radius-sm);
           position: relative;
           padding: 40px;
           box-shadow: 0 0 40px rgba(0,0,0,0.5), inset 0 0 60px rgba(0,0,0,0.8);
           overflow: hidden;
-          
-          /* MONITOR VIBRATION */
           animation: monitor-vibrate 0.1s infinite;
         }
 
@@ -305,10 +303,7 @@ export default function Dashboard() {
           content: " ";
           display: block;
           position: absolute;
-          top: 0;
-          left: 0;
-          bottom: 0;
-          right: 0;
+          inset: 0;
           background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
           z-index: 2;
           background-size: 100% 2px, 3px 100%;
@@ -319,10 +314,7 @@ export default function Dashboard() {
           content: " ";
           display: block;
           position: absolute;
-          top: 0;
-          left: 0;
-          bottom: 0;
-          right: 0;
+          inset: 0;
           background: rgba(18, 16, 16, 0.1);
           opacity: 0;
           z-index: 2;
@@ -341,22 +333,6 @@ export default function Dashboard() {
         @keyframes monitor-flicker {
           0% { opacity: 0.1; }
           100% { opacity: 0.2; }
-        }
-
-        .crt-monitor::after {
-          content: " ";
-          display: block;
-          position: absolute;
-          top: 0;
-          left: 0;
-          bottom: 0;
-          right: 0;
-          background: linear-gradient(0deg, rgba(18, 16, 16, 0) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(18, 16, 16, 0) 100%);
-          background-size: 100% 200px;
-          opacity: 0.1;
-          z-index: 3;
-          pointer-events: none;
-          animation: scanline 8s linear infinite;
         }
 
         @keyframes scanline {
@@ -387,40 +363,8 @@ export default function Dashboard() {
           text-shadow: 0 0 10px var(--primary-color);
           margin: 0;
           text-align: center;
-          transition: transform 0.3s ease;
           position: relative;
-          
-          /* CRT ANIMATIONS */
           animation: glitch 4s infinite linear alternate-reverse;
-        }
-
-        .ascii-logo::before,
-        .ascii-logo::after {
-          content: "{asciiArt}";
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: #050505;
-          opacity: 0.8;
-          pointer-events: none;
-          white-space: pre;
-          display: flex;
-          justify-content: center;
-        }
-
-        .ascii-logo::before {
-          left: 2px;
-          text-shadow: -2px 0 #ff00c1;
-          clip: rect(44px, 450px, 56px, 0);
-          animation: glitch-anim 5s infinite linear alternate-reverse;
-        }
-
-        .ascii-logo::after {
-          left: -2px;
-          text-shadow: -2px 0 #00fff9, 2px 2px #ff00c1;
-          animation: glitch-anim2 1s infinite linear alternate-reverse;
         }
 
         @keyframes glitch {
@@ -432,40 +376,6 @@ export default function Dashboard() {
           25% { transform: skew(-1deg); }
           30% { transform: skew(0.2deg); }
           100% { transform: skew(0deg); }
-        }
-
-        @keyframes glitch-anim {
-          0% { clip: rect(10px, 9999px, 50px, 0); transform: skew(0.1deg); }
-          5% { clip: rect(85px, 9999px, 140px, 0); transform: skew(0.5deg); }
-          10% { clip: rect(15px, 9999px, 20px, 0); transform: skew(0.2deg); }
-          15% { clip: rect(110px, 9999px, 120px, 0); transform: skew(0.9deg); }
-          20% { clip: rect(30px, 9999px, 40px, 0); transform: skew(0.3deg); }
-          25% { clip: rect(10px, 9999px, 50px, 0); transform: skew(0.4deg); }
-          30% { clip: rect(2px, 9999px, 5px, 0); transform: skew(0.7deg); }
-          40% { clip: rect(80px, 9999px, 100px, 0); transform: skew(0.2deg); }
-          50% { clip: rect(100px, 9999px, 140px, 0); transform: skew(0.1deg); }
-          60% { clip: rect(20px, 9999px, 80px, 0); transform: skew(0.5deg); }
-          70% { clip: rect(50px, 9999px, 60px, 0); transform: skew(0.8deg); }
-          80% { clip: rect(10px, 9999px, 100px, 0); transform: skew(0.3deg); }
-          90% { clip: rect(140px, 9999px, 150px, 0); transform: skew(0.2deg); }
-          100% { clip: rect(120px, 9999px, 160px, 0); transform: skew(0.1deg); }
-        }
-
-        @keyframes glitch-anim2 {
-          0% { clip: rect(129px, 9999px, 136px, 0); transform: skew(0.5deg); }
-          5% { clip: rect(3px, 9999px, 44px, 0); transform: skew(0.1deg); }
-          10% { clip: rect(81px, 9999px, 100px, 0); transform: skew(0.1deg); }
-          15% { clip: rect(125px, 9999px, 128px, 0); transform: skew(0.8deg); }
-          20% { clip: rect(13px, 9999px, 20px, 0); transform: skew(0.2deg); }
-          25% { clip: rect(110px, 9999px, 120px, 0); transform: skew(0.3deg); }
-          30% { clip: rect(2px, 9999px, 5px, 0); transform: skew(0.1deg); }
-          45% { clip: rect(20px, 9999px, 30px, 0); transform: skew(0.4deg); }
-          50% { clip: rect(100px, 9999px, 110px, 0); transform: skew(1deg); }
-          60% { clip: rect(10px, 9999px, 20px, 0); transform: skew(0.3deg); }
-          70% { clip: rect(50px, 9999px, 60px, 0); transform: skew(0.2deg); }
-          80% { clip: rect(120px, 9999px, 130px, 0); transform: skew(0.4deg); }
-          90% { clip: rect(80px, 9999px, 90px, 0); transform: skew(0.1deg); }
-          100% { clip: rect(1px, 9999px, 5px, 0); transform: skew(0.5deg); }
         }
 
         .scanlines {
@@ -516,9 +426,6 @@ export default function Dashboard() {
 
         /* TELEMETRY */
         .telemetry-panel {
-          padding: 20px;
-          display: flex;
-          flex-direction: column;
           gap: 20px;
           background: rgba(var(--primary-color-rgb), 0.05) !important;
         }
@@ -558,7 +465,7 @@ export default function Dashboard() {
           margin-bottom: 8px;
         }
 
-        .core-label { font-size: 0.6rem; font-weight: 800; width: 45px; }
+        .core-label { font-size: 0.55rem; font-weight: 800; width: 45px; opacity: 0.8; }
         .segmented-bar {
           flex: 1;
           display: flex;
@@ -595,7 +502,7 @@ export default function Dashboard() {
           pointer-events: none;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           z-index: 1000;
-          border-radius: 4px;
+          border-radius: var(--radius-std);
         }
 
         .station-tooltip::after {
@@ -666,20 +573,18 @@ export default function Dashboard() {
 function ModuleCard({ title, desc, icon, href, color }: { title: string, desc: string, icon: React.ReactNode, href: string, color: string }) {
   return (
     <Link href={href} className="module-card-link" aria-label={title}>
-      <div className="module-card-container" style={{ '--card-accent': color } as any}>
-        <div className="module-card-inner">
-          <div className="module-header-wrap">
-            <div className="module-icon-box" aria-hidden="true">
+      <div className="station-card module-card-container flex-col" style={{ '--card-accent': color, padding: '24px', gap: '16px' } as any}>
+          <div className="flex-row" style={{ gap: '12px' }}>
+            <div className="module-icon-box" aria-hidden="true" style={{ color: 'var(--card-accent)', opacity: 0.8 }}>
               {icon}
             </div>
-            <h3 className="module-title-uncodix">{title}</h3>
+            <h3 className="module-title-industrial">{title}</h3>
           </div>
-          <p className="module-desc-uncodix">{desc}</p>
-          <div className="module-footer">
-            <span className="module-status-indicator" style={{ background: color }}></span>
+          <p className="module-desc-industrial">{desc}</p>
+          <div className="module-footer flex-row" style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(var(--primary-color-rgb), 0.05)', gap: '8px' }}>
+            <span className="module-status-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', background: color }}></span>
             <span className="module-action-text">OPEN MODULE</span>
           </div>
-        </div>
       </div>
 
       <style jsx>{`
@@ -690,48 +595,17 @@ function ModuleCard({ title, desc, icon, href, color }: { title: string, desc: s
         }
 
         .module-card-container {
-          background: var(--surface-color);
-          border: 1px solid var(--border-color);
-          border-radius: 8px;
-          height: 100%;
-          position: relative;
           transition: border-color 0.2s ease, box-shadow 0.2s ease;
           overflow: hidden;
+          height: 100%;
         }
 
         .module-card-container:hover {
           border-color: var(--card-accent);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          box-shadow: var(--shadow-subtle);
         }
 
-        .module-card-inner {
-          padding: 24px;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .module-header-wrap {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .module-icon-box {
-          color: var(--card-accent);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          opacity: 0.8;
-          transition: opacity 0.2s ease;
-        }
-
-        .module-card-container:hover .module-icon-box {
-          opacity: 1;
-        }
-
-        .module-title-uncodix {
+        .module-title-industrial {
           font-size: 0.95rem;
           font-weight: 800;
           margin: 0;
@@ -739,29 +613,13 @@ function ModuleCard({ title, desc, icon, href, color }: { title: string, desc: s
           color: var(--text-primary);
         }
 
-        .module-desc-uncodix {
+        .module-desc-industrial {
           font-size: 0.8rem;
           line-height: 1.5;
           color: var(--text-secondary);
           margin: 0;
           opacity: 0.7;
           flex-grow: 1;
-        }
-
-        .module-footer {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-top: 8px;
-          padding-top: 16px;
-          border-top: 1px solid rgba(var(--primary-color-rgb), 0.05);
-        }
-
-        .module-status-indicator {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          box-shadow: 0 0 4px var(--card-accent);
         }
 
         .module-action-text {
@@ -775,20 +633,6 @@ function ModuleCard({ title, desc, icon, href, color }: { title: string, desc: s
         .module-card-container:hover .module-action-text {
           opacity: 0.8;
           transform: translateX(4px);
-        }
-
-        /* Ambient subtle light for uncodixfy feel */
-        .module-card-container::after {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0; height: 1px;
-          background: linear-gradient(90deg, transparent, var(--card-accent), transparent);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        .module-card-container:hover::after {
-          opacity: 0.5;
         }
       `}</style>
     </Link>

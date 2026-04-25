@@ -198,6 +198,8 @@ function processSingleLine(rawLine: string) {
       line: exp.line,
       field: exp.field,
       position: exp.position,
+      colStart: exp.colStart,
+      colEnd: exp.colEnd,
       severity: exp.severity as any,
       messageKey: exp.messageKey,
       value: exp.value

@@ -104,7 +104,7 @@ export async function seedStressEnvironment() {
   let presetId: string;
   const existingPreset = await db.presets_v6.where('name').equals(STRESS_PRESET_DATA.name).first();
   if (!existingPreset) {
-    presetId = await db.presets_v6.add(STRESS_PRESET_DATA as any) as string;
+    presetId = await db.presets_v6.add({ ...STRESS_PRESET_DATA, id: crypto.randomUUID() } as any) as string;
   } else {
     presetId = existingPreset.id!;
     // UPDATE fields to ensure they match our logic
@@ -115,7 +115,7 @@ export async function seedStressEnvironment() {
   let templateId: string;
   const existingTemplate = await db.lettertemplates_v6.where('name').equals(STRESS_TEMPLATE_DATA.name).first();
   if (!existingTemplate) {
-    templateId = await db.lettertemplates_v6.add(STRESS_TEMPLATE_DATA as any) as string;
+    templateId = await db.lettertemplates_v6.add({ ...STRESS_TEMPLATE_DATA, id: crypto.randomUUID() } as any) as string;
   } else {
     templateId = existingTemplate.id!;
   }
@@ -143,7 +143,8 @@ export async function seedStressEnvironment() {
       isActive: true,
       updatedAt: Date.now()
     };
-    mapping.id = await db.lettermappings_v6.add(mapping as any) as string;
+    mapping.id = crypto.randomUUID();
+    await db.lettermappings_v6.add(mapping as any);
   } else {
     mapping = existingMapping;
     // Forzar actualización de mappings para QA

@@ -79,51 +79,56 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
   };
 
   return (
-    <div className="station-modal-overlay">
-      <div className="station-modal" style={{ maxWidth: '600px' }}>
+    <div className="station-modal-overlay fade-in">
+      <div className="station-modal" style={{ maxWidth: '640px' }}>
         <header className="station-modal-header">
           <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
              <DownloadIcon size={20} color="var(--primary-color)" />
-             <h2 style={{ fontSize: '0.85rem', fontWeight: 900, letterSpacing: '2px', margin: 0 }}>REPORT_EXPORT_CENTER</h2>
+             <h2 className="station-form-section-title" style={{ margin: 0 }}>REPORT_EXPORT_CENTER</h2>
           </div>
           <button className="station-btn secondary tiny" onClick={onClose}><XIcon size={16} /></button>
         </header>
 
-        <main className="station-modal-content">
+        <main className="station-modal-content" style={{ padding: '24px', gap: '24px' }}>
            <div className="flex-col" style={{ gap: '24px' }}>
               
               {/* SELECTOR DE TIPO DE REPORTE */}
               <div className="flex-col" style={{ gap: '8px' }}>
-                 <label className="station-label">TIPO_DE_INFORME</label>
-                 <div className="grid-report-types" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+                 <label className="station-registry-item-meta">TIPO_DE_INFORME</label>
+                 <div className="flex-col" style={{ gap: '8px' }}>
                     <button 
-                       className={`report-type-btn ${reportType === 'MASTER_PDF' ? 'active' : ''}`}
+                       className={`station-registry-sync-header clickable flex-row ${reportType === 'MASTER_PDF' ? 'active' : ''}`}
                        onClick={() => setReportType('MASTER_PDF')}
+                       style={{ gap: '16px', padding: '16px', textAlign: 'left', border: reportType === 'MASTER_PDF' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: reportType === 'MASTER_PDF' ? 'rgba(var(--primary-color-rgb), 0.1)' : 'transparent' }}
                     >
-                       <FileTextIcon size={18} />
+                       <FileTextIcon size={18} color={reportType === 'MASTER_PDF' ? 'var(--primary-color)' : 'inherit'} />
                        <div className="flex-col" style={{ alignItems: 'flex-start' }}>
-                          <span className="title">MASTER COMPLIANCE PDF</span>
-                          <span className="desc">KPIs globales, seguridad y resumen de planta (High-Fidelity)</span>
+                          <span className="station-title-main" style={{ fontSize: '0.8rem' }}>MASTER COMPLIANCE PDF</span>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.65rem' }}>KPIs globales, seguridad y resumen de planta (High-Fidelity)</span>
                        </div>
                     </button>
+
                     <button 
-                       className={`report-type-btn ${reportType === 'MAPPING_HEALTH_CSV' ? 'active' : ''}`}
+                       className={`station-registry-sync-header clickable flex-row ${reportType === 'MAPPING_HEALTH_CSV' ? 'active' : ''}`}
                        onClick={() => setReportType('MAPPING_HEALTH_CSV')}
+                       style={{ gap: '16px', padding: '16px', textAlign: 'left', border: reportType === 'MAPPING_HEALTH_CSV' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: reportType === 'MAPPING_HEALTH_CSV' ? 'rgba(var(--primary-color-rgb), 0.1)' : 'transparent' }}
                     >
-                       <DatabaseIcon size={18} />
+                       <DatabaseIcon size={18} color={reportType === 'MAPPING_HEALTH_CSV' ? 'var(--primary-color)' : 'inherit'} />
                        <div className="flex-col" style={{ alignItems: 'flex-start' }}>
-                          <span className="title">MAPPING HEALTH AUDIT (CSV)</span>
-                          <span className="desc">Estado de cobertura detallado de todas las unidades activas</span>
+                          <span className="station-title-main" style={{ fontSize: '0.8rem' }}>MAPPING HEALTH AUDIT (CSV)</span>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.65rem' }}>Estado de cobertura detallado de todas las unidades activas</span>
                        </div>
                     </button>
+
                     <button 
-                       className={`report-type-btn ${reportType === 'AUDIT_TRAIL_CSV' ? 'active' : ''}`}
+                       className={`station-registry-sync-header clickable flex-row ${reportType === 'AUDIT_TRAIL_CSV' ? 'active' : ''}`}
                        onClick={() => setReportType('AUDIT_TRAIL_CSV')}
+                       style={{ gap: '16px', padding: '16px', textAlign: 'left', border: reportType === 'AUDIT_TRAIL_CSV' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: reportType === 'AUDIT_TRAIL_CSV' ? 'rgba(var(--primary-color-rgb), 0.1)' : 'transparent' }}
                     >
-                       <ActivityIcon size={18} />
+                       <ActivityIcon size={18} color={reportType === 'AUDIT_TRAIL_CSV' ? 'var(--primary-color)' : 'inherit'} />
                        <div className="flex-col" style={{ alignItems: 'flex-start' }}>
-                          <span className="title">DETAILED AUDIT TRAIL (CSV)</span>
-                          <span className="desc">Volcado crudo de eventos de auditoría forense por unidad</span>
+                          <span className="station-title-main" style={{ fontSize: '0.8rem' }}>DETAILED AUDIT TRAIL (CSV)</span>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.65rem' }}>Volcado crudo de eventos de auditoría forense por unidad</span>
                        </div>
                     </button>
                  </div>
@@ -131,11 +136,11 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
 
               {/* FILTROS CONDICIONALES */}
               {reportType === 'AUDIT_TRAIL_CSV' && (
-                 <div className="flex-col fade-in" style={{ gap: '16px', padding: '16px', border: '1px solid var(--border-color)', borderRadius: '4px', background: 'rgba(0,0,0,0.1)' }}>
-                    <div className="flex-col" style={{ gap: '4px' }}>
-                       <label className="station-label"><FilterIcon size={10} /> SELECCIONAR_UNIDAD</label>
+                 <div className="station-card fade-in" style={{ gap: '16px', padding: '20px', background: 'rgba(0,0,0,0.1)' }}>
+                    <div className="station-field-container">
+                       <label className="station-registry-item-meta"><FilterIcon size={10} /> SELECCIONAR_UNIDAD</label>
                        <select 
-                          className="station-select" 
+                          className="station-input" 
                           value={selectedUnitId} 
                           onChange={(e) => setSelectedUnitId(e.target.value)}
                        >
@@ -145,23 +150,23 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
                           ))}
                        </select>
                     </div>
-                    <div className="flex-row" style={{ gap: '12px' }}>
-                       <div className="flex-col" style={{ flex: 1, gap: '4px' }}>
-                          <label className="station-label"><CalendarIcon size={10} /> DESDE</label>
+                    <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                       <div className="station-field-container">
+                          <label className="station-registry-item-meta"><CalendarIcon size={10} /> DESDE</label>
                           <input type="date" className="station-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
                        </div>
-                       <div className="flex-col" style={{ flex: 1, gap: '4px' }}>
-                          <label className="station-label"><CalendarIcon size={10} /> HASTA</label>
+                       <div className="station-field-container">
+                          <label className="station-registry-item-meta"><CalendarIcon size={10} /> HASTA</label>
                           <input type="date" className="station-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
                        </div>
                     </div>
                  </div>
               )}
 
-              <div style={{ marginTop: '8px', padding: '12px', border: '1px solid rgba(var(--primary-color-rgb), 0.2)', borderRadius: '4px', background: 'rgba(var(--primary-color-rgb), 0.05)' }}>
-                 <p style={{ fontSize: '0.65rem', margin: 0, opacity: 0.6, lineHeight: 1.4 }}>
+              <div className="station-registry-sync-header">
+                 <span className="station-shimmer-text" style={{ fontSize: '0.65rem' }}>
                     * Los reportes CSV utilizan ';' como delimitador industrial. Los informes PDF incluyen firmas de integridad para validación offline.
-                 </p>
+                 </span>
               </div>
 
            </div>
@@ -173,40 +178,13 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
               className="station-btn station-btn-primary" 
               onClick={handleExport}
               disabled={isExporting || (reportType === 'AUDIT_TRAIL_CSV' && !selectedUnitId)}
-              style={{ minWidth: '160px' }}
+              style={{ minWidth: '180px' }}
            >
-              {isExporting ? <><RefreshCwIcon size={16} className="spin" /> GENERANDO...</> : <><DownloadIcon size={16} /> GENERAR_INFORME</>}
+              {isExporting ? <RefreshCwIcon size={16} className="spin" /> : <DownloadIcon size={16} />}
+              <span>{isExporting ? 'GENERANDO...' : 'GENERAR_INFORME'}</span>
            </button>
         </footer>
       </div>
-
-      <style jsx>{`
-         .report-type-btn {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-primary);
-            text-align: left;
-            cursor: pointer;
-            transition: all var(--snap);
-         }
-         .report-type-btn:hover {
-            background: rgba(255,255,255,0.05);
-            border-color: rgba(var(--primary-color-rgb), 0.5);
-         }
-         .report-type-btn.active {
-            background: rgba(var(--primary-color-rgb), 0.1);
-            border-color: var(--primary-color);
-            box-shadow: inset 4px 0 0 var(--primary-color);
-         }
-         .report-type-btn .title { font-weight: 900; font-size: 0.8rem; letter-spacing: 1px; }
-         .report-type-btn .desc { font-size: 0.65rem; opacity: 0.4; margin-top: 2px; }
-         .report-type-btn.active .desc { opacity: 0.7; color: var(--primary-color); }
-      `}</style>
     </div>
   );
 };

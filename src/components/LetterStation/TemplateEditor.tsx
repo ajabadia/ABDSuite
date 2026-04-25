@@ -31,6 +31,7 @@ interface TemplateEditorProps {
 
 const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
   const { t } = useLanguage();
+  const { installationKey } = useWorkspace();
   const templates = useLiveQuery(() => db.lettertemplates_v6.toArray()) || [];
   
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -46,6 +47,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
   const [docxTags, setDocxTags] = useState<string[]>([]);
   const [isLoadingDocx, setIsLoadingDocx] = useState(false);
   const [editConfig, setEditConfig] = useState<TemplateComposition>(DEFAULT_COMPOSITION);
+  const [isEncryptedLocked, setIsEncryptedLocked] = useState(false);
 
   // UI State
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -59,7 +61,13 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
       const tmpl = templates.find(t => t.id === selectedId);
       if (tmpl) {
         setEditName(tmpl.name);
-        setEditContent(tmpl.content || '');
+        
+        // Security Guard: Detect Encrypted Containers (Vault Locked)
+        const contentVal = tmpl.content;
+        const isLocked = contentVal !== null && typeof contentVal === 'object';
+        setIsEncryptedLocked(isLocked);
+        
+        setEditContent(isLocked ? '' : (contentVal || ''));
         setEditVersion(tmpl.version || '1.0');
         setEditActive(tmpl.isActive !== false);
         setEditConfig(tmpl.config || DEFAULT_COMPOSITION);
@@ -85,18 +93,37 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
   };
 
   const handleCreate = async () => {
-    const name = `TEMPLATE_${templates.length + 1}`;
-    
     const id = await db.lettertemplates_v6.add({
-      name,
+      id: crypto.randomUUID(),
+      name: `NUEVA_PLANTILLA_${templates.length + 1}`,
       type: 'HTML',
-      content: '<h1>TITLE</h1>\n<p>Dear {{NAME}}:</p>\n<p>Message content here...</p>\n<p>Regards,</p>',
+      content: '<h1>TITULO</h1><p>Contenido...</p>',
       config: DEFAULT_COMPOSITION,
       updatedAt: Date.now()
     });
     setSelectedId(id as string);
     setActiveTab('content');
-    setIsRegistryExpanded(false); // Auto-collapse to focus on editing
+    setIsRegistryExpanded(false);
+  };
+
+  const handleUploadDocx = async (file: File) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const arrayBuffer = e.target?.result as ArrayBuffer;
+      const id = await db.lettertemplates_v6.add({
+        id: crypto.randomUUID(),
+        name: file.name.replace('.docx', '').toUpperCase(),
+        type: 'DOCX',
+        binaryContent: arrayBuffer,
+        config: DEFAULT_COMPOSITION,
+        updatedAt: Date.now(),
+        version: '1.0',
+        isActive: true
+      });
+      setSelectedId(id as string);
+      setIsRegistryExpanded(false);
+    };
+    reader.readAsArrayBuffer(file);
   };
 
   useEffect(() => {
@@ -161,6 +188,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
           if (data.type === 'abdfn_template' && data.payload) {
             const id = await db.lettertemplates_v6.add({
               ...data.payload,
+              id: crypto.randomUUID(),
               name: data.name + '_IMPORTED',
               type: 'HTML',
               updatedAt: Date.now()
@@ -248,7 +276,19 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
                      <button className="station-btn" onClick={handleExportAll}><DownloadIcon size={14} /> JSON↓</button>
                      <button className="station-btn" onClick={handleImport} disabled={!canEdit}><UploadIcon size={14} /> ALL↑</button>
                    </div>
-                   <button className="station-btn station-btn-primary" onClick={handleCreate} disabled={!canEdit} style={{ flex: 1, maxWidth: '300px' }}>{t('letter.ui.upload').toUpperCase()}</button>
+                                       <div className="flex-row" style={{ gap: '8px', flex: 1 }}>
+                       <button className="station-btn station-btn-primary" onClick={handleCreate} disabled={!canEdit} style={{ flex: 1 }}>
+                          + NUEVA HTML
+                       </button>
+                       <button className="station-btn station-btn-primary" onClick={() => (document.getElementById('docx-file-input') as any).click()} disabled={!canEdit} style={{ flex: 1 }}>
+                          <UploadIcon size={14} /> SUBIR DOCX
+                       </button>
+                       <input id="docx-file-input" type="file" accept=".docx" hidden onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleUploadDocx(f);
+                       }} />
+                    </div>
+
                 </div>
                 
                 <div className="flex-col" style={{ gap: '8px' }}>
@@ -366,7 +406,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
                   <button className={`station-btn ${showPreview ? 'active' : ''}`} onClick={() => setShowPreview(!showPreview)}>
                     <EyeIcon size={16} /> {t('letter.preview').toUpperCase()}
                   </button>
-                  <button className="station-btn station-btn-primary" onClick={handleSave} disabled={!canEdit}>
+                  <button className="station-btn station-btn-primary" onClick={handleSave} disabled={!canEdit || isEncryptedLocked || !installationKey}>
                     <SaveIcon size={16} /> {t('common.save').toUpperCase()}
                   </button>
                 </div>
@@ -393,15 +433,34 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
                   </div>
 
                   {activeTab === 'content' ? (
-                    <div className="flex-col" style={{ flex: 1, gap: '12px', minHeight: '400px' }}>
+                    <div className="flex-col" style={{ flex: 1, gap: '12px', minHeight: '400px', position: 'relative' }}>
                       <label className="station-label">HTML_BODY (HANDLEBARS_ENGINE):</label>
                       <textarea 
                         className="station-mono-editor"
                         value={editContent}
                         onChange={e => setEditContent(e.target.value)}
                         placeholder="..."
-                        readOnly={!canEdit}
+                        readOnly={!canEdit || isEncryptedLocked}
+                        style={isEncryptedLocked ? { opacity: 0.3, filter: 'grayscale(1)' } : {}}
                       />
+                      {isEncryptedLocked && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid var(--error-color)',
+                          padding: '16px 24px',
+                          borderRadius: '8px',
+                          backdropFilter: 'blur(8px)',
+                          textAlign: 'center',
+                          zIndex: 10
+                        }}>
+                          <div style={{ color: 'var(--error-color)', fontWeight: 800, fontSize: '0.9rem', marginBottom: '4px' }}>VAULT_LOCKED / BÓVEDA BLOQUEADA</div>
+                          <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Introduce tu PIN en Seguridad para descifrar el contenido.</div>
+                        </div>
+                      )}
                       <div style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.05rem' }}>
                         TIP: USE {'{{FIELD}}'} FOR ETL PAYLOAD INJECTION.
                       </div>
