@@ -99,7 +99,9 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
     const consoleMsg = `VALIDACIÓN MANUAL [${manualIso}]: ${manualTin} -> ${result.status} (${result.message})`;
     addLog(consoleMsg, result.isValid ? 'info' : 'warning');
 
-    // Log individual audit via Unified Service
+    // Log individual audit via Unified Service (Masked PII for CoreDB compliance)
+    const maskedTin = manualTin.length > 4 ? `${manualTin.substring(0, 3)}***` : '***';
+    
     try {
       await auditService.log({
         module: 'REGTECH',
@@ -108,12 +110,12 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
         details: { 
             eventType: 'REGTECH_TIN_VALIDATION_MANUAL',
             entityType: 'TIN',
-            entityId: manualTin,
+            entityId: maskedTin,
             actorUser: currentOperator?.username || 'SYSTEM',
             severity: result.isValid ? 'INFO' : 'WARN',
             context: { 
               iso: manualIso,
-              tin: manualTin,
+              tin: maskedTin,
               status: result.status,
               message: result.message || null
             }
@@ -169,100 +171,129 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
     const dataLines = hasHeaders ? lines.slice(1) : lines;
     const results: any[] = [];
     const stats = { total: 0, valid: 0, invalid: 0, mismatch: 0, exempted: 0 };
-
-    // Batch Processing (Pattern: Industrial Sequential)
-    for (const line of dataLines) {
-      const cols = splitRespectingQuotes(line, delimiter);
-      if (cols.length < 2) continue;
-
-      const country = (cols[countryIdx] || '').trim().toUpperCase();
-      const tin = (cols[tinIdx] || '').trim();
-      
-      // Handle holderType if column exists
-      let hType: 'INDIVIDUAL' | 'ENTITY' | 'ANY' = 'ANY';
-      if (holderTypeIdx !== -1 && cols[holderTypeIdx]) {
-          const val = cols[holderTypeIdx].toUpperCase();
-          if (val.includes('IND') || val === 'PF' || val === 'NATURAL') hType = 'INDIVIDUAL';
-          else if (val.includes('ENT') || val === 'PJ' || val === 'LEGAL') hType = 'ENTITY';
-      }
-      
-      const res = regulatoryService.validateTin(country, tin, hType);
-      
-      stats.total++;
-      
-      switch (res.status) {
-        case 'VALID':
-        case 'VALID_UNOFFICIAL':
-          stats.valid++;
-          break;
-        case 'INVALID':
-        case 'INVALID_FORMAT':
-        case 'INVALID_CHECKSUM':
-          stats.invalid++;
-          break;
-        case 'MISMATCH':
-          stats.mismatch++;
-          break;
-        case 'EXEMPTED':
-          stats.exempted++;
-          break;
-      }
-
-      results.push({
-        originalCols: cols,
-        country,
-        tin,
-        status: res.status,
-        type: res.tinType,
-        message: res.message
-      });
-    }
-
-    setBatchResults(results);
-    setBatchStats(stats);
-    setIsProcessing(false);
     
-    addLog(`Batch TIN processed: ${stats.total} records. ${stats.invalid + stats.mismatch} warnings/errors.`, 'info');
-    
-    // Log Batch Audit via Unified Service
-    try {
-      await auditService.log({
-        module: 'REGTECH',
-        messageKey: 'REGTECH_TIN_VALIDATION_BATCH',
-        status: stats.invalid > 0 || stats.mismatch > 0 ? 'WARNING' : 'SUCCESS',
-        details: {
-            eventType: 'REGTECH_TIN_VALIDATION_BATCH',
-            entityType: 'FILE',
-            entityId: file.name,
-            severity: stats.invalid > 0 ? 'WARN' : 'INFO',
-            context: { fileName: file.name, total: stats.total, invalid: stats.invalid, mismatch: stats.mismatch }
+    // Industrial Async Chunking (Prevents UI Freeze / Local DoS)
+    const CHUNK_SIZE = 1000;
+    let index = 0;
+
+    const processNextChunk = async () => {
+      const chunk = dataLines.slice(index, index + CHUNK_SIZE);
+      
+      for (const line of chunk) {
+        const cols = splitRespectingQuotes(line, delimiter);
+        if (cols.length < 2) continue;
+
+        const country = (cols[countryIdx] || '').trim().toUpperCase();
+        const tin = (cols[tinIdx] || '').trim();
+        
+        // Handle holderType if column exists
+        let hType: 'INDIVIDUAL' | 'ENTITY' | 'ANY' = 'ANY';
+        if (holderTypeIdx !== -1 && cols[holderTypeIdx]) {
+            const val = cols[holderTypeIdx].toUpperCase();
+            if (val.includes('IND') || val === 'PF' || val === 'NATURAL') hType = 'INDIVIDUAL';
+            else if (val.includes('ENT') || val === 'PJ' || val === 'LEGAL') hType = 'ENTITY';
         }
-      });
-    } catch (err: any) {
-      addLog(`Auditoría omitida: ${err.message}`, 'warning');
-    }
+        
+        const res = regulatoryService.validateTin(country, tin, hType);
+        
+        stats.total++;
+        
+        switch (res.status) {
+          case 'VALID':
+          case 'VALID_UNOFFICIAL':
+            stats.valid++;
+            break;
+          case 'INVALID':
+          case 'INVALID_FORMAT':
+          case 'INVALID_CHECKSUM':
+            stats.invalid++;
+            break;
+          case 'MISMATCH':
+            stats.mismatch++;
+            break;
+          case 'EXEMPTED':
+            stats.exempted++;
+            break;
+        }
+
+        results.push({
+          originalCols: cols,
+          country,
+          tin,
+          status: res.status,
+          type: res.tinType,
+          message: res.message
+        });
+      }
+
+      index += CHUNK_SIZE;
+      
+      if (index < dataLines.length) {
+        // UI Heartbeat: update stats partially to show progress
+        setBatchStats({ ...stats });
+        setTimeout(processNextChunk, 0);
+      } else {
+        finalizeBatch();
+      }
+    };
+
+    const finalizeBatch = async () => {
+      setBatchResults(results);
+      setBatchStats(stats);
+      setIsProcessing(false);
+      
+      addLog(`Batch TIN processed: ${stats.total} records. ${stats.invalid + stats.mismatch} warnings/errors.`, 'info');
+      
+      // Log Batch Audit via Unified Service
+      try {
+        await auditService.log({
+          module: 'REGTECH',
+          messageKey: 'REGTECH_TIN_VALIDATION_BATCH',
+          status: stats.invalid > 0 || stats.mismatch > 0 ? 'WARNING' : 'SUCCESS',
+          details: {
+              eventType: 'REGTECH_TIN_VALIDATION_BATCH',
+              entityType: 'FILE',
+              entityId: file.name,
+              severity: stats.invalid > 0 ? 'WARN' : 'INFO',
+              context: { fileName: file.name, total: stats.total, invalid: stats.invalid, mismatch: stats.mismatch }
+          }
+        });
+      } catch (err: any) {
+        addLog(`Auditoría omitida: ${err.message}`, 'warning');
+      }
+    };
+
+    processNextChunk();
   };
 
   const exportEnrichedCsv = () => {
     if (batchResults.length === 0 || !batchFile) return;
     
-    // Get original headers or generate them
-    const text = batchFile.name; // Use file name as reference
+    /**
+     * Sanitizes values to prevent CSV Injection / Formula Injection
+     * Prepend ' if it starts with =, +, -, @
+     */
+    const sanitize = (val: string) => {
+      if (!val) return '';
+      const unsafe = ['=', '+', '-', '@'];
+      if (unsafe.includes(val[0])) return `'${val}`;
+      return val;
+    };
+
     const delimiter = detectedDelimiter || ';';
     
-    let header = '';
-    // Read headers again to preserve them
-    const originalHeader = batchResults[0]?.originalCols?.length > 0 ? true : false;
+    // Header Generation
+    const headerRow = batchResults[0]?.originalCols.map((_, i) => `COL_${i + 1}`) || [];
+    const enrichedHeaders = [...headerRow, 'VALIDATION_STATUS', 'TIN_TYPE', 'ENGINE_MESSAGE'];
     
-    // Build Header
-    header = `_ORIGINAL_DATA_${delimiter}VALIDATION_STATUS${delimiter}TIN_TYPE${delimiter}ENGINE_MESSAGE\n`;
+    const headerStr = enrichedHeaders.map(h => `"${sanitize(h).replace(/"/g, '""')}"`).join(delimiter);
     
     const body = batchResults.map(r => {
-      const originalLine = r.originalCols.map((c: string) => `"${c.replace(/"/g, '""')}"`).join(delimiter);
-      return `${originalLine}${delimiter}${r.status}${delimiter}${r.type || ''}${delimiter}"${(r.message || '').replace(/"/g, '""')}"`;
+      const originalLine = r.originalCols.map((c: string) => `"${sanitize(c).replace(/"/g, '""')}"`).join(delimiter);
+      return `${originalLine}${delimiter}"${sanitize(r.status)}"${delimiter}"${sanitize(r.type || '')}"${delimiter}"${sanitize(r.message || '').replace(/"/g, '""')}"`;
     }).join('\n');
 
-    const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([headerStr + '\n' + body], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
