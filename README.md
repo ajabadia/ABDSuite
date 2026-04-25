@@ -20,6 +20,9 @@ La suite organiza las operativas en estaciones de trabajo especializadas, guiada
 - **🛡️ SYSTEM AUDIT:** Auditoría técnica y supervisión forense.
   - **Security Dashboard:** Visualización de KPIs de seguridad en tiempo real (Auth fails, RBAC alts).
   - **Categorical Taxonomy:** Clasificación unificada de eventos en `AUTH`, `RBAC`, `CONFIG`, `DATA` y `SYSTEM`.
+- **🌍 REGTECH STATION:** Motor de cumplimiento jurisdiccional global (Era 6.5).
+  - **Jurisdictional Core:** Validación de TINs para +100 países con **Elocuencia Proactiva**.
+  - **Batch Industrial:** Procesamiento masivo con detección automática de columnas y exportación enriquecida.
 
 ## 🚀 Innovaciones Era 6 (Aseptic v6.1)
 

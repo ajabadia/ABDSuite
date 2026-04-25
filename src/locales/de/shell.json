@@ -30,6 +30,7 @@
     "crypt": "CRYPT STATION",
     "etl": "ETL STUDIO",
     "letter": "LETTER STATION",
+    "regtech": "REGTECH STATION",
     "audit": "SYSTEM AUDIT",
     "letter_templates": "VORLAGEN",
     "letter_config": "KONFIGURATION",
@@ -60,6 +61,8 @@
     "dash_letter_desc": "Massenausstellung von Dokumenten unter GAWEB v.1 Bankenparität.",
     "dash_audit_title": "TECHNISCHES AUDIT",
     "dash_audit_desc": "Integritätsprüfung und normative Paketkonformität.",
+    "dash_regtech_title": "REGTECH-VALIDATOR",
+    "dash_regtech_desc": "Jurisdiktionsspezifische TIN-Validierung und globale Steuerkonformität.",
     "sys_status_online": "SYSTEM BETRIEBSBEREIT",
     "sys_memory_clean": "SPEICHER DESINFIZIERT",
     "sys_location": "STANDORT: LOKAL / AIR-GAPPED"

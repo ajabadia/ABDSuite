@@ -118,6 +118,8 @@
     "dash_letter_desc": "Emisión masiva de documentos bajo paridad bancaria GAWEB v.1.",
     "dash_audit_title": "AUDITORÍA TÉCNICA",
     "dash_audit_desc": "Validación de integridad y cumplimiento normativo de paquetes.",
+    "dash_regtech_title": "VALIDADOR REGTECH",
+    "dash_regtech_desc": "Validación jurisdiccional de TINs y cumplimiento tributario global.",
     "sys_status_online": "SISTEMA OPERATIVO",
     "sys_memory_clean": "MEMORIA SANITIZADA",
     "sys_location": "UBICACIÓN: LOCAL / AIR-GAPPED"

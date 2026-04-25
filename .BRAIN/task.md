@@ -1,15 +1,20 @@
-- [ ] Evolución del Núcleo RegTech (Era 6)
-    - [ ] Actualizar `regulatory.types.ts` (Status: VALID, INVALID, EXEMPTED, MISMATCH)
-    - [ ] Crear `exemption-map.ts` (OECD Jurisdictions)
-    - [ ] Implementar `RegulatoryService.ts` (Servicio Transversal)
-- [ ] Utilidades Industriales
-    - [ ] Implementar `csv-detector.ts` (Smart Delimiter Priority: ; , \t |)
-    - [ ] Crear `csv-mapper.ts` (Detección inteligente de cabeceras)
-- [ ] UI: Validation Station
-    - [ ] Crear componente `TinStatusBadge` (Sistema cromático industrial)
-    - [ ] Crear componente `MismatchDetails` (Árbol de discrepancias)
-    - [ ] Implementar `TinValidatorStation` (Manual + Batch)
-- [ ] Integración Global
-    - [ ] Añadir `TIN_VALIDATOR` a `Sidebar.tsx`
-    - [ ] Registrar nueva estación en el Shell
-    - [ ] Actualizar `AuditStation` para usar el nuevo motor
+# Task: Industrialización Batch v6.5 (RegTech)
+
+- [x] **Investigación y Mapeo**
+  - [x] Auditar `TinValidatorStation.tsx` para detectar pérdida de metadatos.
+  - [x] Identificar columnas críticas para mapeo dinámico.
+- [x] **Implementación Core**
+  - [x] Refactorizar `processBatch` para soportar cabeceras.
+  - [x] Implementar detección automática de `holderType`.
+  - [x] Garantizar la persistencia de columnas originales en `batchResults`.
+- [x] **Elocuencia y Salida**
+  - [x] Actualizar `exportEnrichedCsv` para exportación espejo.
+  - [x] Asegurar que `ENGINE_MESSAGE` contenga la elocuencia de la Era 6.5.
+- [x] **Estabilización de Tipos**
+  - [x] Actualizar `TinValidationStatus` con `INVALID_FORMAT`.
+  - [x] Refactorizar estadísticas a bloque `switch` (TS Strict compliance).
+  - [x] Resolver colisiones de inferencia en `TinValidatorStation`.
+- [/] **Higiene Final**
+  - [x] Auditoría de cumplimiento de reglas (Rules & Skills).
+  - [ ] Saneamiento de logs nativos (`console.warn` -> `Audit/LogContext`).
+  - [x] Generación de entregables metodológicos (SPEC, Task, Walkthrough).

@@ -115,6 +115,8 @@
     "dash_letter_desc": "Mass document issuance under GAWEB v.1 banking parity.",
     "dash_audit_title": "TECHNICAL AUDIT",
     "dash_audit_desc": "Integrity validation and normative package compliance.",
+    "dash_regtech_title": "REGTECH VALIDATOR",
+    "dash_regtech_desc": "Jurisdictional TIN validation and global tax compliance.",
     "sys_status_online": "SYSTEM OPERATIONAL",
     "sys_memory_clean": "MEMORY SANITIZED",
     "sys_location": "LOCATION: LOCAL / AIR-GAPPED"

@@ -84,5 +84,29 @@ El sistema clasifica cada acción en 5 categorías críticas para facilitar audi
 ## 📊 Security Dashboard
 El panel ofrece KPIs en tiempo real para detectar anomalías de seguridad antes de que se conviertan en incidentes.
     `
+  },
+  regtech: {
+    title: 'REGTECH STATION: CUMPLIMIENTO',
+    content: `
+# 🌍 REGTECH STATION - CUMPLIMIENTO JURISDICCIONAL
+
+Centro de operaciones para la validación de Identificadores Fiscales (TIN) y cumplimiento normativo global (FATCA/CRS/DAC6).
+
+## 🚀 Motor de Validación Era 6.5
+El núcleo RegTech utiliza un sistema de **Plugins Jurisdiccionales** que aplican reglas específicas de validación (checksums, formatos, longitudes) para más de 100 países.
+
+### 📋 Modos Operativos:
+- **Inspector Manual**: Validación uno a uno con feedback detallado (Elocuencia Proactiva) sobre la naturaleza del identificador.
+- **Procesador Batch Industrial**: Motor de alto rendimiento capaz de validar archivos masivos mediante detección automática de columnas.
+
+## 📊 Exportación Enriquecida v6.5
+Al procesar lotes, el sistema genera una **Exportación Espejo** que conserva todas las columnas originales del usuario e inyecta tres campos de diagnóstico industrial:
+1. **VALIDATION_STATUS**: Estado final del registro (VALID, INVALID, MISMATCH, etc.).
+2. **TIN_TYPE**: Naturaleza del identificador detectado (Individual, Entity, etc.).
+3. **ENGINE_MESSAGE**: Elocuencia técnica del plugin con advertencias proactivas.
+
+## 🛡️ Trazabilidad de Auditoría
+Cada validación masiva se registra en el **Audit System** con un identificador de correlación único, permitiendo la reconstrucción forense de procesos de cumplimiento masivo.
+    `
   }
 };

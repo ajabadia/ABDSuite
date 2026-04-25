@@ -1,25 +1,21 @@
-# Walkthrough - Industrial Streaming Auditor
+# Walkthrough: Industrialización Batch v6.5 (RegTech)
 
-Se ha completado la industrialización del motor de auditoría, permitiendo el procesamiento masivo de datos con feedback visual de alta fidelidad.
+## 🛠️ Cambios Realizados
+Se ha implementado una mejora estructural en el procesamiento por lotes de la `TinValidatorStation`. El sistema ahora es capaz de procesar archivos complejos conservando toda la información original y añadiendo una capa de diagnóstico RegTech de alta fidelidad.
 
-## 🚀 Mejoras Implementadas
+### Mejoras Clave:
+1. **Mapeador Inteligente**: El sistema detecta automáticamente columnas de TIN, País y Tipo de Titular basándose en cabeceras.
+2. **Exportación Espejo**: Los resultados descargables ya no son una lista simplificada, sino el archivo original del usuario enriquecido con 3 nuevas columnas de diagnóstico.
+3. **Elocuencia 6.5**: Los mensajes de éxito y advertencia ahora son proactivos y específicos para el tipo de titular.
 
-### 1. Motor de Streaming & MD5 Binario
-Se han eliminado todos los cuellos de botella de memoria al calcular la integridad de los paquetes:
-- **`md5Binary`**: Nueva utilidad en [crypto.utils.ts](file:///d:/desarrollos/ABDFNSuite/src/lib/utils/crypto.utils.ts) que opera directamente sobre `Uint8Array`.
-- **Zero-Copy**: [package-auditor.logic.ts](file:///d:/desarrollos/ABDFNSuite/src/lib/logic/package-auditor.logic.ts) ya no convierte contenido binario en strings gigantes para validar el MD5.
+## 🧪 Verificación Técnica
+- **Compilación**: `tsc` limpio tras refactorización a `switch`.
+- **Auditoría**: Integración confirmada con `AuditService` para trazabilidad de eventos masivos.
+- **Tipos**: Soporte completo para el nuevo estado `INVALID_FORMAT`.
 
-### 2. LineInspector (Visualización de Bajo Nivel)
-Se ha implementado un componente de inspección avanzada en la pestaña de errores:
-- **Resaltado Cromático**: Los campos con error se resaltan en rojo/naranja directamente sobre la línea física.
-- **Posicionamiento Preciso**: Gracias al refactor de [gaweb-auditor.logic.ts](file:///d:/desarrollos/ABDFNSuite/src/lib/logic/gaweb-auditor.logic.ts), cada anomalía conoce su `colStart` y `colEnd` exactos.
-
-### 3. Telemetría de Rendimiento
-- Se ha añadido un contador de **"REC/S"** (Registros por segundo) en la cabecera del `AuditStation` para monitorizar la potencia del motor durante el análisis.
-
-## ✅ Validación
-- El sistema ha sido probado con lógica de posicionamiento industrial, asegurando que el resaltado visual coincide al 100% con la estructura GAWEB de 251 bytes.
-- Se mantiene el uso de memoria constante durante el análisis de archivos pesados.
+## 📸 Evidencia Visual
+*(En un entorno real, aquí se adjuntarían capturas del CSV enriquecido y de los logs de la consola industrial)*
 
 ---
-**ABDFN Suite - Industrial Infrastructure Ready**
+**Estado Final**: `SYS_READY`
+**Versión**: 6.5.1

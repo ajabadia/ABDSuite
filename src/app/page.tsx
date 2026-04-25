@@ -130,6 +130,13 @@ export default function Dashboard() {
             href="/letter?view=audit"
             color="var(--primary-color)"
           />
+          <ModuleCard 
+            title={t('shell.regtech')} 
+            desc={t('dashboard.dash_regtech_desc')}
+            icon={<GlobeIcon size={32} />}
+            href="/regulatory"
+            color="var(--primary-color)"
+          />
         </section>
 
         {/* 📊 SYSTEM TELEMETRY (BIOS STYLE) */}

@@ -239,7 +239,7 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
         }
       });
     } catch (err: any) {
-      console.warn('[REGTECH] Audit skipped or failed:', err.message);
+      addLog(`Auditoría omitida: ${err.message}`, 'warning');
     }
   };
 

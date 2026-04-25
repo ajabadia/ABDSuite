@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { MANUALS } from '@/lib/docs/manuals';
 import { useLanguage } from '@/lib/context/LanguageContext';
-import { HelpIcon, XIcon, FileTextIcon, LockIcon, ListIcon, ShieldCheckIcon } from '@/components/common/Icons';
+import { HelpIcon, XIcon, FileTextIcon, LockIcon, ListIcon, ShieldCheckIcon, GlobeIcon } from '@/components/common/Icons';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -21,6 +21,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
     { id: 'crypt', title: 'CRYPT', icon: <LockIcon size={16} /> },
     { id: 'etl', title: 'ETL', icon: <ListIcon size={16} /> },
     { id: 'letter', title: 'LETTER', icon: <FileTextIcon size={16} /> },
+    { id: 'regtech', title: 'REGTECH', icon: <GlobeIcon size={16} /> },
     { id: 'audit', title: 'AUDIT', icon: <ShieldCheckIcon size={16} /> },
   ];
 
