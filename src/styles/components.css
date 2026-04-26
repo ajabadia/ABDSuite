@@ -266,7 +266,25 @@
 .station-table-container {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-std);
-  overflow: hidden;
+  overflow-x: auto; /* Industrial responsive safety */
+  -webkit-overflow-scrolling: touch;
+}
+
+.station-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: clamp(12px, 3vw, 24px); /* Fluid padding */
+  height: 100%;
+}
+
+@media (max-width: 640px) {
+  .station-registry-header {
+    padding: 12px 16px;
+  }
+  .station-registry-content {
+    padding: 16px;
+  }
 }
 
 .station-table {

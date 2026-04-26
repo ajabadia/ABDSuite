@@ -183,20 +183,8 @@ export const LoginScreen: React.FC = () => {
   }
 
   return (
-    <div className="station-modal-overlay" style={{ background: 'var(--bg-primary)', overflow: 'hidden' }}>
-       <div style={{ 
-         display: 'grid', 
-         gridTemplateColumns: '1fr auto', 
-         gap: '64px', 
-         alignItems: 'center', 
-         width: '100%', 
-         maxWidth: '900px', 
-         background: 'rgba(255,255,255,0.02)',
-         padding: '48px',
-         border: '1px solid var(--border-color)',
-         borderRadius: 'var(--radius-std)',
-         position: 'relative'
-       }}>
+    <div className="station-modal-overlay login-screen-overlay" style={{ background: 'var(--bg-primary)', overflowY: 'auto', padding: '20px' }}>
+       <div className="login-container">
           {isVaultChallengeOpen && (
             <button 
               onClick={() => setIsVaultChallengeOpen(false)}
@@ -208,7 +196,7 @@ export const LoginScreen: React.FC = () => {
           )}
           
           {/* Column 1: Identity & Feedback */}
-          <div className="flex-col" style={{ gap: '32px', alignItems: 'center', borderRight: '1px solid var(--border-color)', paddingRight: '48px' }}>
+          <div className="login-identity-panel">
             <header className="flex-col" style={{ alignItems: 'center', gap: '8px' }}>
                <div className="flex-row" style={{ gap: '10px', alignItems: 'center' }}>
                   <ShieldIcon size={32} color="var(--accent-primary)" />
@@ -219,7 +207,7 @@ export const LoginScreen: React.FC = () => {
             </header>
 
             <div className="flex-col" style={{ alignItems: 'center', gap: '16px', width: '100%' }}>
-               <span style={{ fontSize: '0.7rem', opacity: 0.4, fontWeight: 'bold', letterSpacing: '2px' }}>
+               <span style={{ fontSize: '0.7rem', opacity: 0.4, fontWeight: 'bold', letterSpacing: '2px', textAlign: 'center' }}>
                  {isVaultChallengeOpen ? '[ SECURITY_VAULT_CHALLENGE ]' : isLocked ? `[ TERMINAL_LOCKED - ${(currentOperator?.username || 'SYSTEM').toUpperCase()} ]` : mfaPhase ? `[ ${t('auth.mfa.placeholder_token')} - TOTP ]` : `[ ${t('audit.tabSecurity')} ]`}
                </span>
                
@@ -267,24 +255,26 @@ export const LoginScreen: React.FC = () => {
               </div>
             )}
             
-            {isLocked && (
-               <button 
-                className="station-btn" 
-                style={{ marginTop: '12px', border: 'none', background: 'transparent', opacity: 0.5, fontSize: '0.75rem' }}
-                onClick={logout}
-              >
-                {t('auth.login.switch_user')}
-              </button>
-            )}
-            {mfaPhase && (
-              <button 
-                className="station-btn" 
-                style={{ marginTop: '12px', border: 'none', background: 'transparent', opacity: 0.5, fontSize: '0.75rem' }}
-                onClick={() => { setMfaPhase(false); setMfaToken(''); setError(null); }}
-              >
-                {t('auth.mfa.back_btn')}
-              </button>
-            )}
+            <div className="flex-row" style={{ gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              {isLocked && (
+                <button 
+                  className="station-btn" 
+                  style={{ border: 'none', background: 'transparent', opacity: 0.5, fontSize: '0.75rem' }}
+                  onClick={logout}
+                >
+                  {t('auth.login.switch_user')}
+                </button>
+              )}
+              {mfaPhase && (
+                <button 
+                  className="station-btn" 
+                  style={{ border: 'none', background: 'transparent', opacity: 0.5, fontSize: '0.75rem' }}
+                  onClick={() => { setMfaPhase(false); setMfaToken(''); setError(null); }}
+                >
+                  {t('auth.mfa.back_btn')}
+                </button>
+              )}
+            </div>
 
             {!installationKey && (
               <div 
@@ -301,7 +291,7 @@ export const LoginScreen: React.FC = () => {
           </div>
 
           {/* Column 2: Control Panel (Numpad) */}
-          <div className="flex-col" style={{ alignItems: 'center', gap: '24px' }}>
+          <div className="login-numpad-panel">
              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(n => (
                   <button 
@@ -346,6 +336,53 @@ export const LoginScreen: React.FC = () => {
              </button>
           </div>
        </div>
+
+       <style jsx>{`
+          .login-container {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 64px;
+            align-items: center;
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255,255,255,0.02);
+            padding: 48px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-std);
+            position: relative;
+          }
+
+          .login-identity-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            align-items: center;
+            border-right: 1px solid var(--border-color);
+            padding-right: 48px;
+          }
+
+          .login-numpad-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+          }
+
+          @media (max-width: 800px) {
+            .login-container {
+              grid-template-columns: 1fr;
+              gap: 32px;
+              padding: 24px;
+              max-width: 450px;
+            }
+            .login-identity-panel {
+              border-right: none;
+              padding-right: 0;
+              padding-bottom: 32px;
+              border-bottom: 1px solid var(--border-color);
+            }
+          }
+       `}</style>
 
        {/* Floating Industrial Status */}
        <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px', pointerEvents: 'none' }}>

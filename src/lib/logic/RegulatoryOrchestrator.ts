@@ -1,8 +1,10 @@
 import { TinValidatorPlugin, TinValidationResult, HolderMetadata, TinValidationType } from '../types/regulatory.types';
+import { TinInputSchema } from '../schemas/regulatory.schema';
 
 /**
- * Regulatory Orchestrator (ERA 5)
+ * Regulatory Orchestrator (ERA 6.1)
  * Industrial engine for dynamic TIN validation plugins.
+ * Now with Zod-Hardened Input Gate.
  */
 class RegulatoryOrchestrator {
     private plugins: Map<string, TinValidatorPlugin> = new Map();
@@ -20,12 +22,26 @@ class RegulatoryOrchestrator {
      * - Semantic: Performed if metadata is present.
      */
     validateTin(country: string, value: string, type: TinValidationType = 'ANY', metadata?: HolderMetadata): TinValidationResult {
-        const iso = country.toUpperCase().trim();
+        // 1. Technical Hardening: Zod Input Validation
+        const validation = TinInputSchema.safeParse({ country, value, type, metadata });
+        
+        if (!validation.success) {
+            return {
+                isValid: false,
+                status: 'INVALID_FORMAT',
+                country: (country || '??').toUpperCase(),
+                severity: 'ERROR',
+                message: 'regtech.errors.invalid_input_schema',
+                errorDetails: validation.error.message
+            };
+        }
+
+        const { country: iso, value: tinValue, type: tinType, metadata: tinMetadata } = validation.data;
         const plugin = this.plugins.get(iso);
 
         if (!plugin) {
             // Fallback: basic alphanumeric check if no plugin exists
-            const isValid = value.length >= 2 && /^[A-Z0-9-]{2,25}$/i.test(value.trim());
+            const isValid = tinValue.length >= 2 && /^[A-Z0-9-]{2,25}$/i.test(tinValue.trim());
             return {
                 isValid,
                 status: isValid ? 'VALID' : 'INVALID',
@@ -35,7 +51,7 @@ class RegulatoryOrchestrator {
             };
         }
 
-        const result = plugin.validate(value, type, metadata);
+        const result = plugin.validate(tinValue, tinType, tinMetadata);
 
         // Standardize result if plugin returns boolean
         if (typeof result === 'boolean') {

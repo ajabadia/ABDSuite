@@ -120,7 +120,7 @@ export const MappingMobileLayout: React.FC<MappingMobileLayoutProps> = ({
           )}
       </div>
 
-      <div style={{ display: 'flex', flex: 1, gap: '16px', minHeight: 0 }}>
+      <div className="mapping-content-area" style={{ display: 'flex', flex: 1, gap: '16px', minHeight: 0, position: 'relative' }}>
         
         {/* MASTER LIST */}
         <div className="master-list flex-col" style={{ flex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: '8px', overflowY: 'auto' }}>
@@ -155,9 +155,9 @@ export const MappingMobileLayout: React.FC<MappingMobileLayoutProps> = ({
            })}
         </div>
 
-        {/* DETAIL PANEL (2-Column simulation) */}
+        {/* DETAIL PANEL */}
         {selectedVar && (
-           <div className="detail-panel flex-col animate-slide-in-right" style={{ width: '400px', background: 'var(--surface-color)', borderRadius: '8px', border: '1px solid var(--border-color)', padding: '24px', gap: '24px' }}>
+           <div className="detail-panel flex-col animate-slide-in-right">
               <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div className="flex-col" style={{ gap: '4px' }}>
                    <span style={{ fontSize: '9px', fontWeight: 900, color: 'var(--primary-color)', letterSpacing: '1px' }}>TEMPLATE_VARIABLE</span>
@@ -236,22 +236,47 @@ export const MappingMobileLayout: React.FC<MappingMobileLayoutProps> = ({
       </div>
 
       <style jsx>{`
+        .detail-panel {
+           width: 400px; 
+           background: var(--surface-color); 
+           border-radius: 8px; 
+           border: 1px solid var(--border-color); 
+           padding: 24px; 
+           gap: 24px;
+        }
+
         .animate-slide-in-right {
            animation: slideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
         @keyframes slideIn {
           from { transform: translateX(20px); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
         }
+
         .mapping-mobile-item:hover {
           background: rgba(255,255,255,0.02) !important;
         }
+
         .mapping-mobile-item.active {
           border-left: 3px solid var(--primary-color);
         }
+
         .station-btn.active {
           background: var(--primary-color);
           color: #000;
+        }
+
+        @media (max-width: 800px) {
+           .detail-panel {
+             position: absolute;
+             top: 0;
+             left: 0;
+             right: 0;
+             bottom: 0;
+             width: 100%;
+             z-index: 100;
+           }
         }
       `}</style>
     </div>

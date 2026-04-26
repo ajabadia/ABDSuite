@@ -283,7 +283,7 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
     const delimiter = detectedDelimiter || ';';
     
     // Header Generation
-    const headerRow = batchResults[0]?.originalCols.map((_, i) => `COL_${i + 1}`) || [];
+    const headerRow = batchResults[0]?.originalCols.map((_: any, i: number) => `COL_${i + 1}`) || [];
     const enrichedHeaders = [...headerRow, 'VALIDATION_STATUS', 'TIN_TYPE', 'ENGINE_MESSAGE'];
     
     const headerStr = enrichedHeaders.map(h => `"${sanitize(h).replace(/"/g, '""')}"`).join(delimiter);
@@ -510,90 +510,109 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
 
         {/* Manual Results */}
         {manualResult && (
-            <div className="flex-col" style={{ gap: '12px', marginTop: '12px' }}>
+            <div className="flex-col tin-manual-results" style={{ gap: '12px', marginTop: '12px' }}>
                 <span className="station-form-section-title">VALIDATION_REPORT_CORE</span>
-                <div className="station-card animate-slide-up" style={{ padding: '24px', borderLeft: `4px solid ${manualResult.isValid ? 'var(--status-ok)' : 'var(--status-err)'}` }}>
-                    <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div className="station-card animate-slide-up tin-result-card" style={{ padding: '24px', borderLeft: `4px solid ${manualResult.isValid ? 'var(--status-ok)' : 'var(--status-err)'}` }}>
+                    <div className="flex-row tin-result-header" style={{ justifyContent: 'space-between', marginBottom: '16px', gap: '16px' }}>
                         <div className="flex-col">
                             <div style={{ fontSize: '0.6rem', opacity: 0.5, fontWeight: 800 }}>{t('shell.regtech_station.status_badge').toUpperCase()}</div>
                             <TinStatusBadge status={manualResult.status} />
+                        </div>
+                        <div className="flex-col tin-result-type-box" style={{ alignItems: 'flex-end' }}>
+                            <div style={{ fontSize: '0.6rem', opacity: 0.5 }}>{t('shell.regtech_station.tin_denomination')}</div>
+                            <div style={{ fontWeight: 900, color: 'var(--primary-color)', textAlign: 'right' }}>
+                                {(() => {
+                                    const main = t(`shell.regtech_tin_names.${manualIso}.main`);
+                                    const aux = t(`shell.regtech_tin_names.${manualIso}.aux`);
+                                    
+                                    const hasMain = main !== `shell.regtech_tin_names.${manualIso}.main`;
+                                    const hasAux = aux && aux !== `shell.regtech_tin_names.${manualIso}.aux`;
+                                    
+                                    if (hasMain) {
+                                        return hasAux ? `${main} (${aux})` : main;
+                                    }
+                                    return manualResult.tinType || 'UNKNOWN';
+                                })()}
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex-col" style={{ alignItems: 'flex-end' }}>
-                        <div style={{ fontSize: '0.6rem', opacity: 0.5 }}>{t('shell.regtech_station.tin_denomination')}</div>
-                        <div style={{ fontWeight: 900, color: 'var(--primary-color)', textAlign: 'right' }}>
-                            {(() => {
-                                const main = t(`shell.regtech_tin_names.${manualIso}.main`);
-                                const aux = t(`shell.regtech_tin_names.${manualIso}.aux`);
-                                
-                                // Check if we have valid translations (not the path string)
-                                const hasMain = main !== `shell.regtech_tin_names.${manualIso}.main`;
-                                const hasAux = aux && aux !== `shell.regtech_tin_names.${manualIso}.aux`;
-                                
-                                if (hasMain) {
-                                    return hasAux ? `${main} (${aux})` : main;
-                                }
-                                return manualResult.tinType || 'UNKNOWN';
-                            })()}
-                            {manualResult.missingData && (
-              <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.1)', borderRadius: '4px' }}>
-                <p style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--primary-color)', textTransform: 'uppercase', letterSpacing: '0.05rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <ActivityIcon size={12} />
-                  {t('shell.regtech_station.semantic_title')}
-                </p>
-                <div className="flex-row" style={{ flexWrap: 'wrap', gap: '8px' }}>
-                  {manualResult.missingData.map((req, idx) => (
-                    <span key={idx} className="station-badge station-badge-blue">
-                      {req.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-                    </div>
-                </div>
 
-                <div className="flex-col" style={{ marginTop: '16px' }}>
-                    <div 
-                        style={{ 
-                            fontSize: '0.9rem', 
-                            marginBottom: '8px', 
-                            opacity: 1, 
-                            fontWeight: 900, 
-                            color: manualResult.isValid ? 'var(--status-ok)' : '#ef4444',
-                            letterSpacing: '0.5px',
-                            lineHeight: '1.2'
-                        }}
-                    >
-                        {manualResult.message}
-                    </div>
-                    
-                    {manualResult.errorDetails && manualResult.errorDetails !== manualResult.message && (
-                        <div 
-                            style={{ 
-                                fontSize: '0.75rem', 
-                                marginBottom: '16px', 
-                                opacity: 0.7, 
-                                padding: '12px', 
-                                background: 'rgba(255,255,255,0.03)', 
-                                borderRadius: '4px',
-                                borderLeft: '2px solid rgba(255,255,255,0.1)',
-                                lineHeight: '1.4'
-                            }}
-                        >
-                            {manualResult.errorDetails}
+                    {manualResult.missingData && (
+                        <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.1)', borderRadius: '4px' }}>
+                            <p style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--primary-color)', textTransform: 'uppercase', letterSpacing: '0.05rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <ActivityIcon size={12} />
+                                {t('shell.regtech_station.semantic_title')}
+                            </p>
+                            <div className="flex-row" style={{ flexWrap: 'wrap', gap: '8px' }}>
+                                {manualResult.missingData.map((req, idx) => (
+                                    <span key={idx} className="station-badge station-badge-blue">
+                                        {req.label}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     )}
-                </div>
 
-                {manualResult.status === 'MISMATCH' && (
-                    <MismatchDetails reasonCode={manualResult.reasonCode} fields={manualResult.rawMismatchFields} />
-                )}
+                    <div className="flex-col" style={{ marginTop: '16px' }}>
+                        <div 
+                            style={{ 
+                                fontSize: '0.9rem', 
+                                marginBottom: '8px', 
+                                opacity: 1, 
+                                fontWeight: 900, 
+                                color: manualResult.isValid ? 'var(--status-ok)' : '#ef4444',
+                                letterSpacing: '0.5px',
+                                lineHeight: '1.2'
+                            }}
+                        >
+                            {manualResult.message}
+                        </div>
+                        
+                        {manualResult.errorDetails && manualResult.errorDetails !== manualResult.message && (
+                            <div 
+                                style={{ 
+                                    fontSize: '0.75rem', 
+                                    marginBottom: '16px', 
+                                    opacity: 0.7, 
+                                    padding: '12px', 
+                                    background: 'rgba(255,255,255,0.03)', 
+                                    borderRadius: '4px',
+                                    borderLeft: '2px solid rgba(255,255,255,0.1)',
+                                    lineHeight: '1.4'
+                                }}
+                            >
+                                {manualResult.errorDetails}
+                            </div>
+                        )}
+                    </div>
+
+                    {manualResult.status === 'MISMATCH' && (
+                        <MismatchDetails reasonCode={manualResult.reasonCode} fields={manualResult.rawMismatchFields} />
+                    )}
                 </div>
             </div>
         )}
       </section>
       )}
+
+      <style jsx>{`
+        @media (max-width: 640px) {
+           .tin-result-header {
+             flex-direction: column !important;
+             align-items: flex-start !important;
+             gap: 12px !important;
+           }
+           .tin-result-type-box {
+             align-items: flex-start !important;
+           }
+           .tin-result-type-box div {
+             text-align: left !important;
+           }
+           .tin-result-card {
+             padding: 16px !important;
+           }
+        }
+      `}</style>
       
       {/* RIGHT PANEL: BATCH INDUSTRIAL */}
       {mode === 'batch' && (
@@ -636,19 +655,19 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
 
                     {/* Stats Dashboard */}
                     <div className="module-grid" style={{ gap: '8px' }}>
-                        <div className="module-col-3 station-card" style={{ padding: '12px', textAlign: 'center' }}>
+                        <div className="module-col-3 module-col-sm-6 station-card" style={{ padding: '12px', textAlign: 'center' }}>
                             <div style={{ fontSize: '0.55rem', opacity: 0.5 }}>{t('shell.regtech_station.stat_total')}</div>
                             <div style={{ fontWeight: 900, fontSize: '1.2rem' }}>{batchStats.total}</div>
                         </div>
-                        <div className="module-col-3 station-card" style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #10b981' }}>
+                        <div className="module-col-3 module-col-sm-6 station-card" style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #10b981' }}>
                             <div style={{ fontSize: '0.55rem', color: '#10b981', opacity: 0.7 }}>{t('shell.regtech_station.stat_valid')}</div>
                             <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#10b981' }}>{batchStats.valid}</div>
                         </div>
-                        <div className="module-col-3 station-card" style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #f43f5e' }}>
+                        <div className="module-col-3 module-col-sm-6 station-card" style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #f43f5e' }}>
                             <div style={{ fontSize: '0.55rem', color: '#f43f5e', opacity: 0.7 }}>{t('shell.regtech_station.stat_invalid')}</div>
                             <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#f43f5e' }}>{batchStats.invalid}</div>
                         </div>
-                        <div className="module-col-3 station-card" style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #fb923c' }}>
+                        <div className="module-col-3 module-col-sm-6 station-card" style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #fb923c' }}>
                             <div style={{ fontSize: '0.55rem', color: '#fb923c', opacity: 0.7 }}>{t('shell.regtech_station.stat_mismatch')}</div>
                             <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#fb923c' }}>{batchStats.mismatch}</div>
                         </div>

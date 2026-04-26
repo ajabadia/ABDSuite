@@ -37,5 +37,14 @@ Utilizar los tokens CSS del proyecto, inspirados en estas paletas:
 - **Obsidian Industrial**: `#0a0a0a` (BG), `#161616` (Surface), `#00d4aa` (Accent).
 - **Slate Tech**: `#0f172a` (BG), `#1e293b` (Surface), `#38bdf8` (Accent).
 
+### 4. Omnichannel Industrial Standard (Responsive)
+- **Breakpoints**: 
+  - **Mobile**: < 640px (Layout monocolumna, Sidebar oculto/Hamburguesa).
+  - **Tablet**: 640px - 1024px (Layout compacto, Sidebar colapsado).
+  - **Desktop**: > 1024px (Layout industrial completo).
+- **Layouts**: Uso obligatorio de `Flexbox` y `Grid` con unidades relativas (`rem`, `%`, `fr`). Prohibido el uso de anchos fijos en contenedores principales.
+- **Interactions**: Áreas de toque mínimas de 44px en dispositivos móviles.
+- **Data Tables**: Implementar scroll horizontal aséptico o colapso de columnas no críticas en pantallas pequeñas.
+
 ---
 **Goal**: Break the AI pattern. Human-grade industrial interface only.

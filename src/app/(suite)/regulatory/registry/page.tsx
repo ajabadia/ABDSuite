@@ -50,8 +50,8 @@ export default function RegulatoryRegistryPage() {
   const requirements = selectedCountry ? REQUIREMENTS_MAP[selectedCountry.id] || REQUIREMENTS_MAP[selectedCountry.sharedFrom || ''] : [];
 
   return (
-    <div className="station-main p-6 fade-in">
-      <header className="flex-row flex-between mb-8 pb-6" style={{ borderBottom: '1px solid var(--border-color)', alignItems: 'flex-end' }}>
+    <div className="station-main registry-page fade-in">
+      <header className="registry-header flex-row flex-between mb-8 pb-6" style={{ borderBottom: '1px solid var(--border-color)', alignItems: 'flex-end' }}>
         <div className="flex-col" style={{ gap: '4px' }}>
           <h1 className="station-title-main flex-row" style={{ gap: '12px', fontSize: '1.5rem' }}>
             <GlobeIcon size={24} style={{ color: 'var(--primary-color)' }} />
@@ -62,16 +62,16 @@ export default function RegulatoryRegistryPage() {
           </p>
         </div>
 
-        <div className="flex-row" style={{ gap: '32px' }}>
-          <div className="flex-row" style={{ gap: '24px' }}>
-             <div className="flex-col" style={{ alignItems: 'flex-end' }}>
+        <div className="flex-row registry-stats-container" style={{ gap: '32px' }}>
+          <div className="flex-row registry-stats-group" style={{ gap: '24px' }}>
+             <div className="flex-col registry-stat-item" style={{ alignItems: 'flex-end' }}>
                <div className="station-label">COBERTURA TOTAL</div>
                <div className="flex-row" style={{ gap: '8px', fontFamily: 'var(--font-mono)' }}>
                  <span className="station-title-main" style={{ fontSize: '1.5rem', color: 'var(--primary-color)' }}>{stats.covered}</span>
                  <span className="station-registry-item-meta">/ {stats.total} ({stats.percent}%)</span>
                </div>
              </div>
-             <div className="flex-col" style={{ alignItems: 'flex-end' }}>
+             <div className="flex-col registry-stat-item" style={{ alignItems: 'flex-end' }}>
                <div className="station-label">OFICIALES (GOV)</div>
                <div className="flex-row" style={{ gap: '8px', fontFamily: 'var(--font-mono)' }}>
                  <span className="station-title-main" style={{ fontSize: '1.5rem', color: 'var(--status-ok)' }}>{stats.official}</span>
@@ -80,12 +80,12 @@ export default function RegulatoryRegistryPage() {
              </div>
           </div>
           
-          <div className="flex-row" style={{ position: 'relative' }}>
-            <SearchIcon size={16} style={{ position: 'absolute', left: '12px', opacity: 0.4 }} />
+          <div className="flex-row registry-search-wrapper" style={{ position: 'relative' }}>
+            <SearchIcon size={16} style={{ position: 'absolute', left: '12px', top: '12px', opacity: 0.4 }} />
             <input
               type="text"
               placeholder="BUSCAR PAÍS O ISO2..."
-              className="station-input"
+              className="station-input registry-search-input"
               style={{ paddingLeft: '36px', width: '280px' }}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -165,7 +165,7 @@ export default function RegulatoryRegistryPage() {
           onClick={() => setSelectedCountry(null)}
         >
           <div 
-            className="station-card slide-up" 
+            className="station-card registry-modal slide-up" 
             style={{ 
               width: '100%', maxWidth: '540px', padding: '32px', position: 'relative',
               background: '#0a0c10', border: '1px solid var(--primary-color)',
@@ -187,13 +187,13 @@ export default function RegulatoryRegistryPage() {
               <XIcon size={16} />
             </button>
 
-            <header className="flex-row mb-8" style={{ gap: '24px', alignItems: 'flex-start' }}>
-              <div style={{ padding: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <header className="registry-modal-header flex-row mb-8" style={{ gap: '24px', alignItems: 'flex-start' }}>
+              <div className="registry-modal-flag-box" style={{ padding: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
                 <FlagResolver code={selectedCountry.id} style={{ width: '72px', height: '72px', borderRadius: '8px' }} />
               </div>
               <div className="flex-col" style={{ flex: 1 }}>
                 <div className="station-label" style={{ marginBottom: '4px', letterSpacing: '0.1rem' }}>JURISDICCIÓN {selectedCountry.id}</div>
-                <h2 className="station-title-main" style={{ fontSize: '1.6rem', color: '#fff', margin: 0 }}>{selectedCountry.name.toUpperCase()}</h2>
+                <h2 className="station-title-main registry-modal-title" style={{ fontSize: '1.6rem', color: '#fff', margin: 0 }}>{selectedCountry.name.toUpperCase()}</h2>
                 {selectedCountry.sharedFrom && (
                   <div className="flex-row mt-1" style={{ gap: '6px' }}>
                     <LinkIcon size={12} style={{ color: 'var(--primary-color)' }} />
@@ -344,6 +344,48 @@ export default function RegulatoryRegistryPage() {
           background: rgba(0, 150, 255, 0.1);
           color: #0096ff;
           border: 1px solid rgba(0, 150, 255, 0.2);
+        }
+
+        @media (max-width: 1024px) {
+           .registry-header {
+             flex-direction: column;
+             align-items: flex-start !important;
+             gap: 24px;
+           }
+           .registry-stats-container {
+             width: 100%;
+             justify-content: space-between;
+           }
+        }
+
+        @media (max-width: 768px) {
+           .registry-stats-container {
+             flex-direction: column;
+             gap: 20px !important;
+           }
+           .registry-stats-group {
+             width: 100%;
+             justify-content: space-between;
+           }
+           .registry-search-wrapper {
+             width: 100%;
+           }
+           .registry-search-input {
+             width: 100% !important;
+           }
+           .registry-modal {
+             padding: 24px !important;
+             margin: 0;
+           }
+           .registry-modal-header {
+             flex-direction: column;
+             align-items: center;
+             text-align: center;
+             gap: 16px !important;
+           }
+           .registry-modal-title {
+             font-size: 1.3rem !important;
+           }
         }
       `}</style>
     </div>

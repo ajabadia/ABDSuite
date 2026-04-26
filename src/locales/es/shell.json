@@ -104,11 +104,11 @@
     }
   },
   "dashboard": {
-    "welcome": "BIENVENIDO AL ABDFN ASCEPTIC HUB",
+    "welcome": "BIENVENIDO AL ABDFN ASEPTIC HUB",
     "sys_info": "INFORMACIÓN DEL SISTEMA",
     "core_load": "CARGA DEL NÚCLEO",
     "mem_status": "ESTADO DE MEMORIA",
-    "disk_activity": "ACTIVITÉ DISQUE",
+    "disk_activity": "ACTIVIDAD DE DISCO",
     "ready_prompt": "ESPERANDO COMANDO DE MÓDULO...",
     "dash_crypt_title": "CONTROL CRIPTOGRÁFICO",
     "dash_crypt_desc": "Blindage masivo y gestión de llaves AES-256-GCM.",

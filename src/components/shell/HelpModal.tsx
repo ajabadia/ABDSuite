@@ -28,7 +28,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
   return (
     <div className="station-modal-overlay" onClick={onClose}>
       <div 
-        className="station-modal" 
+        className="station-modal help-modal-container" 
         style={{ maxWidth: '900px', height: '80vh', display: 'flex', flexDirection: 'column' }} 
         onClick={e => e.stopPropagation()}
       >
@@ -40,10 +40,10 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
           <button className="station-btn icon-only" onClick={onClose}><XIcon size={18} /></button>
         </header>
 
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        <div className="help-modal-layout" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           {/* Sidebar de navegación del manual */}
-          <aside style={{ width: '200px', borderRight: '1px solid var(--border-color)', padding: '12px', background: 'rgba(var(--primary-color-rgb), 0.02)' }}>
-            <div className="flex-col" style={{ gap: '4px' }}>
+          <aside className="help-modal-sidebar" style={{ width: '200px', borderRight: '1px solid var(--border-color)', padding: '12px', background: 'rgba(var(--primary-color-rgb), 0.02)' }}>
+            <div className="flex-col help-sections-grid" style={{ gap: '4px' }}>
               {sections.map(section => (
                 <button
                   key={section.id}
@@ -57,15 +57,15 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                     background: activeSection === section.id ? 'rgba(var(--primary-color-rgb), 0.1)' : 'transparent'
                   }}
                 >
-                  <span style={{ marginRight: '10px', opacity: activeSection === section.id ? 1 : 0.5 }}>{section.icon}</span>
-                  {section.title}
+                  <span className="help-section-icon" style={{ marginRight: '10px', opacity: activeSection === section.id ? 1 : 0.5 }}>{section.icon}</span>
+                  <span className="help-section-title">{section.title}</span>
                 </button>
               ))}
             </div>
           </aside>
 
           {/* Contenido del manual */}
-          <main style={{ flex: 1, padding: '32px', overflowY: 'auto', background: 'var(--surface-color)' }}>
+          <main className="help-modal-main" style={{ flex: 1, padding: '32px', overflowY: 'auto', background: 'var(--surface-color)' }}>
             <div className="help-content-view">
               <h1 style={{ 
                 fontSize: '1.4rem', 
@@ -94,9 +94,9 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
           </main>
         </div>
 
-        <footer style={{ padding: '12px 24px', borderTop: '1px solid var(--border-color)', background: 'rgba(var(--primary-color-rgb), 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <footer className="help-modal-footer" style={{ padding: '12px 24px', borderTop: '1px solid var(--border-color)', background: 'rgba(var(--primary-color-rgb), 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>DOCUMENT_ID: {activeSection.toUpperCase()}_MAN_v6.0</span>
-          <span style={{ fontSize: '0.6rem', opacity: 0.5, letterSpacing: '2px' }}>ABD INDUSTRIAL INFRASTRUCTURES</span>
+          <span className="help-modal-credit" style={{ fontSize: '0.6rem', opacity: 0.5, letterSpacing: '2px' }}>ABD INDUSTRIAL INFRASTRUCTURES</span>
         </footer>
       </div>
 
@@ -116,6 +116,44 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
           margin-left: 0;
           background: rgba(var(--primary-color-rgb), 0.05);
           padding: 1rem;
+        }
+
+        @media (max-width: 768px) {
+          .help-modal-container {
+            max-height: 95vh !important;
+            height: 95vh !important;
+          }
+          .help-modal-layout {
+            flex-direction: column !important;
+          }
+          .help-modal-sidebar {
+            width: 100% !important;
+            border-right: none !important;
+            border-bottom: 1px solid var(--border-color) !important;
+            overflow-x: auto;
+            flex-shrink: 0;
+            padding: 8px !important;
+          }
+          .help-sections-grid {
+            flex-direction: row !important;
+            gap: 8px !important;
+          }
+          .help-section-title {
+            display: none;
+          }
+          .help-section-icon {
+            margin-right: 0 !important;
+          }
+          .station-btn {
+             min-width: 44px;
+             justify-content: center !important;
+          }
+          .help-modal-main {
+            padding: 20px !important;
+          }
+          .help-modal-credit {
+            display: none;
+          }
         }
       `}</style>
     </div>

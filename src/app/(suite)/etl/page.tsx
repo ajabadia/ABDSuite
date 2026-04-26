@@ -215,8 +215,8 @@ function EtlPageContent() {
         readOnly={!canConfig}
       />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '64px', flex: 1, minHeight: 0 }}>
-        <section style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="etl-main-layout flex-col" style={{ gap: '32px', flex: 1, minHeight: 0 }}>
+        <section className="etl-sidebar-section flex-col">
           <EtlSidebar 
             presets={presets}
             activePresetId={selectedPreset?.id}
@@ -231,7 +231,7 @@ function EtlPageContent() {
         </section>
 
         {selectedPreset ? (
-          <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <section className="etl-content-section flex-col" style={{ gap: '24px', flex: 1, minHeight: 0 }}>
             <div style={{ flex: 1, minHeight: 0 }}>
               {activeTab === 'designer' ? (
                 <EtlDesigner 
@@ -256,6 +256,14 @@ function EtlPageContent() {
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        @media (max-width: 800px) {
+          .etl-main-layout {
+            gap: 24px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

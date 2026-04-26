@@ -1,3 +1,5 @@
+src/components/regulatory/TinValidatorStation.tsx(286,58): error TS7006: Parameter '_' implicitly has an 'any' type.
+src/components/regulatory/TinValidatorStation.tsx(286,61): error TS7006: Parameter 'i' implicitly has an 'any' type.
 D:/desarrollos/ABDFNSuite/node_modules/typescript/lib/lib.es5.d.ts
 D:/desarrollos/ABDFNSuite/node_modules/typescript/lib/lib.es2015.d.ts
 D:/desarrollos/ABDFNSuite/node_modules/typescript/lib/lib.es2016.d.ts
@@ -1273,6 +1275,7 @@ D:/desarrollos/ABDFNSuite/src/lib/db/db.ts
 D:/desarrollos/ABDFNSuite/src/lib/docs/manuals.ts
 D:/desarrollos/ABDFNSuite/node_modules/jszip/index.d.ts
 D:/desarrollos/ABDFNSuite/src/lib/types/regulatory.types.ts
+D:/desarrollos/ABDFNSuite/src/lib/schemas/regulatory.schema.ts
 D:/desarrollos/ABDFNSuite/src/lib/logic/RegulatoryOrchestrator.ts
 D:/desarrollos/ABDFNSuite/src/lib/regulatory/plugins/i18n.ts
 D:/desarrollos/ABDFNSuite/src/lib/regulatory/plugins/types.ts

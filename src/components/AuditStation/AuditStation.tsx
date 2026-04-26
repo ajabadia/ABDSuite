@@ -573,7 +573,7 @@ const AuditStation: React.FC = () => {
             className="station-btn station-btn-primary" 
             disabled={!indexFile || audit.isRunning}
             onClick={runValidation}
-            style={{ width: '320px', height: '56px', fontSize: '1.2rem', fontWeight: 900 }}
+            style={{ width: '100%', maxWidth: '320px', height: '56px', fontSize: '1.2rem', fontWeight: 900 }}
           >
             {audit.isRunning ? t('audit.validating').toUpperCase() : t('audit.validate').toUpperCase()}
           </button>
@@ -626,7 +626,6 @@ const AuditStation: React.FC = () => {
                 items={visibleData}
                 totalItems={audit.summary.totalLines}
                 itemHeight={ITEM_HEIGHT}
-                containerHeight={500}
                 onRangeChange={handleRangeChange}
                 renderRow={renderDataRow}
               />
@@ -635,7 +634,6 @@ const AuditStation: React.FC = () => {
                 items={visibleErrors}
                 totalItems={audit.summary.totalErrors}
                 itemHeight={ITEM_HEIGHT}
-                containerHeight={500}
                 onRangeChange={handleRangeChange}
                 renderRow={renderErrorRow}
               />

@@ -26,7 +26,6 @@ class AuditService {
     this.flushPendingLogs();
 
     try {
-      const detailsJson = JSON.stringify(entry.details || {});
       const category = resolveAuditCategory(entry.messageKey);
 
       if (
@@ -35,7 +34,11 @@ class AuditService {
         entry.module === 'SUPERVISOR' || 
         entry.module === 'REGTECH'
       ) {
-        // Global Audit (CoreDB - Always available)
+        // Global Audit (CoreDB - Non-Encrypted Table)
+        // CRITICAL: Mask PII before global persistence
+        const sanitizedDetails = this.maskSensitiveData(entry.details || {});
+        const detailsJson = JSON.stringify(sanitizedDetails);
+
         await coreDb.system_log.add({
           id: entry.id!,
           timestamp: entry.timestamp,
@@ -46,7 +49,8 @@ class AuditService {
         });
         console.log(`[AUDIT-CORE-SUCCESS] ${entry.module}.${entry.messageKey}`);
       } else {
-        // Operational Audit (UnitDB - May be deferred)
+        // Operational Audit (UnitDB - Encrypted at-rest)
+        const detailsJson = JSON.stringify(entry.details || {});
         if (db && (db as any).audit_history_v6) {
           await db.audit_history_v6.add({
             id: entry.id!,
@@ -66,6 +70,31 @@ class AuditService {
     } catch (err) {
       console.error('[AUDIT-SERVICE] Failed to handle log event', err, entry);
     }
+  }
+
+  /**
+   * Industrial PII Safeguard (ERA 6.1)
+   * Recursively masks sensitive fields for non-encrypted stores.
+   */
+  private maskSensitiveData(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+    
+    const SENSITIVE_KEYS = ['tin', 'nif', 'ssn', 'email', 'phone', 'birthDate', 'firstName', 'lastName'];
+    const result = Array.isArray(data) ? [...data] : { ...data };
+
+    for (const key in result) {
+      const lowerKey = key.toLowerCase();
+      if (SENSITIVE_KEYS.includes(lowerKey) || SENSITIVE_KEYS.some(k => lowerKey.includes(k))) {
+        if (typeof result[key] === 'string' && result[key].length > 4) {
+          result[key] = `${result[key].substring(0, 3)}***`;
+        } else {
+          result[key] = '***';
+        }
+      } else if (typeof result[key] === 'object') {
+        result[key] = this.maskSensitiveData(result[key]);
+      }
+    }
+    return result;
   }
 
   /**

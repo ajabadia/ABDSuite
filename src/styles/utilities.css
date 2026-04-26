@@ -60,3 +60,40 @@
 .station-badge-blue { color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
 .station-badge-green { color: #10b981; background: rgba(16, 185, 129, 0.1); }
 .station-badge-orange { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+
+/* --- INDUSTRIAL MODULE GRID (Responsive v2.1) --- */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+.module-col-1  { grid-column: span 1; }
+.module-col-2  { grid-column: span 2; }
+.module-col-3  { grid-column: span 3; }
+.module-col-4  { grid-column: span 4; }
+.module-col-5  { grid-column: span 5; }
+.module-col-6  { grid-column: span 6; }
+.module-col-7  { grid-column: span 7; }
+.module-col-8  { grid-column: span 8; }
+.module-col-9  { grid-column: span 9; }
+.module-col-10 { grid-column: span 10; }
+.module-col-11 { grid-column: span 11; }
+.module-col-12 { grid-column: span 12; }
+
+/* GRANULAR RESPONSIVE RECTIFICATION */
+@media (max-width: 800px) {
+  .module-col-1, .module-col-2, .module-col-3, .module-col-4, 
+  .module-col-5, .module-col-6, .module-col-7, .module-col-8, 
+  .module-col-9, .module-col-10, .module-col-11 {
+    grid-column: span 12;
+  }
+}
+
+/* Specific 2-column mobile override */
+@media (max-width: 600px) {
+  .module-col-sm-6 {
+    grid-column: span 6 !important;
+  }
+}

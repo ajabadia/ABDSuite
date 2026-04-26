@@ -14,7 +14,8 @@ import {
   ShieldIcon, 
   ClockIcon,
   CheckCircleIcon,
-  InfoIcon
+  InfoIcon,
+  LoaderIcon
 } from '../common/Icons';
 import { loadAuditRetention, saveAuditRetention, AuditRetentionSettings } from '@/lib/utils/audit-retention-settings';
 import { purgeOldAuditRecords } from '@/lib/utils/audit-retention';
@@ -252,7 +253,7 @@ export const AuditHistoryDashboard: React.FC = () => {
             </div>
 
             {/* KPI CARDS (v2 Parametrized) */}
-            <div className="station-form-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+            <div className="station-form-grid audit-kpi-grid">
                <KPIItem 
                  val={kpis.failedAuthCount} 
                  label="AUTH_FAILURES" 
@@ -281,7 +282,7 @@ export const AuditHistoryDashboard: React.FC = () => {
             </div>
 
             {/* TOOLBAR */}
-            <div className="flex-row" style={{ gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="flex-row audit-toolbar" style={{ gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div className="flex-col">
                     <label className="station-label" style={{ fontSize: '0.65rem' }}>CATEGORÍA</label>
                     <select className="station-input" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value as any)} style={{ width: '130px', height: '36px' }}>
@@ -312,7 +313,7 @@ export const AuditHistoryDashboard: React.FC = () => {
                     </select>
                 </div>
 
-                <div className="flex-col" style={{ marginLeft: 'auto' }}>
+                <div className="flex-col retention-col" style={{ marginLeft: 'auto' }}>
                     <label className="station-label" style={{ fontSize: '0.65rem' }}>RETENCIÓN_DEXIE</label>
                     <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
                         <select className="station-input" value={retention.months} onChange={e => handleRetentionChange(Number(e.target.value))} style={{ width: '110px', height: '36px' }}>
@@ -325,20 +326,19 @@ export const AuditHistoryDashboard: React.FC = () => {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', flex: 1, gap: '20px', minHeight: 0 }}>
+            <div className="audit-main-layout" style={{ display: 'flex', flex: 1, gap: '20px', minHeight: 0 }}>
                 {/* TABLE SECTION */}
-                <div style={{ flex: 2, border: '1px solid var(--border-color)', background: 'var(--surface-color)', position: 'relative', borderRadius: '4px', overflow: 'hidden' }}>
+                <div className="audit-table-section" style={{ border: '1px solid var(--border-color)', background: 'var(--surface-color)', position: 'relative', borderRadius: '4px', overflow: 'hidden' }}>
                     <IndustrialVirtualTable
                         items={records}
                         totalItems={records.length}
                         itemHeight={ITEM_HEIGHT}
-                        containerHeight={500}
                         renderRow={renderRow}
                     />
                 </div>
 
                 {/* DETAIL SECTION */}
-                <div style={{ flex: 1, border: '1px solid var(--border-color)', background: 'var(--bg-color-alt)', padding: '20px', overflowY: 'auto', borderRadius: '4px' }}>
+                <div className="audit-detail-section" style={{ border: '1px solid var(--border-color)', background: 'var(--bg-color-alt)', padding: '20px', overflowY: 'auto', borderRadius: '4px' }}>
                     {selectedRecord ? (
                         <div className="flex-col" style={{ gap: '16px' }}>
                             <div style={{ paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
@@ -417,10 +417,53 @@ export const AuditHistoryDashboard: React.FC = () => {
                     )}
                 </div>
             </div>
+
             <style jsx>{`
               .health-sentence:hover {
                 background: rgba(var(--primary-color-rgb), 0.05) !important;
                 border-color: rgba(var(--primary-color-rgb), 0.1) !important;
+              }
+
+              .audit-kpi-grid {
+                grid-template-columns: repeat(5, 1fr);
+              }
+
+              .audit-table-section {
+                flex: 2;
+              }
+              .audit-detail-section {
+                flex: 1;
+              }
+
+              @media (max-width: 1024px) {
+                .audit-main-layout {
+                  flex-direction: column;
+                }
+                .audit-table-section {
+                  height: 400px;
+                }
+                .audit-kpi-grid {
+                  grid-template-columns: repeat(3, 1fr);
+                }
+              }
+
+              @media (max-width: 640px) {
+                .audit-kpi-grid {
+                  grid-template-columns: repeat(2, 1fr);
+                }
+                .audit-toolbar {
+                  flex-direction: column;
+                  align-items: stretch !important;
+                }
+                .audit-toolbar > div {
+                  width: 100% !important;
+                }
+                .audit-toolbar select {
+                  width: 100% !important;
+                }
+                .retention-col {
+                  margin-left: 0 !important;
+                }
               }
             `}</style>
         </div>

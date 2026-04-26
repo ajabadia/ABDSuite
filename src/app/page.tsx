@@ -570,8 +570,15 @@ export default function Dashboard() {
 
         .log-line.active { color: var(--status-ok); }
 
-        @media (max-width: 1000px) {
+        @media (max-width: 1024px) {
           .dash-main-grid { grid-template-columns: 1fr; }
+          .dash-sidebar { order: -1; } /* Telemetry first on mobile/tablet */
+        }
+
+        @media (max-width: 640px) {
+          .dash-container { padding: 12px; gap: 16px; }
+          .crt-monitor { padding: 20px 12px; border-width: 6px; }
+          .ascii-logo { font-size: 5px; line-height: 1; }
         }
       `}</style>
     </div>

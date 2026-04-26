@@ -23,10 +23,11 @@ import {
   UserIcon
 } from '@/components/common/Icons';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { useUI } from '@/lib/context/UIContext';
 import { HelpModal } from './HelpModal';
 
 export const Sidebar: React.FC = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isSidebarCollapsed: isCollapsed, setSidebarCollapsed: setIsCollapsed, isMobileMenuOpen } = useUI();
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const pathname = usePathname();
   const { t } = useLanguage();
@@ -141,7 +142,7 @@ export const Sidebar: React.FC = () => {
   }
 
   return (
-    <aside className={`shell-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+    <aside className={`shell-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
       <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'space-between' }}>
         {!isCollapsed && <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--primary-color)' }}>ABDSuite</span>}
         <button 

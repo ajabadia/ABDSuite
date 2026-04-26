@@ -114,8 +114,8 @@ function CryptPageContent() {
       </header>
 
 
-      <div className="flex-col" style={{ gap: '48px', flex: 1, minHeight: 0 }}>
-        <section className="flex-col">
+      <div className="crypt-main-layout flex-col" style={{ gap: '32px', flex: 1, minHeight: 0 }}>
+        <section className="crypt-processor-section flex-col">
           <FileProcessor
             files={files}
             setFiles={setFiles}
@@ -135,8 +135,8 @@ function CryptPageContent() {
         )}
 
         {files.length > 0 && (
-          <div className="flex-row" style={{ gap: '24px', alignItems: 'flex-start' }}>
-            <section style={{ flex: 2 }}>
+          <div className="crypt-ops-grid flex-row" style={{ gap: '24px', alignItems: 'flex-start' }}>
+            <section className="crypt-settings-panel" style={{ flex: 2 }}>
               <SettingsPanel
                 mode={mode}
                 password={password}
@@ -151,7 +151,7 @@ function CryptPageContent() {
               />
             </section>
 
-            <section className="station-card flex-col" style={{ flex: 1, background: 'rgba(0,0,0,0.2)', gap: '16px' }}>
+            <section className="crypt-preflight-panel station-card flex-col" style={{ flex: 1, background: 'rgba(0,0,0,0.2)', gap: '16px' }}>
                <header className="flex-row" style={{ alignItems: 'center', gap: '8px' }}>
                   <ShieldCheckIcon size={16} color="var(--primary-color)" />
                   <h3 className="station-form-section-title" style={{ margin: 0 }}>CRYPT_PRE_FLIGHT</h3>
@@ -195,6 +195,19 @@ function CryptPageContent() {
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        @media (max-width: 1024px) {
+          .crypt-ops-grid {
+            flex-direction: column;
+            align-items: stretch !important;
+          }
+          .crypt-settings-panel, .crypt-preflight-panel {
+            flex: none !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
 
       {/* Sello de Integridad (Era 6) */}
       <div className="station-integrity-badge flex-row" style={{ position: 'fixed', bottom: '24px', right: '24px', gap: '8px', opacity: 0.6 }}>

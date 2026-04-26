@@ -9,13 +9,42 @@ import { LogDrawer } from '@/components/shell/LogDrawer';
 import { purgeOldAuditRecords } from '@/lib/utils/audit-retention';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { BootstrapWizard } from '@/components/auth/BootstrapWizard';
+import { LoaderIcon } from '@/components/common/Icons';
 import { LoginScreen } from '@/components/auth/LoginScreen';
 import { StepUpAuthModal } from '@/components/auth/StepUpAuthModal';
-import { LoaderIcon } from '@/components/common/Icons';
+import { UIProvider, useUI } from '@/lib/context/UIContext';
 
 interface ShellWrapperProps {
   children: React.ReactNode;
 }
+
+/**
+ * ShellInner
+ * Renders the actual shell structure using UI context.
+ */
+const ShellInner: React.FC<ShellWrapperProps> = ({ children }) => {
+  const { isMobileMenuOpen, setMobileMenuOpen } = useUI();
+
+  return (
+    <div className="shell-container animate-fade-in">
+      <Sidebar />
+      <TopBar />
+      <main className="shell-content">
+        {children}
+      </main>
+      
+      {/* Mobile Sidebar Overlay */}
+      <div 
+        className={`mobile-sidebar-overlay ${isMobileMenuOpen ? 'active' : ''}`}
+        onClick={() => setMobileMenuOpen(false)}
+      />
+
+      <LogDrawer />
+      <StatusBar />
+      <StepUpAuthModal />
+    </div>
+  );
+};
 
 /**
  * ShellWrapper
@@ -46,16 +75,11 @@ export const ShellWrapper: React.FC<ShellWrapperProps> = ({ children }) => {
   }
 
   return (
-    <div className="shell-container animate-fade-in">
-      <Sidebar />
-      <TopBar />
-      <main className="shell-content">
+    <UIProvider>
+      <ShellInner>
         {children}
-      </main>
-      <LogDrawer />
-      <StatusBar />
-      <StepUpAuthModal />
+      </ShellInner>
       {isVaultChallengeOpen && <LoginScreen />}
-    </div>
+    </UIProvider>
   );
 };

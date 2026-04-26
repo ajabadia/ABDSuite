@@ -693,9 +693,9 @@ const LetterStation: React.FC = () => {
       </header>
 
       {wizardEnabled ? (
-        <div className="wizard-container flex-col animate-fade-in">
+        <div className="wizard-container flex-col animate-fade-in" style={{ gap: '12px' }}>
           {renderWizardHeader()}
-          <main className="station-card" style={{ padding: '32px', minHeight: '400px', flex: 1, width: '100%' }}>
+          <main className="station-card letter-wizard-main" style={{ minHeight: '400px', flex: 1, width: '100%' }}>
             {renderStepContent()}
           </main>
         </div>
@@ -707,6 +707,33 @@ const LetterStation: React.FC = () => {
           <div className="alert-box warning">Legacy view is currently minimized in development. Use Supervisor to enable Wizard.</div>
         </section>
       )}
+
+      <style jsx>{`
+        .letter-wizard-main {
+          padding: clamp(16px, 4vw, 32px);
+        }
+
+        @media (max-width: 800px) {
+          .wizard-nav {
+            flex-wrap: wrap;
+            gap: 4px;
+          }
+          .wizard-step-btn {
+            flex: 1 1 45%;
+            font-size: 0.7rem;
+            padding: 8px;
+          }
+          .wizard-step-id {
+            display: none;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .wizard-step-btn {
+            flex: 1 1 100%;
+          }
+        }
+      `}</style>
 
       {/* LEGACY ACTIONS REMOVED (UNIFIED IN WIZARD) */}
 
@@ -746,7 +773,7 @@ const LetterStation: React.FC = () => {
               <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--status-err)' }}>INDUSTRIAL_DIAGNOSTIC_CONSOLE_V4</span>
               <span style={{ fontSize: '10px', opacity: 0.5 }}>MODO TÉCNICO ACTIVADO - PRUEBAS DE ESTRÉS PDF</span>
             </div>
-            <div className="flex-row" style={{ gap: '12px' }}>
+            <div className="flex-row" style={{ gap: '12px', flexWrap: 'wrap' }}>
               <button className="station-btn" style={{ height: '36px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-err)', fontWeight: 800, border: '1px solid rgba(239, 68, 68, 0.2)' }} onClick={() => handleRunStressTest(5)} disabled={isProcessing}><ZapIcon size={14} /> TEST (5)</button>
               <button className="station-btn" style={{ height: '36px', background: 'var(--status-err)', color: 'white', fontWeight: 800 }} onClick={() => handleRunStressTest(50)} disabled={isProcessing}><ZapIcon size={14} /> MASSIVE (50)</button>
               {isTechnicianMode && (

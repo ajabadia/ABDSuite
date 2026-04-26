@@ -7,7 +7,8 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { useLog } from '@/lib/context/LogContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
-import { TerminalIcon, LogOutIcon, UserIcon, BuildingIcon, ShieldCheckIcon } from '@/components/common/Icons';
+import { useUI } from '@/lib/context/UIContext';
+import { TerminalIcon, LogOutIcon, UserIcon, BuildingIcon, ShieldCheckIcon, ListIcon } from '@/components/common/Icons';
 import { AboutDialog } from './AboutDialog';
 import { SecurityDialog } from './SecurityDialog';
 
@@ -16,6 +17,7 @@ export const TopBar: React.FC = () => {
   const { t } = useLanguage();
   const { isOpen, setIsOpen } = useLog();
   const { currentOperator, currentUnit, logout } = useWorkspace();
+  const { toggleMobileMenu } = useUI();
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isSecurityOpen, setIsSecurityOpen] = useState(false);
 
@@ -30,8 +32,16 @@ export const TopBar: React.FC = () => {
 
   return (
     <header className="shell-topbar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-        <h1 style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '2px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <button 
+          className="station-btn mobile-menu-btn" 
+          onClick={toggleMobileMenu}
+          aria-label="Toggle Menu"
+        >
+          <ListIcon size={20} />
+        </button>
+        
+        <h1 style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '2px' }}>
           {getModuleTitle()}
         </h1>
 

@@ -6,7 +6,6 @@ interface IndustrialVirtualTableProps<T> {
   items: T[];
   totalItems: number;
   itemHeight: number;
-  containerHeight: number;
   renderRow: (item: T, index: number, style: React.CSSProperties) => React.ReactNode;
   onRangeChange?: (startIndex: number, endIndex: number) => void;
   className?: string;
@@ -17,7 +16,6 @@ export function IndustrialVirtualTable<T>({
   items,
   totalItems,
   itemHeight,
-  containerHeight,
   renderRow,
   onRangeChange,
   className,
@@ -25,15 +23,29 @@ export function IndustrialVirtualTable<T>({
 }: IndustrialVirtualTableProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(500);
 
-  const buffer = 5; // Filas de margen para suavizar el scroll
+  const buffer = 5; 
   
   const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - buffer);
   const endIndex = Math.min(totalItems - 1, Math.floor((scrollTop + containerHeight) / itemHeight) + buffer);
 
   useEffect(() => {
+    if (!containerRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerHeight(entry.contentRect.height);
+      }
+    });
+
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     if (onRangeChange) {
-      onRangeChange(startIndex + 1, endIndex + 1); // 1-based para GAWEB
+      onRangeChange(startIndex + 1, endIndex + 1);
     }
   }, [startIndex, endIndex, onRangeChange]);
 
@@ -44,7 +56,7 @@ export function IndustrialVirtualTable<T>({
   const totalHeight = totalItems * itemHeight;
 
   return (
-    <div className={`industrial-virtual-table ${className || ''}`} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div className={`industrial-virtual-table ${className || ''}`} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', flex: 1 }}>
       {header && <div className="virtual-table-header">{header}</div>}
       
       <div 

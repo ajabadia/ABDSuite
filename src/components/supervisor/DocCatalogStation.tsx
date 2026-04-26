@@ -169,7 +169,6 @@ export const DocCatalogStation: React.FC = () => {
                         items={filteredEntries}
                         totalItems={filteredEntries.length}
                         itemHeight={52}
-                        containerHeight={600}
                         renderRow={renderRow}
                     />
                 </div>
