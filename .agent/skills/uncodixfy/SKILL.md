@@ -1,47 +1,41 @@
 ---
 name: uncodixfy
-description: Enforces clean, industrial, human-designed aesthetics (Aseptic Retro-Minimalist) instead of generic AI-generated UI patterns. Use when generating any frontend code for ABDFN Unified Suite.
+description: Enforces clean, industrial, human-designed aesthetics (Aseptic Retro-Minimalist) instead of generic AI-generated UI patterns.
+version: 2.1 (Industrial Aseptic Edition)
 ---
 
-# Uncodixy UI Standard (Aseptic v6.1 Edition)
+# Uncodixy UI Standard: ABDFN Industrial
 
-Este skill enseña a actuar de la forma más "no-Codex" posible al construir interfaces para **ABDFN Unified Suite**. El "Codex UI" (gradientes, esquinas gigantes, paneles flotantes) está TERMINANTEMENTE PROHIBIDO.
+Este skill garantiza que la interfaz de **ABDFN Unified Suite** se mantenga alejada del "Codex UI" (estética predeterminada de IA: gradientes suaves, esquinas circulares, paneles flotantes). En su lugar, forzamos un diseño humano, técnico y aséptico.
 
-## Cuándo usar este skill
-- Cuando se genere código HTML, CSS o React para la suite.
-- Cuando se busque la excelencia en la estética **Retro-Industrial**.
-- Cuando sea necesario romper el patrón visual de "esto lo ha hecho una IA genérica".
+## ⚡ Cuándo activar
+- Al generar componentes React, layouts CSS o prototipos visuales para la suite.
+- Siempre que el usuario pida una interfaz "limpia", "premium" o "industrial".
 
-## Workflow
-1. **Identificar Patrones Prohibidos**: Eliminar gradientes, transparencias suaves y bordes redondeados excesivos.
-2. **Aplicar Estándar Aseptic**: Usar rejillas técnicas, bordes sólidos (1px) y tipografía de datos.
-3. **Seleccionar Paleta Industrial**: Usar los tokens definidos en el proyecto.
-4. **Validación**: ¿Se siente como una estación de trabajo industrial de 1984 con tecnología moderna?
+## 🛠️ Workflow
+1. **Identificar Patrones Prohibidos**: Eliminar gradientes corporativos, esquinas redondeadas gigantes y sombras dramáticas.
+2. **Aplicar Estándar Aseptic**: Usar rejillas técnicas (8/16/24px), bordes sólidos de 1px y tipografía monoespaciada para datos.
+3. **Validación**: ¿Se siente como una estación de trabajo de alta fidelidad o como una plantilla genérica de Internet?
 
-## Instrucciones
+## ⚖️ Instrucciones de Estilo (Era 6.1)
 
 ### 1. Keep It Aseptic (Standard)
-- **Sidebars**: 220-250px, fondo sólido, bordes de 1px, iconos de `Icons` centralizado.
-- **Headers**: Títulos en MAYÚSCULAS DE BLOQUE, jerarquía clara, sin decoraciones innecesarias.
-- **Botones**: Radios de 0px a 4px máx (bordes cuadrados preferidos), rellenos sólidos o outlines técnicos.
-- **Paneles**: Bordes definidos (`border: 1px solid var(--border-color)`), sin sombras dramáticas.
-- **Tipografía**: Fuentes monoespaciadas para datos y IDs, sans-serif técnica para interfaz.
-- **Espaciado**: Basado en rejilla técnica (8px, 16px, 24px).
+- **Bordes**: Radios de 0px a 4px máximo. El minimalismo industrial prefiere el ángulo recto o el radio sutil.
+- **Estructura**: Sidebars de 240px fijos, fondos sólidos, bordes de 1px claros. Sin paneles "flotantes".
+- **Tipografía**: Jerarquía clara. Títulos en MAYÚSCULAS DE BLOQUE. Monoespaciado para valores técnicos.
+- **Botones**: Rellenos sólidos o outlines técnicos. Nada de gradientes.
+- **Cards**: Bordes sutiles (`1px solid var(--border-color)`), sombras casi imperceptibles (máx 4px blur).
 
 ### 2. Hard No (Prohibido)
-- NO a las esquinas redondeadas > 4px.
-- NO a los gradientes decorativos.
-- NO al glassmorphism o paneles con blur de fondo suave.
-- NO a las animaciones de rebote (bounce). Solo transiciones lineales o escalonadas.
-- NO a las sombras de colores o muy difusas.
+- NO a las esquinas redondeadas > 4px (evitar el "efecto burbuja").
+- NO a los gradientes decorativos para "fingir" calidad.
+- NO al glassmorphism (blurs de fondo) salvo en elementos críticos de sistema (CRT effect).
+- NO a las animaciones de rebote (bounce). Solo transiciones lineales o "steps".
 
-### 3. Paletas Industriales (Referencia Era 6.1)
+### 3. Paletas de Referencia (Aseptic v6.1)
+Utilizar los tokens CSS del proyecto, inspirados en estas paletas:
+- **Obsidian Industrial**: `#0a0a0a` (BG), `#161616` (Surface), `#00d4aa` (Accent).
+- **Slate Tech**: `#0f172a` (BG), `#1e293b` (Surface), `#38bdf8` (Accent).
 
-| Theme | Background | Surface | Accent | Border |
-|--------|-----------|--------|--------|----------|
-| **1984 PC** | `#000000` | `#111111` | `#00ff00` | `#333333` |
-| **C64 Industrial** | `#3b3b3b` | `#4a4a4a` | `#8b8b8b` | `#222222` |
-| **Monochrome High** | `#ffffff` | `#f0f0f0` | `#000000` | `#cccccc` |
-
-## Output (formato exacto)
-Código Vanilla CSS y React limpio, semántico, modular y siguiendo estrictamente la estética industrial de la suite.
+---
+**Goal**: Break the AI pattern. Human-grade industrial interface only.

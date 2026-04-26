@@ -1,33 +1,37 @@
 ---
-name: 02-code-quality-architecture
-description: Auditoría y estándares de código para ABDFN Unified Suite (SOLID, Zod, State Management & Retro UI Architecture).
+name: code-quality-architecture
+description: Auditoría y estándares de código para ABDFN Unified Suite (SOLID, Zod, Clean Architecture).
+version: 2.1 (Industrial Aseptic Edition)
 ---
 
-# Code Quality & Architecture - ABDFN Unified Suite (ERA 6.1)
+# Code Quality & Architecture: ABDFN Industrial (Era 6.1)
 
-## Propósito
-Asegura que la suite mantenga un diseño modular basado en "Shell & Modules", garantizando la integridad estética retro-industrial y una lógica de procesamiento offline-first impecable en todos sus centros de trabajo.
+Este skill establece las leyes de calidad para garantizar que el código de la suite sea profesional, mantenible y escalable bajo los principios de **Clean Architecture**.
 
-## Capacidades Integradas
+## ⚡ Cuándo activar
+- Al crear nuevos servicios en `src/lib/logic/` o `src/lib/services/`.
+- Durante refactorizaciones de componentes complejos o el motor de base de datos.
+- Revisiones de código para asegurar el cumplimiento de la Era 6.1.
 
-### 1. Auditoría Estructural (Logic Auditor)
-- **Zero-Backend Mandate**: Toda la lógica de negocio y procesamiento de datos debe residir exclusivamente en el cliente. Prohibido el uso de API Routes para lógica core.
-- **Client-Side Validation**: Operaciones con `FileBuffers` y claves maestras validadas mediante Zod schemas.
-- **Mandato 100% Inglés**: Identificadores, llaves y comentarios técnicos exclusivamente en inglés.
-- **Filosofía DRY**: Reutilizar utilidades globales y componentes compartidos de `src/components/common/`.
+## ⚖️ Leyes de Hierro (Code Laws)
 
-### 2. Gestión de Estados (Batch Processing Architecture)
-- **State Integrity**: Patrones para gestionar colas masivas sin degradar el rendimiento del navegador.
-- **Buffer Hygiene**: Limpieza obligatoria de memoria tras procesar archivos grandes.
+### 1. Principios SOLID & Clean Code
+- **S (Single Responsibility)**: Cada servicio o componente tiene una única razón para cambiar.
+- **D (Dependency Inversion)**: Depender de abstracciones (interfaces), no de concreciones.
+- **English-Only Mandate**: Toda la lógica interna (variables, funciones, comentarios técnicos) DEBE estar en inglés. **Mandato Universal Era 6**.
+- **Atomic Components**: Separación estricta entre lógica de negocio (Hooks/Services) y renderizado (UI).
 
-### 3. Estética & Mantenibilidad (Aseptic Retro-Minimalist)
-- **Aseptic v6.1 Standards**: Seguir la guía visual de Era 6.1. Ensamblaje de piezas industriales definidas en `src/styles/`.
-- **Zero-Redundancy CSS Rule**: Prohibido el uso de estilos locales que repliquen funcionalidades de `tokens.css` o `base.css`.
-- **Vanilla CSS Enforcement**: Uso de variables CSS para colores, fuentes y espaciados industriales.
-- **Icon Centralization**: Importación exclusiva desde `@/components/common/Icons`.
+### 2. Estándares ABDFN (Aseptic v6.1)
+- **Zero-Backend Mandate**: Toda la lógica core reside en el cliente. Prohibido procesar datos sensibles en API Routes.
+- **Schema Validation**: Forzar validación de inputs/outputs mediante **Zod**.
+- **Memory Hygiene**: Gestión eficiente de buffers y limpieza de estados al desmontar componentes masivos.
+- **Vanilla CSS Enforcement**: Uso exclusivo de variables CSS y tokens industriales. Prohibido duplicar estilos de `base.css`.
 
-## Workflow de Ejecución
-1. **Identificar Tipología**: Hook, Componente UI Industrial o Utilidad de Buffer.
-2. **Consultar Style Guide**: Revisar estándares de Era 6.1 antes de añadir clases CSS.
-3. **Aplicar Checklist**: SOLID check, Aseptic-CSS sync, Memory Safety.
-4. **Reportar**: Resumen de fidelidad visual y cumplimiento del estándar industrial.
+## 🛠️ Workflow de Ejecución
+1. **Auditoría Estructural**: Verificar SRP y SOLID en la lógica propuesta.
+2. **Schema Check**: Asegurar que los datos están tipados y validados.
+3. **i18n Check**: Confirmar que no hay texto hardcoded en la UI (todo via `useLanguage`).
+4. **Validation**: ¿El código es legible para un humano y escalable para la Era 7?
+
+---
+**Status**: ENFORCED in all jurisdictional and core modules.

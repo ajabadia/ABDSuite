@@ -1,50 +1,53 @@
 ---
 name: superpowers-orchestrator
 description: La skill maestra que coordina el ciclo de vida completo de un desarrollo en ABDFN Suite, desde la idea inicial hasta la entrega final verificada.
-version: 2.1
+version: 2.1 (Industrial Aseptic Edition)
 rigor: high
 ---
 
-# Superpowers Orchestrator (Master Workflow - Era 6.1)
+# Superpowers Orchestrator: ABDFN Industrial Edition
 
 ## 🎯 Objetivo
-Guiar al agente a través de las fases correctas de desarrollo para maximizar la calidad, minimizar errores y asegurar que el código cumple con los estándares industriales de ABDFN Suite (Aseptic Retro-Minimalist).
+Guiar el desarrollo en ABDFN Suite a través de fases estancas para maximizar la calidad, garantizar el blindaje criptográfico y asegurar el cumplimiento de la Era 6.1.
 
 ## ⚡ Cuándo activar
-- Siempre que el usuario pida una nueva funcionalidad, un refactor complejo o la resolución de un bug arquitectónico.
-- Es la skill de entrada por defecto para cualquier "Task" de Antigravity.
+- Intervenciones en el motor RegTech, ETL, Crypt o Letter Station.
+- Refactorizaciones de servicios core o middleware de base de datos.
+- Es el punto de entrada obligatorio para cualquier "Task" no trivial.
 
 ## ⚖️ Leyes de Hierro (Iron Laws)
-1. **SECUENCIA OBLIGATORIA**: No se puede saltar al código sin una `SPEC.md` (o actualización de la misma) y un `PLAN` previos (salvo en hotfixes triviales).
-2. **VERIFICACIÓN CONTINUA**: Cada fase debe cerrarse con una validación del usuario o una checklist interna.
-3. **TRAZABILIDAD**: Cada decisión técnica debe estar anclada en la especificación del proyecto.
+1. **SECUENCIA OBLIGATORIA**: Spec (Brainstorming) -> Plan (Planning) -> Code (TDD). Prohibido el código directo.
+2. **ZERO-PII LEAK**: Durante el diseño (Spec), validar que ningún dato sensible escape a almacenes no cifrados.
+3. **TRAZABILIDAD**: Cada cambio debe estar anclado a un ítem del `task.md` y documentado en la `SPEC.md`.
 
-## 🛠️ Workflow (El Ciclo de Vida)
+## 🛠️ Workflow (Ciclo de Vida ABDFN)
 
-### Fase 1: Concepción y Diseño
-1. Activa la skill de `methodology/brainstorming`.
-2. Produce o actualiza la `SPEC.md` o el `implementation_plan.md`.
-<HARD-GATE: ¿El usuario ha aprobado la SPEC/Plan?>
+### Fase 1: Concepción y Diseño (Aseptic Spec)
+1. Activa `brainstorming` skill.
+2. Produce/Actualiza `SPEC.md` en la raíz o carpeta de funcionalidad.
+3. **Check**: ¿Cumple con los estándares de seguridad de la Era 6.1?
+<HARD-GATE: ¿El usuario ha aprobado la SPEC?>
 
-### Fase 2: Planificación de Guerrilla
-3. Activa la skill de `methodology/planning`.
-4. Produce el archivo de tareas (`task.md`).
-<HARD-GATE: ¿El plan cubre todos los puntos de la SPEC?>
+### Fase 2: Planificación de Guerrilla (Industrial Planning)
+4. Activa `implementation-planning` skill.
+5. Genera `task.md` con tareas atómicas de 2-5 min.
+<HARD-GATE: ¿El plan cubre todas las aristas de seguridad y UI?>
 
-### Fase 3: Ejecución de Élite (TDD)
-5. Por cada tarea del plan:
-   - Aplica la skill de `methodology/tdd`.
-   - Realiza commits atómicos siguiendo el estándar de la Era 6.
-   - Si surge un bug inesperado, activa `methodology/debugging`.
+### Fase 3: Ejecución de Élite (TDD & Clean Code)
+6. Por cada tarea en `task.md`:
+   - Aplica `test-driven-development` (Ciclo Red-Green-Refactor).
+   - Seguir `uncodixfy` para la UI y `code-quality-architecture` para la lógica (SOLID).
+   - Si surge un bug, activar `systematic-debugging`.
 
-### Fase 4: Cierre y Verificación
-6. Ejecuta la suite completa de tests y validaciones industriales.
-7. Presenta el `walkthrough.md` al usuario incluyendo evidencias visuales (screenshots/recordings).
+### Fase 4: Cierre y Verificación (SYS_READY)
+7. Ejecutar suite de pruebas (tsc, unit tests, offline checks).
+8. Presentar `walkthrough.md` con evidencias de cumplimiento.
 
 ## 📋 Checklist de Validación Final
-- [ ] ¿Se ha seguido el orden: Spec -> Plan -> Code?
-- [ ] ¿Se han respetado las Leyes de Hierro de cada sub-skill?
-- [ ] ¿El resultado final es 100% funcional y cumple con la estética Aseptic Retro-Minimalist?
+- [ ] ¿Código 100% en inglés (lógica interna)?
+- [ ] ¿Zero console.log en producción?
+- [ ] ¿Validación Zod en todas las entradas de datos?
+- [ ] ¿Integridad de auditoría en AuditService confirmada?
 
-## 📤 Output
-Un proyecto terminado, documentado y verificado bajo estándares industriales.
+---
+**Vigente**: Era 6.1 - Industrial Standards
