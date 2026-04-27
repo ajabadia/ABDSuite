@@ -25,10 +25,12 @@ import {
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { useUI } from '@/lib/context/UIContext';
 import { HelpModal } from './HelpModal';
+import { SyncModal } from './SyncModal';
 
 export const Sidebar: React.FC = () => {
   const { isSidebarCollapsed: isCollapsed, setSidebarCollapsed: setIsCollapsed, isMobileMenuOpen } = useUI();
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isSyncOpen, setIsSyncOpen] = useState(false);
   const pathname = usePathname();
   const { t } = useLanguage();
   
@@ -214,25 +216,7 @@ export const Sidebar: React.FC = () => {
       <div style={{ padding: '8px 12px', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <button 
           className="station-nav-item" 
-          onClick={async () => {
-             if (isLocked) {
-               alert(t('auth.locked_engine_hint') || 'Motor de cifrado bloqueado. Desbloquee la clave de instalación antes de exportar.');
-               return;
-             }
-             if (!(await requestStepUp(2))) {
-               return;
-             }
-             const { DbSyncService } = await import('@/lib/services/db-sync.service');
-            const passphrase = prompt(t('sync.passphrase_prompt') || 'Enter passphrase to export');
-            if (!passphrase) return;
-            const blob = await DbSyncService.exportSuite(passphrase, currentOperator?.id || 'system');
-             const url = URL.createObjectURL(blob);
-             const a = document.createElement('a');
-             a.href = url;
-             a.download = `abdfn_suite_dump_${new Date().toISOString().split('T')[0]}.json`;
-             a.click();
-             URL.revokeObjectURL(url);
-          }}
+          onClick={() => setIsSyncOpen(true)}
           style={{ width: '100%', border: 'none', background: 'transparent' }}
         >
           <span className="station-nav-icon"><DownloadIcon size={20} /></span>
@@ -241,38 +225,7 @@ export const Sidebar: React.FC = () => {
         
         <button 
           className="station-nav-item" 
-          onClick={async () => {
-             if (isLocked) {
-               alert(t('auth.locked_engine_hint') || 'Motor de cifrado bloqueado. Desbloquee la clave de instalación antes de importar.');
-               return;
-             }
-             if (!(await requestStepUp(2))) {
-                return;
-             }
-             const input = document.createElement('input');
-             input.type = 'file';
-             input.accept = '.json';
-             input.onchange = async (e) => {
-                const file = (e.target as HTMLInputElement).files?.[0];
-                if (!file) return;
-                
-                const confirmed = confirm(t('shell.full_restore_confirm') || '¿Está seguro de restaurar el sistema? Esta acción fusionará o reemplazará sus datos actuales.');
-                if (!confirmed) return;
-                
-                const { DbSyncService } = await import('@/lib/services/db-sync.service');
-                try {
-                  const passphrase = prompt(t('sync.passphrase_prompt') || 'Enter passphrase to import');
-                  if (!passphrase) return;
-                  await DbSyncService.importSuite(file, passphrase, currentOperator?.id || 'system', 'MERGE');
-                  alert(t('shell.full_restore_success') || 'Sistema restaurado con éxito. Por favor, recargue la aplicación.');
-                  window.location.reload();
-                } catch (err) {
-                  console.error('Import failed', err);
-                  alert('Error al importar: ' + (err as Error).message);
-                }
-             };
-             input.click();
-          }}
+          onClick={() => setIsSyncOpen(true)}
           style={{ width: '100%', border: 'none', background: 'transparent' }}
         >
           <span className="station-nav-icon"><UploadIcon size={20} /></span>
@@ -316,6 +269,7 @@ export const Sidebar: React.FC = () => {
       )}
 
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+      <SyncModal isOpen={isSyncOpen} onClose={() => setIsSyncOpen(false)} />
     </aside>
   );
 };

@@ -126,7 +126,31 @@
   },
   "regtech_prompts": {
     "vault_locked_title": "VAULT BLOQUEADO",
-    "vault_locked_confirm": "La validación continuará, pero la auditoría detallada está DESHABILITADA.\n\n¿Deseas desbloquear el Vault con tu PIN ahora?",
-    "vault_unlocked_success": "Vault desbloqueado correctamente. Auditoría industrial activa."
+    "vault_unlocked_success": "Vault unlocked correctly. Industrial audit active."
+  },
+  "sync": {
+    "title": "SINCRONIZACIÓN INDUSTRIAL",
+    "export_tab": "EXPORTAR (VUELCO)",
+    "import_tab": "IMPORTAR (RESTAURAR)",
+    "modules_title": "MÓDULOS A PROCESAR",
+    "module_etl": "ETL (PRESETS)",
+    "module_letter": "LETTER STATION (PLANTILLAS Y MAPEOS)",
+    "module_catalog": "CATÁLOGO (REGISTROS Y CATDOCUM)",
+    "module_gaweb": "GAWEB (PERFILES GOLDEN)",
+    "module_audit": "AUDITORÍA (HISTORIAL)",
+    "strategy_title": "ESTRATEGIA DE REEMPLAZO",
+    "strategy_merge": "FUSIONAR (SEGURO - SÓLO NUEVOS/RECIENTES)",
+    "strategy_replace": "SOBRESCRIBIR (DESTRUCTIVO - LIMPIAR TABLA)",
+    "passphrase_label": "FRASE DE CIFRADO",
+    "passphrase_placeholder": "FRASE PARA CIFRAR/DESCIFRAR...",
+    "passphrase_hint": "Esta clave protege el archivo de vuelco. NO se puede recuperar.",
+    "file_label": "ARCHIVO DE VUELCO (.JSON)",
+    "execute_export": "EJECUTAR VUELCO MAESTRO",
+    "execute_import": "EJECUTAR RESTAURACIÓN",
+    "import_confirm": "¿Está seguro? La estrategia elegida puede alterar irreversiblemente sus datos actuales.",
+    "export_success": "Vuelco completado con éxito.",
+    "import_success": "Restauración completada. Reiniciando núcleo...",
+    "passphrase_prompt": "Introduzca la frase de cifrado"
   }
 }
+

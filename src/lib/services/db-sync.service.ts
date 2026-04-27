@@ -1,5 +1,5 @@
 import { db } from '../db/db';
-import { SuiteDump, LetterTemplateDump } from '../types/dump.types';
+import { SuiteDump, LetterTemplateDump, ExportOptions } from '../types/dump.types';
 import { auditService } from './AuditService';
 
 /**
@@ -15,14 +15,45 @@ export class DbSyncService {
   /**
    * Generates an encrypted JSON Blob.
    */
-  static async exportSuite(passphrase: string, actorId: string): Promise<Blob> {
-    const [presets, templates, mappings, goldenTests, auditHistory] = await Promise.all([
-      db.presets_v6.toArray(),
-      db.lettertemplates_v6.toArray(),
-      db.lettermappings_v6.toArray(),
-      db.golden_tests_v6.toArray(),
-      db.audit_history_v6.toArray(),
-    ]);
+  static async exportSuite(passphrase: string, actorId: string, options: ExportOptions = {
+    includeEtl: true,
+    includeLetter: true,
+    includeCatalog: true,
+    includeGaweb: true,
+    includeAudit: true
+  }): Promise<Blob> {
+    const queries: Promise<any[]>[] = [];
+    
+    // ETL
+    if (options.includeEtl) queries.push(db.presets_v6.toArray()); else queries.push(Promise.resolve([]));
+    
+    // Letter Station
+    if (options.includeLetter) {
+      queries.push(db.lettertemplates_v6.toArray());
+      queries.push(db.lettermappings_v6.toArray());
+      queries.push(db.golden_tests_v6.toArray());
+    } else {
+      queries.push(Promise.resolve([]));
+      queries.push(Promise.resolve([]));
+      queries.push(Promise.resolve([]));
+    }
+    
+    // Audit
+    if (options.includeAudit) queries.push(db.audit_history_v6.toArray()); else queries.push(Promise.resolve([]));
+    
+    // Catalog
+    if (options.includeCatalog) {
+      queries.push(db.doc_catalog_v1.toArray());
+      queries.push(db.catdocumv6.toArray());
+    } else {
+      queries.push(Promise.resolve([]));
+      queries.push(Promise.resolve([]));
+    }
+
+    // Regtech
+    if (options.includeGaweb) queries.push(db.gaweb_golden_profiles_v6.toArray()); else queries.push(Promise.resolve([]));
+
+    const [presets, templates, mappings, goldenTests, auditHistory, docCatalog, catDocum, gawebProfiles] = await Promise.all(queries);
 
     await auditService.log({
       module: 'SUPERVISOR',
@@ -34,7 +65,11 @@ export class DbSyncService {
         entityType: 'SYNC',
         actorId,
         severity: 'INFO',
-        context: { presets: presets.length, templates: templates.length }
+        context: { 
+          ...options, 
+          presets: presets.length, 
+          templates: templates.length 
+        }
       }
     });
 
@@ -53,11 +88,14 @@ export class DbSyncService {
     const clearPayload: SuiteDump = {
       version: 'abdfn-suite-v6',
       generatedAt: new Date().toISOString(),
-      presets: presets,
-      templates: templatesWithBase64,
-      mappings: mappings,
-      goldenTests: goldenTests || [],
-      auditHistory: auditHistory || [],
+      presets: options.includeEtl ? presets : undefined,
+      templates: options.includeLetter ? templatesWithBase64 : undefined,
+      mappings: options.includeLetter ? mappings : undefined,
+      goldenTests: options.includeLetter ? (goldenTests || []) : undefined,
+      auditHistory: options.includeAudit ? (auditHistory || []) : undefined,
+      gawebProfiles: options.includeGaweb ? (gawebProfiles || []) : undefined,
+      docCatalog: options.includeCatalog ? (docCatalog || []) : undefined,
+      catDocum: options.includeCatalog ? (catDocum || []) : undefined,
     };
 
     const encryptedContainer = await this.encrypt(JSON.stringify(clearPayload), passphrase);
@@ -82,7 +120,13 @@ export class DbSyncService {
   /**
    * Imports an encrypted SuiteDump JSON into the local IndexedDB.
    */
-  static async importSuite(file: File, passphrase: string, actorId: string, mode: 'REPLACE' | 'MERGE' = 'MERGE'): Promise<void> {
+  static async importSuite(
+    file: File, 
+    passphrase: string, 
+    actorId: string, 
+    mode: 'REPLACE' | 'MERGE' = 'MERGE',
+    options?: ExportOptions
+  ): Promise<void> {
     const containerText = await file.text();
     const container = JSON.parse(containerText);
 
@@ -135,40 +179,74 @@ export class DbSyncService {
       db.lettertemplates_v6, 
       db.lettermappings_v6, 
       db.golden_tests_v6, 
-      db.audit_history_v6
+      db.audit_history_v6,
+      db.gaweb_golden_profiles_v6,
+      db.doc_catalog_v1,
+      db.catdocumv6
     ], async () => {
       
-      if (mode === 'REPLACE') {
-        await Promise.all([
-          db.presets_v6.clear(),
-          db.lettertemplates_v6.clear(),
-          db.lettermappings_v6.clear(),
-          db.golden_tests_v6.clear(),
-          db.audit_history_v6.clear(),
-        ]);
-      }
-
       const reconcile = async (table: any, incoming: { id?: string | number, updatedAt?: number }) => {
         if (mode === 'REPLACE') {
           await table.put(incoming);
           return;
         }
         const existing = await table.get(incoming.id);
+        // MERGE logic: only update if missing or incoming is strictly newer
         if (!existing || (incoming.updatedAt && incoming.updatedAt > (existing.updatedAt || 0))) {
           await table.put(incoming);
         }
       };
 
-      for (const p of dump.presets) await reconcile(db.presets_v6, p);
-      for (const t of dump.templates) {
-        const { binaryBase64, ...rest } = t;
-        const record: any = { ...rest };
-        if (binaryBase64) record.binaryContent = this.base64ToArrayBuffer(binaryBase64);
-        await reconcile(db.lettertemplates_v6, record);
+      // ETL
+      if ((!options || options.includeEtl) && dump.presets) {
+        if (mode === 'REPLACE') await db.presets_v6.clear();
+        for (const p of dump.presets) await reconcile(db.presets_v6, p);
       }
-      for (const m of dump.mappings) await reconcile(db.lettermappings_v6, m);
-      if (dump.goldenTests) for (const g of dump.goldenTests) await reconcile(db.golden_tests_v6, g);
-      if (dump.auditHistory) for (const h of dump.auditHistory) await reconcile(db.audit_history_v6, h);
+
+      // LETTER
+      if ((!options || options.includeLetter)) {
+        if (dump.templates) {
+          if (mode === 'REPLACE') await db.lettertemplates_v6.clear();
+          for (const t of dump.templates) {
+            const { binaryBase64, ...rest } = t;
+            const record: any = { ...rest };
+            if (binaryBase64) record.binaryContent = this.base64ToArrayBuffer(binaryBase64);
+            await reconcile(db.lettertemplates_v6, record);
+          }
+        }
+        if (dump.mappings) {
+          if (mode === 'REPLACE') await db.lettermappings_v6.clear();
+          for (const m of dump.mappings) await reconcile(db.lettermappings_v6, m);
+        }
+        if (dump.goldenTests) {
+          if (mode === 'REPLACE') await db.golden_tests_v6.clear();
+          for (const g of dump.goldenTests) await reconcile(db.golden_tests_v6, g);
+        }
+      }
+
+      // AUDIT
+      if ((!options || options.includeAudit) && dump.auditHistory) {
+        if (mode === 'REPLACE') await db.audit_history_v6.clear();
+        for (const h of dump.auditHistory) await reconcile(db.audit_history_v6, h);
+      }
+
+      // CATALOG
+      if ((!options || options.includeCatalog)) {
+        if (dump.docCatalog) {
+          if (mode === 'REPLACE') await db.doc_catalog_v1.clear();
+          for (const dc of dump.docCatalog) await reconcile(db.doc_catalog_v1, dc);
+        }
+        if (dump.catDocum) {
+          if (mode === 'REPLACE') await db.catdocumv6.clear();
+          for (const cd of dump.catDocum) await reconcile(db.catdocumv6, cd);
+        }
+      }
+
+      // REGTECH
+      if ((!options || options.includeGaweb) && dump.gawebProfiles) {
+        if (mode === 'REPLACE') await db.gaweb_golden_profiles_v6.clear();
+        for (const gp of dump.gawebProfiles) await reconcile(db.gaweb_golden_profiles_v6, gp);
+      }
     });
 
     await auditService.log({
@@ -181,12 +259,16 @@ export class DbSyncService {
         entityType: 'SYNC',
         actorId,
         severity: 'INFO',
-        context: { mode }
+        context: { 
+          mode, 
+          ...(options || {}) 
+        }
       }
     });
 
     console.log(`[ABDFN-SYNC] Import completed successfully. Mode: ${mode}`);
   }
+
 
   // --- CRYPTO HELPERS (WEB CRYPTO API) ---
 
