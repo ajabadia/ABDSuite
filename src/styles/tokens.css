@@ -28,6 +28,8 @@
   --header-bg: #1e293b;
   --header-text: #f8fafc;
   --input-bg: #0f172a;
+  --primary-color-rgb: 56, 189, 248;
+  --status-err-rgb: 239, 68, 68;
 }
 
 /* THEME: MONOCHROME LIGHT */
@@ -46,6 +48,8 @@
   --header-bg: #ffffff;
   --header-text: #0f172a;
   --input-bg: #ffffff;
+  --primary-color-rgb: 37, 99, 235;
+  --status-err-rgb: 220, 38, 38;
 }
 
 /* THEME: MIDNIGHT INDUSTRIAL (HIGH CONTRAST) */
@@ -64,5 +68,7 @@
   --header-bg: #050505;
   --header-text: #ff9d00;
   --input-bg: #000000;
+  --primary-color-rgb: 255, 157, 0;
+  --status-err-rgb: 255, 0, 0;
 }
 

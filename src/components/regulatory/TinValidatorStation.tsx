@@ -27,6 +27,7 @@ import {
 import { TinValidationResult, TinValidationStatus, HolderMetadata } from '@/lib/types/regulatory.types';
 import { db } from '@/lib/db/db';
 import { regulatoryOrchestrator } from '@/lib/logic/RegulatoryOrchestrator';
+import { StationHeader } from '@/components/shell/StationHeader';
 
 interface TinValidatorStationProps {
   mode?: 'one-by-one' | 'batch';
@@ -43,8 +44,8 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
 
   const [isManualCollapsed, setIsManualCollapsed] = React.useState(false);
   const [isBatchCollapsed, setIsBatchCollapsed] = React.useState(false);
-
-  // --- MANUAL STATE ---
+  
+  // Dynamic Requirements for the selected country (Filtered by Scope Era 6.4)
   const [manualIso, setManualIso] = useState('ES');
   const [manualTin, setManualTin] = useState('');
   const [manualMetadata, setManualMetadata] = useState<HolderMetadata>({});
@@ -96,7 +97,12 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
     setManualResult(result);
     
     // Add Traceability to Retro Console
-    const consoleMsg = `VALIDACIÓN MANUAL [${manualIso}]: ${manualTin} -> ${result.status} (${result.message})`;
+    const consoleMsg = t('regulatory.logs.manual_validation', { 
+      iso: manualIso, 
+      tin: manualTin, 
+      status: result.status, 
+      message: result.message || '' 
+    });
     addLog(consoleMsg, result.isValid ? 'info' : 'warning');
 
     // Log individual audit via Unified Service (Masked PII for CoreDB compliance)
@@ -124,7 +130,7 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
     } catch (err: any) {
       if (err.message === 'ENCRYPTION_ENGINE_LOCKED') {
         console.warn('[REGTECH] Audit log skipped: Vault is LOCKED.');
-        addLog('Auditoría omitida (Vault Bloqueado)', 'WARNING');
+        addLog(t('regulatory.logs.vault_locked_alert'), 'warning');
       } else {
         console.error('[REGTECH] Audit failure:', err);
       }
@@ -242,7 +248,10 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
       setBatchStats(stats);
       setIsProcessing(false);
       
-      addLog(`Batch TIN processed: ${stats.total} records. ${stats.invalid + stats.mismatch} warnings/errors.`, 'info');
+      addLog(t('regulatory.logs.batch_processed', { 
+        total: stats.total, 
+        warnings: stats.invalid + stats.mismatch 
+      }), 'info');
       
       // Log Batch Audit via Unified Service
       try {
@@ -302,231 +311,217 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
     URL.revokeObjectURL(url);
   };
 
+
   return (
-    <div className="station-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '24px', height: '100%' }}>
+    <div className="flex-col animate-fade-in" style={{ gap: '24px', padding: '0 24px', height: '100%' }}>
       
-      {/* LEFT PANEL: MANUAL SURGEON */}
+      {/* MANUAL SURGEON MODE */}
       {mode === 'one-by-one' && (
-      <section className="flex-col" style={{ flex: 1, gap: '12px' }}>
-        <div className="station-registry">
-            <div className="station-registry-header" onClick={() => setIsManualCollapsed(!isManualCollapsed)}>
-                <div className="station-registry-title">
-                    <SearchIcon size={18} />
-                    {t('shell.regtech_station.manual_inspector_title').toUpperCase()}
-                </div>
-                <div style={{ opacity: 0.5 }}>
-                    {isManualCollapsed ? <ArrowDownIcon size={18} /> : <ArrowUpIcon size={18} />}
+      <section className="flex-col animate-slide-up" style={{ flex: 1, gap: '24px' }}>
+        <div className="station-card">
+            <div className="station-card-header">
+                <div className="station-card-title">
+                    <ActivityIcon size={14} color="var(--primary-color)" />
+                    {t('regulatory.inspector_core').toUpperCase()}
                 </div>
             </div>
 
-            <div className={`station-registry-anim-container ${!isManualCollapsed ? 'expanded' : ''}`}>
-                <div className="station-registry-anim-content">
-                    <div className="station-registry-content">
-                        <div className="section-header-technical" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-                            <ActivityIcon size={14} color="var(--primary-color)" />
-                            <h3 style={{ fontSize: '0.7rem', fontWeight: 900, letterSpacing: '1px' }}>INSPECTOR_CORE_V6</h3>
-                        </div>
-
-                        <div className="module-grid" style={{ gap: '16px' }}>
-                            <div className="module-col-4">
-                                <CountrySelector 
-                                    value={manualIso} 
-                                    onChange={(code) => setManualIso(code)}
-                                />
-                            </div>
-                            <div className="module-col-8">
-                                <label className="station-label">{t('shell.regtech_station.tin_label')}</label>
-                                <input 
-                                    className="station-input" 
-                                    value={manualTin} 
-                                    onChange={(e) => setManualTin(e.target.value)}
-                                    style={{ width: '100%' }}
-                                    placeholder={regulatoryOrchestrator.getInfo(manualIso)?.placeholder || t('shell.regtech_station.tin_placeholder')}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Technical Specs Panel (Industrial Era 6.3) */}
-                        {regulatoryOrchestrator.getInfo(manualIso) && (
-                            <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                {/* 1. General Specs & Description */}
-                                <div style={{ padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', borderLeft: '2px solid var(--primary-color)' }}>
-                                    <div className="flex-row" style={{ alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                                        <GlobeIcon size={14} color="var(--primary-color)" />
-                                        <span style={{ fontSize: '0.65rem', fontWeight: 900, letterSpacing: '1px' }}>JURISDICTIONAL_SPECIFICATIONS</span>
-                                    </div>
-                                    <p style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '12px', lineHeight: '1.4' }}>
-                                        {regulatoryOrchestrator.getInfo(manualIso)?.description}
-                                    </p>
-                                    <div className="flex-row" style={{ gap: '16px', flexWrap: 'wrap' }}>
-                                        <div className="flex-row" style={{ alignItems: 'center', gap: '6px', fontSize: '0.6rem', opacity: 0.6 }}>
-                                            <DatabaseIcon size={12} />
-                                            <span>SOURCE: {regulatoryOrchestrator.getInfo(manualIso)?.source?.toUpperCase()}</span>
-                                        </div>
-                                        <div className="flex-row" style={{ alignItems: 'center', gap: '6px', fontSize: '0.6rem', opacity: 0.6 }}>
-                                            <ClockIcon size={12} />
-                                            <span>UPDATED: {regulatoryOrchestrator.getInfo(manualIso)?.lastUpdated}</span>
-                                        </div>
-                                        {regulatoryOrchestrator.getInfo(manualIso)?.officialLink && (
-                                            <a 
-                                                href={regulatoryOrchestrator.getInfo(manualIso)?.officialLink} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="flex-row" 
-                                                style={{ alignItems: 'center', gap: '6px', fontSize: '0.6rem', color: 'var(--primary-color)', textDecoration: 'none' }}
-                                            >
-                                                <ExternalLinkIcon size={12} />
-                                                <span>OFFICIAL_DOCUMENTATION</span>
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* 2. Entity Differentiation (New) */}
-                                {regulatoryOrchestrator.getInfo(manualIso)?.entityDifferentiation && (
-                                    <div style={{ padding: '12px 16px', background: 'rgba(56, 189, 248, 0.03)', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.1)' }}>
-                                        <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--primary-color)', marginBottom: '8px', letterSpacing: '1px' }}>ENTITY_DIFFERENTIATION_LOGIC</div>
-                                        <div className="module-grid" style={{ gap: '12px' }}>
-                                            <div className="module-col-6" style={{ fontSize: '0.65rem' }}>
-                                                <div style={{ opacity: 0.5, marginBottom: '2px' }}>INDIVIDUAL</div>
-                                                <div>{regulatoryOrchestrator.getInfo(manualIso)?.entityDifferentiation?.individualDescription}</div>
-                                            </div>
-                                            <div className="module-col-6" style={{ fontSize: '0.65rem' }}>
-                                                <div style={{ opacity: 0.5, marginBottom: '2px' }}>BUSINESS / ENTITY</div>
-                                                <div>{regulatoryOrchestrator.getInfo(manualIso)?.entityDifferentiation?.businessDescription}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* 3. Residency & Compliance (New) */}
-                                {regulatoryOrchestrator.getCountryInfo(manualIso) && (
-                                    <div className="module-grid" style={{ gap: '12px' }}>
-                                        <div className="module-col-12" style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: '4px' }}>
-                                            <div style={{ fontSize: '0.55rem', fontWeight: 900, opacity: 0.5, marginBottom: '8px', letterSpacing: '1px' }}>FISCAL_RESIDENCE_CRITERIA</div>
-                                            <div className="flex-col" style={{ gap: '10px' }}>
-                                                <div style={{ fontSize: '0.65rem' }}>
-                                                    <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>[INDIVIDUAL]</span> {regulatoryOrchestrator.getCountryInfo(manualIso)?.residency.individual}
-                                                </div>
-                                                <div style={{ fontSize: '0.65rem' }}>
-                                                    <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>[ENTITY]</span> {regulatoryOrchestrator.getCountryInfo(manualIso)?.residency.entity}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="module-col-12 flex-row" style={{ gap: '8px', flexWrap: 'wrap' }}>
-                                            <div className="station-badge" style={{ fontSize: '0.55rem', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                                AUTHORITY: {regulatoryOrchestrator.getCountryInfo(manualIso)?.authority.toUpperCase()}
-                                            </div>
-                                            <div className="station-badge" style={{ fontSize: '0.55rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                                                CRS: {regulatoryOrchestrator.getCountryInfo(manualIso)?.compliance.crsStatus.toUpperCase()}
-                                            </div>
-                                            <div className="station-badge" style={{ fontSize: '0.55rem', background: 'rgba(249, 115, 22, 0.1)', color: '#f97316', border: '1px solid rgba(249, 115, 22, 0.2)' }}>
-                                                FATCA: {regulatoryOrchestrator.getCountryInfo(manualIso)?.compliance.fatcaStatus?.toUpperCase()}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Semantic Cross-Check Fields (Dynamic Era 6) */}
-                        {requirements.length > 0 && (
-                            <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '12px', fontWeight: 900 }}>SEMANTIC_REQUIREMENTS_DETECTED</div>
-                                <div className="module-grid" style={{ gap: '12px' }}>
-                                    {requirements.map((req, idx) => {
-                                        const isLegacy = typeof req === 'string';
-                                        if (isLegacy) {
-                                          return (
-                                            <div key={`legacy-${idx}`} className="module-col-12" style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', borderRadius: '4px', fontSize: '0.65rem', opacity: 0.7, borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
-                                              {req}
-                                            </div>
-                                          );
-                                        }
-
-                                        const r = req as any;
-                                        const hasSuggestions = r.suggestions && r.suggestions.length > 0;
-                                        
-                                        return (
-                                          <div key={r.key} className="module-col-6">
-                                              <label className="station-label">
-                                                  {t(`shell.regtech_fields.${r.label}`) !== `shell.regtech_fields.${r.label}` 
-                                                      ? t(`shell.regtech_fields.${r.label}`)
-                                                      : r.label.toUpperCase()}
-                                              </label>
-                                              {r.type === 'select' ? (
-                                                  <select 
-                                                      className="station-input" 
-                                                      style={{ width: '100%' }}
-                                                      onChange={(e) => setManualMetadata({ ...manualMetadata, [r.key]: e.target.value })}
-                                                  >
-                                                      <option value="">N/A</option>
-                                                      {r.options?.map((opt: any) => (
-                                                          <option key={opt.value} value={opt.value}>
-                                                              {t(`shell.regtech_fields.${opt.label}`) !== `shell.regtech_fields.${opt.label}`
-                                                                ? t(`shell.regtech_fields.${opt.label}`)
-                                                                : opt.label.toUpperCase()}
-                                                          </option>
-                                                      ))}
-                                                  </select>
-                                              ) : (
-                                                  <>
-                                                    <input 
-                                                        type={r.type === 'date' ? 'date' : (r.type === 'number' ? 'number' : 'text')} 
-                                                        className="station-input" 
-                                                        style={{ width: '100%', fontSize: '0.7rem' }}
-                                                        placeholder={r.placeholder || (r.type === 'date' ? 'YYYY-MM-DD' : '')}
-                                                        list={hasSuggestions ? `suggestions-${r.key}` : undefined}
-                                                        onChange={(e) => setManualMetadata({ ...manualMetadata, [r.key]: e.target.value })}
-                                                    />
-                                                    {hasSuggestions && (
-                                                      <datalist id={`suggestions-${r.key}`}>
-                                                        {r.suggestions.map((s: string, i: number) => (
-                                                          <option key={i} value={s} />
-                                                        ))}
-                                                      </datalist>
-                                                    )}
-                                                  </>
-                                              )}
-                                          </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-
-                        <button 
-                            className="station-btn station-btn-primary" 
-                            style={{ width: '100%', marginTop: '24px', height: '48px' }}
-                            onClick={runManualValidation}
-                        >
-                            {t('shell.regtech_station.execute_btn')}
-                        </button>
+            <div className="station-card-content">
+                <div className="station-form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
+                    <div className="station-form-field">
+                        <CountrySelector 
+                            value={manualIso} 
+                            onChange={(code) => setManualIso(code)}
+                        />
+                    </div>
+                    <div className="station-form-field">
+                        <label className="station-label">{t('regulatory.tin_label').toUpperCase()}</label>
+                        <input 
+                            className="station-input" 
+                            value={manualTin} 
+                            onChange={(e) => setManualTin(e.target.value)}
+                            style={{ width: '100%' }}
+                            placeholder={regulatoryOrchestrator.getInfo(manualIso)?.placeholder || t('regulatory.tin_placeholder')}
+                        />
                     </div>
                 </div>
+
+                {/* Technical Specs Panel */}
+                {regulatoryOrchestrator.getInfo(manualIso) && (
+                    <div className="flex-col" style={{ marginTop: '24px', gap: '16px' }}>
+                        <div style={{ padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', borderLeft: '2px solid var(--primary-color)' }}>
+                            <div className="flex-row" style={{ alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                <GlobeIcon size={14} color="var(--primary-color)" />
+                                <span style={{ fontSize: '0.65rem', fontWeight: 900, letterSpacing: '1px' }}>{t('regulatory.jurisdictional_specs').toUpperCase()}</span>
+                            </div>
+                            <p style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '12px', lineHeight: '1.4' }}>
+                                {regulatoryOrchestrator.getInfo(manualIso)?.description}
+                            </p>
+                            <div className="flex-row" style={{ gap: '16px', flexWrap: 'wrap' }}>
+                                <div className="flex-row" style={{ alignItems: 'center', gap: '6px', fontSize: '0.6rem', opacity: 0.6 }}>
+                                    <DatabaseIcon size={12} />
+                                    <span>{t('regulatory.source').toUpperCase()}: {regulatoryOrchestrator.getInfo(manualIso)?.source?.toUpperCase()}</span>
+                                </div>
+                                <div className="flex-row" style={{ alignItems: 'center', gap: '6px', fontSize: '0.6rem', opacity: 0.6 }}>
+                                    <ClockIcon size={12} />
+                                    <span>{t('regulatory.updated').toUpperCase()}: {regulatoryOrchestrator.getInfo(manualIso)?.lastUpdated}</span>
+                                </div>
+                                {regulatoryOrchestrator.getInfo(manualIso)?.officialLink && (
+                                    <a 
+                                        href={regulatoryOrchestrator.getInfo(manualIso)?.officialLink} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="flex-row" 
+                                        style={{ alignItems: 'center', gap: '6px', fontSize: '0.6rem', color: 'var(--primary-color)', textDecoration: 'none' }}
+                                    >
+                                        <ExternalLinkIcon size={12} />
+                                        <span>{t('regulatory.official_docs').toUpperCase()}</span>
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+
+                        {regulatoryOrchestrator.getInfo(manualIso)?.entityDifferentiation && (
+                            <div style={{ padding: '12px 16px', background: 'rgba(56, 189, 248, 0.03)', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.1)' }}>
+                                <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--primary-color)', marginBottom: '8px', letterSpacing: '1px' }}>{t('regulatory.entity_diff').toUpperCase()}</div>
+                                <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div style={{ fontSize: '0.65rem' }}>
+                                        <div style={{ opacity: 0.5, marginBottom: '2px' }}>{t('regulatory.individual').toUpperCase()}</div>
+                                        <div>{regulatoryOrchestrator.getInfo(manualIso)?.entityDifferentiation?.individualDescription}</div>
+                                    </div>
+                                    <div style={{ fontSize: '0.65rem' }}>
+                                        <div style={{ opacity: 0.5, marginBottom: '2px' }}>{t('regulatory.entity').toUpperCase()}</div>
+                                        <div>{regulatoryOrchestrator.getInfo(manualIso)?.entityDifferentiation?.businessDescription}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {regulatoryOrchestrator.getCountryInfo(manualIso) && (
+                            <div className="flex-col" style={{ gap: '12px' }}>
+                                <div style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: '4px' }}>
+                                    <div style={{ fontSize: '0.55rem', fontWeight: 900, opacity: 0.5, marginBottom: '8px', letterSpacing: '1px' }}>{t('regulatory.residency_criteria').toUpperCase()}</div>
+                                    <div className="flex-col" style={{ gap: '10px' }}>
+                                        <div style={{ fontSize: '0.65rem' }}>
+                                            <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>[{t('regulatory.individual').toUpperCase()}]</span> {regulatoryOrchestrator.getCountryInfo(manualIso)?.residency.individual}
+                                        </div>
+                                        <div style={{ fontSize: '0.65rem' }}>
+                                            <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>[{t('regulatory.entity').toUpperCase()}]</span> {regulatoryOrchestrator.getCountryInfo(manualIso)?.residency.entity}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex-row" style={{ gap: '8px', flexWrap: 'wrap' }}>
+                                    <div className="station-badge tiny">
+                                        {t('regulatory.authority').toUpperCase()}: {regulatoryOrchestrator.getCountryInfo(manualIso)?.authority.toUpperCase()}
+                                    </div>
+                                    <div className="station-badge success tiny">
+                                        {t('regulatory.crs_status').toUpperCase()}: {regulatoryOrchestrator.getCountryInfo(manualIso)?.compliance.crsStatus.toUpperCase()}
+                                    </div>
+                                    <div className="station-badge warn tiny">
+                                        {t('regulatory.fatca_status').toUpperCase()}: {regulatoryOrchestrator.getCountryInfo(manualIso)?.compliance.fatcaStatus?.toUpperCase()}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Semantic Requirements */}
+                {requirements.length > 0 && (
+                    <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '12px', fontWeight: 900 }}>{t('regulatory.semantic_title').toUpperCase()}</div>
+                        <div className="station-form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                            {requirements.map((req, idx) => {
+                                const isLegacy = typeof req === 'string';
+                                if (isLegacy) {
+                                  return (
+                                    <div key={`legacy-${idx}`} style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', borderRadius: '4px', fontSize: '0.65rem', opacity: 0.7, borderLeft: '2px solid rgba(255,255,255,0.1)' }}>
+                                      {req}
+                                    </div>
+                                  );
+                                }
+
+                                const r = req as any;
+                                const hasSuggestions = r.suggestions && r.suggestions.length > 0;
+                                
+                                return (
+                                  <div key={r.key} className="station-form-field">
+                                      <label className="station-label">
+                                          {t(`regulatory.fields.${r.key}`) !== `regulatory.fields.${r.key}` 
+                                              ? t(`regulatory.fields.${r.key}`).toUpperCase()
+                                              : r.label.toUpperCase()}
+                                      </label>
+                                      {r.type === 'select' ? (
+                                          <select 
+                                              className="station-input" 
+                                              style={{ width: '100%' }}
+                                              onChange={(e) => setManualMetadata({ ...manualMetadata, [r.key]: e.target.value })}
+                                          >
+                                              <option value="">{t('regulatory.not_available')}</option>
+                                              {r.options?.map((opt: any) => (
+                                                  <option key={opt.value} value={opt.value}>
+                                                      {t(`regulatory.fields.${opt.label}`) !== `regulatory.fields.${opt.label}`
+                                                        ? t(`regulatory.fields.${opt.label}`).toUpperCase()
+                                                        : opt.label.toUpperCase()}
+                                                  </option>
+                                              ))}
+                                          </select>
+                                      ) : (
+                                          <>
+                                            <input 
+                                                type={r.type === 'date' ? 'date' : (r.type === 'number' ? 'number' : 'text')} 
+                                                className="station-input" 
+                                                style={{ width: '100%', fontSize: '0.7rem' }}
+                                                placeholder={r.placeholder || (r.type === 'date' ? 'YYYY-MM-DD' : '')}
+                                                list={hasSuggestions ? `suggestions-${r.key}` : undefined}
+                                                onChange={(e) => setManualMetadata({ ...manualMetadata, [r.key]: e.target.value })}
+                                            />
+                                            {hasSuggestions && (
+                                              <datalist id={`suggestions-${r.key}`}>
+                                                {r.suggestions.map((s: string, i: number) => (
+                                                  <option key={i} value={s} />
+                                                ))}
+                                              </datalist>
+                                            )}
+                                          </>
+                                      )}
+                                  </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                <button 
+                    className="station-btn station-btn-primary" 
+                    style={{ width: '100%', marginTop: '24px', height: '48px', fontSize: '1rem', fontWeight: 900 }}
+                    onClick={runManualValidation}
+                >
+                    {t('regulatory.execute_btn').toUpperCase()}
+                </button>
             </div>
         </div>
 
         {/* Manual Results */}
         {manualResult && (
-            <div className="flex-col tin-manual-results" style={{ gap: '12px', marginTop: '12px' }}>
-                <span className="station-form-section-title">VALIDATION_REPORT_CORE</span>
-                <div className="station-card animate-slide-up tin-result-card" style={{ padding: '24px', borderLeft: `4px solid ${manualResult.isValid ? 'var(--status-ok)' : 'var(--status-err)'}` }}>
-                    <div className="flex-row tin-result-header" style={{ justifyContent: 'space-between', marginBottom: '16px', gap: '16px' }}>
+            <div className="flex-col animate-slide-up" style={{ gap: '12px' }}>
+                <span className="station-form-section-title">{t('regulatory.validation_report').toUpperCase()}</span>
+                <div className="station-card" style={{ padding: '24px', borderLeft: `4px solid ${manualResult.isValid ? 'var(--status-ok)' : 'var(--status-err)'}` }}>
+                    <div className="flex-row" style={{ justifyContent: 'space-between', marginBottom: '16px', gap: '16px' }}>
                         <div className="flex-col">
-                            <div style={{ fontSize: '0.6rem', opacity: 0.5, fontWeight: 800 }}>{t('shell.regtech_station.status_badge').toUpperCase()}</div>
+                            <div style={{ fontSize: '0.6rem', opacity: 0.5, fontWeight: 800 }}>{t('regulatory.status_badge').toUpperCase()}</div>
                             <TinStatusBadge status={manualResult.status} />
                         </div>
-                        <div className="flex-col tin-result-type-box" style={{ alignItems: 'flex-end' }}>
-                            <div style={{ fontSize: '0.6rem', opacity: 0.5 }}>{t('shell.regtech_station.tin_denomination')}</div>
+                        <div className="flex-col" style={{ alignItems: 'flex-end' }}>
+                            <div style={{ fontSize: '0.6rem', opacity: 0.5 }}>{t('regulatory.tin_denomination').toUpperCase()}</div>
                             <div style={{ fontWeight: 900, color: 'var(--primary-color)', textAlign: 'right' }}>
                                 {(() => {
-                                    const main = t(`shell.regtech_tin_names.${manualIso}.main`);
-                                    const aux = t(`shell.regtech_tin_names.${manualIso}.aux`);
+                                    const main = t(`regulatory.tin_names.${manualIso}.main`);
+                                    const aux = t(`regulatory.tin_names.${manualIso}.aux`);
                                     
-                                    const hasMain = main !== `shell.regtech_tin_names.${manualIso}.main`;
-                                    const hasAux = aux && aux !== `shell.regtech_tin_names.${manualIso}.aux`;
+                                    const hasMain = main !== `regulatory.tin_names.${manualIso}.main`;
+                                    const hasAux = aux && aux !== `regulatory.tin_names.${manualIso}.aux`;
                                     
                                     if (hasMain) {
                                         return hasAux ? `${main} (${aux})` : main;
@@ -541,7 +536,7 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
                         <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.1)', borderRadius: '4px' }}>
                             <p style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--primary-color)', textTransform: 'uppercase', letterSpacing: '0.05rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <ActivityIcon size={12} />
-                                {t('shell.regtech_station.semantic_title')}
+                                {t('regulatory.semantic_title').toUpperCase()}
                             </p>
                             <div className="flex-row" style={{ flexWrap: 'wrap', gap: '8px' }}>
                                 {manualResult.missingData.map((req, idx) => (
@@ -614,119 +609,110 @@ export const TinValidatorStation: React.FC<TinValidatorStationProps> = ({ mode =
         }
       `}</style>
       
-      {/* RIGHT PANEL: BATCH INDUSTRIAL */}
+      {/* BATCH INDUSTRIAL MODE */}
       {mode === 'batch' && (
-      <section className="flex-col" style={{ flex: 1, gap: '12px' }}>
-        <div className="station-registry">
-            <div className="station-registry-header" onClick={() => setIsBatchCollapsed(!isBatchCollapsed)}>
-                <div className="station-registry-title">
-                    <ListIcon size={18} />
-                    {t('shell.regtech_station.batch_title').toUpperCase()}
-                </div>
-                <div style={{ opacity: 0.5 }}>
-                    {isBatchCollapsed ? <ArrowDownIcon size={18} /> : <ArrowUpIcon size={18} />}
+      <section className="flex-col animate-slide-up" style={{ flex: 1, gap: '24px' }}>
+        <div className="station-card">
+            <div className="station-card-header">
+                <div className="station-card-title">
+                    <ListIcon size={14} color="var(--primary-color)" />
+                    {t('regulatory.batch_stream').toUpperCase()}
                 </div>
             </div>
 
-            <div className={`station-registry-anim-container ${!isBatchCollapsed ? 'expanded' : ''}`}>
-                <div className="station-registry-anim-content">
-                    <div className="station-registry-content">
-                        <div className="section-header-technical" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-                            <ActivityIcon size={14} color="var(--primary-color)" />
-                            <h3 style={{ fontSize: '0.7rem', fontWeight: 900, letterSpacing: '1px' }}>BATCH_INDUSTRIAL_STREAM</h3>
+            <div className="station-card-content">
+                {!batchFile ? (
+                    <div className="station-dropzone" style={{ height: '200px' }}>
+                        <input type="file" accept=".csv,.txt" onChange={handleFileUpload} />
+                        <UploadIcon size={48} className="station-shimmer-text" />
+                        <div style={{ marginTop: '16px', fontWeight: 700 }}>{t('regulatory.dropzone_text').toUpperCase()}</div>
+                        <div style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '8px' }}>{t('regulatory.auto_delimiter').toUpperCase()}</div>
+                    </div>
+                ) : (
+                    <div className="flex-col" style={{ gap: '24px' }}>
+                        <div className="flex-row" style={{ justifyContent: 'space-between', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+                            <div className="flex-col" style={{ gap: '4px' }}>
+                                <div style={{ fontSize: '0.6rem', opacity: 0.5, fontWeight: 800 }}>{t('regulatory.active_file').toUpperCase()}</div>
+                                <div style={{ fontWeight: 900, fontSize: '1rem', color: 'var(--primary-color)' }}>{batchFile.name.toUpperCase()}</div>
+                            </div>
+                            <button className="station-btn tiny" style={{ padding: '4px 12px' }} onClick={() => { setBatchFile(null); setBatchResults([]); }}>{t('regulatory.reset_btn').toUpperCase()}</button>
                         </div>
 
-            {!batchFile ? (
-                <div className="station-dropzone" style={{ height: '200px' }}>
-                    <input type="file" accept=".csv,.txt" onChange={handleFileUpload} />
-                    <UploadIcon size={48} className="station-shimmer-text" />
-                    <div style={{ marginTop: '16px' }}>{t('shell.regtech_station.dropzone_text')}</div>
-                    <div style={{ fontSize: '0.65rem', opacity: 0.5 }}>{t('shell.regtech_station.auto_delimiter')}</div>
-                </div>
-            ) : (
-                <div className="flex-col" style={{ gap: '16px' }}>
-                    <div className="flex-row" style={{ justifyContent: 'space-between', background: 'rgba(255,255,255,0.02)', padding: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div className="flex-col">
-                            <div style={{ fontSize: '0.6rem', opacity: 0.5 }}>{t('shell.regtech_station.active_file')}</div>
-                            <div style={{ fontWeight: 700 }}>{batchFile.name}</div>
+                        {/* Stats Dashboard */}
+                        <div className="station-form-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                            <div className="station-card" style={{ padding: '16px', textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
+                                <div style={{ fontSize: '0.6rem', opacity: 0.5, fontWeight: 800 }}>{t('regulatory.stat_total').toUpperCase()}</div>
+                                <div style={{ fontWeight: 900, fontSize: '1.5rem', fontFamily: 'var(--font-mono)' }}>{batchStats.total}</div>
+                            </div>
+                            <div className="station-card" style={{ padding: '16px', textAlign: 'center', background: 'rgba(16, 185, 129, 0.05)', borderBottom: '2px solid #10b981' }}>
+                                <div style={{ fontSize: '0.6rem', color: '#10b981', fontWeight: 800 }}>{t('regulatory.stat_valid').toUpperCase()}</div>
+                                <div style={{ fontWeight: 900, fontSize: '1.5rem', color: '#10b981', fontFamily: 'var(--font-mono)' }}>{batchStats.valid}</div>
+                            </div>
+                            <div className="station-card" style={{ padding: '16px', textAlign: 'center', background: 'rgba(244, 63, 94, 0.05)', borderBottom: '2px solid #f43f5e' }}>
+                                <div style={{ fontSize: '0.6rem', color: '#f43f5e', fontWeight: 800 }}>{t('regulatory.stat_invalid').toUpperCase()}</div>
+                                <div style={{ fontWeight: 900, fontSize: '1.5rem', color: '#f43f5e', fontFamily: 'var(--font-mono)' }}>{batchStats.invalid}</div>
+                            </div>
+                            <div className="station-card" style={{ padding: '16px', textAlign: 'center', background: 'rgba(251, 146, 60, 0.05)', borderBottom: '2px solid #fb923c' }}>
+                                <div style={{ fontSize: '0.6rem', color: '#fb923c', fontWeight: 800 }}>{t('regulatory.stat_mismatch').toUpperCase()}</div>
+                                <div style={{ fontWeight: 900, fontSize: '1.5rem', color: '#fb923c', fontFamily: 'var(--font-mono)' }}>{batchStats.mismatch}</div>
+                            </div>
                         </div>
-                        <button className="station-btn" style={{ padding: '4px 12px', minWidth: 'auto' }} onClick={() => { setBatchFile(null); setBatchResults([]); }}>{t('shell.regtech_station.reset_btn')}</button>
-                    </div>
 
-                    {/* Stats Dashboard */}
-                    <div className="module-grid" style={{ gap: '8px' }}>
-                        <div className="module-col-3 module-col-sm-6 station-card" style={{ padding: '12px', textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.55rem', opacity: 0.5 }}>{t('shell.regtech_station.stat_total')}</div>
-                            <div style={{ fontWeight: 900, fontSize: '1.2rem' }}>{batchStats.total}</div>
+                        {/* Telemetry info */}
+                        <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.65rem', padding: '0 4px' }}>
+                            <div style={{ fontWeight: 700, opacity: 0.6 }}>{t('regulatory.delimiter_detected').toUpperCase()}: <span style={{ color: 'var(--primary-color)' }}>{detectedDelimiter === '\t' ? 'TAB' : detectedDelimiter}</span></div>
+                            <div style={{ fontWeight: 700, opacity: 0.4 }}>{t('regulatory.memory_isolated').toUpperCase()}</div>
                         </div>
-                        <div className="module-col-3 module-col-sm-6 station-card" style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #10b981' }}>
-                            <div style={{ fontSize: '0.55rem', color: '#10b981', opacity: 0.7 }}>{t('shell.regtech_station.stat_valid')}</div>
-                            <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#10b981' }}>{batchStats.valid}</div>
-                        </div>
-                        <div className="module-col-3 module-col-sm-6 station-card" style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #f43f5e' }}>
-                            <div style={{ fontSize: '0.55rem', color: '#f43f5e', opacity: 0.7 }}>{t('shell.regtech_station.stat_invalid')}</div>
-                            <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#f43f5e' }}>{batchStats.invalid}</div>
-                        </div>
-                        <div className="module-col-3 module-col-sm-6 station-card" style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #fb923c' }}>
-                            <div style={{ fontSize: '0.55rem', color: '#fb923c', opacity: 0.7 }}>{t('shell.regtech_station.stat_mismatch')}</div>
-                            <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#fb923c' }}>{batchStats.mismatch}</div>
-                        </div>
-                    </div>
 
-                    {/* Telemetry info */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem' }}>
-                        <div>{t('shell.regtech_station.delimiter_detected')}: <code style={{ color: 'var(--primary-color)' }}>{detectedDelimiter === '\t' ? 'TAB' : detectedDelimiter}</code></div>
-                        <div style={{ opacity: 0.5 }}>{t('shell.regtech_station.memory_isolated')}</div>
+                        <button 
+                            className="station-btn station-btn-primary" 
+                            style={{ width: '100%', height: '48px', fontSize: '1rem', fontWeight: 900 }} 
+                            disabled={isProcessing || batchResults.length === 0}
+                            onClick={exportEnrichedCsv}
+                        >
+                            <DownloadIcon size={18} /> {t('regulatory.export_btn').toUpperCase()}
+                        </button>
                     </div>
-
-                    <button 
-                        className="station-btn" 
-                        style={{ width: '100%', marginTop: '8px' }} 
-                        disabled={isProcessing || batchResults.length === 0}
-                        onClick={exportEnrichedCsv}
-                    >
-                        <DownloadIcon size={16} /> {t('shell.regtech_station.export_btn')}
-                    </button>
-                </div>
-            )}
-                    </div>
-                </div>
+                )}
             </div>
         </div>
 
         {/* Batch Results Table Preview */}
         {batchResults.length > 0 && (
             <div className="flex-col" style={{ gap: '12px', flex: 1 }}>
-                <span className="station-form-section-title">{t('shell.regtech_station.preview_title').toUpperCase()}</span>
-                <div className="station-table-container" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ padding: '12px 16px', background: 'rgba(0,0,0,0.1)', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                        DATA_PREVIEW_STREAM
+                <span className="station-form-section-title">{t('regulatory.preview_title').toUpperCase()}</span>
+                <div className="station-card" style={{ flex: 1, padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                    <div className="station-card-header" style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
+                        <div className="station-card-title" style={{ fontSize: '0.7rem' }}>
+                            <ActivityIcon size={12} />
+                            {t('regulatory.data_preview').toUpperCase()}
+                        </div>
                     </div>
-                <div style={{ overflowY: 'auto' }}>
-                    <table className="station-table" style={{ width: '100%', fontSize: '0.75rem' }}>
-                        <thead style={{ position: 'sticky', top: 0, background: 'var(--module-bg)', zIndex: 1 }}>
-                            <tr>
-                                <th style={{ textAlign: 'left', padding: '8px 16px' }}>{t('shell.regtech_station.table_iso')}</th>
-                                <th style={{ textAlign: 'left', padding: '8px 16px' }}>{t('shell.regtech_station.table_tin')}</th>
-                                <th style={{ textAlign: 'center', padding: '8px 16px' }}>{t('shell.regtech_station.table_status')}</th>
-                                <th style={{ textAlign: 'left', padding: '8px 16px' }}>{t('shell.regtech_station.table_type')}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {batchResults.slice(0, 50).map((res, i) => (
-                                <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                                    <td style={{ padding: '6px 16px', fontWeight: 700 }}>{res.country}</td>
-                                    <td style={{ padding: '6px 16px', fontFamily: 'var(--font-roboto-mono)' }}>{res.tin}</td>
-                                    <td style={{ padding: '6px 16px', textAlign: 'center' }}>
-                                        <TinStatusBadge status={res.status} tiny />
-                                    </td>
-                                    <td style={{ padding: '6px 16px', opacity: 0.6 }}>{res.type || 'N/A'}</td>
+                    <div style={{ overflowY: 'auto', flex: 1 }}>
+                        <table className="station-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead style={{ position: 'sticky', top: 0, background: 'var(--surface-color)', zIndex: 1 }}>
+                                <tr>
+                                    <th style={{ textAlign: 'left', padding: '12px 16px', fontSize: '0.65rem' }}>{t('regulatory.table_iso').toUpperCase()}</th>
+                                    <th style={{ textAlign: 'left', padding: '12px 16px', fontSize: '0.65rem' }}>{t('regulatory.table_tin').toUpperCase()}</th>
+                                    <th style={{ textAlign: 'center', padding: '12px 16px', fontSize: '0.65rem' }}>{t('regulatory.table_status').toUpperCase()}</th>
+                                    <th style={{ textAlign: 'left', padding: '12px 16px', fontSize: '0.65rem' }}>{t('regulatory.table_type').toUpperCase()}</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {batchResults.slice(0, 50).map((res, i) => (
+                                    <tr key={i} className="station-table-row">
+                                        <td style={{ padding: '8px 16px', fontWeight: 900, color: 'var(--primary-color)' }}>{res.country}</td>
+                                        <td style={{ padding: '8px 16px', fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>{res.tin}</td>
+                                        <td style={{ padding: '8px 16px', textAlign: 'center' }}>
+                                            <TinStatusBadge status={res.status} tiny />
+                                        </td>
+                                        <td style={{ padding: '8px 16px', opacity: 0.6, fontSize: '0.65rem' }}>{res.type || t('regulatory.not_available')}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
             </div>
         )}
       </section>

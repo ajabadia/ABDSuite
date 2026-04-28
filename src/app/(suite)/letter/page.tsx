@@ -13,8 +13,7 @@ import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
 import CatDocumAdmin from '@/components/catdocum/CatDocumAdmin';
 import { RendererProvider } from '@/components/common/useRendererEngine';
-import { VaultStatusReactor } from '@/components/common/VaultStatusReactor';
-import { clsx } from '@/lib/utils/clsx';
+import { StationHeader } from '@/components/shell/StationHeader';
 
 function LetterPageContent() {
   const { t } = useLanguage();
@@ -28,11 +27,6 @@ function LetterPageContent() {
   }, []);
 
   const view = searchParams.get('view') || 'templates';
-  const { 
-    installationKey, 
-    isVaultChallengeOpen, 
-    setIsVaultChallengeOpen 
-  } = useWorkspace();
 
   if (!isMounted) return null;
 
@@ -58,71 +52,24 @@ function LetterPageContent() {
     }
   };
 
-  const getHeaderInfo = () => {
-    switch (view) {
-      case 'mapping':
-        return { title: t('shell.letter_mapping'), icon: <MapIcon size={28} style={{ opacity: 0.6 }} /> };
-      case 'config':
-        return { title: t('shell.letter_config'), icon: <CogIcon size={28} style={{ opacity: 0.6 }} /> };
-      case 'generation':
-        return { title: t('shell.letter_generation'), icon: <PlayIcon size={28} style={{ opacity: 0.6 }} /> };
-      case 'audit':
-        return { title: t('shell.letter_audit'), icon: <ShieldCheckIcon size={28} style={{ opacity: 0.6 }} /> };
-      case 'catdocum':
-        return { title: t('shell.letter_catdocum'), icon: <ListIcon size={28} style={{ opacity: 0.6 }} /> };
-      case 'templates':
-      default:
-        return { title: t('shell.letter_templates'), icon: <FileTextIcon size={28} style={{ opacity: 0.6 }} /> };
-    }
-  };
-
-  const { title, icon } = getHeaderInfo();
-
   const tabs = [
-    { id: 'generation', label: t('shell.letter_generation') || 'GENERACIÓN', icon: <PlayIcon size={18} /> },
-    { id: 'templates', label: t('shell.letter_templates') || 'PLANTILLAS', icon: <FileTextIcon size={18} /> },
-    { id: 'mapping', label: t('shell.letter_mapping') || 'MAPEADOS', icon: <MapIcon size={18} /> },
-    { id: 'catdocum', label: t('shell.letter_catdocum') || 'CATDOCUM', icon: <ListIcon size={18} /> },
-    { id: 'audit', label: t('shell.letter_audit') || 'AUDITORÍA', icon: <ShieldCheckIcon size={18} /> },
-    { id: 'config', label: t('shell.letter_config') || 'CONFIG', icon: <CogIcon size={18} /> },
+    { id: 'generation', label: t('shell.letter_generation'), icon: <PlayIcon size={14} />, active: view === 'generation', onClick: () => router.push('/letter?view=generation') },
+    { id: 'templates', label: t('shell.letter_templates'), icon: <FileTextIcon size={14} />, active: view === 'templates', onClick: () => router.push('/letter?view=templates') },
+    { id: 'mapping', label: t('shell.letter_mapping'), icon: <MapIcon size={14} />, active: view === 'mapping', onClick: () => router.push('/letter?view=mapping') },
+    { id: 'catdocum', label: t('shell.letter_catdocum'), icon: <ListIcon size={14} />, active: view === 'catdocum', onClick: () => router.push('/letter?view=catdocum') },
+    { id: 'audit', label: t('shell.letter_audit'), icon: <ShieldCheckIcon size={14} />, active: view === 'audit', onClick: () => router.push('/letter?view=audit') },
+    { id: 'config', label: t('shell.letter_config'), icon: <CogIcon size={14} />, active: view === 'config', onClick: () => router.push('/letter?view=config') },
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: '100%', padding: '0 24px' }}>
-      <header className="module-header-industrial" style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        gap: '20px',
-        padding: '24px 0',
-        borderBottom: '1px solid var(--border-color)'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.1rem' }}>
-            <span style={{ color: 'var(--primary-color)' }}>{icon}</span>
-            {title.toUpperCase()}
-          </div>
-          
-          <div className="flex-row" style={{ gap: '12px' }}>
-             <VaultStatusReactor />
-          </div>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0 24px' }}>
+      <StationHeader 
+        moduleName={t('shell.letter')}
+        engineId="LETTER_ENGINE_V6"
+        tabs={tabs}
+      />
 
-        <nav style={{ display: 'flex', gap: '8px' }}>
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => router.push(`/letter?view=${tab.id}`)}
-              className={clsx('station-btn tiny', { 'primary-glow': view === tab.id })}
-              style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', background: view === tab.id ? 'var(--primary-color)' : 'transparent', color: view === tab.id ? 'white' : 'inherit' }}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </header>
-
-      <section className="module-grid" style={{ flex: 1, minHeight: 0, marginTop: '12px' }}>
+      <section className="module-grid" style={{ flex: 1, minHeight: 0 }}>
         <div className="module-col-main" style={{ gridColumn: 'span 12' }}>
           {renderView()}
         </div>

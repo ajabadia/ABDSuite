@@ -82,9 +82,6 @@ export const AuditHistoryDashboard: React.FC = () => {
         TelemetryConfigService.loadConfig().then(setTelemetry);
     }, []);
 
-    /**
-     * Security Health Summary Logic (Phase 15 Parametrized)
-     */
     const healthSummary = useMemo(() => {
         if (!telemetry) return [];
         const sentences: { text: string; status: 'ok' | 'warn' | 'crit'; type: AuditCategory | 'ALL' }[] = [];
@@ -133,13 +130,11 @@ export const AuditHistoryDashboard: React.FC = () => {
         }
 
         return sentences;
-    }, [kpis, telemetry]);
+    }, [kpis, telemetry, t]);
 
     useEffect(() => {
         const fetchHistory = async () => {
             let collection = db.audit_history_v6.where('timestamp').between(fromTs, toTs, true, true);
-
-            // Filtering at source where possible, or in memory for complex and conditions
             let data = await collection.toArray();
 
             if (categoryFilter !== 'ALL') {
@@ -155,7 +150,6 @@ export const AuditHistoryDashboard: React.FC = () => {
               });
             }
 
-            // Reverse and limit
             data.sort((a, b) => b.timestamp - a.timestamp);
             setRecords(data.slice(0, 500));
         };
@@ -184,14 +178,14 @@ export const AuditHistoryDashboard: React.FC = () => {
                     background: isSelected ? 'rgba(var(--primary-color), 0.1)' : 'transparent',
                     cursor: 'pointer',
                     transition: 'background 0.2s ease',
-                    fontSize: '0.85rem'
+                    fontSize: '0.8rem'
                 }}
             >
-                <div style={{ width: '140px', opacity: 0.6, fontSize: '0.75rem' }}>
-                    {new Date(record.timestamp).toLocaleString()}
+                <div style={{ width: '140px', opacity: 0.6, fontSize: '0.7rem', fontWeight: 700 }}>
+                    {new Date(record.timestamp).toLocaleString().toUpperCase()}
                 </div>
                 <div style={{ width: '100px' }}>
-                    <span className={`station-badge station-badge-${record.category === 'AUTH' ? 'orange' : record.category === 'RBAC' ? 'green' : record.category === 'CONFIG' ? 'blue' : 'blue'}`}>
+                    <span className={`station-badge ${record.category === 'AUTH' ? 'warn' : record.category === 'RBAC' ? 'success' : record.category === 'CONFIG' ? 'info' : 'info'}`}>
                         {record.category}
                     </span>
                 </div>
@@ -199,11 +193,11 @@ export const AuditHistoryDashboard: React.FC = () => {
                     {t(record.action) || record.action}
                 </div>
                 <div style={{ width: '80px', textAlign: 'right', display: 'flex', gap: '4px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                    <span className={`station-badge ${severity === 'CRITICAL' ? 'station-badge-orange' : severity === 'WARN' ? 'station-badge-blue' : ''}`} style={{ fontSize: '0.65rem' }}>
+                    <span className={`station-badge ${severity === 'CRITICAL' ? 'err' : severity === 'WARN' ? 'warn' : ''}`} style={{ fontSize: '0.55rem' }}>
                         {severity}
                     </span>
                     {record.action === 'LETTERSMOKETESTFAILED' && (
-                        <span className="station-badge" style={{ fontSize: '0.55rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--error-color)', borderColor: 'var(--error-color)' }}>SMOKE</span>
+                        <span className="station-badge err tiny" style={{ fontSize: '0.5rem' }}>SMOKE</span>
                     )}
                 </div>
             </div>
@@ -213,14 +207,13 @@ export const AuditHistoryDashboard: React.FC = () => {
     const selectedRecord = records.find(r => r.id === selectedId);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '20px' }} className="animate-fade-in">
             
-            {/* SECURITY HEALTH SUMMARY (Phase 14.3 Template) */}
             <div className="station-card" style={{ background: 'var(--surface-color)', borderLeft: '4px solid var(--primary-color)', padding: '16px 20px' }}>
                <div className="flex-col" style={{ gap: '12px' }}>
                   <div className="flex-row" style={{ alignItems: 'center', gap: '10px' }}>
                      <ShieldIcon size={18} color="var(--primary-color)" />
-                     <div style={{ fontWeight: 800, fontSize: '0.85rem', letterSpacing: '0.5px' }}>RESUMEN DE SALUD DE SEGURIDAD (DIAGNÓSTICO AUTOMÁTICO)</div>
+                     <div style={{ fontWeight: 900, fontSize: '0.8rem', letterSpacing: '1px' }}>{t('audit.diagnostics_title').toUpperCase()}</div>
                   </div>
                   <div className="flex-col" style={{ gap: '8px' }}>
                     {healthSummary.map((sentence, idx) => (
@@ -232,9 +225,9 @@ export const AuditHistoryDashboard: React.FC = () => {
                           display: 'flex', 
                           gap: '10px', 
                           alignItems: 'baseline', 
-                          fontSize: '0.8rem',
-                          background: 'rgba(0,0,0,0.02)',
-                          padding: '6px 12px',
+                          fontSize: '0.75rem',
+                          background: 'rgba(255,255,255,0.02)',
+                          padding: '8px 12px',
                           borderRadius: '4px',
                           border: '1px solid transparent',
                           transition: 'all 0.2s ease',
@@ -245,48 +238,46 @@ export const AuditHistoryDashboard: React.FC = () => {
                          sentence.status === 'warn' ? <InfoIcon size={14} color="var(--status-warn)" /> : 
                          <AlertTriangleIcon size={14} color="var(--error-color)" />}
                         <span style={{ flex: 1 }}>{sentence.text}</span>
-                        <span style={{ fontSize: '0.6rem', opacity: 0.4, fontWeight: 700 }}>[FILTRAR]</span>
+                        <span style={{ fontSize: '0.55rem', opacity: 0.4, fontWeight: 900, letterSpacing: '0.5px' }}>[FILTER]</span>
                       </div>
                     ))}
                   </div>
                </div>
             </div>
 
-            {/* KPI CARDS (v2 Parametrized) */}
             <div className="station-form-grid audit-kpi-grid">
                <KPIItem 
                  val={kpis.failedAuthCount} 
-                 label="AUTH_FAILURES" 
+                 label={t('audit.kpi_auth_failures' as any) || 'AUTH_FAILURES'} 
                  status={telemetry ? (kpis.failedAuthCount >= telemetry.security.securityThresholds.failedAuthHigh ? 'crit' : kpis.failedAuthCount >= telemetry.security.securityThresholds.failedAuthLow ? 'warn' : 'ok') : 'ok'} 
                />
                <KPIItem 
                  val={kpis.sessionLocks.inactivity + kpis.sessionLocks.manual} 
-                 label={`SESSION_LOCKS (I:${kpis.sessionLocks.inactivity}/M:${kpis.sessionLocks.manual})`}
+                 label={t('audit.kpi_session_locks' as any) || `SESSION_LOCKS (I:${kpis.sessionLocks.inactivity}/M:${kpis.sessionLocks.manual})`}
                  status={telemetry ? (kpis.sessionLocks.inactivity > telemetry.security.securityThresholds.inactivityLocksHigh ? 'warn' : 'ok') : 'ok'} 
                />
                <KPIItem 
                  val={kpis.rbacChangesCount} 
-                 label="RBAC_ALTS" 
+                 label={t('audit.kpi_rbac_alts' as any) || 'RBAC_ALTS'} 
                  status={telemetry ? (kpis.rbacChangesCount >= telemetry.security.securityThresholds.rbacChangesAttention ? 'warn' : 'ok') : 'ok'} 
                />
                <KPIItem 
                  val={`${kpis.dataOps.success}/${kpis.dataOps.failed}`} 
-                 label="DATA_OPS (OK/ERR)" 
+                 label={t('audit.kpi_data_ops' as any) || 'DATA_OPS (OK/ERR)'} 
                  status={telemetry ? (kpis.dataOps.failed >= telemetry.security.securityThresholds.dataOpsErrorAttention ? 'crit' : 'ok') : 'ok'} 
                />
                <KPIItem 
                  val={kpis.ikUnlocks} 
-                 label="IK_UNLOCKS" 
+                 label={t('audit.kpi_ik_unlocks' as any) || 'IK_UNLOCKS'} 
                  status={kpis.ikUnlocks > 1 ? 'warn' : 'ok'} 
                />
             </div>
 
-            {/* TOOLBAR */}
-            <div className="flex-row audit-toolbar" style={{ gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="flex-row audit-toolbar" style={{ gap: '16px', alignItems: 'center', flexWrap: 'wrap', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '4px' }}>
                 <div className="flex-col">
-                    <label className="station-label" style={{ fontSize: '0.65rem' }}>CATEGORÍA</label>
-                    <select className="station-input" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value as any)} style={{ width: '130px', height: '36px' }}>
-                        <option value="ALL">TODAS</option>
+                    <label className="station-label" style={{ fontSize: '0.6rem' }}>{t('audit.filter_category')}</label>
+                    <select className="station-input" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value as any)} style={{ width: '130px', height: '36px', fontSize: '0.75rem' }}>
+                        <option value="ALL">ALL</option>
                         <option value="AUTH">AUTH</option>
                         <option value="RBAC">RBAC</option>
                         <option value="CONFIG">CONFIG</option>
@@ -295,31 +286,31 @@ export const AuditHistoryDashboard: React.FC = () => {
                     </select>
                 </div>
                 <div className="flex-col">
-                    <label className="station-label" style={{ fontSize: '0.65rem' }}>SEVERIDAD</label>
-                    <select className="station-input" value={severityFilter} onChange={e => setSeverityFilter(e.target.value as any)} style={{ width: '110px', height: '36px' }}>
-                        <option value="ALL">TODAS</option>
+                    <label className="station-label" style={{ fontSize: '0.6rem' }}>{t('audit.filter_severity')}</label>
+                    <select className="station-input" value={severityFilter} onChange={e => setSeverityFilter(e.target.value as any)} style={{ width: '110px', height: '36px', fontSize: '0.75rem' }}>
+                        <option value="ALL">ALL</option>
                         <option value="CRITICAL">CRITICAL</option>
                         <option value="WARN">WARN</option>
                         <option value="INFO">INFO</option>
                     </select>
                 </div>
                 <div className="flex-col">
-                    <label className="station-label" style={{ fontSize: '0.65rem' }}>VENTANA_TIEMPO</label>
-                    <select className="station-input" value={timeRange} onChange={e => setTimeRange(Number(e.target.value))} style={{ width: '120px', height: '36px' }}>
-                        <option value={1}>1_HORA</option>
-                        <option value={24}>24_HORAS</option>
-                        <option value={168}>7_DÍAS</option>
-                        <option value={720}>30_DÍAS</option>
+                    <label className="station-label" style={{ fontSize: '0.6rem' }}>{t('audit.filter_time')}</label>
+                    <select className="station-input" value={timeRange} onChange={e => setTimeRange(Number(e.target.value))} style={{ width: '120px', height: '36px', fontSize: '0.75rem' }}>
+                        <option value={1}>1_HOUR</option>
+                        <option value={24}>24_HOURS</option>
+                        <option value={168}>7_DAYS</option>
+                        <option value={720}>30_DAYS</option>
                     </select>
                 </div>
 
                 <div className="flex-col retention-col" style={{ marginLeft: 'auto' }}>
-                    <label className="station-label" style={{ fontSize: '0.65rem' }}>RETENCIÓN_DEXIE</label>
+                    <label className="station-label" style={{ fontSize: '0.6rem' }}>{t('audit.retention_dexie')}</label>
                     <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
-                        <select className="station-input" value={retention.months} onChange={e => handleRetentionChange(Number(e.target.value))} style={{ width: '110px', height: '36px' }}>
-                            <option value={3}>3_MESES</option>
-                            <option value={6}>6_MESES</option>
-                            <option value={12}>12_MESES</option>
+                        <select className="station-input" value={retention.months} onChange={e => handleRetentionChange(Number(e.target.value))} style={{ width: '110px', height: '36px', fontSize: '0.75rem' }}>
+                            <option value={3}>3_MONTHS</option>
+                            <option value={6}>6_MONTHS</option>
+                            <option value={12}>12_MONTHS</option>
                         </select>
                         <ClockIcon size={14} style={{ opacity: 0.5 }} />
                     </div>
@@ -327,8 +318,7 @@ export const AuditHistoryDashboard: React.FC = () => {
             </div>
 
             <div className="audit-main-layout" style={{ display: 'flex', flex: 1, gap: '20px', minHeight: 0 }}>
-                {/* TABLE SECTION */}
-                <div className="audit-table-section" style={{ border: '1px solid var(--border-color)', background: 'var(--surface-color)', position: 'relative', borderRadius: '4px', overflow: 'hidden' }}>
+                <div className="audit-table-section station-card" style={{ padding: 0, overflow: 'hidden' }}>
                     <IndustrialVirtualTable
                         items={records}
                         totalItems={records.length}
@@ -337,63 +327,44 @@ export const AuditHistoryDashboard: React.FC = () => {
                     />
                 </div>
 
-                {/* DETAIL SECTION */}
-                <div className="audit-detail-section" style={{ border: '1px solid var(--border-color)', background: 'var(--bg-color-alt)', padding: '20px', overflowY: 'auto', borderRadius: '4px' }}>
+                <div className="audit-detail-section station-card flex-col" style={{ gap: '16px', background: 'rgba(0,0,0,0.2)' }}>
                     {selectedRecord ? (
                         <div className="flex-col" style={{ gap: '16px' }}>
                             <div style={{ paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
-                                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary-color)' }}>{selectedRecord.module}</div>
-                                <h3 style={{ margin: '4px 0', fontSize: '1rem' }}>{t(JSON.parse(selectedRecord.details).data?.messageKey) || t(selectedRecord.action) || selectedRecord.action}</h3>
-                                <div style={{ opacity: 0.5, fontSize: '0.75rem' }}>{new Date(selectedRecord.timestamp).toLocaleString()}</div>
+                                <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--primary-color)', letterSpacing: '1px' }}>{selectedRecord.module.toUpperCase()}</div>
+                                <h3 style={{ margin: '8px 0', fontSize: '0.9rem', fontWeight: 900 }}>{t(JSON.parse(selectedRecord.details).data?.messageKey) || t(selectedRecord.action) || selectedRecord.action}</h3>
+                                <div style={{ opacity: 0.4, fontSize: '0.65rem', fontWeight: 700 }}>{new Date(selectedRecord.timestamp).toLocaleString().toUpperCase()}</div>
                                 {selectedRecord.action === 'LETTERSMOKETESTFAILED' && (
-                                    <div style={{ marginTop: '8px', padding: '8px', background: 'rgba(239, 68, 68, 0.05)', borderLeft: '3px solid var(--error-color)', fontSize: '0.75rem' }}>
-                                        <strong>SMOKE TEST ERROR:</strong> {t('audit.smoke.failed')}
+                                    <div style={{ marginTop: '12px', padding: '10px', background: 'rgba(239, 68, 68, 0.05)', borderLeft: '4px solid var(--error-color)', fontSize: '0.7rem', fontWeight: 600 }}>
+                                        {t('audit.smoke.failed').toUpperCase()}
                                     </div>
                                 )}
                             </div>
 
-                            {/* LETTERQA Enriched Details (Phase 20) */}
                             {selectedRecord.module === 'LETTERQA' && (() => {
                                 const data = JSON.parse(selectedRecord.details).data || {};
                                 return (
-                                    <div className="station-tech-summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', background: 'rgba(2, 132, 199, 0.05)', padding: '16px', borderRadius: '4px', border: '1px solid rgba(2, 132, 199, 0.1)' }}>
-                                        <div className="station-tech-item">
-                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.lote').toUpperCase()}</span>
-                                            <div style={{ fontWeight: 700 }}>{data.lote || 'N/A'}</div>
-                                        </div>
-                                        <div className="station-tech-item">
-                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.doc').toUpperCase()}</span>
-                                            <div style={{ fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{data.codDocumento || 'N/A'}</div>
-                                        </div>
-                                        <div className="station-tech-item">
-                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.preset').toUpperCase()}</span>
-                                            <div style={{ fontSize: '0.75rem' }}>{data.presetName || data.presetId || 'N/A'}</div>
-                                        </div>
-                                        <div className="station-tech-item">
-                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.catdoc').toUpperCase()}</span>
-                                            <div style={{ fontSize: '0.75rem' }}>{data.catDocName || data.catDocId || 'N/A'}</div>
-                                        </div>
-                                        <div className="station-tech-item">
-                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.template').toUpperCase()}</span>
-                                            <div style={{ fontSize: '0.75rem' }}>{data.templateName || data.templateId || 'N/A'}</div>
-                                        </div>
-                                        <div className="station-tech-item">
-                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.mapping').toUpperCase()}</span>
-                                            <div style={{ fontSize: '0.75rem' }}>{data.mappingName || data.mappingId || 'N/A'}</div>
-                                        </div>
+                                    <div className="station-tech-summary" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', background: 'rgba(56, 189, 248, 0.05)', padding: '16px', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.1)' }}>
+                                        <DetailItem label={t('audit.letterqa.lote')} val={data.lote} />
+                                        <DetailItem label={t('audit.letterqa.doc')} val={data.codDocumento} mono />
+                                        <DetailItem label={t('audit.letterqa.preset')} val={data.presetName || data.presetId} />
+                                        <DetailItem label={t('audit.letterqa.catdoc')} val={data.catDocName || data.catDocId} />
+                                        <DetailItem label={t('audit.letterqa.template')} val={data.templateName || data.templateId} />
+                                        <DetailItem label={t('audit.letterqa.mapping')} val={data.mappingName || data.mappingId} />
+                                        
                                         <div className="station-tech-item" style={{ gridColumn: 'span 2' }}>
-                                            <span className="station-tech-label" style={{ fontSize: '0.6rem', opacity: 0.5, display: 'block', fontWeight: 800 }}>{t('audit.letterqa.resolution').toUpperCase()}</span>
+                                            <span className="station-tech-label" style={{ fontSize: '0.55rem', opacity: 0.5, display: 'block', fontWeight: 900, marginBottom: '4px' }}>{t('audit.letterqa.resolution').toUpperCase()}</span>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <span style={{ fontWeight: 700, color: 'var(--primary-color)' }}>
-                                                    {t(`audit.letterqa.reason_${data.reason?.toLowerCase()}`) || data.reason}
+                                                <span style={{ fontWeight: 900, color: 'var(--primary-color)', fontSize: '0.8rem' }}>
+                                                    {(t(`audit.letterqa.reason_${data.reason?.toLowerCase()}`) || data.reason).toUpperCase()}
                                                 </span>
                                                 {data.isOperational === false && (
-                                                    <span style={{ color: 'var(--error-color)', fontSize: '0.7rem' }}>
+                                                    <span style={{ color: 'var(--error-color)', fontSize: '0.65rem', fontWeight: 900 }}>
                                                         • {t('audit.letterqa.incomplete').toUpperCase()}
                                                     </span>
                                                 )}
                                                 {data.scoringDebug && (
-                                                    <span className="station-badge" style={{ marginLeft: 'auto', background: 'var(--primary-color)', color: 'white' }}>
+                                                    <span className="station-badge info tiny" style={{ marginLeft: 'auto' }}>
                                                         SCORE: {data.scoringDebug.total}
                                                     </span>
                                                 )}
@@ -403,16 +374,16 @@ export const AuditHistoryDashboard: React.FC = () => {
                                 );
                             })()}
 
-                            <pre style={{ fontSize: '0.75rem', padding: '12px', background: 'rgba(0,0,0,0.05)', borderRadius: '4px', overflowX: 'auto', border: '1px solid var(--border-color)' }}>
+                            <pre style={{ fontSize: '0.7rem', padding: '12px', background: 'rgba(0,0,0,0.3)', borderRadius: '4px', overflowX: 'auto', border: '1px solid var(--border-color)', fontFamily: 'var(--font-mono)', opacity: 0.8 }}>
                                 {JSON.stringify(JSON.parse(selectedRecord.details), null, 2)}
                             </pre>
                             
-                            <div style={{ fontSize: '0.65rem', opacity: 0.4 }}>EVENT_ID: {selectedRecord.id}</div>
+                            <div style={{ fontSize: '0.55rem', opacity: 0.3, fontFamily: 'var(--font-mono)' }}>EVENT_ID: {selectedRecord.id}</div>
                         </div>
                     ) : (
                         <div className="station-empty-state" style={{ height: '100%' }}>
                             <ActivityIcon size={48} className="station-shimmer-text" />
-                            <p style={{ fontWeight: 700, marginTop: '12px', opacity: 0.5 }}>SELECCIONE_EVENTO_FORENSE</p>
+                            <p style={{ fontWeight: 900, marginTop: '16px', opacity: 0.3, letterSpacing: '2px' }}>{t('audit.empty_forensic').toUpperCase()}</p>
                         </div>
                     )}
                 </div>
@@ -420,8 +391,8 @@ export const AuditHistoryDashboard: React.FC = () => {
 
             <style jsx>{`
               .health-sentence:hover {
-                background: rgba(var(--primary-color-rgb), 0.05) !important;
-                border-color: rgba(var(--primary-color-rgb), 0.1) !important;
+                background: rgba(255, 255, 255, 0.05) !important;
+                border-color: var(--primary-color-dim) !important;
               }
 
               .audit-kpi-grid {
@@ -471,14 +442,23 @@ export const AuditHistoryDashboard: React.FC = () => {
 };
 
 const KPIItem = ({ val, label, status }: { val: string | number, label: string, status: 'ok' | 'warn' | 'crit' }) => (
-    <div className="station-card flex-col" style={{ alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+    <div className="station-card flex-col" style={{ alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
       <div style={{ 
         fontSize: '1.4rem', 
         fontWeight: 900, 
-        color: status === 'crit' ? 'var(--error-color)' : status === 'warn' ? 'var(--status-warn)' : 'inherit' 
+        color: status === 'crit' ? 'var(--error-color)' : status === 'warn' ? 'var(--status-warn)' : 'var(--text-primary)',
+        lineHeight: 1
       }}>
         {val}
       </div>
-      <div style={{ fontSize: '0.6rem', fontWeight: 700, opacity: 0.5, textAlign: 'center' }}>{label}</div>
+      <div style={{ fontSize: '0.55rem', fontWeight: 900, opacity: 0.4, textAlign: 'center', marginTop: '6px', letterSpacing: '0.5px' }}>{label.toUpperCase()}</div>
     </div>
 );
+
+const DetailItem = ({ label, val, mono }: { label: string, val: any, mono?: boolean }) => (
+    <div className="station-tech-item">
+        <span className="station-tech-label" style={{ fontSize: '0.55rem', opacity: 0.5, display: 'block', fontWeight: 900, marginBottom: '2px' }}>{label.toUpperCase()}</span>
+        <div style={{ fontWeight: 700, fontSize: '0.8rem', fontFamily: mono ? 'var(--font-mono)' : 'inherit', overflow: 'hidden', textOverflow: 'ellipsis' }}>{val || 'N/A'}</div>
+    </div>
+);
+

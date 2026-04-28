@@ -6,7 +6,18 @@
 @import "../styles/tokens.css";
 @import "../styles/base.css";
 @import "../styles/layout.css";
-@import "../styles/components.css";
+/* Modular Component Architecture */
+@import "../styles/components/animations.css";
+@import "../styles/components/buttons.css";
+@import "../styles/components/forms.css";
+@import "../styles/components/tables.css";
+@import "../styles/components/navigation.css";
+@import "../styles/components/registry.css";
+@import "../styles/components/modals.css";
+@import "../styles/components/console.css";
+@import "../styles/components/editor.css";
+@import "../styles/components/wizards.css";
+@import "../styles/components/utilities.css";
 @import "../styles/utilities.css";
 
 /* Módulo de Auditoría Visual (OFF - Sistema Estandarizado) 

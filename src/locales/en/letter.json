@@ -28,7 +28,11 @@
       "write_suggest": "Suggestion: Click the folder icon and grant permissions again.",
       "critical_paralysis": "CRITICAL ERROR: MOTOR PARALYSIS DETECTED.",
       "converting_pdf": "CONVERTING TO PDF (HIGH FIDELITY): {file}...",
-      "batch_ready": "COMPLETE BATCH GENERATED"
+      "batch_ready": "COMPLETE BATCH GENERATED",
+      "qa_visual_verify": "AUTOMATED_QA: Verifying visual integrity...",
+      "qa_match": "🏆 QA_MATCH: Visual integrity confirmed.",
+      "qa_break": "❌ QA_BREAK: Layout regression detected.",
+      "qa_halt": "BATCH HALTED BY INDUSTRIAL SECURITY (QA_BREAK)."
     },
     "ui": {
       "resources": "STEP 1: RESOURCE SELECTION",
@@ -67,7 +71,38 @@
       "stress_test_btn": "RUN STRESS TEST (10,000 RECORDS)",
       "models_registry": "INDUSTRIAL MODELS REGISTRY",
       "new_model": "NEW LETTER MODEL",
-      "save_golden": "SAVE AS GOLDEN"
+      "save_golden": "SAVE AS GOLDEN",
+      "direct_disk_desc": "ERA 6 uses the File System Access API to write directly to the industrial disk without manual downloads.",
+      "ready": "READY",
+      "pending": "PENDING"
+    },
+    "wizard": {
+      "data": "DATA_SOURCE",
+      "design": "DESIGN_TEMPLATE",
+      "logic": "LOGIC_MAPPING",
+      "dest": "DESTINATION",
+      "run": "EXECUTION",
+      "step1_err": "Select a preset and load GAWEB file.",
+      "step2_err": "Select an active template.",
+      "step3_err": "Step blocked: {count} variables pending mapping (Threshold: {threshold}%).",
+      "step4_err": "Select a valid output folder.",
+      "step5_err": "Complete mandatory batch fields.",
+      "dynamic_mode": "CATDOCUM_DYNAMIC_MODE",
+      "dynamic_desc": "Automatic template resolution by business code.",
+      "active": "ACTIVATED",
+      "inactive": "DEACTIVATED",
+      "preflight_title": "INDUSTRIAL PRE-FLIGHT CHECKLIST",
+      "golden_master_active": "🏆 GOLDEN_MASTER_ACTIVE:",
+      "diag_console": "INDUSTRIAL_DIAGNOSTIC_CONSOLE_V4",
+      "technician_mode": "TECHNICIAN MODE ACTIVE - PDF STRESS TESTING",
+      "stress_test": "STRESS TEST",
+      "smoke_test": "SMOKE TEST",
+      "integrity_badge": "GAWEB STANDARD v.1 (ERA 6)"
+    },
+    "logs": {
+      "template_uploaded": "TEMPLATE UPLOADED: {name}",
+      "no_tags_found": "No tags detected in template.",
+      "tags_detected": "DETECTED TAGS: {tags}"
     },
     "catdocum": {
       "title": "CATDOCUM - INDUSTRIAL CATALOG",
@@ -77,10 +112,24 @@
       "selectHint": "SELECT A DOCUMENT OR CREATE A NEW ONE",
       "empty_list": "NO DOCUMENTS CONFIGURED",
       "noname": "UNNAMED DOCUMENT",
+      "sync_vars": "Synchronizing variables with rendering engine...",
       "table": {
+        "code": "CODDOC",
         "name": "BUSINESS NAME",
         "category": "CATEGORY",
         "status": "STATUS"
+      },
+      "fields": {
+        "support": "MAIN SUPPORT",
+        "language": "ISO LANGUAGE",
+        "pages": "DEFAULT PAGES",
+        "active": "VISIBLE IN CATALOG",
+        "preset": "ASSOCIATED ETL PRESET (INPUT DATA)",
+        "template": "ASSOCIATED TEMPLATE (LAYOUT)",
+        "mapping": "ASSOCIATED MAPPING (LOGIC)",
+        "none": "-- NONE --",
+        "dummy_run": "SYNTHETIC TEST (DUMMY)",
+        "notes": "OBSERVATIONS / FUNCTIONAL HELP"
       }
     }
   }

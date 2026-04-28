@@ -94,6 +94,44 @@
       "start": "LANCEMENT AUDIT GAWEB : {file}",
       "success": "AUDIT TERMINÉ : {n} ERREURS TROUVÉES.",
       "export": "RAPPORT D'AUDIT EXPORTÉ : {file}"
+    },
+    "forensics": {
+      "panel_title": "JOURNAL D'AUDIT DE SÉCURITÉ (SYSTEM_FORENSICS)",
+      "filter_module": "MODULE",
+      "filter_category": "CATÉGORIE",
+      "filter_event": "TYPE D'ÉVÉNEMENT",
+      "filter_severity": "GRAVITÉ",
+      "module_security": "SÉCURITÉ UNIQUEMENT",
+      "module_regtech": "AUDIT REGTECH",
+      "module_all": "SYSTÈME GLOBAL",
+      "cat_all": "TOUTES LES CATÉGORIES",
+      "cat_auth": "AUTHENTIFICATION",
+      "cat_workspace": "ESPACIO DE TRABAJO",
+      "cat_operators": "OPÉRATEURS",
+      "cat_config": "CONFIGURATION",
+      "cat_data": "OPÉRATIONS DE DONNÉES",
+      "cat_other": "AUTRE",
+      "type_all": "TOUS LES TYPES",
+      "sev_all": "TOUTES LES GRAVITÉS",
+      "sev_info": "INFO",
+      "sev_warn": "AVERTISSEMENT",
+      "sev_crit": "CRITIQUE",
+      "col_time": "DATE / HEURE",
+      "col_type": "CATÉGORIE / TYPE",
+      "col_actor": "ACTEUR",
+      "col_entity": "ENTITÉ",
+      "col_message": "MESSAGE",
+      "col_sev": "GRAV",
+      "detail_title": "DÉTAIL FORENSIQUE",
+      "no_diff": "AUCUNE DONNÉE DIFFÉRENTIELLE DISPONIBLE",
+      "entities": {
+        "GAWEBSAMPLING": "Échantillonnage GAWEB",
+        "TELEMETRYCONFIG": "Configuration de télémétrie",
+        "OPERATOR": "Opérateur",
+        "WORKSPACE": "Espace de travail",
+        "IK_OVERRIDE": "Contournement d'intégrité",
+        "SESSION_LOCK": "Verrouillage de session"
+      }
     }
   }
 }

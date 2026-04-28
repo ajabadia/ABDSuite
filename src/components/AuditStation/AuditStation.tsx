@@ -29,7 +29,9 @@ import { AuditHistoryDashboard } from './AuditHistoryDashboard';
 import { TelemetryConfigService } from '@/lib/services/telemetry-config.service';
 import { auditStationService } from '@/lib/services/AuditStationService';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { StationHeader } from '@/components/shell/StationHeader';
 
+type AuditTab = 'DATA' | 'ERRORS' | 'HISTORY';
 type AuditPhase = 'IDLE' | 'LOADING' | 'ANALYZING' | 'SUMMARY' | 'EXPORTING';
 
 const PAGE_SIZE = 200;
@@ -132,7 +134,7 @@ const MetadataCollectorForm: React.FC<{
     return (
         <div className="station-card" style={{ padding: '16px', background: 'rgba(0,0,0,0.6)', border: '1px solid var(--primary-color)' }}>
             <div className="station-form-section-title" style={{ marginBottom: '16px' }}>
-                HIGH_FIDELITY_METADATA_COLLECTION
+                {t('audit.metadata_collection_title').toUpperCase()}
             </div>
             <div className="station-form-grid">
                 {requirements.filter(req => {
@@ -200,13 +202,13 @@ const MetadataCollectorForm: React.FC<{
                 })}
             </div>
             <div className="flex-row" style={{ marginTop: '20px', gap: '8px', justifyContent: 'flex-end' }}>
-                <button className="station-btn tiny secondary" onClick={onCancel}>CANCEL</button>
+                <button className="station-btn tiny secondary" onClick={onCancel}>{t('audit.reset_btn' as any) || 'CANCEL'}</button>
                 <button 
                     className="station-btn tiny" 
                     style={{ background: 'var(--primary-color)', color: 'black' }}
                     onClick={() => onValidate(formData as HolderMetadata)}
                 >
-                    RUN_SEMANTIC_CHECK
+                    {t('audit.run_semantic_check').toUpperCase()}
                 </button>
             </div>
         </div>
@@ -222,7 +224,7 @@ const AuditStation: React.FC = () => {
   const [archiveFile, setArchiveFile] = useState<File | null>(null);
   const [md5File, setMd5File] = useState<File | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'DATA' | 'ERRORS' | 'HISTORY'>('DATA');
+  const [activeTab, setActiveTab] = useState<AuditTab>('DATA');
   const [selectedLine, setSelectedLine] = useState<number | null>(null);
   const [isCollectingMetadata, setIsCollectingMetadata] = useState(false);
   const [semanticMetadata, setSemanticMetadata] = useState<Record<number, HolderMetadata>>({});
@@ -485,136 +487,135 @@ const AuditStation: React.FC = () => {
   }, [audit.errorsWindows, audit.summary]);
 
   return (
-    <>
-      {/* CABECERA INDUSTRIAL (Era 6 / Aseptic v6) */}
-      <div className="station-card">
-        <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
-          <div className="flex-col" style={{ gap: '4px' }}>
-            <h2 className="station-title-main" style={{ margin: 0 }}>{t('dashboard.dash_audit_title').toUpperCase()}</h2>
-            <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
-               <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>AUDIT_SYS_V4.3</span>
-               <span className={`station-badge ${audit.isRunning ? 'station-badge-orange' : (audit.summary ? 'station-badge-blue' : 'station-badge-green')}`}>
-                  {audit.isRunning ? 'ULTRA_SCALE_ACTIVE' : (audit.summary ? 'REPORT_READY' : 'LISTENING')}
-               </span>
-               {audit.progress && (
-                 <span className="station-badge station-badge-blue" style={{ fontFamily: 'var(--font-roboto-mono)' }}>
-                   {audit.progress.processedLines.toLocaleString()} REC_OK
-                 </span>
-               )}
-               {audit.isRunning && audit.progress && (
-                 <span className="station-badge success" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
-                    {(audit.progress.processedLines / 5).toFixed(0)} REC/S
-                 </span>
-               )}
+    <div className="flex-col animate-fade-in" style={{ height: '100%', gap: '20px' }}>
+      <StationHeader 
+        title={t('audit.title' as any) || t('dashboard.dash_audit_title')}
+        engineId="AUDIT_SYS_V4.3"
+        tabs={[
+            { id: 'DATA', label: t('audit.tab_data').toUpperCase(), icon: <FileTextIcon size={14} /> },
+            { id: 'ERRORS', label: t('audit.tab_errors').toUpperCase(), icon: <AlertTriangleIcon size={14} /> },
+            { id: 'HISTORY', label: t('audit.tab_history').toUpperCase(), icon: <ListIcon size={14} /> }
+        ]}
+        activeTabId={activeTab}
+        onTabChange={(id) => setActiveTab(id as AuditTab)}
+        rightElement={
+            <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+                <div className="flex-col" style={{ alignItems: 'flex-end', gap: '2px' }}>
+                    <span className={`station-badge ${audit.isRunning ? 'warn' : (audit.summary ? 'info' : 'success')}`} style={{ fontSize: '0.6rem' }}>
+                        {audit.isRunning ? t('audit.status_streaming') : (audit.summary ? t('audit.status_report_ready') : t('audit.status_listening'))}
+                    </span>
+                    {audit.progress && (
+                        <span style={{ fontSize: '0.55rem', opacity: 0.5, fontFamily: 'var(--font-mono)' }}>
+                            {audit.progress.processedLines.toLocaleString()} REC_OK
+                        </span>
+                    )}
+                </div>
+                <button 
+                    className="station-btn secondary tiny" 
+                    onClick={() => setIsSettingsOpen(true)}
+                    style={{ width: '32px', height: '32px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <CogIcon size={14} />
+                </button>
             </div>
-          </div>
-          <button 
-            className="station-btn secondary tiny" 
-            onClick={() => setIsSettingsOpen(true)}
-            title="Ajustes de Auditoría"
-          >
-            <CogIcon size={16} />
-          </button>
-        </div>
+        }
+      />
 
-        <div className="station-tech-summary" style={{ marginTop: '24px' }}>
-          <div className="station-tech-item"><span className="station-tech-label">SOURCE:</span> {indexFile?.name || 'NONE'}</div>
-          <div className="station-tech-item"><span className="station-tech-label">PKG:</span> {archiveFile?.name || 'NONE'}</div>
-          <div className="station-tech-item"><span className="station-tech-label">MODE:</span> ZERO_MEMORY_STREAMING</div>
-        </div>
+      <div className="flex-col" style={{ flex: 1, minHeight: 0, gap: '20px' }}>
+        {activeTab !== 'HISTORY' && (
+            <div className="station-card">
+                <div className="station-tech-summary" style={{ marginBottom: '16px' }}>
+                    <div className="station-tech-item"><span className="station-tech-label">SOURCE:</span> {indexFile?.name || 'NONE'}</div>
+                    <div className="station-tech-item"><span className="station-tech-label">PKG:</span> {archiveFile?.name || 'NONE'}</div>
+                    <div className="station-tech-item"><span className="station-tech-label">MODE:</span> ZERO_MEMORY_STREAMING</div>
+                </div>
 
-        {/* PHASE TIMELINE (6.0.0-IND) */}
-        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between' }}>
-           {[
-             { id: 'LOADING', label: '1. CARGA' },
-             { id: 'ANALYZING', label: '2. ANÁLISIS' },
-             { id: 'SUMMARY', label: '3. RESUMEN' },
-             { id: 'EXPORTING', label: '4. REPORTE' }
-           ].map((p, i) => {
-             const active = phase === p.id || (phase === 'SUMMARY' && i < 2) || (phase === 'EXPORTING' && i < 3);
-             const isCurrent = phase === p.id;
-             return (
-               <div key={p.id} className="flex-row" style={{ alignItems: 'center', gap: '8px', opacity: active ? 1 : 0.3 }}>
-                  <div style={{ 
-                    width: '10px', height: '10px', borderRadius: '50%', 
-                    background: isCurrent ? 'var(--primary-color)' : (active ? 'var(--status-ok)' : 'var(--border-color)'),
-                    boxShadow: isCurrent ? '0 0 8px var(--primary-color)' : 'none'
-                  }} />
-                  <span style={{ fontSize: '0.65rem', fontWeight: 900, color: isCurrent ? 'var(--primary-color)' : 'inherit' }}>{p.label}</span>
-               </div>
-             );
-           })}
-        </div>
-      </div>
-
-      {/* SELECCIÓN DE FICHEROS */}
-      <section className="station-card flex-col" style={{ gap: '16px' }}>
-        <div className="station-form-grid">
-          <div className="station-form-field">
-            <label className="station-label">{t('audit.select_file').toUpperCase()}</label>
-            <div className="flex-row" style={{ gap: '8px' }}>
-              <input className="station-input" style={{ flex: 1 }} readOnly value={indexFile?.name || ''} placeholder=".txt (GAWEB)" />
-              <input type="file" id="index-input" style={{ display: 'none' }} onChange={(e) => handleFileChange(e, 'index')} />
-              <button className="station-btn" onClick={() => document.getElementById('index-input')?.click()}>{t('audit.explore').toUpperCase()}</button>
+                {/* PHASE TIMELINE */}
+                <div style={{ paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between' }}>
+                    {[
+                        { id: 'LOADING', label: '1. ' + (t('audit.phase_loading' as any) || 'CARGA') },
+                        { id: 'ANALYZING', label: '2. ' + (t('audit.phase_analyzing' as any) || 'ANÁLISIS') },
+                        { id: 'SUMMARY', label: '3. ' + (t('audit.phase_summary' as any) || 'RESUMEN') },
+                        { id: 'EXPORTING', label: '4. ' + (t('audit.phase_exporting' as any) || 'REPORTE') }
+                    ].map((p, i) => {
+                        const active = phase === p.id || (phase === 'SUMMARY' && i < 2) || (phase === 'EXPORTING' && i < 3);
+                        const isCurrent = phase === p.id;
+                        return (
+                            <div key={p.id} className="flex-row" style={{ alignItems: 'center', gap: '8px', opacity: active ? 1 : 0.3 }}>
+                                <div style={{ 
+                                    width: '8px', height: '8px', borderRadius: '50%', 
+                                    background: isCurrent ? 'var(--primary-color)' : (active ? 'var(--status-ok)' : 'var(--border-color)'),
+                                    boxShadow: isCurrent ? '0 0 8px var(--primary-color)' : 'none'
+                                }} />
+                                <span style={{ fontSize: '0.65rem', fontWeight: 900, color: isCurrent ? 'var(--primary-color)' : 'inherit' }}>{p.label.toUpperCase()}</span>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
-          </div>
-          <div className="station-form-field">
-            <label className="station-label">{t('audit.select_archive').toUpperCase()}</label>
-            <div className="flex-row" style={{ gap: '8px' }}>
-              <input className="station-input" style={{ flex: 1 }} readOnly value={archiveFile?.name || ''} placeholder=".zip (2GB_MAX)" />
-              <input type="file" id="archive-input" style={{ display: 'none' }} accept=".zip" onChange={(e) => handleFileChange(e, 'archive')} />
-              <button className="station-btn" onClick={() => document.getElementById('archive-input')?.click()}>{t('audit.explore').toUpperCase()}</button>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex-row" style={{ justifyContent: 'flex-end', marginTop: '12px' }}>
-          <button 
-            className="station-btn station-btn-primary" 
-            disabled={!indexFile || audit.isRunning}
-            onClick={runValidation}
-            style={{ width: '100%', maxWidth: '320px', height: '56px', fontSize: '1.2rem', fontWeight: 900 }}
-          >
-            {audit.isRunning ? t('audit.validating').toUpperCase() : t('audit.validate').toUpperCase()}
-          </button>
-        </div>
-      </section>
+        )}
 
-      {/* RESULTADOS INDUSTRIALES */}
-      {(audit.summary || audit.packageResult || audit.isRunning) && (
-        <div className="flex-col" style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-          <div className="station-tabs" style={{ background: 'var(--surface-color)', borderBottom: '1px solid var(--border-color)' }}>
-            <button className={`station-tab-btn ${activeTab === 'DATA' ? 'active' : ''}`} onClick={() => setActiveTab('DATA')}>
-              <FileTextIcon size={14} /> {t('audit.tab_data').toUpperCase()}
-            </button>
-            <button className={`station-tab-btn ${activeTab === 'ERRORS' ? 'active' : ''}`} onClick={() => setActiveTab('ERRORS')}>
-              <AlertTriangleIcon size={14} /> {t('audit.tab_errors').toUpperCase()}
-            </button>
-            <button className={`station-tab-btn ${activeTab === 'HISTORY' ? 'active' : ''}`} onClick={() => setActiveTab('HISTORY')}>
-              <ListIcon size={14} /> {t('audit.tab_history') || 'HISTORIAL'}
-            </button>
-          </div>
+        {/* SELECCIÓN DE FICHEROS */}
+        {activeTab !== 'HISTORY' && (
+            <section className="station-card flex-col" style={{ gap: '16px' }}>
+                <div className="station-form-grid">
+                    <div className="station-form-field">
+                        <label className="station-label">{t('audit.select_file').toUpperCase()}</label>
+                        <div className="flex-row" style={{ gap: '8px' }}>
+                            <input className="station-input" style={{ flex: 1, height: '42px' }} readOnly value={indexFile?.name || ''} placeholder=".txt (GAWEB)" />
+                            <input type="file" id="index-input" style={{ display: 'none' }} onChange={(e) => handleFileChange(e, 'index')} />
+                            <button className="station-btn" onClick={() => document.getElementById('index-input')?.click()}>{t('audit.explore').toUpperCase()}</button>
+                        </div>
+                    </div>
+                    <div className="station-form-field">
+                        <label className="station-label">{t('audit.select_archive').toUpperCase()}</label>
+                        <div className="flex-row" style={{ gap: '8px' }}>
+                            <input className="station-input" style={{ flex: 1, height: '42px' }} readOnly value={archiveFile?.name || ''} placeholder=".zip (2GB_MAX)" />
+                            <input type="file" id="archive-input" style={{ display: 'none' }} accept=".zip" onChange={(e) => handleFileChange(e, 'archive')} />
+                            <button className="station-btn" onClick={() => document.getElementById('archive-input')?.click()}>{t('audit.explore').toUpperCase()}</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="flex-row" style={{ justifyContent: 'flex-end', marginTop: '12px' }}>
+                    <button 
+                        className="station-btn station-btn-primary" 
+                        disabled={!indexFile || audit.isRunning}
+                        onClick={runValidation}
+                        style={{ width: '100%', maxWidth: '320px', height: '48px', fontSize: '1rem', fontWeight: 900 }}
+                    >
+                        {audit.isRunning ? t('audit.validating').toUpperCase() : t('audit.validate').toUpperCase()}
+                    </button>
+                </div>
+            </section>
+        )}
 
-          <div className="station-registry-sync-header" style={{ padding: '8px 16px', borderBottom: '1px solid var(--border-color)' }}>
-            <div className="flex-row" style={{ gap: '24px', fontSize: '0.75rem', fontWeight: 800 }}>
-              <span>TOTAL_REC: <span className="station-badge station-badge-blue">{audit.summary?.totalLines.toLocaleString() || audit.progress?.processedLines.toLocaleString() || '0'}</span></span>
-              <span>ANOMALIES: <span className={`station-badge ${audit.summary?.totalErrors || audit.progress?.errorsSoFar ? 'station-badge-orange' : 'station-badge-blue'}`}>{audit.summary?.totalErrors.toLocaleString() || audit.progress?.errorsSoFar.toLocaleString() || '0'}</span></span>
-              {detectedProfile && (
-                <span className="flex-row" style={{ gap: '8px' }}>
-                  GOLDEN_STATUS: 
-                  <span className={`station-badge ${audit.summary?.totalErrors ? 'station-badge-orange' : 'station-badge-blue'}`}>
-                     {audit.summary ? (audit.summary.totalErrors > 0 ? 'BREAK' : 'MATCH') : 'CALCULATING...'}
-                  </span>
-                </span>
-              )}
-              {audit.packageResult && <span>PKG_FILES: <span className="station-badge station-badge-blue">{audit.packageResult.zipFilesCount}</span></span>}
-              {samplingConfig.enabled && (
-                <span className="animate-pulse" title={`Muestreo industrial activo: máx ${samplingConfig.maxPerType} errores por tipo/campo.`}>
-                  SAMPLING: <span className="station-badge success">ACTIVE</span>
-                </span>
-              )}
-            </div>
-          </div>
+        {/* RESULTADOS INDUSTRIALES */}
+        {(audit.summary || audit.packageResult || audit.isRunning || activeTab === 'HISTORY') && (
+            <div className="flex-col" style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+
+            {activeTab !== 'HISTORY' && (
+                <div className="station-registry-sync-header" style={{ padding: '8px 16px', borderBottom: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)' }}>
+                    <div className="flex-row" style={{ gap: '24px', fontSize: '0.7rem', fontWeight: 800 }}>
+                        <span>{t('audit.stats_records')} <span className="station-badge info">{audit.summary?.totalLines.toLocaleString() || audit.progress?.processedLines.toLocaleString() || '0'}</span></span>
+                        <span>{t('audit.stats_anomalies')} <span className={`station-badge ${audit.summary?.totalErrors || audit.progress?.errorsSoFar ? 'warn' : 'info'}`}>{audit.summary?.totalErrors.toLocaleString() || audit.progress?.errorsSoFar.toLocaleString() || '0'}</span></span>
+                        {detectedProfile && (
+                            <span className="flex-row" style={{ gap: '8px' }}>
+                                GOLDEN_STATUS: 
+                                <span className={`station-badge ${audit.summary?.totalErrors ? 'warn' : 'info'}`}>
+                                    {audit.summary ? (audit.summary.totalErrors > 0 ? 'BREAK' : 'MATCH') : 'CALCULATING...'}
+                                </span>
+                            </span>
+                        )}
+                        {audit.packageResult && <span>{t('audit.stats_zip_files')} <span className="station-badge info">{audit.packageResult.zipFilesCount}</span></span>}
+                        {samplingConfig.enabled && (
+                            <span className="animate-pulse" title={t('audit.sampling_active_hint' as any)}>
+                                SAMPLING: <span className="station-badge success">ACTIVE</span>
+                            </span>
+                        )}
+                    </div>
+                </div>
+            )}
 
           <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
             {activeTab === 'HISTORY' ? (
@@ -703,14 +704,14 @@ const AuditStation: React.FC = () => {
                                                     </span>
                                                     <button 
                                                         className="station-btn tiny" 
-                                                        style={{ background: semanticMetadata[selectedLine] ? '#10b981' : 'var(--primary-color)', color: 'black' }}
+                                                        style={{ background: semanticMetadata[selectedLine] ? 'var(--status-ok)' : 'var(--primary-color)', color: 'black' }}
                                                         onClick={() => setIsCollectingMetadata(true)}
                                                     >
-                                                        {semanticMetadata[selectedLine] ? 'RE_COLLECT_METADATA' : 'VALIDATE_HIGH_FIDELITY'}
+                                                        {semanticMetadata[selectedLine] ? t('audit.re_collect_metadata').toUpperCase() : t('audit.validate_high_fidelity').toUpperCase()}
                                                     </button>
                                                 </>
                                              ) : (
-                                                 <span style={{ fontSize: '0.65rem', color: 'var(--primary-color)', fontWeight: '900' }}>COLLECTING_DATA...</span>
+                                                 <span style={{ fontSize: '0.65rem', color: 'var(--primary-color)', fontWeight: '900' }}>{t('audit.collecting_data').toUpperCase()}</span>
                                              )}
                                         </div>
                                      );
@@ -726,7 +727,7 @@ const AuditStation: React.FC = () => {
                                         onValidate={(data) => {
                                             setSemanticMetadata({ ...semanticMetadata, [selectedLine]: data });
                                             setIsCollectingMetadata(false);
-                                            globalAddLog('AUDIT', t('audit.info.semantic_check_applied'), 'info', { line: selectedLine });
+                                            globalAddLog('AUDIT', t('audit.info.semantic_check_applied', { line: selectedLine }), 'info', { line: selectedLine });
                                         }}
                                         t={t}
                                      />
@@ -834,7 +835,8 @@ const AuditStation: React.FC = () => {
           </div>
         </div>
       )}
-    </>
+      </div>
+    </div>
   );
 };
 

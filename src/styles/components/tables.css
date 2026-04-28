@@ -1,0 +1,37 @@
+/* --- TABLES --- */
+.station-table-container {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-std);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.station-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.station-table th {
+  background: var(--surface-color);
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--border-color);
+  opacity: 0.6;
+}
+
+.station-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.station-table-row-err {
+  background: rgba(239, 68, 68, 0.05) !important;
+  color: #ef4444;
+}
+
+.station-table-row-warn {
+  background: rgba(245, 158, 11, 0.05) !important;
+  color: #f59e0b;
+}

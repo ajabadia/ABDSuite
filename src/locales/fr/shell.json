@@ -66,5 +66,11 @@
     "sys_status_online": "SYSTÈME OPÉRATIONNEL",
     "sys_memory_clean": "MÉMOIRE SANITISÉE",
     "sys_location": "EMPLACEMENT : LOCAL / AIR-GAPPED"
+  },
+  "station_header": {
+    "engine": "MOTEUR",
+    "secure_context": "CONTEXTE SÉCURISÉ",
+    "vault_locked": "COFFRE VERROUILLÉ",
+    "vault_open": "COFFRE OUVERT"
   }
 }

@@ -171,86 +171,109 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
   const baseCaps = PermissionsService.baseCapabilitiesForRole(formData.role);
 
   return (
-    <div className="flex-col fade-in" style={{ gap: '24px' }}>
+    <div className="flex-col fade-in" style={{ gap: '24px', paddingTop: '16px' }}>
       <header className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 className="station-form-section-title" style={{ margin: 0 }}>
-          {(selected ? t('common.edit') : t('operator.create_btn')).toUpperCase()}
-        </h3>
+        <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+           <ShieldCheckIcon size={18} color="var(--primary-color)" />
+           <h3 className="station-form-section-title" style={{ margin: 0 }}>
+             {selected ? t('operator.edit_operator', { name: selected.username.toUpperCase() }) : t('operator.provision_new').toUpperCase()}
+           </h3>
+        </div>
         <div className="flex-row" style={{ gap: '8px' }}>
              {isPinLocked && canAdminSecurity && (
                <button className="station-btn secondary tiny" style={{ borderColor: 'var(--status-warn)', color: 'var(--status-warn)' }} onClick={handleUnlockPin} disabled={isSaving}>
-                  <ShieldAlertIcon size={14} /> UNLOCK
+                  <ShieldAlertIcon size={14} /> {t('operator.unlock_pin').toUpperCase()}
                </button>
              )}
              {selected?.mfaEnabled && canAdminSecurity && (
                 <button className="station-btn secondary tiny" style={{ borderColor: 'var(--status-warn)', color: 'var(--status-warn)' }} onClick={handleResetMfa} disabled={isSaving}>
-                  <RefreshCwIcon size={14} /> RESET MFA
+                  <RefreshCwIcon size={14} /> {t('operator.reset_mfa').toUpperCase()}
                 </button>
              )}
              {canTransferMaster && (
                <button className="station-btn secondary tiny" style={{ borderColor: 'var(--status-err)', color: 'var(--status-err)' }} onClick={handleTransferMaster} disabled={isSaving}>
-                  <ZapIcon size={14} /> MASTER XFER
+                  <ZapIcon size={14} /> {t('operator.xfer_master').toUpperCase()}
                </button>
              )}
              <button className="station-btn secondary tiny" onClick={onClear}>{t('common.cancel').toUpperCase()}</button>
              <button className="station-btn station-btn-primary tiny" onClick={handleSave} disabled={isSaving}>
-                <SaveIcon size={14} /> {isSaving ? '...' : t('common.save').toUpperCase()}
+                <SaveIcon size={14} /> {isSaving ? t('operator.commit').toUpperCase() : t('common.save').toUpperCase()}
              </button>
         </div>
       </header>
 
-      <div className="flex-col" style={{ gap: '16px' }}>
+      <div className="flex-col" style={{ gap: '20px' }}>
         {isPinLocked && (
-          <div className="station-registry-sync-header" style={{ borderColor: 'var(--status-warn)', background: 'rgba(var(--status-warn-rgb), 0.1)', padding: '12px' }}>
-             <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
-                <ShieldAlertIcon size={20} color="var(--status-warn)" />
-                <span className="station-title-main" style={{ fontSize: '0.65rem', color: 'var(--status-warn)' }}>NODE_LOCKED: FAILED_PIN_THRESHOLD</span>
+          <div className="station-card flex-row" style={{ gap: '16px', borderLeft: '4px solid var(--status-warn)', background: 'rgba(245, 158, 11, 0.05)', padding: '16px', alignItems: 'center' }}>
+             <ShieldAlertIcon size={24} color="var(--status-warn)" />
+             <div className="flex-col">
+                <span className="station-title-main" style={{ fontSize: '0.8rem', color: 'var(--status-warn)' }}>{t('operator.lockout_active').toUpperCase()}</span>
+                <span className="station-registry-item-meta">{t('operator.lockout_msg').toUpperCase()}</span>
+             </div>
+          </div>
+        )}
+
+        {formData.isMaster && (
+          <div className="station-card flex-row" style={{ gap: '16px', borderLeft: '4px solid var(--primary-color)', background: 'rgba(var(--primary-color-rgb), 0.05)', padding: '16px', alignItems: 'center' }}>
+             <ShieldCheckIcon size={24} color="var(--primary-color)" />
+             <div className="flex-col">
+                <span className="station-title-main" style={{ fontSize: '0.8rem', color: 'var(--primary-color)' }}>{t('operator.root_protection').toUpperCase()}</span>
+                <span className="station-registry-item-meta">{t('operator.root_msg').toUpperCase()}</span>
              </div>
           </div>
         )}
         
-        <div className="station-field-container">
-          <label className="station-registry-item-meta">{t('operator.username').toUpperCase()}</label>
-          <input className="station-input" value={formData.username || ''} onChange={e => setFormData({ ...formData, username: e.target.value })} placeholder="master.root" />
-        </div>
+        <div className="station-card" style={{ padding: '24px' }}>
+            <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                <div className="station-field-container">
+                  <label className="station-registry-item-meta">{t('operator.username').toUpperCase()}</label>
+                  <input className="station-input" value={formData.username || ''} onChange={e => setFormData({ ...formData, username: e.target.value })} placeholder="operator.name" />
+                </div>
 
-        <div className="station-field-container">
-          <label className="station-registry-item-meta">{t('operator.display_name').toUpperCase()}</label>
-          <input className="station-input" value={formData.displayName || ''} onChange={e => setFormData({ ...formData, displayName: e.target.value })} placeholder="SYSTEM ADMIN" />
-        </div>
+                <div className="station-field-container">
+                  <label className="station-registry-item-meta">{t('operator.display_name').toUpperCase()}</label>
+                  <input className="station-input" value={formData.displayName || ''} onChange={e => setFormData({ ...formData, displayName: e.target.value })} placeholder={t('operator.full_name_placeholder').toUpperCase()} />
+                </div>
+            </div>
 
-        <div className="station-field-container">
-          <label className="station-registry-item-meta">{t('operator.role').toUpperCase()}</label>
-          <select className="station-input" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })}>
-            <option value="ADMIN">{t('operator.roles.ADMIN').toUpperCase()}</option>
-            <option value="TECH">{t('operator.roles.TECH').toUpperCase()}</option>
-            <option value="OPERATOR">{t('operator.roles.OPERATOR').toUpperCase()}</option>
-          </select>
-        </div>
+            <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: '20px' }}>
+                <div className="station-field-container">
+                  <label className="station-registry-item-meta">{t('operator.role').toUpperCase()}</label>
+                  <select className="station-input" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })}>
+                    <option value="ADMIN">{t('operator.role_admin').toUpperCase()}</option>
+                    <option value="TECH">{t('operator.role_tech').toUpperCase()}</option>
+                    <option value="OPERATOR">{t('operator.role_operator').toUpperCase()}</option>
+                  </select>
+                </div>
 
-        <div className="station-field-container">
-          <label className="station-registry-item-meta">{selected ? 'UPDATE PIN_CODE (OPTIONAL)' : 'INITIAL PIN_CODE'}</label>
-          <input type="password" className="station-input" value={newPin} onChange={e => setNewPin(e.target.value)} placeholder="****" />
-        </div>
-        
-        <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
-            <input type="checkbox" checked={formData.isActive === 1} id="op-active-chk" onChange={e => setFormData({ ...formData, isActive: e.target.checked ? 1 : 0 })} />
-            <label htmlFor="op-active-chk" className="station-registry-item-meta" style={{ marginBottom: 0, cursor: 'pointer' }}>{t('operator.active').toUpperCase()}</label>
+                <div className="station-field-container">
+                  <label className="station-registry-item-meta">{selected ? t('operator.update_pin').toUpperCase() : t('operator.initial_pin').toUpperCase()}</label>
+                  <input type="password" className="station-input" value={newPin} onChange={e => setNewPin(e.target.value)} placeholder="****" />
+                </div>
+            </div>
+
+            <div className="flex-row" style={{ alignItems: 'center', gap: '12px', marginTop: '20px', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '4px' }}>
+                <input type="checkbox" checked={formData.isActive === 1} id="op-active-chk" style={{ width: '18px', height: '18px' }} onChange={e => setFormData({ ...formData, isActive: e.target.checked ? 1 : 0 })} />
+                <label htmlFor="op-active-chk" className="station-title-main" style={{ marginBottom: 0, cursor: 'pointer', fontSize: '0.7rem' }}>{t('operator.active_status_label').toUpperCase()}</label>
+            </div>
         </div>
 
         {useWorkspace().can('SETTINGS_GLOBAL') && (
-          <div className="flex-col" style={{ marginTop: '16px', gap: '12px' }}>
-            <span className="station-form-section-title">PERM_OVERRIDE_MATRIX</span>
+          <div className="flex-col" style={{ gap: '12px' }}>
+            <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+                <ZapIcon size={16} color="var(--primary-color)" />
+                <h3 className="station-form-section-title" style={{ margin: 0 }}>{t('operator.perm_matrix_title').toUpperCase()}</h3>
+            </div>
             
-            <div className="flex-col" style={{ gap: '4px', border: '1px solid var(--border-color)', borderRadius: '2px', background: 'rgba(0,0,0,0.2)' }}>
-              <header className="flex-row" style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-color)', background: 'var(--surface-color)', fontSize: '0.55rem', opacity: 0.4, fontWeight: 900 }}>
-                 <div style={{ flex: 1 }}>CAPABILITY</div>
-                 <div style={{ width: '60px', textAlign: 'center' }}>BASE</div>
-                 <div style={{ width: '60px', textAlign: 'center' }}>ALLOW</div>
-                 <div style={{ width: '60px', textAlign: 'center' }}>DENY</div>
+            <div className="station-card flex-col" style={{ padding: 0, overflow: 'hidden' }}>
+              <header className="station-table-header" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                 <div style={{ flex: 1, paddingLeft: '16px' }}>{t('operator.sys_capability').toUpperCase()}</div>
+                 <div style={{ width: '80px', textAlign: 'center' }}>{t('operator.base').toUpperCase()}</div>
+                 <div style={{ width: '80px', textAlign: 'center' }}>{t('operator.grant').toUpperCase()}</div>
+                 <div style={{ width: '80px', textAlign: 'center', paddingRight: '16px' }}>{t('operator.revoke').toUpperCase()}</div>
               </header>
 
-              <div className="station-registry-scroller" style={{ maxHeight: '300px' }}>
+              <div className="station-registry-scroller" style={{ maxHeight: '400px' }}>
                 {ALL_CAPABILITIES.map(cap => {
                   const isBase = baseCaps.includes(cap);
                   const isAdded = (formData.overrideCapabilities?.add || []).includes(cap) || (formData.extraCapabilities || []).includes(cap);
@@ -268,15 +291,15 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
                   };
 
                   return (
-                    <div key={cap} className={`flex-row fade-in`} style={{ padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.02)', alignItems: 'center', background: state !== 'BASE' ? 'rgba(var(--primary-color-rgb), 0.05)' : 'transparent' }}>
+                    <div key={cap} className="flex-row fade-in" style={{ padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.03)', alignItems: 'center', background: state !== 'BASE' ? 'rgba(var(--primary-color-rgb), 0.03)' : 'transparent' }}>
                       <div className="flex-col" style={{ flex: 1 }}>
-                        <span className="station-title-main" style={{ fontSize: '0.7rem' }}>{cap}</span>
-                        {isBase && <span className="station-registry-item-meta" style={{ fontSize: '0.5rem' }}>INHERITED</span>}
+                        <span className="station-title-main" style={{ fontSize: '0.7rem', color: state === 'ADD' ? 'var(--status-ok)' : state === 'REMOVE' ? 'var(--status-err)' : 'inherit' }}>{cap}</span>
+                        <span className="station-registry-item-meta" style={{ fontSize: '0.55rem' }}>{isBase ? t('operator.inherited').toUpperCase() : t('operator.custom_override').toUpperCase()}</span>
                       </div>
-                      <div className="flex-row" style={{ width: '180px', gap: '4px' }}>
-                        <button className={`station-btn tiny ${state === 'BASE' ? 'station-btn-primary' : 'secondary'}`} onClick={() => handleToggle('BASE')} style={{ width: '56px', padding: 0 }}><RefreshCwIcon size={10} /></button>
-                        <button className={`station-btn tiny ${state === 'ADD' ? 'station-btn-primary' : 'secondary'}`} onClick={() => handleToggle('ADD')} style={{ width: '56px', padding: 0, color: state === 'ADD' ? '#000' : 'var(--status-ok)' }}><CheckIcon size={12} /></button>
-                        <button className={`station-btn tiny ${state === 'REMOVE' ? 'station-btn-primary' : 'secondary'}`} onClick={() => handleToggle('REMOVE')} style={{ width: '56px', padding: 0, color: state === 'REMOVE' ? '#000' : 'var(--status-err)' }}><CloseIcon size={12} /></button>
+                      <div className="flex-row" style={{ width: '240px', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button className={`station-btn tiny ${state === 'BASE' ? 'station-btn-primary' : 'secondary'}`} onClick={() => handleToggle('BASE')} style={{ width: '70px', padding: 0 }} title="Restore default"><RefreshCwIcon size={12} /></button>
+                        <button className={`station-btn tiny ${state === 'ADD' ? 'station-btn-primary' : 'secondary'}`} onClick={() => handleToggle('ADD')} style={{ width: '70px', padding: 0, color: state === 'ADD' ? '#000' : 'var(--status-ok)' }} title="Explicit grant"><CheckIcon size={12} /></button>
+                        <button className={`station-btn tiny ${state === 'REMOVE' ? 'station-btn-primary' : 'secondary'}`} onClick={() => handleToggle('REMOVE')} style={{ width: '70px', padding: 0, color: state === 'REMOVE' ? '#000' : 'var(--status-err)' }} title="Explicit deny"><CloseIcon size={12} /></button>
                       </div>
                     </div>
                   );
@@ -287,17 +310,8 @@ export const OperatorDetailPanel: React.FC<OperatorDetailPanelProps> = ({
         )}
 
         {error && (
-          <div className="station-registry-sync-header" style={{ borderColor: 'var(--status-err)', background: 'rgba(var(--status-err-rgb), 0.1)', padding: '10px' }}>
-            <span className="station-title-main" style={{ color: 'var(--status-err)', fontSize: '0.7rem' }}>[ERR] {error.toUpperCase()}</span>
-          </div>
-        )}
-
-        {formData.isMaster && (
-          <div className="station-registry-sync-header" style={{ borderColor: 'var(--primary-color)', padding: '10px', background: 'rgba(var(--primary-color-rgb), 0.05)' }}>
-             <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
-                <ShieldCheckIcon size={20} color="var(--primary-color)" />
-                <span className="station-title-main" style={{ fontSize: '0.65rem', color: 'var(--primary-color)' }}>ROOT_IDENTITY_PROTECTED</span>
-             </div>
+          <div className="station-card" style={{ borderLeft: '4px solid var(--status-err)', background: 'rgba(239, 68, 68, 0.05)', padding: '16px' }}>
+            <span className="station-title-main" style={{ color: 'var(--status-err)', fontSize: '0.75rem' }}>{t('operator.commit_failure', { error: error.toUpperCase() })}</span>
           </div>
         )}
       </div>

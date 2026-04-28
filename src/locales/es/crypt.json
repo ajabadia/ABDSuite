@@ -11,7 +11,18 @@
     "vault_open": "BÓVEDA ABIERTA",
     "vault_locked": "BÓVEDA BLOQUEADA",
     "waiting_input": "ESPERANDO ENTRADA DE DATOS...",
-    "industrial_grade": "AES-GCM 256 INDUSTRIAL"
+    "industrial_grade": "AES-GCM 256 INDUSTRIAL",
+    "pre_flight": "PRE-FLIGHT CRIPTOGRÁFICO",
+    "status_files": "FICHEROS_SELECCIONADOS",
+    "status_passphrase": "CLAVE_DE_BÓVEDA",
+    "status_ik": "ESTADO_SEGURIDAD_IK",
+    "status_operator": "PRIVILEGIOS_OPERADOR",
+    "start_batch": "INICIAR_BATCH",
+    "ik_locked_warning": "IK_BLOQUEADO: SEGURIDAD AT-REST EN RIESGO",
+    "authorized": "AUTORIZADO",
+    "forbidden": "DENEGADO",
+    "ready": "LISTO",
+    "required": "REQUERIDO"
   },
   "processor": {
     "dropzone": "ARRASTRA ARCHIVOS AQUÍ O HAZ CLIC PARA SELECCIONAR",

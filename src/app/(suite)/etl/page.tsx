@@ -15,6 +15,7 @@ import { EtlGlobalSettings } from '@/lib/types/etl.types';
 import EtlRunner from '@/components/Etl/EtlRunner';
 import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
+import { StationHeader } from '@/components/shell/StationHeader';
 
 import { auditService } from '@/lib/services/AuditService';
 
@@ -47,7 +48,6 @@ function EtlPageContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [etlSettings, setEtlSettings] = useState<EtlGlobalSettings>(DEFAULT_SETTINGS);
 
-  // ... (useLiveQuery remains)
   const presets = useLiveQuery(() => db.presets_v6.toArray()) || [];
 
   useEffect(() => {
@@ -132,7 +132,6 @@ function EtlPageContent() {
   };
 
   const handleExport = (preset: EtlPreset) => {
-    // Export is usually safe for VIEWERS too, but we could restrict it.
     const data = JSON.stringify(preset, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -178,34 +177,44 @@ function EtlPageContent() {
 
   const handleSelectPreset = (p: EtlPreset) => {
     setSelectedPreset(p);
-    router.push(`/etl?view=${activeTab}&id=${p.id}`);
+    const currentId = searchParams.get('id');
+    if (currentId !== p.id) {
+       router.push(`/etl?view=${activeTab}&id=${p.id}`);
+    }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%' }}>
-      <header className="module-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '1.2rem', fontWeight: 800 }}>
-          {activeTab === 'designer' ? (
-            <>
-              <MapIcon size={24} style={{ opacity: 0.6 }} />
-              {t('etl.app_designer')}
-            </>
-          ) : (
-            <>
-              <PlayIcon size={24} style={{ opacity: 0.6 }} />
-              {t('etl.app_executor')}
-            </>
-          )}
-        </div>
-        <button 
-          className="station-btn"
-          onClick={() => setIsSettingsOpen(true)}
-          title={t('etl.preferences')}
-          style={{ padding: '4px', boxShadow: 'none', background: 'transparent', border: 'none' }}
-        >
-          <CogIcon size={20} />
-        </button>
-      </header>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0 24px' }}>
+      <StationHeader 
+        moduleName={t('shell.etl')}
+        engineId="ETL_ORCHESTRATOR_V6"
+        actions={
+          <button 
+            className="station-btn secondary tiny"
+            onClick={() => setIsSettingsOpen(true)}
+            title={t('etl.preferences')}
+            style={{ padding: '8px' }}
+          >
+            <CogIcon size={20} />
+          </button>
+        }
+        tabs={[
+          { 
+            id: 'designer', 
+            label: t('etl.app_designer'), 
+            icon: <MapIcon size={14} />, 
+            active: activeTab === 'designer',
+            onClick: () => router.push(`/etl?view=designer${idParam ? `&id=${idParam}` : ''}`)
+          },
+          { 
+            id: 'runner', 
+            label: t('etl.app_executor'), 
+            icon: <PlayIcon size={14} />, 
+            active: activeTab === 'runner',
+            onClick: () => router.push(`/etl?view=executor${idParam ? `&id=${idParam}` : ''}`)
+          }
+        ]}
+      />
       
       <EtlSettingsModal 
         isOpen={isSettingsOpen}

@@ -66,5 +66,11 @@
     "sys_status_online": "SYSTEM BETRIEBSBEREIT",
     "sys_memory_clean": "SPEICHER DESINFIZIERT",
     "sys_location": "STANDORT: LOKAL / AIR-GAPPED"
+  },
+  "station_header": {
+    "engine": "ENGINE",
+    "secure_context": "SICHERER KONTEXT",
+    "vault_locked": "VAULT GESPERRT",
+    "vault_open": "VAULT OFFEN"
   }
 }

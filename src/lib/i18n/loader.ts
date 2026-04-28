@@ -7,6 +7,7 @@ import esLetter from '../../locales/es/letter.json';
 import esAudit from '../../locales/es/audit.json';
 import esSupervisor from '../../locales/es/supervisor.json';
 import esAuth from '../../locales/es/auth.json';
+import esRegulatory from '../../locales/es/regulatory.json';
 
 import enCommon from '../../locales/en/common.json';
 import enShell from '../../locales/en/shell.json';
@@ -17,6 +18,7 @@ import enLetter from '../../locales/en/letter.json';
 import enAudit from '../../locales/en/audit.json';
 import enSupervisor from '../../locales/en/supervisor.json';
 import enAuth from '../../locales/en/auth.json';
+import enRegulatory from '../../locales/en/regulatory.json';
 
 import frCommon from '../../locales/fr/common.json';
 import frShell from '../../locales/fr/shell.json';
@@ -50,7 +52,8 @@ export const translations = {
     ...esLetter,
     ...esAudit,
     ...esSupervisor,
-    ...esAuth
+    ...esAuth,
+    ...esRegulatory
   },
   en: {
     ...enCommon,
@@ -61,7 +64,8 @@ export const translations = {
     ...enLetter,
     ...enAudit,
     ...enSupervisor,
-    ...enAuth
+    ...enAuth,
+    ...enRegulatory
   },
   fr: {
     ...frCommon,

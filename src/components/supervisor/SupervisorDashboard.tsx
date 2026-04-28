@@ -26,6 +26,7 @@ import { TechnicalCockpit } from './TechnicalCockpit';
 import { ReportExportModal } from './ReportExportModal';
 import { DocCatalogStation } from './DocCatalogStation';
 import { supervisorService } from '@/lib/services/SupervisorService';
+import { StationHeader } from '@/components/shell/StationHeader';
 
 export const SupervisorDashboard: React.FC = () => {
   return (
@@ -91,6 +92,13 @@ const SupervisorDashboardContent: React.FC = () => {
   const canSeeSecurity = can('AUDIT_VIEW') || can('SUPERVISOR_VIEW');
 
   useEffect(() => {
+    const tab = searchParams.get('tab')?.toUpperCase();
+    if (tab && ['TELEMETRY', 'OPERATORS', 'SECURITY', 'TECHNICAL', 'DOCUMENTS'].includes(tab)) {
+      setActiveTab(tab as any);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     loadData();
     if (currentOperator) {
       supervisorService.logDashboardAccess(currentOperator.id, currentOperator.username);
@@ -128,44 +136,26 @@ const SupervisorDashboardContent: React.FC = () => {
     );
   }
 
-  return (
-    <div className="flex-col fade-in" style={{ height: '100%' }}>
-      <header className="station-panel-header">
-        <div className="flex-row" style={{ alignItems: 'center', gap: '16px' }}>
-          <div className="station-icon-box">
-            <ActivityIcon size={24} color="var(--primary-color)" />
-          </div>
-          <div className="flex-col">
-            <h1 className="station-title-main" style={{ margin: 0 }}>{t('supervisor.title').toUpperCase()}</h1>
-            <p className="station-registry-item-meta" style={{ margin: 0 }}>{t('supervisor.subtitle').toUpperCase()}</p>
-          </div>
-        </div>
-        
-        <div className="station-tabs" style={{ borderBottom: 'none', background: 'transparent' }}>
-            <button className={`station-tab-btn ${activeTab === 'TELEMETRY' ? 'active' : ''}`} onClick={() => setActiveTab('TELEMETRY')}>
-              <ActivityIcon size={14} /> {t('supervisor.title').split(' ')[0]}
-            </button>
-            {canSeeOperators && (
-              <button className={`station-tab-btn ${activeTab === 'OPERATORS' ? 'active' : ''}`} onClick={() => setActiveTab('OPERATORS')}>
-                <UserIcon size={14} /> {t('operator.panel_title').split(' ')[0]}
-              </button>
-            )}
-            {canSeeSecurity && (
-              <button className={`station-tab-btn ${activeTab === 'SECURITY' ? 'active' : ''}`} onClick={() => setActiveTab('SECURITY')}>
-                <ShieldCheckIcon size={14} /> {t('audit.securityTitle').split(' ')[0]}
-              </button>
-            )}
-            {canSeeSecurity && (
-              <button className={`station-tab-btn ${activeTab === 'TECHNICAL' ? 'active' : ''}`} onClick={() => setActiveTab('TECHNICAL')}>
-                <TerminalIcon size={14} /> LAB_COCKPIT
-              </button>
-            )}
-            <button className={`station-tab-btn ${activeTab === 'DOCUMENTS' ? 'active' : ''}`} onClick={() => setActiveTab('DOCUMENTS')}>
-              <TagIcon size={14} /> DOCUMENTOS
-            </button>
-        </div>
+  const tabs = [
+    { id: 'TELEMETRY', label: t('supervisor.title').split(' ')[0], icon: <ActivityIcon size={14} />, active: activeTab === 'TELEMETRY', onClick: () => setActiveTab('TELEMETRY') },
+  ];
 
-        <div className="flex-row" style={{ gap: '8px' }}>
+  if (canSeeOperators) {
+    tabs.push({ id: 'OPERATORS', label: t('operator.panel_title').split(' ')[0], icon: <UserIcon size={14} />, active: activeTab === 'OPERATORS', onClick: () => setActiveTab('OPERATORS') });
+  }
+  if (canSeeSecurity) {
+    tabs.push({ id: 'SECURITY', label: t('audit.securityTitle').split(' ')[0], icon: <ShieldCheckIcon size={14} />, active: activeTab === 'SECURITY', onClick: () => setActiveTab('SECURITY') });
+    tabs.push({ id: 'TECHNICAL', label: t('supervisor.lab_cockpit').toUpperCase(), icon: <TerminalIcon size={14} />, active: activeTab === 'TECHNICAL', onClick: () => setActiveTab('TECHNICAL') });
+  }
+  tabs.push({ id: 'DOCUMENTS', label: t('supervisor.documents').toUpperCase(), icon: <TagIcon size={14} />, active: activeTab === 'DOCUMENTS', onClick: () => setActiveTab('DOCUMENTS') });
+
+  return (
+    <div className="flex-col fade-in" style={{ height: '100%', padding: '0 24px' }}>
+      <StationHeader 
+        moduleName={t('supervisor.title')}
+        engineId="SUPERVISOR_HUB_V6"
+        actions={
+          <>
             <button className="station-btn secondary tiny" onClick={() => setShowSettings(true)}>
                 <CogIcon size={18} />
             </button>
@@ -173,95 +163,113 @@ const SupervisorDashboardContent: React.FC = () => {
                 <RefreshCwIcon size={16} className={isLoading ? 'spin' : ''} />
             </button>
             <button className="station-btn station-btn-primary" onClick={() => setShowReports(true)} disabled={!snapshot}>
-                <DownloadIcon size={16} /> REPORTES
+                <DownloadIcon size={16} /> {t('supervisor.report_btn').toUpperCase()}
             </button>
-        </div>
-      </header>
+          </>
+        }
+        tabs={tabs}
+      />
 
-      <main className="flex-col" style={{ padding: '24px', flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <main className="flex-col" style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         {activeTab === 'TELEMETRY' ? (
-          <div className="flex-col fade-in" style={{ gap: '24px' }}>
-            <div className="station-form-grid">
-              <div className="station-card flex-col" style={{ gap: '4px' }}>
-                <span className="station-registry-item-meta">{t('supervisor.kpi_docs_24h')}</span>
-                <span className="station-title-main" style={{ fontSize: '1.8rem' }}>{snapshot?.globalTotals.totalDocs24h.toLocaleString()}</span>
+          <div className="flex-col fade-in" style={{ gap: '32px', paddingTop: '16px' }}>
+            {/* Main KPI Row */}
+            <div className="station-form-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+              <div className="station-card flex-col" style={{ gap: '8px', padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderLeft: '3px solid var(--primary-color)' }}>
+                <span className="station-registry-item-meta" style={{ letterSpacing: '0.1rem', fontSize: '0.6rem' }}>{t('supervisor.kpi_docs_24h').toUpperCase()}</span>
+                <span className="station-title-main" style={{ fontSize: '1.8rem', lineHeight: 1 }}>{snapshot?.globalTotals.totalDocs24h.toLocaleString()}</span>
               </div>
-              <div className="station-card flex-col" style={{ gap: '4px' }}>
-                <span className="station-registry-item-meta">{t('supervisor.kpi_audits_24h')}</span>
-                <span className="station-title-main" style={{ fontSize: '1.8rem' }}>{snapshot?.globalTotals.totalAudits24h.toLocaleString()}</span>
+              <div className="station-card flex-col" style={{ gap: '8px', padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderLeft: '3px solid var(--primary-color)' }}>
+                <span className="station-registry-item-meta" style={{ letterSpacing: '0.1rem', fontSize: '0.6rem' }}>{t('supervisor.kpi_audits_24h').toUpperCase()}</span>
+                <span className="station-title-main" style={{ fontSize: '1.8rem', lineHeight: 1 }}>{snapshot?.globalTotals.totalAudits24h.toLocaleString()}</span>
               </div>
-              <div className="station-card flex-col" style={{ gap: '4px' }}>
-                <span className="station-registry-item-meta">{t('supervisor.kpi_errors_24h')}</span>
-                <span className={`station-title-main ${snapshot?.globalTotals.cryptOps.errors ? 'station-shimmer-text' : ''}`} style={{ fontSize: '1.8rem', color: snapshot?.globalTotals.cryptOps.errors ? 'var(--status-err)' : 'inherit' }}>
+              <div className="station-card flex-col" style={{ gap: '8px', padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderLeft: `3px solid ${snapshot?.globalTotals.cryptOps.errors ? 'var(--status-err)' : 'var(--primary-color)'}` }}>
+                <span className="station-registry-item-meta" style={{ letterSpacing: '0.1rem', fontSize: '0.6rem' }}>{t('supervisor.kpi_errors_24h').toUpperCase()}</span>
+                <span className={`station-title-main ${snapshot?.globalTotals.cryptOps.errors ? 'station-shimmer-text' : ''}`} style={{ fontSize: '1.8rem', lineHeight: 1, color: snapshot?.globalTotals.cryptOps.errors ? 'var(--status-err)' : 'inherit' }}>
                     {snapshot?.globalTotals.cryptOps.errors}
                 </span>
               </div>
-              <div className="station-card flex-col" style={{ gap: '4px' }}>
-                <span className="station-registry-item-meta">{t('supervisor.kpi_qa_breaks')}</span>
-                <span className={`station-title-main ${snapshot?.globalTotals.totalQaBreaks24h ? 'station-shimmer-text' : ''}`} style={{ fontSize: '1.8rem', color: snapshot?.globalTotals.totalQaBreaks24h ? 'var(--status-err)' : 'inherit' }}>
+              <div className="station-card flex-col" style={{ gap: '8px', padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderLeft: `3px solid ${snapshot?.globalTotals.totalQaBreaks24h ? 'var(--status-err)' : 'var(--primary-color)'}` }}>
+                <span className="station-registry-item-meta" style={{ letterSpacing: '0.1rem', fontSize: '0.6rem' }}>{t('supervisor.kpi_qa_breaks').toUpperCase()}</span>
+                <span className={`station-title-main ${snapshot?.globalTotals.totalQaBreaks24h ? 'station-shimmer-text' : ''}`} style={{ fontSize: '1.8rem', lineHeight: 1, color: snapshot?.globalTotals.totalQaBreaks24h ? 'var(--status-err)' : 'inherit' }}>
                     {snapshot?.globalTotals.totalQaBreaks24h}
                 </span>
               </div>
             </div>
 
-            <section className="station-card" style={{ padding: 0 }}>
-              <UnitTable units={snapshot?.units || []} />
+            {/* Units Table Section */}
+            <section className="flex-col" style={{ gap: '12px' }}>
+                <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+                    <TerminalIcon size={18} color="var(--primary-color)" />
+                    <h3 className="station-form-section-title" style={{ margin: 0 }}>{t('supervisor.node_health').toUpperCase()}</h3>
+                </div>
+                <div className="station-card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <UnitTable units={snapshot?.units || []} />
+                </div>
             </section>
 
-            <div className="station-form-grid">
-              <div className="station-card flex-col" style={{ gap: '16px' }}>
-                  <h3 className="station-form-section-title">{t('audit.securityTitle').toUpperCase()}</h3>
-                  <div className="flex-row" style={{ gap: '16px' }}>
-                      <div className="station-registry-sync-header" style={{ flex: 1, padding: '12px' }}>
-                          <span className="station-registry-item-meta">{t('supervisor.sec_failed')}</span>
-                          <span className="station-title-main" style={{ fontSize: '1.2rem' }}>{snapshot?.security.totalFailedLogins}</span>
+            {/* Secondary Stats Row */}
+            <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+              <div className="station-card flex-col" style={{ gap: '20px' }}>
+                  <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+                      <ShieldAlertIcon size={18} color="var(--primary-color)" />
+                      <h3 className="station-form-section-title" style={{ margin: 0 }}>{t('audit.securityTitle').toUpperCase()}</h3>
+                  </div>
+                  <div className="flex-row" style={{ gap: '12px' }}>
+                      <div className="station-card" style={{ flex: 1, padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderLeft: '3px solid var(--primary-color)' }}>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.6rem' }}>{t('supervisor.sec_failed')}</span>
+                          <span className="station-title-main" style={{ fontSize: '1.8rem', display: 'block', marginTop: '4px' }}>{snapshot?.security.totalFailedLogins}</span>
                       </div>
-                      <div className="station-registry-sync-header" style={{ flex: 1, padding: '12px' }}>
-                          <span className="station-registry-item-meta">{t('supervisor.sec_locks')}</span>
-                          <span className="station-title-main" style={{ fontSize: '1.2rem' }}>{snapshot?.security.totalLocksTriggered}</span>
+                      <div className="station-card" style={{ flex: 1, padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderLeft: '3px solid var(--primary-color)' }}>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.6rem' }}>{t('supervisor.sec_locks')}</span>
+                          <span className="station-title-main" style={{ fontSize: '1.8rem', display: 'block', marginTop: '4px' }}>{snapshot?.security.totalLocksTriggered}</span>
                       </div>
-                      <div className="station-registry-sync-header" style={{ flex: 1, padding: '12px' }}>
-                          <span className="station-registry-item-meta">{t('supervisor.sec_tech')}</span>
-                          <span className="station-title-main" style={{ fontSize: '1.2rem' }}>{snapshot?.security.totalTechModeActivations}</span>
+                      <div className="station-card" style={{ flex: 1, padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderLeft: '3px solid var(--primary-color)' }}>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.6rem' }}>{t('supervisor.sec_tech')}</span>
+                          <span className="station-title-main" style={{ fontSize: '1.8rem', display: 'block', marginTop: '4px' }}>{snapshot?.security.totalTechModeActivations}</span>
                       </div>
                   </div>
               </div>
 
-              <div className="station-card flex-col" style={{ gap: '16px' }}>
-                  <h3 className="station-form-section-title">{t('supervisor.govtitle') || 'GOBERNANZA GLOBAL'}</h3>
-                  <div className="flex-row" style={{ gap: '12px', flexWrap: 'wrap' }}>
-                      <button className="station-registry-sync-header clickable" style={{ flex: 1, padding: '12px' }} onClick={() => {
+              <div className="station-card flex-col" style={{ gap: '20px' }}>
+                  <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+                      <ShieldCheckIcon size={18} color="var(--primary-color)" />
+                      <h3 className="station-form-section-title" style={{ margin: 0 }}>{t('supervisor.govtitle') || 'GOBERNANZA GLOBAL'}</h3>
+                  </div>
+                  <div className="flex-row" style={{ gap: '12px' }}>
+                      <button className="station-card clickable" style={{ flex: 1, padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderLeft: '3px solid var(--primary-color)', textAlign: 'left', color: 'var(--text-primary)' }} onClick={() => {
                         setSecurityEventTypeFilter('OPERATOR_ROLE_CHANGE');
                         setActiveTab('SECURITY');
                         updateUrl({ tab: 'SECURITY', eventType: 'OPERATOR_ROLE_CHANGE' });
                       }}>
-                          <span className="station-registry-item-meta">{t('supervisor.govrolechanges') || 'CAMBIOS ROL'}</span>
-                          <span className="station-title-main" style={{ fontSize: '1.2rem' }}>{snapshot?.governance.operatorRoleChanges24h}</span>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.6rem' }}>{t('supervisor.govrolechanges') || 'CAMBIOS ROL'}</span>
+                          <span className="station-title-main" style={{ fontSize: '1.8rem', display: 'block', marginTop: '4px' }}>{snapshot?.governance.operatorRoleChanges24h}</span>
                       </button>
-                      <button className="station-registry-sync-header clickable" style={{ flex: 1, padding: '12px' }} onClick={() => {
+                      <button className="station-card clickable" style={{ flex: 1, padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderLeft: '3px solid var(--primary-color)', textAlign: 'left', color: 'var(--text-primary)' }} onClick={() => {
                           setSecurityEventTypeFilter('OPERATOR_CAPABILITY_OVERRIDE');
                           setActiveTab('SECURITY');
                           updateUrl({ tab: 'SECURITY', eventType: 'OPERATOR_CAPABILITY_OVERRIDE' });
                       }}>
-                          <span className="station-registry-item-meta">{t('supervisor.govoverrides') || 'OVERRIDE PERM.'}</span>
-                          <span className="station-title-main" style={{ fontSize: '1.2rem' }}>{snapshot?.governance.operatorOverrideChanges24h}</span>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.6rem' }}>{t('supervisor.govoverrides') || 'OVERRIDE PERM.'}</span>
+                          <span className="station-title-main" style={{ fontSize: '1.8rem', display: 'block', marginTop: '4px' }}>{snapshot?.governance.operatorOverrideChanges24h}</span>
                       </button>
-                      <button className="station-registry-sync-header clickable" style={{ flex: 1, padding: '12px' }} onClick={() => {
+                      <button className="station-card clickable" style={{ flex: 1, padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderLeft: '3px solid var(--primary-color)', textAlign: 'left', color: 'var(--text-primary)' }} onClick={() => {
                           setSecurityEventTypeFilter('CONFIG_UPDATE'); 
                           setActiveTab('SECURITY');
                           updateUrl({ tab: 'SECURITY', eventType: 'CONFIG_UPDATE' });
                       }}>
-                          <span className="station-registry-item-meta">{t('supervisor.govconfig')}</span>
-                          <span className="station-title-main" style={{ fontSize: '1.2rem' }}>{snapshot?.governance.configChanges24h}</span>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.6rem' }}>{t('supervisor.govconfig')}</span>
+                          <span className="station-title-main" style={{ fontSize: '1.8rem', display: 'block', marginTop: '4px' }}>{snapshot?.governance.configChanges24h}</span>
                       </button>
                   </div>
               </div>
             </div>
 
-            <section className="station-card flex-col" style={{ gap: '20px' }}>
-                <header className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
-                    <ShieldAlertIcon size={18} color="var(--primary-color)" />
-                    <h3 className="station-form-section-title" style={{ margin: 0 }}>RBAC & SESSIONS · ACTIVIDAD RECIENTE</h3>
+            {/* Recent Feed */}
+            <section className="station-card flex-col" style={{ gap: '24px', padding: '24px' }}>
+                <header className="flex-row" style={{ gap: '12px', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '16px' }}>
+                    <ActivityIcon size={18} color="var(--primary-color)" />
+                    <h3 className="station-form-section-title" style={{ margin: 0 }}>{t('supervisor.recent_activity').toUpperCase()}</h3>
                 </header>
 
                 <SecurityActivityFeed />
@@ -303,6 +311,7 @@ const SupervisorDashboardContent: React.FC = () => {
 };
 
 const SecurityActivityFeed: React.FC = () => {
+  const { t } = useLanguage();
   const [events, setEvents] = useState<any[]>([]);
 
   useEffect(() => {
@@ -323,7 +332,7 @@ const SecurityActivityFeed: React.FC = () => {
     return (
       <div className="station-empty-state" style={{ height: '150px' }}>
         <ShieldCheckIcon size={32} className="station-shimmer-text" />
-        <span className="station-shimmer-text" style={{ marginTop: '12px' }}>NO RECENT SECURITY ANOMALIES</span>
+        <span className="station-shimmer-text" style={{ marginTop: '12px' }}>{t('supervisor.no_anomalies').toUpperCase()}</span>
       </div>
     );
   }
@@ -342,10 +351,10 @@ const SecurityActivityFeed: React.FC = () => {
                 <span className="station-badge station-badge-blue tiny">{ev.category}</span>
             </div>
             <div className="station-title-main" style={{ flex: 1, fontSize: '0.75rem' }}>
-                {ev.action.toUpperCase()}
+                {(t('audit.' + ev.action) !== 'audit.' + ev.action ? t('audit.' + ev.action) : ev.action).toUpperCase()}
             </div>
             <div className="station-registry-item-meta" style={{ flex: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                ACTOR: {ev.details.actorUser || 'SYSTEM'} · {Object.entries(ev.details.context || {}).map(([k,v]) => `${k}:${v}`).join(' ')}
+                {t('supervisor.actor').toUpperCase()}: {ev.details.actorUser || t('common.none')} · {Object.entries(ev.details.context || {}).map(([k,v]) => `${k}:${v}`).join(' ')}
             </div>
           </div>
         );

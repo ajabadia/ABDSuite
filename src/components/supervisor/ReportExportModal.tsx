@@ -55,7 +55,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
                 filename = `MAPPING_HEALTH_${new Date().toISOString().split('T')[0]}.csv`;
                 break;
             case 'AUDIT_TRAIL_CSV':
-                if (!selectedUnitId) { alert('Seleccione una unidad'); setIsExporting(false); return; }
+                if (!selectedUnitId) { alert(t('supervisor.report_modal.error_no_unit')); setIsExporting(false); return; }
                 const filter: AuditTrailFilter = { 
                     unitId: selectedUnitId,
                     startDate: startDate ? new Date(startDate).getTime() : undefined,
@@ -72,7 +72,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
         setTimeout(onClose, 500);
     } catch (err) {
         console.error('[REPORT_EXPORT] Failed', err);
-        alert('Error al generar el reporte: ' + (err as Error).message);
+        alert(t('supervisor.report_modal.error_generic') + ': ' + (err as Error).message);
     } finally {
         setIsExporting(false);
     }
@@ -84,7 +84,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
         <header className="station-modal-header">
           <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
              <DownloadIcon size={20} color="var(--primary-color)" />
-             <h2 className="station-form-section-title" style={{ margin: 0 }}>REPORT_EXPORT_CENTER</h2>
+             <h2 className="station-form-section-title" style={{ margin: 0 }}>{t('supervisor.report_modal.title').toUpperCase()}</h2>
           </div>
           <button className="station-btn secondary tiny" onClick={onClose}><XIcon size={16} /></button>
         </header>
@@ -94,41 +94,41 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
               
               {/* SELECTOR DE TIPO DE REPORTE */}
               <div className="flex-col" style={{ gap: '8px' }}>
-                 <label className="station-registry-item-meta">TIPO_DE_INFORME</label>
+                 <label className="station-registry-item-meta">{t('supervisor.report_modal.report_type')}</label>
                  <div className="flex-col" style={{ gap: '8px' }}>
                     <button 
-                       className={`station-registry-sync-header clickable flex-row ${reportType === 'MASTER_PDF' ? 'active' : ''}`}
-                       onClick={() => setReportType('MASTER_PDF')}
-                       style={{ gap: '16px', padding: '16px', textAlign: 'left', border: reportType === 'MASTER_PDF' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: reportType === 'MASTER_PDF' ? 'rgba(var(--primary-color-rgb), 0.1)' : 'transparent' }}
+                        className={`station-registry-sync-header clickable flex-row ${reportType === 'MASTER_PDF' ? 'active' : ''}`}
+                        onClick={() => setReportType('MASTER_PDF')}
+                        style={{ gap: '16px', padding: '16px', textAlign: 'left', border: reportType === 'MASTER_PDF' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: reportType === 'MASTER_PDF' ? 'rgba(var(--primary-color-rgb), 0.1)' : 'var(--surface-color)', color: 'var(--text-primary)' }}
                     >
-                       <FileTextIcon size={18} color={reportType === 'MASTER_PDF' ? 'var(--primary-color)' : 'inherit'} />
+                       <FileTextIcon size={18} color={reportType === 'MASTER_PDF' ? 'var(--primary-color)' : 'var(--text-secondary)'} />
                        <div className="flex-col" style={{ alignItems: 'flex-start' }}>
-                          <span className="station-title-main" style={{ fontSize: '0.8rem' }}>MASTER COMPLIANCE PDF</span>
-                          <span className="station-registry-item-meta" style={{ fontSize: '0.65rem' }}>KPIs globales, seguridad y resumen de planta (High-Fidelity)</span>
+                          <span className="station-title-main" style={{ fontSize: '0.8rem' }}>{t('supervisor.report_modal.master_pdf')}</span>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.65rem' }}>{t('supervisor.report_modal.master_pdf_desc')}</span>
                        </div>
                     </button>
 
                     <button 
-                       className={`station-registry-sync-header clickable flex-row ${reportType === 'MAPPING_HEALTH_CSV' ? 'active' : ''}`}
-                       onClick={() => setReportType('MAPPING_HEALTH_CSV')}
-                       style={{ gap: '16px', padding: '16px', textAlign: 'left', border: reportType === 'MAPPING_HEALTH_CSV' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: reportType === 'MAPPING_HEALTH_CSV' ? 'rgba(var(--primary-color-rgb), 0.1)' : 'transparent' }}
+                        className={`station-registry-sync-header clickable flex-row ${reportType === 'MAPPING_HEALTH_CSV' ? 'active' : ''}`}
+                        onClick={() => setReportType('MAPPING_HEALTH_CSV')}
+                        style={{ gap: '16px', padding: '16px', textAlign: 'left', border: reportType === 'MAPPING_HEALTH_CSV' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: reportType === 'MAPPING_HEALTH_CSV' ? 'rgba(var(--primary-color-rgb), 0.1)' : 'var(--surface-color)', color: 'var(--text-primary)' }}
                     >
-                       <DatabaseIcon size={18} color={reportType === 'MAPPING_HEALTH_CSV' ? 'var(--primary-color)' : 'inherit'} />
+                       <DatabaseIcon size={18} color={reportType === 'MAPPING_HEALTH_CSV' ? 'var(--primary-color)' : 'var(--text-secondary)'} />
                        <div className="flex-col" style={{ alignItems: 'flex-start' }}>
-                          <span className="station-title-main" style={{ fontSize: '0.8rem' }}>MAPPING HEALTH AUDIT (CSV)</span>
-                          <span className="station-registry-item-meta" style={{ fontSize: '0.65rem' }}>Estado de cobertura detallado de todas las unidades activas</span>
+                          <span className="station-title-main" style={{ fontSize: '0.8rem' }}>{t('supervisor.report_modal.mapping_health')}</span>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.65rem' }}>{t('supervisor.report_modal.mapping_health_desc')}</span>
                        </div>
                     </button>
 
                     <button 
-                       className={`station-registry-sync-header clickable flex-row ${reportType === 'AUDIT_TRAIL_CSV' ? 'active' : ''}`}
-                       onClick={() => setReportType('AUDIT_TRAIL_CSV')}
-                       style={{ gap: '16px', padding: '16px', textAlign: 'left', border: reportType === 'AUDIT_TRAIL_CSV' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: reportType === 'AUDIT_TRAIL_CSV' ? 'rgba(var(--primary-color-rgb), 0.1)' : 'transparent' }}
+                        className={`station-registry-sync-header clickable flex-row ${reportType === 'AUDIT_TRAIL_CSV' ? 'active' : ''}`}
+                        onClick={() => setReportType('AUDIT_TRAIL_CSV')}
+                        style={{ gap: '16px', padding: '16px', textAlign: 'left', border: reportType === 'AUDIT_TRAIL_CSV' ? '1px solid var(--primary-color)' : '1px solid var(--border-color)', background: reportType === 'AUDIT_TRAIL_CSV' ? 'rgba(var(--primary-color-rgb), 0.1)' : 'var(--surface-color)', color: 'var(--text-primary)' }}
                     >
-                       <ActivityIcon size={18} color={reportType === 'AUDIT_TRAIL_CSV' ? 'var(--primary-color)' : 'inherit'} />
+                       <ActivityIcon size={18} color={reportType === 'AUDIT_TRAIL_CSV' ? 'var(--primary-color)' : 'var(--text-secondary)'} />
                        <div className="flex-col" style={{ alignItems: 'flex-start' }}>
-                          <span className="station-title-main" style={{ fontSize: '0.8rem' }}>DETAILED AUDIT TRAIL (CSV)</span>
-                          <span className="station-registry-item-meta" style={{ fontSize: '0.65rem' }}>Volcado crudo de eventos de auditoría forense por unidad</span>
+                          <span className="station-title-main" style={{ fontSize: '0.8rem' }}>{t('supervisor.report_modal.audit_trail')}</span>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.65rem' }}>{t('supervisor.report_modal.audit_trail_desc')}</span>
                        </div>
                     </button>
                  </div>
@@ -136,15 +136,15 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
 
               {/* FILTROS CONDICIONALES */}
               {reportType === 'AUDIT_TRAIL_CSV' && (
-                 <div className="station-card fade-in" style={{ gap: '16px', padding: '20px', background: 'rgba(0,0,0,0.1)' }}>
+                 <div className="station-card fade-in" style={{ gap: '16px', padding: '20px', background: 'var(--surface-color)', border: '1px solid var(--border-color)' }}>
                     <div className="station-field-container">
-                       <label className="station-registry-item-meta"><FilterIcon size={10} /> SELECCIONAR_UNIDAD</label>
+                       <label className="station-registry-item-meta"><FilterIcon size={10} /> {t('supervisor.report_modal.select_unit')}</label>
                        <select 
                           className="station-input" 
                           value={selectedUnitId} 
                           onChange={(e) => setSelectedUnitId(e.target.value)}
                        >
-                          <option value="">-- SELECCIONE UNIDAD --</option>
+                          <option value="">{t('supervisor.report_modal.select_unit_placeholder')}</option>
                           {units?.map(u => (
                              <option key={u.id} value={u.id}>[{u.code}] {u.name}</option>
                           ))}
@@ -152,20 +152,20 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
                     </div>
                     <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
                        <div className="station-field-container">
-                          <label className="station-registry-item-meta"><CalendarIcon size={10} /> DESDE</label>
+                          <label className="station-registry-item-meta"><CalendarIcon size={10} /> {t('supervisor.report_modal.from')}</label>
                           <input type="date" className="station-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
                        </div>
                        <div className="station-field-container">
-                          <label className="station-registry-item-meta"><CalendarIcon size={10} /> HASTA</label>
+                          <label className="station-registry-item-meta"><CalendarIcon size={10} /> {t('supervisor.report_modal.to')}</label>
                           <input type="date" className="station-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
                        </div>
                     </div>
                  </div>
               )}
 
-              <div className="station-registry-sync-header">
+              <div className="station-registry-sync-header" style={{ background: 'var(--surface-color)', border: '1px dashed var(--border-color)' }}>
                  <span className="station-shimmer-text" style={{ fontSize: '0.65rem' }}>
-                    * Los reportes CSV utilizan ';' como delimitador industrial. Los informes PDF incluyen firmas de integridad para validación offline.
+                    {t('supervisor.report_modal.hint')}
                  </span>
               </div>
 
@@ -173,7 +173,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
         </main>
 
         <footer className="station-modal-footer">
-           <button className="station-btn secondary" onClick={onClose} disabled={isExporting}>CANCELAR</button>
+           <button className="station-btn secondary" onClick={onClose} disabled={isExporting}>{t('common.cancel')}</button>
            <button 
               className="station-btn station-btn-primary" 
               onClick={handleExport}
@@ -181,7 +181,7 @@ export const ReportExportModal: React.FC<ReportExportModalProps> = ({ onClose, s
               style={{ minWidth: '180px' }}
            >
               {isExporting ? <RefreshCwIcon size={16} className="spin" /> : <DownloadIcon size={16} />}
-              <span>{isExporting ? 'GENERANDO...' : 'GENERAR_INFORME'}</span>
+              <span>{isExporting ? t('supervisor.report_modal.btn_generating') : t('supervisor.report_modal.btn_generate')}</span>
            </button>
         </footer>
       </div>

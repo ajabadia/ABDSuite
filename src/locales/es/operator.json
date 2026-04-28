@@ -1,19 +1,45 @@
 {
   "operator": {
     "role": "ROL",
-    "panel_title": "GESTIÓN DE OPERARIOS",
-    "search_placeholder": "BUSCAR OPERARIO...",
+    "panel_title": "GESTIÓN DE OPERADORES",
+    "search_placeholder": "BUSCAR OPERADOR...",
     "username": "NOMBRE DE USUARIO",
     "display_name": "NOMBRE A MOSTRAR",
     "roles": {
       "ADMIN": "ADMINISTRADOR/A",
-      "TECH": "TÉCNICO/A"
+      "TECH": "TÉCNICO/A",
+      "OPERATOR": "OPERADOR/A"
     },
     "active": "ACTIVO",
     "inactive": "INACTIVO",
     "last_login": "ÚLTIMO ACCESO",
-    "add_new": "AÑADIR_NUEVO_OPERARIO",
+    "add_new": "AÑADIR_NUEVO_OPERADOR",
     "edit_status": "ESTADO_CUENTA",
-    "permissions": "CONFIG_PERMISOS"
+    "permissions": "CONFIG_PERMISOS",
+    "edit_operator": "EDITAR_OPERADOR: {name}",
+    "provision_new": "PROVISIONAR_NUEVO_OPERADOR",
+    "unlock_pin": "DESBLOQUEAR_PIN",
+    "reset_mfa": "RESETEAR_MFA",
+    "xfer_master": "TRANSFERIR_MASTER",
+    "commit": "GUARDANDO...",
+    "lockout_active": "BLOQUEO_SEGURIDAD_ACTIVO",
+    "lockout_msg": "MÁXIMOS INTENTOS DE PIN EXCEDIDOS. SE REQUIERE DESBLOQUEO ADMINISTRATIVO.",
+    "root_protection": "PROTECCIÓN_IDENTIDAD_ROOT",
+    "root_msg": "ESTE OPERADOR TIENE PRIVILEGIOS DE NIVEL MASTER (UID_0).",
+    "full_name_placeholder": "NOMBRE COMPLETO",
+    "role_admin": "JEFE_DE_ESTACIÓN_ADMIN",
+    "role_tech": "MANTENIMIENTO_TÉCNICO",
+    "role_operator": "OPERADOR_ESTÁNDAR",
+    "update_pin": "ACTUALIZAR_PIN_SEGURIDAD (OPCIONAL)",
+    "initial_pin": "PIN_DE_SEGURIDAD_INICIAL",
+    "active_status_label": "ESTADO_OPERADOR_ACTIVO_EN_CLUSTER",
+    "perm_matrix_title": "MATRIZ_OVERRIDE_PERMISOS (RBAC_LAYERS)",
+    "sys_capability": "CAPACIDAD_SISTEMA",
+    "base": "BASE",
+    "grant": "CONCEDER",
+    "revoke": "DENEGAR",
+    "inherited": "HEREDADO_DEL_ROL",
+    "custom_override": "OVERRIDE_PERSONALIZADO",
+    "commit_failure": "FALLO_DE_COMMIT: {error}"
   }
 }

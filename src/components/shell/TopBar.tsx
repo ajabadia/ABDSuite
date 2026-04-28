@@ -27,6 +27,8 @@ export const TopBar: React.FC = () => {
     if (pathname.includes('/etl')) return t('shell.etl');
     if (pathname.includes('/letter')) return t('shell.letter');
     if (pathname.includes('/audit')) return t('shell.audit');
+    if (pathname.includes('/regulatory')) return t('shell.regtech');
+    if (pathname.includes('/supervisor')) return t('supervisor.title');
     return 'STATION';
   };
 

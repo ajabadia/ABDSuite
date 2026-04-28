@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { 
   SystemIcon, 
@@ -32,12 +32,14 @@ export const Sidebar: React.FC = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isSyncOpen, setIsSyncOpen] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { t } = useLanguage();
   
   const [etlExpanded, setEtlExpanded] = useState(pathname.startsWith('/etl'));
   const [cryptExpanded, setCryptExpanded] = useState(pathname.startsWith('/crypt'));
   const [letterExpanded, setLetterExpanded] = useState(pathname.startsWith('/letter'));
   const [regulatoryExpanded, setRegulatoryExpanded] = useState(pathname.startsWith('/regulatory'));
+  const [supervisorExpanded, setSupervisorExpanded] = useState(pathname.startsWith('/supervisor'));
   
   // Auto-collapse logic
   useEffect(() => {
@@ -67,6 +69,13 @@ export const Sidebar: React.FC = () => {
       setRegulatoryExpanded(false);
     } else if (!regulatoryExpanded && pathname.startsWith('/regulatory')) {
       setRegulatoryExpanded(true);
+    }
+
+    // Supervisor
+    if (!pathname.startsWith('/supervisor')) {
+      setSupervisorExpanded(false);
+    } else if (!supervisorExpanded && pathname.startsWith('/supervisor')) {
+      setSupervisorExpanded(true);
     }
   }, [pathname]);
 
@@ -136,10 +145,20 @@ export const Sidebar: React.FC = () => {
 
   if (canSeeSupervisor) {
     navItems.push({
-        href: '/supervisor',
-        icon: <ActivityIcon size={20} />,
-        label: t('supervisor.title'),
-        id: 'supervisor'
+      id: 'supervisor',
+      icon: <ActivityIcon size={20} />,
+      label: t('supervisor.title'),
+      isAccordion: true,
+      expanded: supervisorExpanded,
+      setExpanded: setSupervisorExpanded,
+      activePath: '/supervisor',
+      subItems: [
+        { href: '/supervisor?tab=TELEMETRY', icon: <ActivityIcon size={14} />, label: t('supervisor.title').split(' ')[0], id: 'sup-telemetry' },
+        { href: '/supervisor?tab=OPERATORS', icon: <UserIcon size={14} />, label: t('operator.panel_title').split(' ')[0], id: 'sup-operators' },
+        { href: '/supervisor?tab=SECURITY', icon: <ShieldCheckIcon size={14} />, label: t('audit.securityTitle').split(' ')[0], id: 'sup-security' },
+        { href: '/supervisor?tab=TECHNICAL', icon: <CogIcon size={14} />, label: 'LAB_COCKPIT', id: 'sup-tech' },
+        { href: '/supervisor?tab=DOCUMENTS', icon: <FileTextIcon size={14} />, label: 'DOCUMENTOS', id: 'sup-docs' },
+      ]
     });
   }
 
@@ -180,7 +199,8 @@ export const Sidebar: React.FC = () => {
                   <div className="station-nav-anim-content">
                     <div className="station-nav-sub-container">
                       {item.subItems?.map(sub => {
-                         const isSubActive = pathname === sub.href;
+                         const currentFull = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+                         const isSubActive = currentFull === sub.href || pathname === sub.href;
                          return (
                           <Link 
                             key={sub.id}

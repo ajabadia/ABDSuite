@@ -1,0 +1,82 @@
+/* --- ANIMATIONS --- */
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sistema de Animación de Colapso Industrial */
+.station-registry-anim-container {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease-out;
+}
+
+.station-registry-anim-container.expanded {
+  grid-template-rows: 1fr;
+}
+
+/* Animación de Navegación Lateral */
+.station-nav-anim-container {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease-out;
+}
+
+.station-nav-anim-container.expanded {
+  grid-template-rows: 1fr;
+}
+
+.station-nav-anim-content {
+  overflow: hidden;
+}
+
+/* Animación de Consola Industrial */
+.station-console-anim-container {
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+.station-registry-anim-content {
+  overflow: hidden;
+}
+
+/* --- INTEGRITY HEARTBEATS --- */
+@keyframes station-heartbeat {
+  0%, 100% { opacity: 0.4; transform: scale(1); filter: brightness(1); }
+  50% { opacity: 1; transform: scale(1.02); filter: brightness(1.2); }
+}
+
+@keyframes dot-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* --- SHIMMER SYSTEMS --- */
+.station-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmerTerm 3s infinite linear;
+  letter-spacing: 0.1rem;
+}
+
+@keyframes shimmerTerm {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}

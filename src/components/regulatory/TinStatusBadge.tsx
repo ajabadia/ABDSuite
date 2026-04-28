@@ -14,37 +14,27 @@ export const TinStatusBadge: React.FC<TinStatusBadgeProps> = ({ status, tiny }) 
     switch (s) {
       case 'VALID':
         return { 
-          bg: 'rgba(16, 185, 129, 0.12)', 
-          border: 'rgba(16, 185, 129, 0.5)', 
-          color: '#10b981',
+          className: 'station-badge success',
           label: 'VALID'
         };
       case 'EXEMPTED':
         return { 
-          bg: 'rgba(56, 189, 248, 0.12)', 
-          border: 'rgba(56, 189, 248, 0.5)', 
-          color: '#38bdf8',
+          className: 'station-badge info',
           label: 'EXEMPT'
         };
       case 'MISMATCH':
         return { 
-          bg: 'rgba(251, 146, 60, 0.12)', 
-          border: 'rgba(251, 146, 60, 0.5)', 
-          color: '#fb923c',
+          className: 'station-badge warn',
           label: 'MISMATCH'
         };
       case 'INVALID':
         return { 
-          bg: 'rgba(244, 63, 94, 0.12)', 
-          border: 'rgba(244, 63, 94, 0.5)', 
-          color: '#f43f5e',
+          className: 'station-badge err',
           label: 'INVALID'
         };
       default:
         return { 
-          bg: 'rgba(155, 155, 155, 0.1)', 
-          border: 'rgba(155, 155, 155, 0.3)', 
-          color: '#999',
+          className: 'station-badge',
           label: 'N/A'
         };
     }
@@ -53,17 +43,9 @@ export const TinStatusBadge: React.FC<TinStatusBadgeProps> = ({ status, tiny }) 
   const config = getStyles(status);
 
   return (
-    <span className="tin-badge" style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      padding: tiny ? '1px 6px' : '2px 10px',
-      borderRadius: '999px',
-      fontSize: tiny ? '0.55rem' : '0.65rem',
+    <span className={`${config.className} ${tiny ? 'tiny' : ''}`} style={{
       fontWeight: 900,
       letterSpacing: '0.08em',
-      background: config.bg,
-      border: `1px solid ${config.border}`,
-      color: config.color,
       textTransform: 'uppercase'
     }}>
       {config.label}

@@ -7,13 +7,39 @@
     "display_name": "DISPLAY NAME",
     "roles": {
       "ADMIN": "ADMINISTRATOR",
-      "TECH": "TECHNICIAN"
+      "TECH": "TECHNICIAN",
+      "OPERATOR": "OPERATOR"
     },
     "active": "ACTIVE",
     "inactive": "INACTIVE",
     "last_login": "LAST LOGIN",
     "add_new": "ADD_NEW_OPERATOR",
     "edit_status": "ACCOUNT_STATUS",
-    "permissions": "PERMISSIONS_CONFIG"
+    "permissions": "PERMISSIONS_CONFIG",
+    "edit_operator": "EDIT_OPERATOR: {name}",
+    "provision_new": "PROVISION_NEW_OPERATOR",
+    "unlock_pin": "UNLOCK_PIN",
+    "reset_mfa": "RESET_MFA",
+    "xfer_master": "XFER_MASTER",
+    "commit": "COMMIT...",
+    "lockout_active": "SECURITY_LOCKOUT_ACTIVE",
+    "lockout_msg": "MAXIMUM_PIN_ATTEMPTS_EXCEEDED. ADMINISTRATIVE_UNLOCK_REQUIRED.",
+    "root_protection": "ROOT_IDENTITY_PROTECTION",
+    "root_msg": "THIS_OPERATOR_HAS_MASTER_LEVEL_PRIVILEGES (UID_0).",
+    "full_name_placeholder": "FULL NAME",
+    "role_admin": "ADMIN_STATION_CHIEF",
+    "role_tech": "TECHNICAL_MAINTENANCE",
+    "role_operator": "STANDARD_OPERATOR",
+    "update_pin": "UPDATE_SECURITY_PIN (OPTIONAL)",
+    "initial_pin": "INITIAL_SECURITY_PIN",
+    "active_status_label": "OPERATOR_STATUS_ACTIVE_IN_CLUSTER",
+    "perm_matrix_title": "PERM_OVERRIDE_MATRIX (RBAC_LAYERS)",
+    "sys_capability": "SYSTEM_CAPABILITY",
+    "base": "BASE",
+    "grant": "GRANT",
+    "revoke": "REVOKE",
+    "inherited": "INHERITED_FROM_ROLE",
+    "custom_override": "CUSTOM_OVERRIDE",
+    "commit_failure": "COMMIT_FAILURE: {error}"
   }
 }

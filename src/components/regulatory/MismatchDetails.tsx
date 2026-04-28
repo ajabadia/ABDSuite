@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangleIcon } from '@/components/common/Icons';
+import { useLanguage } from '@/lib/context/LanguageContext';
 
 interface MismatchDetailsProps {
   reasonCode?: string;
@@ -14,9 +15,14 @@ export const MismatchDetails: React.FC<MismatchDetailsProps> = ({
   reasonCode,
   fields,
 }) => {
+  const { t } = useLanguage();
   if (!fields || fields.length === 0) return null;
 
   const mapFieldLabel = (field: string) => {
+    const key = `regulatory.fields.${field}`;
+    const localized = t(key as any);
+    if (localized !== key) return localized.toUpperCase();
+    
     switch (field) {
       case 'dob': return 'DATE_OF_BIRTH';
       case 'gender': return 'GENDER_IDENTITY';
@@ -26,22 +32,13 @@ export const MismatchDetails: React.FC<MismatchDetailsProps> = ({
     }
   };
 
-  const mapFieldHint = (field: string) => {
-    switch (field) {
-      case 'dob': return 'The birth date provided does not match the encoded value within the TIN.';
-      case 'gender': return 'Biological sex encoded in the TIN contradicts the user input.';
-      case 'city': return 'The cadastral place/city code in the TIN is inconsistent with the provided city.';
-      default: return 'Metadata value is inconsistent with the jurisdictional logic of the TIN.';
-    }
-  };
-
   return (
     <div
       className="station-card"
       style={{
         marginTop: '12px',
         padding: '16px',
-        borderLeft: '4px solid #fb923c',
+        borderLeft: '4px solid var(--status-warn)',
         background: 'rgba(251, 146, 60, 0.05)',
       }}
     >
@@ -51,18 +48,18 @@ export const MismatchDetails: React.FC<MismatchDetailsProps> = ({
           fontWeight: 900,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          color: '#fb923c',
-          marginBottom: '12px',
+          color: 'var(--status-warn)',
+          marginBottom: '16px',
           display: 'flex',
           alignItems: 'center',
           gap: '8px'
         }}
       >
         <AlertTriangleIcon size={14} />
-        SEMANTIC_DISCREPANCY_DETECTED
+        {t('regulatory.stat_mismatch').toUpperCase()}_DETECTED
       </div>
       
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {fields.map(field => (
           <li
             key={field}
@@ -70,18 +67,19 @@ export const MismatchDetails: React.FC<MismatchDetailsProps> = ({
               display: 'flex',
               alignItems: 'flex-start',
               gap: '12px',
-              marginBottom: '10px',
             }}
           >
             <div style={{ marginTop: '4px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fb923c' }} />
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--status-warn)' }} />
             </div>
-            <div>
+            <div className="flex-col">
               <div style={{ fontSize: '0.75rem', fontWeight: 900, color: 'white', opacity: 0.9 }}>
                 {mapFieldLabel(field)}
               </div>
               <div style={{ fontSize: '0.65rem', opacity: 0.6, marginTop: '2px', lineHeight: 1.4 }}>
-                {mapFieldHint(field)}
+                {t(`regulatory.mismatch_hints.${field}` as any) !== `regulatory.mismatch_hints.${field}` 
+                    ? t(`regulatory.mismatch_hints.${field}` as any)
+                    : 'INCONSISTENCY_DETECTED_IN_CORE_LOGIC'}
               </div>
             </div>
           </li>
@@ -94,12 +92,13 @@ export const MismatchDetails: React.FC<MismatchDetailsProps> = ({
             marginTop: '12px',
             paddingTop: '8px',
             borderTop: '1px solid rgba(255,255,255,0.05)',
-            fontSize: '0.6rem',
+            fontSize: '0.55rem',
             opacity: 0.4,
-            fontFamily: 'var(--font-roboto-mono)',
+            fontFamily: 'var(--font-mono)',
+            letterSpacing: '0.5px'
           }}
         >
-          INTERNAL_REASON_CODE: <span style={{ color: '#fb923c' }}>{reasonCode}</span>
+          INTERNAL_REASON_CODE: <span style={{ color: 'var(--status-warn)', fontWeight: 900 }}>{reasonCode}</span>
         </div>
       )}
     </div>

@@ -6,6 +6,7 @@
     "cancel": "CANCELAR",
     "help": "AYUDA",
     "ok": "ENTENDIDO",
-    "search": "BUSCAR"
+    "search": "BUSCAR",
+    "none": "NINGUNO"
   }
 }

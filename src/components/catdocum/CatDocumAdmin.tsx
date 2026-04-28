@@ -181,235 +181,117 @@ const CatDocumAdmin: React.FC = () => {
   };
 
   return (
-    <div className="catdocum-layout">
-      {/* Listado Maestro */}
-      <section className="station-card catdocum-list obsidian-surface-technical">
-        <header className="catdocum-header">
-          <div className="title-group">
-            <h3 className="technical-title">{t('catdocum.master_list') ?? 'CATÁLOGO DE DOCUMENTOS'}</h3>
-            <span className="badge">
-              {filtered.length} {t('catdocum.entries') ?? 'ENTRADAS'}
-            </span>
-          </div>
-          <div className="actions">
-            <button
-              className="station-btn icon-only primary-glow"
-              onClick={handleCreateNew}
-              title={t('catdocum.new_entry') ?? 'NUEVA ENTRADA'}
-            >
-              <PlusIcon size={18} />
-            </button>
-          </div>
-        </header>
+    <div className="flex-col animate-fade-in" style={{ gap: '24px', height: '100%' }}>
+      <div className="catdocum-layout" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', flex: 1, minHeight: 0 }}>
+        {/* Listado Maestro */}
+        <section className="station-card flex-col" style={{ gap: '20px', padding: '0', overflow: 'hidden' }}>
+          <header className="station-registry-header" style={{ padding: '16px 24px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="flex-col" style={{ gap: '4px' }}>
+              <h3 className="station-registry-item-name" style={{ margin: 0, fontWeight: 900 }}>{t('letter.catdocum.master_list') ?? 'CATÁLOGO DE DOCUMENTOS'}</h3>
+              <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
+                <span className="station-badge info" style={{ fontSize: '0.65rem' }}>{filtered.length} {t('letter.catdocum.entries') ?? 'ENTRADAS'}</span>
+              </div>
+            </div>
+            <div className="flex-row" style={{ gap: '12px' }}>
+              <button
+                className="station-btn success icon-only"
+                onClick={handleCreateNew}
+                title={t('letter.catdocum.new_entry') ?? 'NUEVA ENTRADA'}
+              >
+                <PlusIcon size={18} />
+              </button>
+            </div>
+          </header>
 
-        <div className="search-row">
-          <div className="input-wrapper">
-            <SearchIcon size={14} className="input-icon" />
-            <input
-              className="station-input search-input"
-              placeholder={t('common.search') ?? 'BUSCAR POR CODDOC O NOMBRE'}
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            />
+          <div style={{ padding: '16px 24px' }}>
+            <div className="station-form-field" style={{ margin: 0 }}>
+              <div className="flex-row" style={{ gap: '12px', background: 'rgba(0,0,0,0.2)', padding: '8px 12px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <SearchIcon size={14} style={{ opacity: 0.4 }} />
+                <input
+                  className="station-input-clean"
+                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                  placeholder={t('common.search') ?? 'BUSCAR POR CODDOC O NOMBRE'}
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="table-container">
-          <table className="station-table technical-table">
-            <thead>
-              <tr>
-                <th style={{ width: '80px' }}>CODDOC</th>
-                <th>{t('catdocum.table.name') ?? 'NOMBRE NEGOCIO'}</th>
-                <th style={{ width: '100px' }}>{t('catdocum.table.category') ?? 'CATEGORÍA'}</th>
-                <th style={{ width: '80px' }}>{t('catdocum.table.status') ?? 'ESTADO'}</th>
-                <th style={{ width: '40px' }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 && (
+          <div className="station-table-container" style={{ flex: 1, margin: '0 24px 24px 24px' }}>
+            <table className="station-table">
+              <thead>
                 <tr>
-                  <td colSpan={5} className="empty-message">
-                    {t('catdocum.empty_list') ?? 'NO HAY DOCUMENTOS CONFIGURADOS'}
-                  </td>
+                  <th style={{ width: '80px' }}>{t('letter.catdocum.table.code') ?? 'CODDOC'}</th>
+                  <th>{t('letter.catdocum.table.name') ?? 'NOMBRE NEGOCIO'}</th>
+                  <th style={{ width: '100px' }}>{t('letter.catdocum.table.category') ?? 'CATEGORÍA'}</th>
+                  <th style={{ width: '80px' }}>{t('letter.catdocum.table.status') ?? 'ESTADO'}</th>
+                  <th style={{ width: '40px' }}></th>
                 </tr>
-              )}
-              {filtered.map((r: CatDocumRecord) => (
-                <tr
-                  key={r.id}
-                  className={`technical-row ${selectedId === r.id ? 'active' : ''}`}
-                  onClick={() => setSelectedId(r.id)}
-                >
-                  <td className="technical-code">{r.codDocumento}</td>
-                  <td>
-                    <div className="name-cell">
-                      <FileTextIcon size={14} className="cell-icon" />
-                      <span>{r.businessName || '—'}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="category-tag">{r.category}</span>
-                  </td>
-                  <td>
-                    <span className={`status-pill ${r.isActive ? 'active' : 'inactive'}`}>
-                      {r.isActive ? 'ACTIVE' : 'HIDDEN'}
-                    </span>
-                  </td>
-                  <td>
-                    {r.templateId && (
-                      <button
-                        className="station-btn tiny icon-only ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePreviewTemplate(r.templateId!);
-                        }}
-                      >
-                        <EyeIcon size={14} />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+              </thead>
+              <tbody>
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '40px', opacity: 0.5 }}>
+                      {t('letter.catdocum.empty_list') ?? 'NO HAY DOCUMENTOS CONFIGURADOS'}
+                    </td>
+                  </tr>
+                )}
+                {filtered.map((r: CatDocumRecord) => (
+                  <tr
+                    key={r.id}
+                    className={selectedId === r.id ? 'active' : ''}
+                    onClick={() => setSelectedId(r.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td style={{ fontWeight: 900, color: 'var(--primary-color)', fontFamily: 'var(--font-mono)' }}>{r.codDocumento}</td>
+                    <td>
+                      <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
+                        <FileTextIcon size={14} style={{ opacity: 0.4 }} />
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{r.businessName || '—'}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="station-badge info" style={{ fontSize: '0.6rem' }}>{r.category}</span>
+                    </td>
+                    <td>
+                      <span className={`station-badge ${r.isActive ? 'success' : 'warn'}`} style={{ fontSize: '0.6rem' }}>
+                        {r.isActive ? 'ACTIVE' : 'HIDDEN'}
+                      </span>
+                    </td>
+                    <td>
+                      {r.templateId && (
+                        <button
+                          className="station-btn icon-only secondary"
+                          style={{ padding: '4px' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePreviewTemplate(r.templateId!);
+                          }}
+                        >
+                          <EyeIcon size={14} />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-      {/* Detalle / Edición */}
-      <CatDocumDetailPanel
-        record={editing}
-        presets={presets ?? []}
-        templates={templates ?? []}
-        mappings={mappings ?? []}
-        onSave={handleSaveRecord}
-        onCancel={() => setSelectedId(null)}
-        onPreviewTemplate={handlePreviewTemplate}
-        onPreviewDummy={handlePreviewDummy}
-      />
-
-      <style jsx>{`
-        .catdocum-layout {
-          display: grid;
-          grid-template-columns: 1.2fr 1fr;
-          gap: 24px;
-          height: calc(100vh - 180px);
-          animation: slideUp 0.4s ease-out;
-        }
-        .catdocum-list {
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-        }
-        .catdocum-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-        .technical-title {
-          font-size: 0.85rem;
-          letter-spacing: 2px;
-          opacity: 0.8;
-          margin: 0;
-        }
-        .badge {
-          font-size: 0.6rem;
-          opacity: 0.4;
-          margin-top: 4px;
-          display: block;
-        }
-        .search-row {
-          margin-bottom: 16px;
-        }
-        .input-wrapper {
-          position: relative;
-        }
-        .input-icon {
-          position: absolute;
-          left: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          opacity: 0.4;
-        }
-        .search-input {
-          padding-left: 36px;
-          width: 100%;
-          background: rgba(15, 23, 42, 0.4);
-        }
-        .table-container {
-          flex: 1;
-          overflow-y: auto;
-          border: 1px solid var(--border-color);
-          border-radius: 4px;
-          background: rgba(15, 23, 42, 0.2);
-        }
-        .technical-table th {
-          position: sticky;
-          top: 0;
-          background: var(--surface-secondary);
-          z-index: 10;
-          font-size: 0.6rem;
-          letter-spacing: 1px;
-          padding: 12px;
-        }
-        .technical-row {
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        .technical-row:hover {
-          background: rgba(2, 132, 199, 0.1);
-        }
-        .technical-row.active {
-          background: rgba(2, 132, 199, 0.15);
-          border-left: 3px solid var(--primary-color);
-        }
-        .technical-code {
-          font-family: var(--font-mono);
-          font-weight: 700;
-          color: var(--primary-color);
-          font-size: 0.75rem;
-        }
-        .name-cell {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 0.75rem;
-        }
-        .cell-icon {
-          opacity: 0.5;
-        }
-        .category-tag {
-          font-size: 0.6rem;
-          padding: 2px 6px;
-          background: rgba(148, 163, 184, 0.1);
-          border-radius: 2px;
-          opacity: 0.8;
-        }
-        .status-pill {
-          font-size: 0.55rem;
-          padding: 2px 6px;
-          border-radius: 99px;
-          font-weight: 700;
-        }
-        .status-pill.active {
-          color: var(--success-color);
-          background: rgba(34, 197, 94, 0.1);
-        }
-        .status-pill.inactive {
-          color: var(--text-tertiary);
-          background: rgba(148, 163, 184, 0.1);
-        }
-        .empty-message {
-          text-align: center;
-          padding: 48px 0;
-          opacity: 0.4;
-          font-size: 0.8rem;
-          font-style: italic;
-        }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+        {/* Detalle / Edición */}
+        <CatDocumDetailPanel
+          record={editing}
+          presets={presets ?? []}
+          templates={templates ?? []}
+          mappings={mappings ?? []}
+          onSave={handleSaveRecord}
+          onCancel={() => setSelectedId(null)}
+          onPreviewTemplate={handlePreviewTemplate}
+          onPreviewDummy={handlePreviewDummy}
+        />
+      </div>
     </div>
   );
 };

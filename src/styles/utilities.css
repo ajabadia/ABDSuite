@@ -1,37 +1,3 @@
-/* --- EMPTY STATE & SHIMMER SYSTEM --- */
-.station-empty-state {
-  height: 100%;
-  min-height: 180px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.6;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 80px 0;
-  text-align: center;
-}
-
-.station-shimmer-text {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmerTerm 3s infinite linear;
-  letter-spacing: 0.1rem;
-}
-
-@keyframes shimmerTerm {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
-}
-
 /* --- MISC UTILITIES --- */
 .station-card {
   background: var(--surface-color);
@@ -46,15 +12,37 @@
 .flex-between { display: flex; align-items: center; justify-content: space-between; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-/* --- BADGES --- */
+/* --- BADGES (Consolidated) --- */
 .station-badge {
   display: inline-flex;
+  align-items: center;
   padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.6rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  font-size: 9px;
   font-weight: 900;
+  border-radius: 2px;
   text-transform: uppercase;
-  border: 1px solid currentColor;
+  letter-spacing: 0.05rem;
+}
+
+.station-badge.success {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+
+.station-badge.warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+}
+
+.station-badge.error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
 }
 
 .station-badge-blue { color: #38bdf8; background: rgba(56, 189, 248, 0.1); }

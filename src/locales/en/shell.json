@@ -40,7 +40,7 @@
     "letter_audit": "AUDIT",
     "regtech_one_by_one": "ONE-BY-ONE VALIDATION",
     "regtech_batch": "BATCH VALIDATION",
-    "regtech_registry": "REGTECH_REGISTRY",
+    "regtech_registry": "REGTECH REGISTRY",
     "status_ready": "SYSTEM READY",
     "status_busy": "PROCESSING DATA",
     "security_safe": "SECURE CONTEXT",
@@ -50,55 +50,7 @@
     "full_restore": "FULL SYSTEM RESTORE",
     "country_selector_label": "TAX RESIDENCY JURISDICTION",
     "country_selector_placeholder": "SELECT JURISDICTION...",
-    "no_results": "NO RESULTS FOUND",
-    "regtech_fields": {
-      "birthDate": "DATE OF BIRTH",
-      "gender": "GENDER",
-      "firstName": "FIRST NAME",
-      "lastName": "LAST NAMES",
-      "isEntity": "IS ENTITY",
-      "city": "CITY OF BIRTH"
-    },
-    "regtech_tin_names": {
-      "ES": { "main": "NIF / NIE", "aux": "" },
-      "IT": { "main": "CODICE FISCALE", "aux": "TAX CODE" },
-      "GB": { "main": "NINO / UTR", "aux": "" },
-      "UK": { "main": "NINO / UTR", "aux": "" },
-      "DE": { "main": "STEUERNUMMER", "aux": "TAX NUMBER" },
-      "FR": { "main": "SPI NUMBER", "aux": "" },
-      "US": { "main": "SSN / TIN", "aux": "" },
-      "MX": { "main": "CURP / RFC", "aux": "" },
-      "BE": { "main": "NN / IDENT.", "aux": "NATIONAL REGISTER" },
-      "ZA": { "main": "SARS TIN", "aux": "" },
-      "LT": { "main": "ASMENS KODAS", "aux": "PERSONAL CODE" }
-    },
-    "regtech_station": {
-      "manual_inspector_title": "MANUAL TIN INSPECTOR",
-      "jurisdiction_label": "JURISDICTION CODE",
-      "tin_label": "TAX IDENTIFIER (TIN)",
-      "tin_placeholder": "ENTER IDENTIFIER...",
-      "execute_btn": "EXECUTE VALIDATION CORE",
-      "batch_title": "BATCH STREAM VALIDATOR",
-      "dropzone_text": "DROP ISO-TIN PAIR CSV",
-      "auto_delimiter": "AUTO DELIMITER DETECTION ACTIVE",
-      "active_file": "ACTIVE FILE",
-      "reset_btn": "RESET",
-      "stat_total": "TOTAL",
-      "stat_valid": "VALID",
-      "stat_invalid": "INVALID",
-      "stat_mismatch": "MISMATCH",
-      "delimiter_detected": "DELIMITER DETECTED",
-      "memory_isolated": "MEMORY ISOLATED: YES",
-      "export_btn": "EXPORT ENRICHED CSV",
-      "preview_title": "PREVIEW (TOP 50 RECORDS)",
-      "table_iso": "ISO",
-      "table_tin": "TIN_RAW",
-      "table_status": "STATUS",
-      "table_type": "TYPE",
-      "semantic_title": "SEMANTIC REQUIREMENTS DETECTED",
-      "status_badge": "STATUS_BADGE",
-      "tin_denomination": "TIN_DENOMINATION"
-    }
+    "no_results": "NO RESULTS FOUND"
   },
   "dashboard": {
     "welcome": "WELCOME TO ABDFN ASEPTIC HUB",
@@ -106,6 +58,7 @@
     "core_load": "CORE LOAD",
     "mem_status": "MEMORY STATUS",
     "disk_activity": "DISK ACTIVITY",
+    "passphrase_prompt": "Enter passphrase",
     "ready_prompt": "WAITING FOR MODULE COMMAND...",
     "dash_crypt_title": "CRYPTOGRAPHIC CONTROL",
     "dash_crypt_desc": "Mass shielding and AES-256-GCM key management.",
@@ -119,6 +72,10 @@
     "dash_regtech_desc": "Jurisdictional TIN validation and global tax compliance.",
     "sys_status_online": "SYSTEM OPERATIONAL",
     "sys_memory_clean": "MEMORY SANITIZED",
-    "sys_location": "LOCATION: LOCAL / AIR-GAPPED"
+    "sys_location": "LOCATION: LOCAL / AIR-GAPPED",
+    "log_boot": "BOOT_SEQUENCE: OK",
+    "log_storage": "SECURE_STORAGE: MOUNTED",
+    "log_threads": "WORKER_THREADS: POOLING...",
+    "log_ready": "READY_FOR_COMMAND_INPUT."
   }
 }

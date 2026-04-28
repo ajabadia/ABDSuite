@@ -6,6 +6,7 @@
     "cancel": "CANCEL",
     "help": "HELP",
     "ok": "OK",
-    "search": "SEARCH"
+    "search": "SEARCH",
+    "none": "NONE"
   }
 }

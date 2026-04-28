@@ -201,10 +201,10 @@ export default function Dashboard() {
           <div className="station-card dash-report flex-col">
             <h3 className="telemetry-title"><SearchIcon size={16} /> {t('dashboard.ready_prompt')}</h3>
             <div className="system-logs-preview">
-              <div className="log-line">{" > "}BOOT_SEQUENCE: OK</div>
-              <div className="log-line">{" > "}SECURE_STORAGE: MOUNTED</div>
-              <div className="log-line">{" > "}WORKER_THREADS: POOLING...</div>
-              <div className="log-line active">{" > "}READY_FOR_COMMAND_INPUT.</div>
+              <div className="log-line">{" > "}{t('dashboard.log_boot')}</div>
+              <div className="log-line">{" > "}{t('dashboard.log_storage')}</div>
+              <div className="log-line">{" > "}{t('dashboard.log_threads')}</div>
+              <div className="log-line active">{" > "}{t('dashboard.log_ready')}</div>
             </div>
           </div>
         </aside>

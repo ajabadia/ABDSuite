@@ -1,0 +1,68 @@
+/* --- NAVIGATION SYSTEM --- */
+.station-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+  transition: all var(--snap);
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.station-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--primary-color);
+}
+
+.station-nav-item.active {
+  background: rgba(56, 189, 248, 0.1);
+  color: var(--primary-color);
+  border-left: 3px solid var(--primary-color);
+}
+
+.station-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  opacity: 0.7;
+}
+
+.station-nav-item:hover .station-nav-icon,
+.station-nav-item.active .station-nav-icon {
+  opacity: 1;
+}
+
+.station-nav-sub-container {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.1);
+  padding-left: 12px;
+}
+
+.station-nav-sub-item {
+  padding: 10px 24px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.station-nav-sub-item:hover {
+  opacity: 1;
+  color: var(--secondary-color);
+}
+
+.station-nav-sub-item.active {
+  opacity: 1;
+  color: var(--secondary-color);
+  font-weight: 800;
+}

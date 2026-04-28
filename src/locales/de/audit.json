@@ -94,6 +94,44 @@
       "start": "GAWEB-AUDIT GESTARTET: {file}",
       "success": "AUDIT ABGESCHLOSSEN: {n} FEHLER GEFUNDEN.",
       "export": "AUDITBERICHT EXPORTIERT: {file}"
+    },
+    "forensics": {
+      "panel_title": "SICHERHEITSAUDIT-PROTOKOLL (SYSTEM_FORENSICS)",
+      "filter_module": "MODUL",
+      "filter_category": "KATEGORIE",
+      "filter_event": "EREIGNISTYP",
+      "filter_severity": "SCHWEREGRAD",
+      "module_security": "NUR SICHERHEIT",
+      "module_regtech": "REGTECH-AUDIT",
+      "module_all": "GLOBALES SYSTEM",
+      "cat_all": "ALLE KATEGORIEN",
+      "cat_auth": "AUTHENTIFIZIERUNG",
+      "cat_workspace": "ARBEITSBEREICH",
+      "cat_operators": "OPERATOREN",
+      "cat_config": "KONFIGURATION",
+      "cat_data": "DATENOPERATIONEN",
+      "cat_other": "SONSTIGES",
+      "type_all": "ALLE TYPEN",
+      "sev_all": "ALLE SCHWEREGRADE",
+      "sev_info": "INFO",
+      "sev_warn": "WARNUNG",
+      "sev_crit": "KRITISCH",
+      "col_time": "DATUM / ZEIT",
+      "col_type": "KATEGORIE / TYP",
+      "col_actor": "AKTEUR",
+      "col_entity": "ENTITÄT",
+      "col_message": "NACHRICHT",
+      "col_sev": "SCHW.",
+      "detail_title": "FORENSISCHE DETAILS",
+      "no_diff": "KEINE DIFFERENZDATEN VERFÜGBAR",
+      "entities": {
+        "GAWEBSAMPLING": "GAWEB Stichprobenziehung",
+        "TELEMETRYCONFIG": "Telemetrie-Konfiguration",
+        "OPERATOR": "Operator",
+        "WORKSPACE": "Arbeitsbereich",
+        "IK_OVERRIDE": "Integritäts-Bypass",
+        "SESSION_LOCK": "Sitzungssperre"
+      }
     }
   }
 }

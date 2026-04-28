@@ -1,0 +1,13 @@
+﻿src/components/AuditStation/AuditStation.tsx(536,59): error TS2872: This kind of expression is always truthy.
+src/components/AuditStation/AuditStation.tsx(537,61): error TS2872: This kind of expression is always truthy.
+src/components/AuditStation/AuditStation.tsx(538,59): error TS2872: This kind of expression is always truthy.
+src/components/AuditStation/AuditStation.tsx(539,61): error TS2872: This kind of expression is always truthy.
+src/components/catdocum/CatDocumDetailPanel.tsx(265,21): error TS2304: Cannot find name 'EyeIcon'.
+src/components/regulatory/TinValidatorStation.tsx(104,7): error TS2322: Type 'string | undefined' is not assignable to type 'string | number'.
+  Type 'undefined' is not assignable to type 'string | number'.
+src/components/shell/StationHeader.tsx(65,72): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'size' does not exist in type 'Partial<unknown> & Attributes'.
+src/components/shell/StationHeader.tsx(159,89): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'size' does not exist in type 'Partial<unknown> & Attributes'.

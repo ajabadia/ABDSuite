@@ -286,77 +286,76 @@ const LetterPresetEditor: React.FC = () => {
   const filteredFormatos = FORMATOS_GAWEB.filter(f => f.extra === currentSoporte);
 
   return (
-    <div className="flex-col" style={{ gap: '24px' }}>
+    <div className="flex-col animate-fade-in" style={{ gap: '24px', height: '100%' }}>
       {/* 1. Registro Técnico (Unified Style) */}
-      <section className="station-registry">
-        <div className="station-registry-header" onClick={() => setIsRegistryExpanded(!isRegistryExpanded)}>
-          <div className="station-registry-title">
+      <section className="station-registry shadow-sm">
+        <div className="station-registry-header" onClick={() => setIsRegistryExpanded(!isRegistryExpanded)} style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <div className="station-registry-title" style={{ fontWeight: 900 }}>
             <ListIcon size={18} />
-             {t('letter.ui.models_registry').toUpperCase()} ({presets.length})
+             {t('letter.ui.models_registry').toUpperCase()} <span className="station-badge info" style={{ marginLeft: '8px' }}>{presets.length}</span>
           </div>
           {isRegistryExpanded ? <ArrowUpIcon size={20} /> : <ArrowDownIcon size={20} />}
         </div>
 
         <div className={`station-registry-anim-container ${isRegistryExpanded ? 'expanded' : ''}`}>
           <div className="station-registry-anim-content">
-            <div className="station-registry-content" style={{ gap: '16px' }}>
-              <div className="station-registry-actions" style={{ justifyContent: 'space-between' }}>
+            <div className="station-registry-content" style={{ padding: '16px' }}>
+              <div className="station-registry-actions" style={{ marginBottom: '16px', gap: '12px' }}>
                  <div className="flex-row" style={{ gap: '8px' }}>
                    <button 
-                      className="station-btn station-registry-btn-side" 
+                      className="station-btn secondary" 
                       onClick={handleExportAll}
                       title="Exportar Modelos (JSON↓)"
                    >
-                      <DownloadIcon size={14} /> <span style={{fontSize: '0.65rem', fontWeight: 800}}>JSON↓</span>
+                      <DownloadIcon size={14} /> JSON↓
                    </button>
                    <button 
-                      className="station-btn station-registry-btn-side" 
+                      className="station-btn secondary" 
                       onClick={handleImport}
                       title="Importar Modelos (ALL↑)"
                    >
-                      <UploadIcon size={14} /> <span style={{fontSize: '0.65rem', fontWeight: 800}}>ALL↑</span>
+                      <UploadIcon size={14} /> ALL↑
                    </button>
                  </div>
 
                  <button 
-                    className="station-btn station-btn-primary station-registry-btn-main" 
+                    className="station-btn primary" 
                     onClick={handleCreate}
-                    style={{ flex: 1, maxWidth: '300px' }}
+                    style={{ flex: 1, fontWeight: 900 }}
                  >
-                    [+] {t('letter.ui.new_model').toUpperCase()}
+                    + MODEL_NEW
                  </button>
               </div>
               
-              <div className="flex-col" style={{ gap: '8px' }}>
-                <div className="station-registry-list">
-                  {presets.length === 0 && (
-                    <div className="station-empty-state" style={{ minHeight: '120px' }}>
-                      <span className="station-shimmer-text">{t('processor.empty').toUpperCase()}</span>
+              <div className="station-registry-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {presets.length === 0 && (
+                  <div className="station-empty-state" style={{ minHeight: '120px' }}>
+                    <span className="station-shimmer-text">{t('processor.empty').toUpperCase()}</span>
+                  </div>
+                )}
+                {presets.map(p => (
+                  <div 
+                    key={p.id} 
+                    className={`station-registry-item ${selectedId === p.id ? 'active' : ''}`}
+                    onClick={() => { setSelectedId(p.id!); setIsRegistryExpanded(false); }}
+                    style={{ borderRadius: '4px', margin: '2px 0' }}
+                  >
+                    <div className="station-registry-item-left">
+                       <div className="station-registry-item-icon"><ListIcon size={16} /></div>
+                       <div className="station-registry-item-info">
+                          <span className="station-registry-item-name" style={{ fontWeight: 800, fontSize: '0.8rem' }}>{p.name}</span>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.7rem' }}>
+                             v{p.version} • {p.isActive ? 'ACTIVE' : 'DRAFT'}
+                          </span>
+                       </div>
                     </div>
-                  )}
-                  {presets.map(p => (
-                    <div 
-                      key={p.id} 
-                      className={`station-registry-item ${selectedId === p.id ? 'active' : ''}`}
-                      onClick={() => { setSelectedId(p.id!); setIsRegistryExpanded(false); }}
-                    >
-                      <div className="station-registry-item-left">
-                         <div className="station-registry-item-icon"><ListIcon size={16} /></div>
-                         <div className="station-registry-item-info">
-                            <span className="station-registry-item-name">{p.name}</span>
-                            <span className="station-registry-item-meta">
-                               v{p.version} • {p.isActive ? 'ACTIVE' : 'DRAFT'}
-                            </span>
-                         </div>
-                      </div>
-                      <div className="station-registry-item-actions">
-                         <button className="station-registry-action-btn" onClick={(e) => { e.stopPropagation(); handleDelete(p.id!); }}>
-                            <TrashIcon size={16} style={{ color: 'var(--status-err)' }} />
-                         </button>
-                      </div>
+                    <div className="station-registry-item-actions">
+                       <button className="station-registry-action-btn err" onClick={(e) => { e.stopPropagation(); handleDelete(p.id!); }}>
+                          <TrashIcon size={16} />
+                       </button>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -367,37 +366,35 @@ const LetterPresetEditor: React.FC = () => {
       {formData ? (
         <div className="flex-col fade-in" style={{ gap: '24px' }}>
           
-          {/* 1. Cabecera Industrial Aseptic v4 */}
-          <header className="station-card">
-            <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
+          <div className="station-card flex-col" style={{ padding: '0', overflow: 'hidden' }}>
+            <header className="station-registry-header" style={{ padding: '16px 24px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
               <div className="flex-col" style={{ gap: '4px' }}>
-                <h2 className="station-title-main" style={{ margin: 0 }}>{formData.name}</h2>
-                <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
-                   <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>V{formData.version}</span>
-                   <span className={`station-badge ${formData.isActive ? 'station-badge-green' : 'station-badge-orange'}`}>
+                <h3 className="station-registry-item-name" style={{ margin: 0, fontWeight: 900 }}>{formData.name}</h3>
+                <div className="flex-row" style={{ alignItems: 'center', gap: '8px' }}>
+                   <span className="station-badge info" style={{ fontSize: '0.65rem' }}>V{formData.version}</span>
+                   <span className={`station-badge ${formData.isActive ? 'success' : 'warn'}`} style={{ fontSize: '0.65rem' }}>
                       {formData.isActive ? t('audit.status_ready').toUpperCase() : 'DRAFT'}
                    </span>
                 </div>
               </div>
 
               <div className="flex-row" style={{ gap: '12px' }}>
-                <button className="station-btn" onClick={undo} disabled={undoStack.length === 0}><UndoIcon size={16} /></button>
-                <button className="station-btn" onClick={() => setShowConfigModal(true)}>
+                <button className="station-btn secondary icon-only" onClick={undo} disabled={undoStack.length === 0} title="Undo"><UndoIcon size={16} /></button>
+                <button className="station-btn secondary" onClick={() => setShowConfigModal(true)}>
                   <CogIcon size={16} /> {t('settings.title').toUpperCase()}
                 </button>
-                <button className="station-btn station-btn-primary" onClick={handleSave}>
+                <button className="station-btn success" onClick={handleSave}>
                   <SaveIcon size={16} /> {t('common.save').toUpperCase()}
                 </button>
               </div>
-            </div>
+            </header>
 
-            <div className="station-tech-summary" style={{ marginTop: '16px' }}>
+            <div className="station-tech-summary" style={{ margin: '0', padding: '12px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.1)' }}>
               <div className="station-tech-item"><span className="station-tech-label">{t('audit.fields.Format').toUpperCase()}:</span> {formData.gawebConfig?.tipoSoporte}</div>
-              <div className="station-tech-item"><span className="station-tech-label">FORMATO:</span> {formData.gawebConfig?.formatoCarta}</div>
-              <div className="station-tech-item"><span className="station-tech-label">ENTORNO:</span> {formData.gawebConfig?.codigoEntorno}</div>
+              <div className="station-tech-item"><span className="station-tech-label">FORMAT:</span> {formData.gawebConfig?.formatoCarta}</div>
+              <div className="station-tech-item"><span className="station-tech-label">ENV:</span> {formData.gawebConfig?.codigoEntorno}</div>
               <div className="station-tech-item"><span className="station-tech-label">{t('audit.fields.DocCode').toUpperCase()}:</span> {formData.gawebConfig?.codigoDocumento}</div>
-            </div>
-          </header>
+          </div>
 
           <div className="flex-col" style={{ gap: '32px' }}>
 
@@ -500,6 +497,7 @@ const LetterPresetEditor: React.FC = () => {
               <SaveIcon size={18} /> {t('common.save').toUpperCase()}
             </button>
           </footer>
+          </div>
         </div>
       ) : (
         <div className="station-empty-state">

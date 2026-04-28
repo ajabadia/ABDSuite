@@ -1,16 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import SettingsPanel from '@/components/SettingsPanel';
 import FileProcessor from '@/components/FileProcessor';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { useFileBatchProcessor } from '@/lib/hooks/useFileBatchProcessor';
 import { useInactivityPurge } from '@/lib/hooks/useInactivityPurge';
-import { ShieldCheckIcon, ZapIcon, LockIcon } from '@/components/common/Icons';
+import { ShieldCheckIcon, ZapIcon, LockIcon, UnlockIcon } from '@/components/common/Icons';
 import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
 import { cryptStationService } from '@/lib/services/CryptStationService';
+import { StationHeader } from '@/components/shell/StationHeader';
 
 interface SelectedFile {
   file: File;
@@ -21,6 +22,7 @@ function CryptPageContent() {
   const { t } = useLanguage();
   const { can, currentOperator, isLocked } = useWorkspace();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const mode = (searchParams.get('view') === 'decrypt') ? 'decrypt' : 'encrypt';
   
   if (!can('CRYPT_USE')) {
@@ -29,10 +31,7 @@ function CryptPageContent() {
 
   const canRun = can('CRYPT_RUN');
 
-  // Elevated state from FileProcessor
   const [files, setFiles] = useState<SelectedFile[]>([]);
-  
-  // Local Settings State
   const [password, setPassword] = useState('');
   const [batchMode, setBatchMode] = useState(false);
   const [outputSuffix, setOutputSuffix] = useState(mode === 'encrypt' ? '.enc' : '_decrypted');
@@ -46,7 +45,6 @@ function CryptPageContent() {
     setOutputSuffix(mode === 'encrypt' ? '.enc' : '_decrypted');
   }, [mode]);
 
-  // Business Logic Hooks
   const { 
     isProcessing, 
     processFiles, 
@@ -57,7 +55,6 @@ function CryptPageContent() {
     outputSuffix 
   });
 
-  // Security Hook
   useInactivityPurge({
     password,
     onPurge: (messageKey) => {
@@ -70,7 +67,6 @@ function CryptPageContent() {
     if (!canRun) return;
     
     try {
-      // Industrial Validation
       cryptStationService.validateOptions({ mode, password, outputSuffix });
 
       if (isLocked && mode === 'encrypt') {
@@ -97,22 +93,26 @@ function CryptPageContent() {
   };
 
   return (
-    <div className="flex-col fade-in" style={{ gap: '24px', height: '100%' }}>
-      <header className="station-panel-header" style={{ borderBottom: 'none' }}>
-        <div className="flex-col" style={{ gap: '4px' }}>
-          <h2 className="station-title-main" style={{ margin: 0 }}>
-            {mode === 'encrypt' ? t('crypt.shield_vault').toUpperCase() : t('crypt.open_key').toUpperCase()}
-          </h2>
-          <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
-             <span className="station-registry-item-meta" style={{ fontWeight: 700 }}>ENGINE: AES-GCM 256</span>
-             <span className="station-badge station-badge-blue">SECURE_CONTEXT</span>
-             <span className={`station-badge ${password ? 'station-badge-green' : 'station-badge-orange'}`}>
-                {password ? 'VAULT_OPEN' : 'VAULT_LOCKED'}
-             </span>
-          </div>
-        </div>
-      </header>
-
+    <div className="flex-col animate-fade-in" style={{ height: '100%', gap: '24px' }}>
+      <StationHeader 
+        title={t('shell.crypt').toUpperCase()}
+        engineId="AES-GCM_256_V6"
+        activeTabId={mode}
+        tabs={[
+          { 
+            id: 'encrypt', 
+            label: t('crypt.shield_vault'), 
+            icon: <ShieldCheckIcon size={14} />, 
+            onClick: () => router.push('/crypt?view=encrypt')
+          },
+          { 
+            id: 'decrypt', 
+            label: t('crypt.open_key'), 
+            icon: <UnlockIcon size={14} />, 
+            onClick: () => router.push('/crypt?view=decrypt')
+          }
+        ]}
+      />
 
       <div className="crypt-main-layout flex-col" style={{ gap: '32px', flex: 1, minHeight: 0 }}>
         <section className="crypt-processor-section flex-col">
@@ -130,7 +130,7 @@ function CryptPageContent() {
         {files.length === 0 && (
           <div className="station-empty-state" style={{ marginTop: '40px' }}>
              <ShieldCheckIcon size={64} className="station-shimmer-text" style={{ marginBottom: '16px' }} />
-             <span className="station-shimmer-text">CRYPT_VAULT_AWAITING_INPUT</span>
+             <span className="station-shimmer-text">{t('crypt.waiting_input').toUpperCase()}</span>
           </div>
         )}
 
@@ -153,26 +153,26 @@ function CryptPageContent() {
 
             <section className="crypt-preflight-panel station-card flex-col" style={{ flex: 1, background: 'rgba(0,0,0,0.2)', gap: '16px' }}>
                <header className="flex-row" style={{ alignItems: 'center', gap: '8px' }}>
-                  <ShieldCheckIcon size={16} color="var(--primary-color)" />
-                  <h3 className="station-form-section-title" style={{ margin: 0 }}>CRYPT_PRE_FLIGHT</h3>
+                  <ZapIcon size={16} color="var(--primary-color)" />
+                  <h3 className="station-form-section-title" style={{ margin: 0, fontWeight: 900 }}>{t('crypt.pre_flight').toUpperCase()}</h3>
                </header>
                
                <div className="flex-col" style={{ gap: '12px' }}>
-                  <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                    <span style={{ opacity: hasFiles ? 1 : 0.4 }}>FILE_SET_SELECTED</span>
-                    <span style={{ fontWeight: 800, color: hasFiles ? 'var(--status-ok)' : 'var(--status-err)' }}>{hasFiles ? 'YES' : 'NO'}</span>
+                  <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.7rem', fontWeight: 800 }}>
+                    <span style={{ opacity: hasFiles ? 1 : 0.4 }}>{t('crypt.status_files')}</span>
+                    <span style={{ color: hasFiles ? 'var(--status-ok)' : 'var(--status-err)' }}>{hasFiles ? 'YES' : 'NO'}</span>
                   </div>
-                  <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                    <span style={{ opacity: hasPassphrase ? 1 : 0.4 }}>VAULT_PASSPHRASE</span>
-                    <span style={{ fontWeight: 800, color: hasPassphrase ? 'var(--status-ok)' : 'var(--status-err)' }}>{hasPassphrase ? 'READY' : 'REQUIRED'}</span>
+                  <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.7rem', fontWeight: 800 }}>
+                    <span style={{ opacity: hasPassphrase ? 1 : 0.4 }}>{t('crypt.status_passphrase')}</span>
+                    <span style={{ color: hasPassphrase ? 'var(--status-ok)' : 'var(--status-err)' }}>{hasPassphrase ? t('crypt.ready') : t('crypt.required')}</span>
                   </div>
-                  <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                    <span style={{ opacity: ikUnlocked ? 1 : 0.4 }}>SECURITY_IK_STATUS</span>
-                    <span style={{ fontWeight: 800, color: ikUnlocked ? 'var(--status-ok)' : 'var(--status-warn)' }}>{ikUnlocked ? 'UNLOCKED' : 'LOCKED'}</span>
+                  <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.7rem', fontWeight: 800 }}>
+                    <span style={{ opacity: ikUnlocked ? 1 : 0.4 }}>{t('crypt.status_ik')}</span>
+                    <span style={{ color: ikUnlocked ? 'var(--status-ok)' : 'var(--status-warn)' }}>{ikUnlocked ? t('crypt.vault_open') : t('crypt.vault_locked')}</span>
                   </div>
-                  <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                    <span style={{ opacity: canRun ? 1 : 0.4 }}>OPERATOR_PRIVILEGE</span>
-                    <span style={{ fontWeight: 800, color: canRun ? 'var(--status-ok)' : 'var(--status-err)' }}>{canRun ? 'AUTHORIZED' : 'FORBIDDEN'}</span>
+                  <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.7rem', fontWeight: 800 }}>
+                    <span style={{ opacity: canRun ? 1 : 0.4 }}>{t('crypt.status_operator')}</span>
+                    <span style={{ color: canRun ? 'var(--status-ok)' : 'var(--status-err)' }}>{canRun ? t('crypt.authorized') : t('crypt.forbidden')}</span>
                   </div>
 
                   <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
@@ -180,13 +180,13 @@ function CryptPageContent() {
                       className="station-btn station-btn-primary full" 
                       onClick={handleProcess}
                       disabled={!canStartBatch || isProcessing}
-                      style={{ height: '48px', fontWeight: 900 }}
+                      style={{ height: '48px', fontWeight: 900, fontSize: '1rem' }}
                     >
-                      {isProcessing ? 'PROCESSING...' : <><ZapIcon size={18} /> START_BATCH</>}
+                      {isProcessing ? t('processor.processing').toUpperCase() : <><ZapIcon size={18} /> {t('crypt.start_batch').toUpperCase()}</>}
                     </button>
                     {isLocked && mode === 'encrypt' && (
-                      <p className="flex-row" style={{ color: 'var(--status-warn)', fontSize: '0.65rem', marginTop: '12px', justifyContent: 'center', fontWeight: 700, gap: '4px' }}>
-                        <LockIcon size={10} /> IK_LOCKED: AT-REST_SECURITY_AT_RISK
+                      <p className="flex-row" style={{ color: 'var(--status-warn)', fontSize: '0.65rem', marginTop: '12px', justifyContent: 'center', fontWeight: 900, gap: '4px' }}>
+                        <LockIcon size={10} /> {t('crypt.ik_locked_warning').toUpperCase()}
                       </p>
                     )}
                   </div>
@@ -208,13 +208,6 @@ function CryptPageContent() {
           }
         }
       `}</style>
-
-      {/* Sello de Integridad (Era 6) */}
-      <div className="station-integrity-badge flex-row" style={{ position: 'fixed', bottom: '24px', right: '24px', gap: '8px', opacity: 0.6 }}>
-         <div className="integrity-dot" style={{ background: 'var(--status-ok)' }} />
-         <ShieldCheckIcon size={14} />
-         <span>AES-GCM 256 INDUSTRIAL</span>
-      </div>
     </div>
   );
 }

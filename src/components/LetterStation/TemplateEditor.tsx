@@ -258,41 +258,39 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
   };
 
   return (
-    <div className="flex-col" style={{ gap: '24px' }}>
-      <section className="station-registry">
-        <div className="station-registry-header" onClick={() => setIsRegistryExpanded(!isRegistryExpanded)}>
-          <div className="station-registry-title">
+    <div className="flex-col animate-fade-in" style={{ gap: '24px', height: '100%' }}>
+      <section className="station-registry shadow-sm">
+        <div className="station-registry-header" onClick={() => setIsRegistryExpanded(!isRegistryExpanded)} style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <div className="station-registry-title" style={{ fontWeight: 900 }}>
             <ListIcon size={18} />
-             {t('letter.templates').toUpperCase()} ({templates.length})
+             {t('letter.templates').toUpperCase()} <span className="station-badge info" style={{ marginLeft: '8px' }}>{templates.length}</span>
           </div>
           {isRegistryExpanded ? <ArrowUpIcon size={20} /> : <ArrowDownIcon size={20} />}
         </div>
 
         <div className={`station-registry-anim-container ${isRegistryExpanded ? 'expanded' : ''}`}>
           <div className="station-registry-anim-content">
-            <div className="station-registry-content">
-                <div className="station-registry-actions" style={{ justifyContent: 'space-between' }}>
+            <div className="station-registry-content" style={{ padding: '16px' }}>
+                <div className="station-registry-actions" style={{ marginBottom: '16px', gap: '12px' }}>
                    <div className="flex-row" style={{ gap: '8px' }}>
-                     <button className="station-btn" onClick={handleExportAll}><DownloadIcon size={14} /> JSON↓</button>
-                     <button className="station-btn" onClick={handleImport} disabled={!canEdit}><UploadIcon size={14} /> ALL↑</button>
+                     <button className="station-btn secondary" onClick={handleExportAll}><DownloadIcon size={14} /> JSON↓</button>
+                     <button className="station-btn secondary" onClick={handleImport} disabled={!canEdit}><UploadIcon size={14} /> ALL↑</button>
                    </div>
-                                       <div className="flex-row" style={{ gap: '8px', flex: 1 }}>
-                       <button className="station-btn station-btn-primary" onClick={handleCreate} disabled={!canEdit} style={{ flex: 1 }}>
-                          + NUEVA HTML
+                   <div className="flex-row" style={{ gap: '8px', flex: 1 }}>
+                       <button className="station-btn primary" onClick={handleCreate} disabled={!canEdit} style={{ flex: 1, fontWeight: 900 }}>
+                          + HTML_NEW
                        </button>
-                       <button className="station-btn station-btn-primary" onClick={() => (document.getElementById('docx-file-input') as any).click()} disabled={!canEdit} style={{ flex: 1 }}>
-                          <UploadIcon size={14} /> SUBIR DOCX
+                       <button className="station-btn primary" onClick={() => (document.getElementById('docx-file-input') as any).click()} disabled={!canEdit} style={{ flex: 1, fontWeight: 900 }}>
+                          <UploadIcon size={14} /> DOCX_UPLOAD
                        </button>
                        <input id="docx-file-input" type="file" accept=".docx" hidden onChange={(e) => {
                           const f = e.target.files?.[0];
                           if (f) handleUploadDocx(f);
                        }} />
                     </div>
-
                 </div>
                 
-                <div className="flex-col" style={{ gap: '8px' }}>
-                <div className="station-registry-list">
+                <div className="station-registry-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                   {templates.length === 0 && (
                     <div className="station-empty-state" style={{ minHeight: '120px' }}>
                       <span className="station-shimmer-text">{t('processor.empty').toUpperCase()}</span>
@@ -306,12 +304,13 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
                         setSelectedId(tmpl.id!);
                         setIsRegistryExpanded(false);
                       }}
+                      style={{ borderRadius: '4px', margin: '2px 0' }}
                     >
                       <div className="station-registry-item-left">
                          <div className="station-registry-item-icon"><FileTextIcon size={16} /></div>
                          <div className="station-registry-item-info">
-                             <span className="station-registry-item-name">{tmpl.name}</span>
-                             <span className="station-registry-item-meta">
+                             <span className="station-registry-item-name" style={{ fontWeight: 800, fontSize: '0.8rem' }}>{tmpl.name}</span>
+                             <span className="station-registry-item-meta" style={{ fontSize: '0.7rem' }}>
                                 V1.0 • {tmpl.type} • {new Date(tmpl.updatedAt).toLocaleDateString()}
                              </span>
                          </div>
@@ -338,86 +337,44 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
                     </div>
                   ))}
                 </div>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <main className="station-main">
-        {selectedId && currentTemplate?.type === 'DOCX' && (
-        <div className="flex-col" style={{ gap: '24px' }}>
-           <div className="station-card" style={{ background: 'rgba(56, 189, 248, 0.05)', borderLeft: '4px solid var(--primary-color)' }}>
-              <div className="flex-row" style={{ alignItems: 'center', gap: '16px' }}>
-                 <FileTextIcon size={32} style={{ color: 'var(--primary-color)' }} />
-                 <div className="flex-col">
-                    <span style={{ fontWeight: 800, fontSize: '1rem' }}>DOCX_STRUCTURE (OPENXML / ZIP)</span>
-                    <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>{t('letter.motor.gen_success').includes('✓') ? 'READ-ONLY' : 'TECHNICAL PREVIEW - WEB EDITING UNAVAILABLE'}</span>
-                 </div>
-              </div>
-           </div>
-
-           <div className="station-card shadow-lg" style={{ minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
-              <div className="station-panel-header">
-                 <span className="station-title-main">EXTRACTED_CONTENT (DRAFT)</span>
-                 <span className="station-badge station-badge-blue">READ-ONLY</span>
-              </div>
-              <div className="station-shell-content" style={{ flex: 1, padding: '24px', whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', opacity: 0.8 }}>
-                 {isLoadingDocx ? (
-                   <div className="station-shimmer-text">EXTRAYENDO ESTRUCTURA TÉCNICA...</div>
-                 ) : (
-                   <>
-                     <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
-                        <span className="station-label">ETIQUETAS DETECTADAS:</span>
-                        <div className="flex-row" style={{ flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
-                           {docxTags.length > 0 ? docxTags.map(t => (
-                             <span key={t} className="station-badge station-badge-blue" style={{ fontSize: '0.65rem' }}>{`{{${t}}}`}</span>
-                           )) : <span style={{ opacity: 0.5 }}>Ninguna detectada.</span>}
-                        </div>
-                     </div>
-                     {docxPreview || 'Sin contenido de texto detectable.'}
-                   </>
-                 )}
-                 {"\n\n[SISTEMA]: El motor industrial utilizará el archivo binario original para la generación final."}
-              </div>
-           </div>
-        </div>
-     )}
-
-     {selectedId && currentTemplate?.type === 'HTML' && (
-          <>
-            <header className="station-card">
-              <div className="station-panel-header" style={{ borderBottom: 'none', paddingBottom: 0, marginBottom: 0 }}>
-                <div className="flex-col" style={{ gap: '4px' }}>
-                  <h2 className="station-title-main" style={{ margin: 0 }}>{editName}</h2>
-                  <div className="flex-row" style={{ alignItems: 'center', gap: '12px' }}>
-                     <span style={{ opacity: 0.5, fontSize: '0.75rem', fontWeight: 700 }}>V{editVersion}</span>
-                     <span className={`station-badge ${editActive ? 'station-badge-green' : 'station-badge-orange'}`}>
-                        {editActive ? t('audit.status_ready').toUpperCase() : 'DRAFT'}
-                     </span>
-                  </div>
-                </div>
-
-                <div className="flex-row" style={{ gap: '12px' }}>
-                  <button className="station-btn" onClick={undo} disabled={undoStack.length === 0 || !canEdit}><UndoIcon size={16} /></button>
-                  <button className="station-btn" onClick={() => setShowSettingsModal(true)}>
-                    <CogIcon size={16} /> {t('settings.title').toUpperCase()}
-                  </button>
-                  <button className={`station-btn ${showPreview ? 'active' : ''}`} onClick={() => setShowPreview(!showPreview)}>
-                    <EyeIcon size={16} /> {t('letter.preview').toUpperCase()}
-                  </button>
-                  <button className="station-btn station-btn-primary" onClick={handleSave} disabled={!canEdit || isEncryptedLocked || !installationKey}>
-                    <SaveIcon size={16} /> {t('common.save').toUpperCase()}
-                  </button>
+      <main className="station-main flex-col" style={{ gap: '24px' }}>
+        {selectedId && currentTemplate && (
+          <div className="station-card flex-col" style={{ padding: '0', overflow: 'hidden' }}>
+            <header className="station-registry-header" style={{ padding: '16px 24px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="flex-col" style={{ gap: '4px' }}>
+                <h3 className="station-registry-item-name" style={{ fontSize: '1.1rem', fontWeight: 900 }}>{editName}</h3>
+                <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
+                  <span className="station-badge info" style={{ fontSize: '0.65rem' }}>V{editVersion}</span>
+                  <span className={`station-badge ${editActive ? 'success' : 'warn'}`} style={{ fontSize: '0.65rem' }}>
+                    {editActive ? t('audit.status_ready').toUpperCase() : 'DRAFT'}
+                  </span>
                 </div>
               </div>
 
-              <div className="station-tech-summary" style={{ marginTop: '16px' }}>
-                <div className="station-tech-item"><span className="station-tech-label">Tipo:</span> {templates.find(t=>t.id===selectedId)?.type}</div>
-                <div className="station-tech-item"><span className="station-tech-label">Actualización:</span> {new Date(templates.find(t=>t.id===selectedId)?.updatedAt || 0).toLocaleString()}</div>
-                <div className="station-tech-item"><span className="station-tech-label">Engine:</span> HANDLEBARS v4</div>
+              <div className="flex-row" style={{ gap: '12px' }}>
+                <button className="station-btn secondary icon-only" onClick={undo} disabled={undoStack.length === 0 || !canEdit} title="Undo"><UndoIcon size={16} /></button>
+                <button className="station-btn secondary" onClick={() => setShowSettingsModal(true)}>
+                  <CogIcon size={16} /> {t('settings.title').toUpperCase()}
+                </button>
+                <button className={`station-btn secondary ${showPreview ? 'active' : ''}`} onClick={() => setShowPreview(!showPreview)}>
+                  <EyeIcon size={16} /> {t('letter.preview').toUpperCase()}
+                </button>
+                <button className="station-btn success" onClick={handleSave} disabled={!canEdit || isEncryptedLocked || !installationKey}>
+                  <SaveIcon size={16} /> {t('common.save').toUpperCase()}
+                </button>
               </div>
             </header>
+
+            <div className="station-tech-summary" style={{ margin: '0', padding: '12px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.1)' }}>
+              <div className="station-tech-item"><span className="station-tech-label">TYPE:</span> {currentTemplate.type}</div>
+              <div className="station-tech-item"><span className="station-tech-label">UPDATED:</span> {new Date(currentTemplate.updatedAt).toLocaleString()}</div>
+              <div className="station-tech-item"><span className="station-tech-label">ENGINE:</span> {currentTemplate.type === 'HTML' ? 'HANDLEBARS v4' : 'DOCXTEMPLATER v3'}</div>
+            </div>
 
             <div className="station-editor-area" style={{ gridTemplateColumns: '1fr' }}>
               <div className="station-left-panel">
@@ -432,7 +389,41 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
                     </button>
                   </div>
 
-                  {activeTab === 'content' ? (
+                  {currentTemplate.type === 'DOCX' ? (
+                    <div className="flex-col" style={{ gap: '20px' }}>
+                       <div className="station-card" style={{ background: 'rgba(56, 189, 248, 0.05)', borderLeft: '4px solid var(--primary-color)', padding: '16px' }}>
+                          <div className="flex-row" style={{ alignItems: 'center', gap: '16px' }}>
+                             <FileTextIcon size={24} style={{ color: 'var(--primary-color)' }} />
+                             <div className="flex-col">
+                                <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>DOCX_STRUCTURE (OPENXML / ZIP)</span>
+                                <span style={{ opacity: 0.6, fontSize: '0.7rem' }}>TECHNICAL PREVIEW - WEB EDITING UNAVAILABLE</span>
+                             </div>
+                          </div>
+                       </div>
+
+                       <div className="station-card" style={{ minHeight: '300px', display: 'flex', flexDirection: 'column', background: 'rgba(0,0,0,0.2)', padding: '24px' }}>
+                          <div className="station-shell-content" style={{ flex: 1, whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', opacity: 0.8 }}>
+                             {isLoadingDocx ? (
+                               <div className="station-shimmer-text">EXTRAYENDO ESTRUCTURA TÉCNICA...</div>
+                             ) : (
+                               <>
+                                 <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
+                                    <span className="station-label" style={{ fontSize: '0.7rem' }}>ETIQUETAS DETECTADAS:</span>
+                                    <div className="flex-row" style={{ flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                                       {docxTags.length > 0 ? docxTags.map(t => (
+                                         <span key={t} className="station-badge info" style={{ fontSize: '0.6rem', fontWeight: 900 }}>{`{{${t}}}`}</span>
+                                       )) : <span style={{ opacity: 0.5 }}>Ninguna detectada.</span>}
+                                    </div>
+                                 </div>
+                                 <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                    {docxPreview || 'Sin contenido de texto detectable.'}
+                                 </div>
+                               </>
+                             )}
+                          </div>
+                       </div>
+                    </div>
+                  ) : activeTab === 'content' ? (
                     <div className="flex-col" style={{ flex: 1, gap: '12px', minHeight: '400px', position: 'relative' }}>
                       <label className="station-label">HTML_BODY (HANDLEBARS_ENGINE):</label>
                       <textarea 
@@ -444,21 +435,11 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
                         style={isEncryptedLocked ? { opacity: 0.3, filter: 'grayscale(1)' } : {}}
                       />
                       {isEncryptedLocked && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '50%',
-                          left: '50%',
-                          transform: 'translate(-50%, -50%)',
-                          background: 'rgba(239, 68, 68, 0.1)',
-                          border: '1px solid var(--error-color)',
-                          padding: '16px 24px',
-                          borderRadius: '8px',
-                          backdropFilter: 'blur(8px)',
-                          textAlign: 'center',
-                          zIndex: 10
-                        }}>
-                          <div style={{ color: 'var(--error-color)', fontWeight: 800, fontSize: '0.9rem', marginBottom: '4px' }}>VAULT_LOCKED / BÓVEDA BLOQUEADA</div>
-                          <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Introduce tu PIN en Seguridad para descifrar el contenido.</div>
+                        <div className="station-modal-overlay" style={{ position: 'absolute', background: 'rgba(0,0,0,0.4)', borderRadius: '8px' }}>
+                           <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--error-color)', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
+                              <div style={{ color: 'var(--error-color)', fontWeight: 800, fontSize: '0.8rem' }}>VAULT_LOCKED</div>
+                              <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>Introduce PIN en Seguridad</div>
+                           </div>
                         </div>
                       )}
                       <div style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.05rem' }}>
@@ -564,7 +545,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ canEdit = true }) => {
               </div>
               </div>
             </div>
-          </>
+          </div>
       )}
       {!selectedId && (
           <div className="station-empty-state">

@@ -11,7 +11,18 @@
     "vault_open": "VAULT OPEN",
     "vault_locked": "VAULT LOCKED",
     "waiting_input": "CRYPT VAULT AWAITING INPUT...",
-    "industrial_grade": "AES-GCM 256 INDUSTRIAL"
+    "industrial_grade": "AES-GCM 256 INDUSTRIAL",
+    "pre_flight": "CRYPT PRE-FLIGHT",
+    "status_files": "FILE_SET_SELECTED",
+    "status_passphrase": "VAULT_PASSPHRASE",
+    "status_ik": "SECURITY_IK_STATUS",
+    "status_operator": "OPERATOR_PRIVILEGE",
+    "start_batch": "START_BATCH",
+    "ik_locked_warning": "IK_LOCKED: AT-REST_SECURITY_AT_RISK",
+    "authorized": "AUTHORIZED",
+    "forbidden": "FORBIDDEN",
+    "ready": "READY",
+    "required": "REQUIRED"
   },
   "processor": {
     "dropzone": "DRAG FILES HERE OR CLICK TO SELECT",

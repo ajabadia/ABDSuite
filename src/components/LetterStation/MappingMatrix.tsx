@@ -261,35 +261,35 @@ const MappingMatrix: React.FC = () => {
   const dataRT = selectedPreset?.recordTypes.find(rt => rt.name === 'DATA') || selectedPreset?.recordTypes[0];
 
   return (
-    <div className="flex-col" style={{ gap: '24px' }}>
-      <section className="station-registry">
-         <div className="station-registry-header" onClick={() => setIsRegistryExpanded(!isRegistryExpanded)}>
-            <div className="station-registry-title"><ListIcon size={18} /> {t('letter.ui.mapping_brain').toUpperCase()} ({allMappings.length})</div>
+    <div className="flex-col animate-fade-in" style={{ gap: '24px', height: '100%' }}>
+      <section className="station-registry shadow-sm">
+         <div className="station-registry-header" onClick={() => setIsRegistryExpanded(!isRegistryExpanded)} style={{ background: 'rgba(255,255,255,0.02)' }}>
+            <div className="station-registry-title" style={{ fontWeight: 900 }}><ListIcon size={18} /> {t('letter.ui.mapping_brain').toUpperCase()} <span className="station-badge info" style={{ marginLeft: '8px' }}>{allMappings.length}</span></div>
             {isRegistryExpanded ? <ArrowUpIcon size={20} /> : <ArrowDownIcon size={20} />}
          </div>
          <div className={`station-registry-anim-container ${isRegistryExpanded ? 'expanded' : ''}`}>
            <div className="station-registry-anim-content">
-             <div className="station-registry-content">
-                <div className="station-registry-actions" style={{ justifyContent: 'space-between' }}>
+             <div className="station-registry-content" style={{ padding: '16px' }}>
+                <div className="station-registry-actions" style={{ marginBottom: '16px', gap: '12px' }}>
                    <div className="flex-row" style={{ gap: '8px' }}>
-                     <button className="station-btn" onClick={handleExportAll}><DownloadIcon size={14} /> JSON↓</button>
-                     <button className="station-btn" onClick={handleImport} disabled={!canEdit}><UploadIcon size={14} /> ALL↑</button>
+                     <button className="station-btn secondary" onClick={handleExportAll}><DownloadIcon size={14} /> JSON↓</button>
+                     <button className="station-btn secondary" onClick={handleImport} disabled={!canEdit}><UploadIcon size={14} /> ALL↑</button>
                    </div>
-                    <button className="station-btn station-btn-primary" onClick={handleNewMapping} disabled={!canEdit} style={{ flex: 1, maxWidth: '300px' }}>
-                       + NUEVO MAPEADO
+                    <button className="station-btn primary" onClick={handleNewMapping} disabled={!canEdit} style={{ flex: 1, fontWeight: 900 }}>
+                       + BRAIN_NEW
                     </button>
                 </div>
-                <div className="station-registry-list">
+                <div className="station-registry-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                   {allMappings.sort((a,b) => (b.updatedAt || 0) - (a.updatedAt || 0)).map(m => (
-                    <div key={m.id} className={`station-registry-item ${selectedMappingId === m.id ? 'active' : ''}`} onClick={() => handleSelectMapping(m)}>
+                    <div key={m.id} className={`station-registry-item ${selectedMappingId === m.id ? 'active' : ''}`} onClick={() => handleSelectMapping(m)} style={{ borderRadius: '4px', margin: '2px 0' }}>
                       <div className="station-registry-item-left">
                         <div className="station-registry-item-icon"><MapIcon size={16} /></div>
                         <div className="station-registry-item-info">
-                          <span className="station-registry-item-name">{m.name}</span>
-                          <span className="station-registry-item-meta">{presets.find(p => p.id === m.etlPresetId)?.name || '---'} {' -> '} {templates.find(t => t.id === m.templateId)?.name || '---'}</span>
+                          <span className="station-registry-item-name" style={{ fontWeight: 800, fontSize: '0.8rem' }}>{m.name}</span>
+                          <span className="station-registry-item-meta" style={{ fontSize: '0.7rem' }}>{presets.find(p => p.id === m.etlPresetId)?.name || '---'} {' -> '} {templates.find(t => t.id === m.templateId)?.name || '---'}</span>
                         </div>
                       </div>
-                      <button className="station-registry-action-btn" onClick={(e) => handleDeleteMapping(e, m.id!)} disabled={!canEdit}><TrashIcon size={14} /></button>
+                      <button className="station-registry-action-btn err" onClick={(e) => handleDeleteMapping(e, m.id!)} disabled={!canEdit}><TrashIcon size={14} /></button>
                     </div>
                   ))}
                 </div>
@@ -298,26 +298,19 @@ const MappingMatrix: React.FC = () => {
          </div>
       </section>
 
-      {!selectedMappingId && (
-        <div className="station-empty-state">
-          <MapIcon size={64} style={{ marginBottom: '16px' }} />
-          <span className="station-shimmer-text">MAPPING_ENGINE_STANDBY</span>
-        </div>
-      )}
-
       {(selectedMappingId || currentMapping) && (
-        <div className="station-card">
-           <div className="station-panel-header">
-              <div className="flex-col"><h2 className="station-title-main" style={{ margin: 0 }}>{currentMapping?.name}</h2></div>
+        <div className="station-card flex-col" style={{ padding: '0', overflow: 'hidden' }}>
+           <header className="station-registry-header" style={{ padding: '16px 24px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="flex-col"><h3 className="station-registry-item-name" style={{ margin: 0, fontWeight: 900 }}>{currentMapping?.name}</h3></div>
               <div className="flex-row" style={{ gap: '12px' }}>
-                <button className="station-btn" onClick={undo} disabled={undoStack.length === 0 || !canEdit}><UndoIcon size={16} /></button>
-                <button className="station-btn" onClick={() => setShowConfigModal(true)}><CogIcon size={16} /> {t('settings.title').toUpperCase()}</button>
-                <button className="station-btn station-btn-primary" onClick={saveMapping} disabled={!canEdit}><SaveIcon size={16} /> {t('common.save').toUpperCase()}</button>
+                <button className="station-btn secondary icon-only" onClick={undo} disabled={undoStack.length === 0 || !canEdit} title="Undo"><UndoIcon size={16} /></button>
+                <button className="station-btn secondary" onClick={() => setShowConfigModal(true)}><CogIcon size={16} /> {t('settings.title').toUpperCase()}</button>
+                <button className="station-btn success" onClick={saveMapping} disabled={!canEdit}><SaveIcon size={16} /> {t('common.save').toUpperCase()}</button>
               </div>
-           </div>
-           <div className="station-tech-summary" style={{ marginTop: '16px' }}>
-              <div className="station-tech-item"><span className="station-tech-label">{t('letter.ui.resources')}:</span> {selectedPreset?.name || '---'}</div>
-              <div className="station-tech-item"><span className="station-tech-label">{t('letter.ui.output_format')}:</span> {selectedTemplate?.name || '---'}</div>
+           </header>
+           <div className="station-tech-summary" style={{ margin: '0', padding: '12px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.1)' }}>
+              <div className="station-tech-item"><span className="station-tech-label">{t('letter.ui.resources').toUpperCase()}:</span> {selectedPreset?.name || '---'}</div>
+              <div className="station-tech-item"><span className="station-tech-label">{t('letter.ui.output_format').toUpperCase()}:</span> {selectedTemplate?.name || '---'}</div>
            </div>
         </div>
       )}

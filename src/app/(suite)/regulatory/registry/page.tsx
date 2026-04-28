@@ -13,22 +13,27 @@ import {
   InfoIcon,
   ClockIcon,
   FileTextIcon,
-  ZapIcon
+  ZapIcon,
+  UserIcon,
+  ListIcon
 } from '@/components/common/Icons';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { TIN_INFO_MAP, REQUIREMENTS_MAP } from '@/lib/regulatory/plugins';
 import { TIN_NAMES } from '@/lib/regulatory/plugins/i18n';
+import { StationHeader } from '@/components/shell/StationHeader';
+import { useRouter } from 'next/navigation';
 
 /**
  * Global Jurisdictional Registry - Era 6 Industrial
  */
 export default function RegulatoryRegistryPage() {
   const { t } = useLanguage();
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<CountryMetadata | null>(null);
 
   const filteredCountries = useMemo(() => {
-    const term = search.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const term = search.toLowerCase().trim().normalize("NFD").replace(/[\u0300//\u036f]/g, "");
     if (!term) return COUNTRIES_MASTER;
     return COUNTRIES_MASTER.filter(c => {
       const nameNorm = c.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -44,55 +49,69 @@ export default function RegulatoryRegistryPage() {
     return { total, covered, official, percent: Math.round((covered / total) * 100) };
   }, []);
 
-  // Modal Data Resolvers
   const pluginInfo = selectedCountry ? TIN_INFO_MAP[selectedCountry.id] || TIN_INFO_MAP[selectedCountry.sharedFrom || ''] : null;
   const tinName = selectedCountry ? TIN_NAMES[selectedCountry.id] || TIN_NAMES[selectedCountry.sharedFrom || ''] : null;
   const requirements = selectedCountry ? REQUIREMENTS_MAP[selectedCountry.id] || REQUIREMENTS_MAP[selectedCountry.sharedFrom || ''] : [];
 
   return (
-    <div className="station-main registry-page fade-in">
-      <header className="registry-header flex-row flex-between mb-8 pb-6" style={{ borderBottom: '1px solid var(--border-color)', alignItems: 'flex-end' }}>
-        <div className="flex-col" style={{ gap: '4px' }}>
-          <h1 className="station-title-main flex-row" style={{ gap: '12px', fontSize: '1.5rem' }}>
-            <GlobeIcon size={24} style={{ color: 'var(--primary-color)' }} />
-            REGISTRO JURISDICCIONAL GLOBAL
-          </h1>
-          <p className="station-registry-item-meta">
-            CATÁLOGO MAESTRO DE PAÍSES Y COBERTURA DE VALIDACIÓN ALGORÍTMICA.
-          </p>
-        </div>
-
-        <div className="flex-row registry-stats-container" style={{ gap: '32px' }}>
-          <div className="flex-row registry-stats-group" style={{ gap: '24px' }}>
-             <div className="flex-col registry-stat-item" style={{ alignItems: 'flex-end' }}>
-               <div className="station-label">COBERTURA TOTAL</div>
-               <div className="flex-row" style={{ gap: '8px', fontFamily: 'var(--font-mono)' }}>
-                 <span className="station-title-main" style={{ fontSize: '1.5rem', color: 'var(--primary-color)' }}>{stats.covered}</span>
-                 <span className="station-registry-item-meta">/ {stats.total} ({stats.percent}%)</span>
-               </div>
-             </div>
-             <div className="flex-col registry-stat-item" style={{ alignItems: 'flex-end' }}>
-               <div className="station-label">OFICIALES (GOV)</div>
-               <div className="flex-row" style={{ gap: '8px', fontFamily: 'var(--font-mono)' }}>
-                 <span className="station-title-main" style={{ fontSize: '1.5rem', color: 'var(--status-ok)' }}>{stats.official}</span>
-                 <span className="station-registry-item-meta">READY</span>
-               </div>
-             </div>
-          </div>
-          
+    <div className="station-main registry-page fade-in" style={{ padding: '0 24px' }}>
+      <StationHeader 
+        moduleName={t('shell.regtech')}
+        engineId="REG_REGISTRY_V6"
+        actions={
           <div className="flex-row registry-search-wrapper" style={{ position: 'relative' }}>
             <SearchIcon size={16} style={{ position: 'absolute', left: '12px', top: '12px', opacity: 0.4 }} />
             <input
               type="text"
-              placeholder="BUSCAR PAÍS O ISO2..."
+              placeholder={t('common.search').toUpperCase()}
               className="station-input registry-search-input"
               style={{ paddingLeft: '36px', width: '280px' }}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+        }
+        tabs={[
+          { 
+            id: 'one-by-one', 
+            label: t('shell.regtech_one_by_one'), 
+            icon: <UserIcon size={14} />, 
+            active: false,
+            onClick: () => router.push('/regulatory?view=one-by-one')
+          },
+          { 
+            id: 'batch', 
+            label: t('shell.regtech_batch'), 
+            icon: <ListIcon size={14} />, 
+            active: false,
+            onClick: () => router.push('/regulatory?view=batch')
+          },
+          {
+            id: 'registry',
+            label: t('shell.regtech_registry') || 'REGISTRO GLOBAL',
+            icon: <GlobeIcon size={14} />,
+            active: true,
+            onClick: () => router.push('/regulatory/registry')
+          }
+        ]}
+      />
+
+      <div className="flex-row mb-8" style={{ gap: '32px', padding: '0 8px' }}>
+        <div className="flex-col" style={{ alignItems: 'flex-start' }}>
+          <div className="station-label">COBERTURA TOTAL</div>
+          <div className="flex-row" style={{ gap: '8px', fontFamily: 'var(--font-mono)' }}>
+            <span className="station-title-main" style={{ fontSize: '1.2rem', color: 'var(--primary-color)' }}>{stats.covered}</span>
+            <span className="station-registry-item-meta">/ {stats.total} ({stats.percent}%)</span>
+          </div>
         </div>
-      </header>
+        <div className="flex-col" style={{ alignItems: 'flex-start' }}>
+          <div className="station-label">OFICIALES (GOV)</div>
+          <div className="flex-row" style={{ gap: '8px', fontFamily: 'var(--font-mono)' }}>
+            <span className="station-title-main" style={{ fontSize: '1.2rem', color: 'var(--status-ok)' }}>{stats.official}</span>
+            <span className="station-registry-item-meta">READY</span>
+          </div>
+        </div>
+      </div>
 
       <div className="station-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
         {filteredCountries.map((country) => (
@@ -101,7 +120,6 @@ export default function RegulatoryRegistryPage() {
             className="station-card flex-col"
             style={{ padding: '16px', position: 'relative', overflow: 'hidden', cursor: 'default' }}
           >
-            {/* Background Decorator */}
             <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', opacity: 0.05, pointerEvents: 'none' }}>
               <FlagResolver code={country.id} width={80} height={80} />
             </div>
@@ -152,7 +170,6 @@ export default function RegulatoryRegistryPage() {
         ))}
       </div>
 
-      {/* Details Modal */}
       {selectedCountry && (
         <div 
           className="station-modal-overlay fade-in" 
@@ -174,7 +191,6 @@ export default function RegulatoryRegistryPage() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close Button */}
             <button 
               className="station-btn tiny secondary" 
               style={{ 
@@ -206,7 +222,6 @@ export default function RegulatoryRegistryPage() {
             </header>
 
             <div className="flex-col" style={{ gap: '24px' }}>
-              {/* Technical Status Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div className="flex-col p-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
                    <div className="station-label" style={{ fontSize: '0.6rem' }}>MOTOR REGTECH</div>
@@ -227,7 +242,6 @@ export default function RegulatoryRegistryPage() {
                 </div>
               </div>
 
-              {/* Plugin Details */}
               {pluginInfo ? (
                 <div className="flex-col" style={{ gap: '20px' }}>
                   <div className="flex-col" style={{ gap: '8px' }}>
@@ -344,48 +358,6 @@ export default function RegulatoryRegistryPage() {
           background: rgba(0, 150, 255, 0.1);
           color: #0096ff;
           border: 1px solid rgba(0, 150, 255, 0.2);
-        }
-
-        @media (max-width: 1024px) {
-           .registry-header {
-             flex-direction: column;
-             align-items: flex-start !important;
-             gap: 24px;
-           }
-           .registry-stats-container {
-             width: 100%;
-             justify-content: space-between;
-           }
-        }
-
-        @media (max-width: 768px) {
-           .registry-stats-container {
-             flex-direction: column;
-             gap: 20px !important;
-           }
-           .registry-stats-group {
-             width: 100%;
-             justify-content: space-between;
-           }
-           .registry-search-wrapper {
-             width: 100%;
-           }
-           .registry-search-input {
-             width: 100% !important;
-           }
-           .registry-modal {
-             padding: 24px !important;
-             margin: 0;
-           }
-           .registry-modal-header {
-             flex-direction: column;
-             align-items: center;
-             text-align: center;
-             gap: 16px !important;
-           }
-           .registry-modal-title {
-             font-size: 1.3rem !important;
-           }
         }
       `}</style>
     </div>

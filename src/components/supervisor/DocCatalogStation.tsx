@@ -68,7 +68,7 @@ export const DocCatalogStation: React.FC = () => {
     };
 
     const handleDelete = async (entry: LocalDocCatalogEntry) => {
-        if (confirm(`¿ELIMINAR CÓDIGO ${entry.codigoDocumento}?`)) {
+        if (confirm(t('supervisor.cat_confirm_delete', { code: entry.codigoDocumento }))) {
             await DocCatalogService.deleteEntry(entry.id, currentOperator?.id);
         }
     };
@@ -84,85 +84,80 @@ export const DocCatalogStation: React.FC = () => {
                 </div>
                 <div className="flex-col" style={{ flex: 1 }}>
                     <span className="station-title-main">{entry.name}</span>
-                    <span className="station-registry-item-meta">PROCESO: {entry.procesoCodigo} · SOPORTE: {entry.formatoSoporte}</span>
+                    <span className="station-registry-item-meta">PROCESS: {entry.procesoCodigo} · FORMAT: {entry.formatoSoporte}</span>
                 </div>
                 <div className="flex-row" style={{ width: '200px' }}>
                     {template ? (
                         <div className="flex-row" style={{ gap: '6px', alignItems: 'center' }}>
                             <FileTextIcon size={12} style={{ opacity: 0.5 }} />
-                            <span className="station-registry-item-meta" style={{ fontSize: '0.75rem' }}>{template.name.substring(0, 20)}...</span>
+                             <span className="station-registry-item-meta" style={{ fontSize: '0.75rem' }}>{template.name.substring(0, 20)}...</span>
                         </div>
-                    ) : <span className="station-empty-state" style={{ fontSize: '0.7rem' }}>SIN_PLANTILLA</span>}
+                    ) : <span className="station-empty-state" style={{ fontSize: '0.7rem' }}>{t('supervisor.cat_no_template').toUpperCase()}</span>}
                 </div>
                 <div className="flex-row" style={{ width: '200px' }}>
                     {profile ? (
                         <div className="flex-row" style={{ gap: '6px', alignItems: 'center' }}>
                             <ShieldCheckIcon size={12} color="var(--status-ok)" />
-                            <span className="station-registry-item-meta" style={{ fontSize: '0.75rem' }}>{profile.name.substring(0, 20)}...</span>
+                             <span className="station-registry-item-meta" style={{ fontSize: '0.75rem' }}>{profile.name.substring(0, 20)}...</span>
                         </div>
-                    ) : <span className="station-empty-state" style={{ fontSize: '0.7rem' }}>SIN_GOLDEN</span>}
+                    ) : <span className="station-empty-state" style={{ fontSize: '0.7rem' }}>{t('supervisor.cat_no_profile').toUpperCase()}</span>}
                 </div>
                 <div style={{ width: '100px', textAlign: 'center' }}>
                     <button 
                         className={`station-badge ${entry.isActive ? 'station-badge-blue' : 'station-badge-orange'} tiny`}
-                        onClick={() => toggleStatus(entry)}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        {entry.isActive ? 'ACTIVO' : 'BAJA'}
-                    </button>
+                         onClick={() => toggleStatus(entry)}
+                         style={{ cursor: 'pointer' }}
+                     >
+                         {entry.isActive ? t('supervisor.cat_active').toUpperCase() : t('supervisor.cat_inactive').toUpperCase()}
+                     </button>
                 </div>
                 <div style={{ width: '100px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                    <button className="station-btn icon-only secondary tiny" onClick={() => {
+                     <button className="station-btn icon-only secondary tiny" onClick={() => {
                         setEditingEntry(entry);
                         setIsEditorOpen(true);
-                    }} title="Editar"><EditIcon size={14}/></button>
-                    <button className="station-btn icon-only secondary tiny" onClick={() => handleDelete(entry)} title="Borrar"><TrashIcon size={14}/></button>
+                    }} title={t('common.edit')}><EditIcon size={14}/></button>
+                    <button className="station-btn icon-only secondary tiny" onClick={() => handleDelete(entry)} title={t('common.delete')}><TrashIcon size={14}/></button>
                 </div>
             </div>
         );
     };
 
     return (
-        <div className="flex-col fade-in" style={{ height: '100%', gap: '24px' }}>
-            <header className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
-                    <div className="station-icon-box primary">
-                        <TagIcon size={20} />
-                    </div>
-                    <div>
-                        <h2 className="station-form-section-title" style={{ margin: 0 }}>CATÁLOGO LOCAL DE DOCUMENTOS</h2>
-                        <span className="station-registry-item-meta">COORDINACIÓN HOST Xnnnnn · CATDOCUM STATION</span>
-                    </div>
+        <div className="flex-col fade-in" style={{ height: '100%', gap: '24px', paddingTop: '16px' }}>
+            <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                 <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+                    <TagIcon size={18} color="var(--primary-color)" />
+                    <h3 className="station-form-section-title" style={{ margin: 0 }}>{t('supervisor.cat_title').toUpperCase()}</h3>
                 </div>
 
-                <div className="flex-row" style={{ gap: '16px' }}>
-                    <div className="station-field-container" style={{ width: '300px', flexDirection: 'row', alignItems: 'center', background: 'var(--surface-color)', padding: '0 12px' }}>
+                <div className="flex-row" style={{ gap: '12px' }}>
+                    <div className="station-field-container" style={{ width: '320px', flexDirection: 'row', alignItems: 'center', background: 'var(--surface-color)', padding: '0 12px', height: '36px' }}>
                         <SearchIcon size={14} style={{ opacity: 0.4 }} />
-                        <input 
+                         <input 
                             className="station-input" 
-                            style={{ border: 'none', background: 'transparent' }}
-                            placeholder="BUSCAR CÓDIGO O NOMBRE..." 
+                            style={{ border: 'none', background: 'transparent', height: '100%' }}
+                            placeholder={t('supervisor.cat_search').toUpperCase()} 
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <button className="station-btn station-btn-primary" onClick={() => {
+                     <button className="station-btn station-btn-primary" onClick={() => {
                         setEditingEntry({ isActive: true, formatoSoporte: '04', procesoCodigo: 'CAH' });
                         setIsEditorOpen(true);
                     }}>
-                        <PlusIcon size={16} /> NUEVO_DOC
+                        <PlusIcon size={16} /> {t('supervisor.cat_new').toUpperCase()}
                     </button>
                 </div>
-            </header>
+            </div>
 
             <div className="station-card flex-col" style={{ flex: 1, padding: 0, overflow: 'hidden' }}>
-                <div className="station-table-header">
-                    <div style={{ width: '100px' }}>CÓDIGO</div>
-                    <div style={{ flex: 1 }}>DESCRIPCIÓN / METADATOS</div>
-                    <div style={{ width: '200px' }}>PLANTILLA PREDETERMINADA</div>
-                    <div style={{ width: '200px' }}>PERFIL GOLDEN GAWEB</div>
-                    <div style={{ width: '100px', textAlign: 'center' }}>ESTADO</div>
-                    <div style={{ width: '100px', textAlign: 'right' }}>ACCIONES</div>
+                 <div className="station-table-header" style={{ background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', height: '40px', fontSize: '0.65rem', fontWeight: 900, opacity: 0.5 }}>
+                    <div style={{ width: '100px', paddingLeft: '16px' }}>{t('supervisor.cat_code').toUpperCase()}</div>
+                    <div style={{ flex: 1 }}>{t('supervisor.cat_desc').toUpperCase()}</div>
+                    <div style={{ width: '200px' }}>{t('supervisor.cat_template').toUpperCase()}</div>
+                    <div style={{ width: '200px' }}>{t('supervisor.cat_profile').toUpperCase()}</div>
+                    <div style={{ width: '100px', textAlign: 'center' }}>{t('supervisor.cat_status').toUpperCase()}</div>
+                    <div style={{ width: '100px', textAlign: 'right', paddingRight: '16px' }}>{t('supervisor.cat_actions').toUpperCase()}</div>
                 </div>
                 <div style={{ flex: 1, position: 'relative' }}>
                     <IndustrialVirtualTable 
@@ -176,103 +171,111 @@ export const DocCatalogStation: React.FC = () => {
 
             {isEditorOpen && (
                 <div className="station-modal-overlay fade-in" style={{ zIndex: 1000 }}>
-                    <form className="station-modal" style={{ maxWidth: '640px' }} onSubmit={handleSave}>
-                        <header className="station-modal-header">
-                           <h3 className="station-form-section-title" style={{ margin: 0 }}>EDITOR CATDOCUM LOCAL</h3>
+                    <form className="station-modal" style={{ maxWidth: '720px', background: 'var(--bg-color)', border: '1px solid var(--border-color)' }} onSubmit={handleSave}>
+                        <header className="station-modal-header" style={{ borderBottom: '1px solid var(--border-color)', padding: '20px 24px' }}>
+                           <div className="flex-row" style={{ gap: '12px', alignItems: 'center' }}>
+                               <TagIcon size={18} color="var(--primary-color)" />
+                               <h3 className="station-form-section-title" style={{ margin: 0 }}>CATDOCUM_REGISTRY_EDITOR</h3>
+                           </div>
                            <button type="button" className="station-btn tiny secondary" onClick={() => setIsEditorOpen(false)}><XIcon size={16}/></button>
                         </header>
 
-                        <div className="station-modal-content" style={{ padding: '24px', gap: '20px' }}>
-                            <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                        <div className="station-modal-content flex-col" style={{ padding: '32px', gap: '24px' }}>
+                            <div className="station-card flex-col" style={{ gap: '20px', padding: '24px' }}>
+                                <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                                    <div className="station-field-container">
+                                        <label className="station-registry-item-meta">HOST_DOCUMENT_CODE (Xnnnnn)</label>
+                                        <input 
+                                            className="station-input" 
+                                            required 
+                                            maxLength={6}
+                                            placeholder="X00001"
+                                            value={editingEntry?.codigoDocumento || ''}
+                                            onChange={e => setEditingEntry({...editingEntry!, codigoDocumento: e.target.value})}
+                                        />
+                                    </div>
+                                    <div className="station-field-container">
+                                        <label className="station-registry-item-meta">LINKED_PROCESS_CODE</label>
+                                        <input 
+                                            className="station-input" 
+                                            placeholder="CAH, CAT, ETC."
+                                            value={editingEntry?.procesoCodigo || ''}
+                                            onChange={e => setEditingEntry({...editingEntry!, procesoCodigo: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
+
                                 <div className="station-field-container">
-                                    <label className="station-registry-item-meta">CÓDIGO_HOST (Xnnnnn)</label>
+                                    <label className="station-registry-item-meta">DOCUMENT_DESCRIPTION (HUMAN_READABLE)</label>
                                     <input 
                                         className="station-input" 
                                         required 
-                                        maxLength={6}
-                                        placeholder="X00001"
-                                        value={editingEntry?.codigoDocumento || ''}
-                                        onChange={e => setEditingEntry({...editingEntry!, codigoDocumento: e.target.value})}
-                                    />
-                                </div>
-                                <div className="station-field-container">
-                                    <label className="station-registry-item-meta">PROCESO_VINCULADO</label>
-                                    <input 
-                                        className="station-input" 
-                                        placeholder="CAH, CAT, etc."
-                                        value={editingEntry?.procesoCodigo || ''}
-                                        onChange={e => setEditingEntry({...editingEntry!, procesoCodigo: e.target.value})}
+                                        placeholder="WELCOME_LETTER_PROFILE..."
+                                        value={editingEntry?.name || ''}
+                                        onChange={e => setEditingEntry({...editingEntry!, name: e.target.value})}
                                     />
                                 </div>
                             </div>
 
-                            <div className="station-field-container">
-                                <label className="station-registry-item-meta">NOMBRE DEL DOCUMENTO (DESCRIPTIVO)</label>
-                                <input 
-                                    className="station-input" 
-                                    required 
-                                    placeholder="CARTA DE BIENVENIDA..."
-                                    value={editingEntry?.name || ''}
-                                    onChange={e => setEditingEntry({...editingEntry!, name: e.target.value})}
-                                />
-                            </div>
+                            <div className="station-card flex-col" style={{ gap: '20px', padding: '24px' }}>
+                                <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                                    <div className="station-field-container">
+                                        <label className="station-registry-item-meta">DEFAULT_LETTER_TEMPLATE</label>
+                                        <select 
+                                            className="station-input"
+                                            value={editingEntry?.defaultTemplateId || ''}
+                                            onChange={e => setEditingEntry({...editingEntry!, defaultTemplateId: e.target.value})}
+                                        >
+                                            <option value="">-- NO_TEMPLATE_LINKED --</option>
+                                            {templates.map(t => <option key={t.id} value={t.id}>{t.name.toUpperCase()}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="station-field-container">
+                                        <label className="station-registry-item-meta">DEFAULT_GOLDEN_PROFILE</label>
+                                        <select 
+                                            className="station-input"
+                                            value={editingEntry?.defaultGoldenProfileId || ''}
+                                            onChange={e => setEditingEntry({...editingEntry!, defaultGoldenProfileId: e.target.value})}
+                                        >
+                                            <option value="">-- NO_PROFILE_LINKED --</option>
+                                            {goldenProfiles.map(p => <option key={p.id} value={p.id}>{p.name.toUpperCase()}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
 
-                            <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                                <div className="station-field-container">
-                                    <label className="station-registry-item-meta">PLANTILLA LETTER</label>
-                                    <select 
-                                        className="station-input"
-                                        value={editingEntry?.defaultTemplateId || ''}
-                                        onChange={e => setEditingEntry({...editingEntry!, defaultTemplateId: e.target.value})}
-                                    >
-                                        <option value="">-- NINGUNA --</option>
-                                        {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="station-field-container">
-                                    <label className="station-registry-item-meta">PERFIL GOLDEN GAWEB</label>
-                                    <select 
-                                        className="station-input"
-                                        value={editingEntry?.defaultGoldenProfileId || ''}
-                                        onChange={e => setEditingEntry({...editingEntry!, defaultGoldenProfileId: e.target.value})}
-                                    >
-                                        <option value="">-- NINGUNA --</option>
-                                        {goldenProfiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                                <div className="station-field-container">
-                                    <label className="station-registry-item-meta">FORMATO_SOPORTE</label>
-                                    <select 
-                                        className="station-input"
-                                        value={editingEntry?.formatoSoporte || '04'}
-                                        onChange={e => setEditingEntry({...editingEntry!, formatoSoporte: e.target.value as any})}
-                                    >
-                                        <option value="01">01 - A4 CONTINUO</option>
-                                        <option value="02">02 - A4 HOJA</option>
-                                        <option value="03">03 - ETIQUETA</option>
-                                        <option value="04">04 - PRE-IMPRESO</option>
-                                        <option value="05">05 - SOBRE</option>
-                                    </select>
-                                </div>
-                                <div className="flex-row" style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
-                                    <label className="flex-row" style={{ gap: '12px', cursor: 'pointer', alignItems: 'center' }}>
-                                        <span className="station-registry-item-meta">ACTIVO_EN_ESTACIÓN</span>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={editingEntry?.isActive ?? true}
-                                            onChange={e => setEditingEntry({...editingEntry!, isActive: e.target.checked})}
-                                        />
-                                    </label>
+                                <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                                    <div className="station-field-container">
+                                        <label className="station-registry-item-meta">STORAGE_FORMAT_SUPPORT</label>
+                                        <select 
+                                            className="station-input"
+                                            value={editingEntry?.formatoSoporte || '04'}
+                                            onChange={e => setEditingEntry({...editingEntry!, formatoSoporte: e.target.value as any})}
+                                        >
+                                            <option value="01">01 - A4_CONTINUOUS</option>
+                                            <option value="02">02 - A4_SHEET</option>
+                                            <option value="03">03 - LABEL_ADHESIVE</option>
+                                            <option value="04">04 - PRE_PRINTED_STATIONERY</option>
+                                            <option value="05">05 - ENVELOPE_FORMAT</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex-row" style={{ alignItems: 'flex-end', paddingBottom: '8px' }}>
+                                        <label className="flex-row" style={{ gap: '12px', cursor: 'pointer', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '10px 16px', borderRadius: '4px', width: '100%' }}>
+                                            <input 
+                                                type="checkbox" 
+                                                style={{ width: '18px', height: '18px' }}
+                                                checked={editingEntry?.isActive ?? true}
+                                                onChange={e => setEditingEntry({...editingEntry!, isActive: e.target.checked})}
+                                            />
+                                            <span className="station-title-main" style={{ fontSize: '0.7rem' }}>REGISTRY_ACTIVE_IN_NODE</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <footer className="station-modal-footer">
-                            <button type="button" className="station-btn secondary" onClick={() => setIsEditorOpen(false)}>CANCELAR</button>
-                            <button type="submit" className="station-btn station-btn-primary">GUARDAR_REGISTRO</button>
+                        <footer className="station-modal-footer" style={{ borderTop: '1px solid var(--border-color)', padding: '20px 24px', background: 'rgba(255,255,255,0.02)' }}>
+                            <button type="button" className="station-btn secondary" onClick={() => setIsEditorOpen(false)}>CANCEL_CHANGES</button>
+                            <button type="submit" className="station-btn station-btn-primary">COMMIT_REGISTRY_RECORD</button>
                         </footer>
                     </form>
                 </div>

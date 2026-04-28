@@ -5,6 +5,7 @@ import AuditStation from '@/components/AuditStation/AuditStation';
 import { useLanguage } from '@/lib/context/LanguageContext';
 import { useWorkspace } from '@/lib/context/WorkspaceContext';
 import { ForbiddenPanel } from '@/components/common/ForbiddenPanel';
+import { StationHeader } from '@/components/shell/StationHeader';
 
 export default function AuditPage() {
   const { t } = useLanguage();
@@ -15,19 +16,16 @@ export default function AuditPage() {
   }
 
   return (
-    <div className="animate-fade-in module-grid">
-      <section className="module-col-main">
-        <header className="module-title">
-          {t('shell.audit')}
-        </header>
-        
-        <div className="module-section" style={{ padding: 0, overflow: 'hidden' }}>
-          <AuditStation />
+    <div className="flex-col animate-fade-in" style={{ height: '100%', padding: '0 24px', gap: '24px' }}>
+      <StationHeader 
+        moduleName={t('shell.audit')}
+        engineId="AUDIT_ORCHESTRATOR_V6"
+      />
+      
+      <section className="module-grid" style={{ flex: 1, minHeight: 0 }}>
+        <div className="module-col-main" style={{ gridColumn: 'span 12' }}>
+           <AuditStation />
         </div>
-      </section>
-
-      <section className="module-col-side" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-        {/* Module specific documentation can go here if needed in the future */}
       </section>
     </div>
   );

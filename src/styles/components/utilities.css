@@ -1,0 +1,136 @@
+/* --- STATION BASE COMPONENTS --- */
+.station-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: clamp(12px, 3vw, 24px); /* Fluid padding */
+  height: 100%;
+}
+
+.station-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.station-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: rgba(56, 189, 248, 0.05);
+  border: 1px solid rgba(56, 189, 248, 0.1);
+  border-radius: var(--radius-std);
+  margin-bottom: 24px;
+}
+
+/* --- STATION INTEGRITY BADGES (Era 6) --- */
+.station-integrity-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 14px;
+  background: rgba(var(--primary-color-rgb, 56, 189, 248), 0.05);
+  border: 1px solid rgba(var(--primary-color-rgb, 56, 189, 248), 0.1);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15rem;
+  color: var(--primary-color);
+  opacity: 0.8;
+  pointer-events: none;
+  animation: station-heartbeat 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  text-transform: uppercase;
+  font-weight: 800;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+}
+
+.integrity-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--primary-color);
+  animation: dot-pulse 2s infinite;
+}
+
+/* --- FILE PROCESSING & DROPZONES --- */
+.station-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  border: 2px dashed var(--border-color);
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--snap);
+  position: relative;
+  text-align: center;
+}
+
+.station-dropzone:hover,
+.station-dropzone.active {
+  background: var(--bg-color);
+  border-color: var(--primary-color);
+  border-style: solid;
+}
+
+.station-dropzone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.station-file-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.station-file-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background var(--snap);
+}
+
+.station-file-item:last-child {
+  border-bottom: none;
+}
+
+.station-file-item:hover {
+  background: var(--surface-color);
+}
+
+/* --- TECH SUMMARIES --- */
+.station-tech-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 16px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+}
+
+.station-tech-item {
+  display: flex;
+  gap: 8px;
+}
+
+.station-tech-label {
+  opacity: 0.5;
+}

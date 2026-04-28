@@ -90,31 +90,31 @@ export const TechnicalCockpit: React.FC = () => {
         <section className="station-card" style={{ flex: 1 }}>
           <div className="flex-row" style={{ gap: '10px', marginBottom: '20px', opacity: 0.6 }}>
              <ShieldCheckIcon size={18} color="var(--primary-color)" />
-             <h3 className="station-form-section-title" style={{ margin: 0 }}>MOTOR_DE_SEGURIDAD</h3>
+             <h3 className="station-form-section-title" style={{ margin: 0 }}>{t('supervisor.tech_motor_security')}</h3>
           </div>
           
           <div className="flex-col" style={{ gap: '16px' }}>
-             <div className="flex-row" style={{ justifyContent: 'space-between', padding: '16px', background: 'rgba(var(--primary-color-rgb), 0.05)', border: '1px solid var(--border-color)', borderRadius: '2px' }}>
+             <div className="flex-row" style={{ justifyContent: 'space-between', padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderRadius: '2px' }}>
                 <div className="flex-col">
-                   <span className="station-registry-item-meta" style={{ fontWeight: 800 }}>ESTADO_IK (MASTER_KEY)</span>
+                   <span className="station-registry-item-meta" style={{ fontWeight: 800 }}>{t('supervisor.tech_ik_status')}</span>
                    <span className="station-title-main" style={{ fontSize: '1.2rem', color: installationKey ? 'var(--status-ok)' : 'var(--status-err)' }}>
-                      {installationKey ? 'UNLOCKED' : 'LOCKED'}
+                      {installationKey ? t('supervisor.tech_unlocked') : t('supervisor.tech_locked')}
                    </span>
                 </div>
                 {installationKey ? <UnlockIcon size={24} color="var(--status-ok)" /> : <LockIcon size={24} color="var(--status-err)" />}
              </div>
 
              <div className="flex-col" style={{ gap: '8px' }}>
-                <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.7rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '4px' }}>
-                   <span className="station-registry-item-meta">ÚLTIMO_ACCESO</span>
-                   <span className="station-title-main">{lastIkUnlock ? new Date(lastIkUnlock.timestamp).toLocaleString() : 'N/A'}</span>
+                <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.7rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                   <span className="station-registry-item-meta">{t('supervisor.tech_last_access')}</span>
+                   <span className="station-title-main">{lastIkUnlock ? new Date(lastIkUnlock.timestamp).toLocaleString() : t('supervisor.tech_never')}</span>
                 </div>
-                <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.7rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '4px' }}>
-                   <span className="station-registry-item-meta">OPERADOR_ACTIVO</span>
-                   <span className="station-title-main">{currentOperator?.username?.toUpperCase() || 'NONE'}</span>
+                <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.7rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                   <span className="station-registry-item-meta">{t('supervisor.tech_active_operator')}</span>
+                   <span className="station-title-main">{currentOperator?.username?.toUpperCase() || t('common.none')}</span>
                 </div>
-                <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.7rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '4px' }}>
-                   <span className="station-registry-item-meta">ENCRYPTION_ENGINE</span>
+                <div className="flex-row" style={{ justifyContent: 'space-between', fontSize: '0.7rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                   <span className="station-registry-item-meta">{t('supervisor.tech_encryption_engine')}</span>
                    <span className="station-title-main">AES-GCM-256 (NIST_P256)</span>
                 </div>
              </div>
@@ -125,37 +125,37 @@ export const TechnicalCockpit: React.FC = () => {
         <section className="station-card" style={{ flex: 1 }}>
            <div className="flex-row" style={{ gap: '10px', marginBottom: '20px', opacity: 0.6 }}>
               <ActivityIcon size={18} color="var(--primary-color)" />
-              <h3 className="station-form-section-title" style={{ margin: 0 }}>SECURITY_HEALTH_TELEMETRY</h3>
+              <h3 className="station-form-section-title" style={{ margin: 0 }}>{t('supervisor.tech_security_telemetry')}</h3>
            </div>
            <div className="station-form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div className="station-card" style={{ padding: '12px', background: 'rgba(0,0,0,0.2)' }}>
-                 <span className="station-registry-item-meta" style={{ fontSize: '0.55rem' }}>AUTH_FAIL_COUNT</span>
-                 <span className="station-title-main" style={{ fontSize: '1rem', color: 'var(--primary-color)' }}>
+              <div className="station-card" style={{ padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)' }}>
+                 <span className="station-registry-item-meta" style={{ fontSize: '0.55rem' }}>{t('supervisor.tech_auth_fails')}</span>
+                 <span className="station-title-main" style={{ fontSize: '1.1rem', color: 'var(--primary-color)', display: 'block', marginTop: '4px' }}>
                     12 / {telemetryConfig?.security?.securityThresholds?.failedAuthHigh}
                  </span>
               </div>
-              <div className="station-card" style={{ padding: '12px', background: 'rgba(0,0,0,0.2)' }}>
-                 <span className="station-registry-item-meta" style={{ fontSize: '0.55rem' }}>RBAC_MUTATIONS</span>
-                 <span className="station-title-main" style={{ fontSize: '1rem', color: 'var(--primary-color)' }}>
+              <div className="station-card" style={{ padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)' }}>
+                 <span className="station-registry-item-meta" style={{ fontSize: '0.55rem' }}>{t('supervisor.tech_rbac_mutations')}</span>
+                 <span className="station-title-main" style={{ fontSize: '1.1rem', color: 'var(--primary-color)', display: 'block', marginTop: '4px' }}>
                     2 / {telemetryConfig?.security?.securityThresholds?.rbacChangesAttention}
                  </span>
               </div>
-              <div className="station-card" style={{ padding: '12px', background: 'rgba(0,0,0,0.2)' }}>
-                 <span className="station-registry-item-meta" style={{ fontSize: '0.55rem' }}>DATA_SYNC_ERRS</span>
-                 <span className="station-title-main" style={{ fontSize: '1rem', color: 'var(--primary-color)' }}>
+              <div className="station-card" style={{ padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)' }}>
+                 <span className="station-registry-item-meta" style={{ fontSize: '0.55rem' }}>{t('supervisor.tech_sync_errors')}</span>
+                 <span className="station-title-main" style={{ fontSize: '1.1rem', color: 'var(--primary-color)', display: 'block', marginTop: '4px' }}>
                     0 / {telemetryConfig?.security?.securityThresholds?.dataOpsErrorAttention}
                  </span>
               </div>
-              <div className="station-card" style={{ padding: '12px', background: 'rgba(0,0,0,0.2)' }}>
-                 <span className="station-registry-item-meta" style={{ fontSize: '0.55rem' }}>INACTIVITY_LOCKS</span>
-                 <span className="station-title-main" style={{ fontSize: '1rem', color: 'var(--primary-color)' }}>
+              <div className="station-card" style={{ padding: '16px', background: 'var(--surface-color)', border: '1px solid var(--border-color)' }}>
+                 <span className="station-registry-item-meta" style={{ fontSize: '0.55rem' }}>{t('supervisor.tech_inactivity_locks')}</span>
+                 <span className="station-title-main" style={{ fontSize: '1.1rem', color: 'var(--primary-color)', display: 'block', marginTop: '4px' }}>
                     4 / {telemetryConfig?.security?.securityThresholds?.inactivityLocksHigh}
                  </span>
               </div>
            </div>
            <div className="station-registry-sync-header" style={{ marginTop: '16px' }}>
               <span className="station-shimmer-text" style={{ fontSize: '0.65rem' }}>
-                 * Los valores superados activarán alertas automáticas en el Supervisor Audit Dashboard.
+                 {t('supervisor.tech_threshold_hint')}
               </span>
            </div>
         </section>
@@ -165,18 +165,18 @@ export const TechnicalCockpit: React.FC = () => {
       <section className="station-card">
          <div className="flex-row" style={{ gap: '10px', marginBottom: '20px', opacity: 0.6 }}>
             <MapIcon size={18} color="var(--primary-color)" />
-            <h3 className="station-form-section-title" style={{ margin: 0 }}>MAPPING_BRAIN_HEALTH (THRESHOLD: {Math.round(mappingThreshold * 100)}%)</h3>
+            <h3 className="station-form-section-title" style={{ margin: 0 }}>{t('supervisor.tech_mapping_health')} (THRESHOLD: {Math.round(mappingThreshold * 100)}%)</h3>
          </div>
          
          <div className="station-registry-scroller" style={{ maxHeight: '400px', border: '1px solid var(--border-color)', borderRadius: '2px' }}>
             <table className="station-table">
                <thead>
                   <tr>
-                     <th>PRESET</th>
-                     <th>PLANTILLA</th>
-                     <th>MAPPING_ID</th>
-                     <th style={{ textAlign: 'right' }}>COBERTURA</th>
-                     <th style={{ textAlign: 'center' }}>STATUS</th>
+                     <th>{t('supervisor.tech_table.preset').toUpperCase()}</th>
+                     <th>{t('supervisor.tech_table.template').toUpperCase()}</th>
+                     <th>{t('supervisor.tech_table.mapping_id').toUpperCase()}</th>
+                     <th style={{ textAlign: 'right' }}>{t('supervisor.tech_table.coverage').toUpperCase()}</th>
+                     <th style={{ textAlign: 'center' }}>{t('supervisor.tech_table.status').toUpperCase()}</th>
                   </tr>
                </thead>
                <tbody>
@@ -193,14 +193,14 @@ export const TechnicalCockpit: React.FC = () => {
                            </td>
                            <td style={{ textAlign: 'center' }}>
                               <span className={`station-badge ${ok ? 'station-badge-blue' : 'station-badge-orange'} tiny`}>
-                                 {ok ? 'COMPLIANT' : 'UNDER_THRESHOLD'}
+                                 {ok ? t('supervisor.tech_compliant') : t('supervisor.tech_under_threshold')}
                               </span>
                            </td>
                         </tr>
                      );
                   })}
                   {mappingHealth.length === 0 && (
-                    <tr><td colSpan={5} className="station-empty-state" style={{ height: '100px' }}>NO_MAPPINGS_REGISTERED_IN_THIS_UNIT</td></tr>
+                    <tr><td colSpan={5} className="station-empty-state" style={{ height: '100px' }}>{t('supervisor.no_data').toUpperCase()}</td></tr>
                   )}
                </tbody>
             </table>
@@ -211,18 +211,18 @@ export const TechnicalCockpit: React.FC = () => {
       <section className="station-card">
          <div className="flex-row" style={{ gap: '10px', marginBottom: '20px', opacity: 0.6 }}>
             <AwardIcon size={18} color="var(--primary-color)" />
-            <h3 className="station-form-section-title" style={{ margin: 0 }}>GOLDEN_MASTER_REGISTRY</h3>
+            <h3 className="station-form-section-title" style={{ margin: 0 }}>{t('supervisor.tech_golden_registry')}</h3>
          </div>
          
          <div className="station-registry-scroller" style={{ maxHeight: '400px', border: '1px solid var(--border-color)', borderRadius: '2px' }}>
             <table className="station-table">
                <thead>
                   <tr>
-                     <th>TEMPLATE_ID</th>
-                     <th>CODE</th>
-                     <th>VERSION</th>
-                     <th>LAYOUT_HASH</th>
-                     <th>LAST_VERIFIED</th>
+                     <th>{t('supervisor.tech_table.template').toUpperCase()}</th>
+                     <th>{t('supervisor.tech_table.code').toUpperCase()}</th>
+                     <th>{t('supervisor.tech_table.version').toUpperCase()}</th>
+                     <th>{t('supervisor.tech_table.hash').toUpperCase()}</th>
+                     <th>{t('supervisor.tech_table.last_verified').toUpperCase()}</th>
                   </tr>
                </thead>
                <tbody>
@@ -232,11 +232,11 @@ export const TechnicalCockpit: React.FC = () => {
                         <td className="station-title-main">{g.codDocumento}</td>
                         <td><span className="station-badge station-badge-blue tiny">v{g.version}</span></td>
                         <td className="station-registry-item-meta" style={{ fontSize: '10px' }}>{g.layoutHash.substring(0, 16)}...</td>
-                        <td className="station-registry-item-meta">{g.lastVerifiedAt ? new Date(g.lastVerifiedAt).toLocaleString() : 'NEVER'}</td>
+                        <td className="station-registry-item-meta">{g.lastVerifiedAt ? new Date(g.lastVerifiedAt).toLocaleString() : t('supervisor.tech_never')}</td>
                      </tr>
                   ))}
                   {goldenTests?.length === 0 && (
-                     <tr><td colSpan={5} className="station-empty-state" style={{ height: '100px' }}>NO_GOLDEN_MASTERS_DEFINED</td></tr>
+                     <tr><td colSpan={5} className="station-empty-state" style={{ height: '100px' }}>{t('supervisor.no_data').toUpperCase()}</td></tr>
                   )}
                </tbody>
             </table>
@@ -248,20 +248,20 @@ export const TechnicalCockpit: React.FC = () => {
          <div className="flex-row" style={{ gap: '10px', marginBottom: '20px', opacity: 0.6, justifyContent: 'space-between' }}>
             <div className="flex-row" style={{ alignItems: 'center', gap: '10px' }}>
                <ShieldCheckIcon size={18} color="var(--primary-color)" />
-               <h3 className="station-form-section-title" style={{ margin: 0 }}>GAWEB_GOLDEN_MANAGEMENT</h3>
+               <h3 className="station-form-section-title" style={{ margin: 0 }}>{t('supervisor.tech_gaweb_management')}</h3>
             </div>
-            <button className="station-btn tiny" onClick={handleSeedProfiles}>SEED_INDUSTRIAL_SPECS</button>
+            <button className="station-btn tiny" onClick={handleSeedProfiles}>{t('supervisor.tech_seed_industrial')}</button>
          </div>
          
          <div className="station-registry-scroller" style={{ maxHeight: '400px', border: '1px solid var(--border-color)', borderRadius: '2px' }}>
             <table className="station-table">
                <thead>
                   <tr>
-                     <th>PROFILE_NAME</th>
-                     <th>DOC_CODE</th>
-                     <th>FORMAT</th>
-                     <th>RULES</th>
-                     <th>STATUS</th>
+                     <th>{t('supervisor.tech_table.profile_name').toUpperCase()}</th>
+                     <th>{t('supervisor.tech_table.doc_code').toUpperCase()}</th>
+                     <th>{t('supervisor.tech_table.format').toUpperCase()}</th>
+                     <th>{t('supervisor.tech_table.rules').toUpperCase()}</th>
+                     <th>{t('supervisor.tech_table.status').toUpperCase()}</th>
                   </tr>
                </thead>
                <tbody>
@@ -273,13 +273,13 @@ export const TechnicalCockpit: React.FC = () => {
                         <td className="station-registry-item-meta">{p.validationRules.length} ACTIVE_RULES</td>
                         <td>
                           <span className={`station-badge ${p.active ? 'station-badge-blue' : 'station-badge-orange'} tiny`}>
-                             {p.active ? 'ACTIVE_AUDIT' : 'DISABLED'}
+                             {p.active ? t('supervisor.tech_table.active_audit') : t('supervisor.tech_table.disabled')}
                           </span>
                         </td>
                      </tr>
                   ))}
                   {gawebProfiles?.length === 0 && (
-                     <tr><td colSpan={5} className="station-empty-state" style={{ height: '100px' }}>NO_GOLDEN_PROFILES_LOADED</td></tr>
+                     <tr><td colSpan={5} className="station-empty-state" style={{ height: '100px' }}>{t('supervisor.no_data').toUpperCase()}</td></tr>
                   )}
                </tbody>
             </table>

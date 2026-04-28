@@ -166,11 +166,11 @@ const LetterStation: React.FC = () => {
     const step5Complete = !!options.lote && !!options.codDocumento && options.codDocumento.length === 6 && !!options.oficina && options.oficina.length === 5 && isValidIndustrialDate(options.fechaCarta) && isValidIndustrialDate(options.fechaGeneracion);
 
     return [
-      { id: 'DATA', label: t('letter.wizard.data') || 'DATOS', complete: step1Complete, error: step1Complete ? undefined : 'Selecciona un preset y carga el fichero GAWEB.' },
-      { id: 'DESIGN', label: t('letter.wizard.design') || 'DISEÑO', complete: step2Complete, error: step2Complete ? undefined : 'Selecciona una plantilla activa.' },
-      { id: 'LOGIC', label: t('letter.wizard.logic') || 'MAPEO', complete: step3Complete, error: step3Complete ? undefined : `Paso bloqueado: quedan ${pendingCount} variables sin mapear (Umbral: ${Math.round(mappingThreshold*100)}%).` },
-      { id: 'DESTINATION', label: t('letter.wizard.dest') || 'DESTINO', complete: step4Complete, error: step4Complete ? undefined : 'Selecciona una carpeta de salida válida.' },
-      { id: 'EXECUTION', label: t('letter.wizard.run') || 'EJECUCIÓN', complete: step5Complete, error: step5Complete ? undefined : 'Completa los campos obligatorios del lote.' }
+      { id: 'DATA', label: t('letter.wizard.data'), complete: step1Complete, error: step1Complete ? undefined : t('letter.wizard.step1_err') },
+      { id: 'DESIGN', label: t('letter.wizard.design'), complete: step2Complete, error: step2Complete ? undefined : t('letter.wizard.step2_err') },
+      { id: 'LOGIC', label: t('letter.wizard.logic'), complete: step3Complete, error: step3Complete ? undefined : t('letter.wizard.step3_err', { count: pendingCount, threshold: Math.round(mappingThreshold*100) }) },
+      { id: 'DESTINATION', label: t('letter.wizard.dest'), complete: step4Complete, error: step4Complete ? undefined : t('letter.wizard.step4_err') },
+      { id: 'EXECUTION', label: t('letter.wizard.run'), complete: step5Complete, error: step5Complete ? undefined : t('letter.wizard.step5_err') }
     ] as const;
   }, [selectedPresetId, dataFile, selectedTemplateId, templates, selectedMapping, templateVars, outputHandle, options, telemetryConfig, t]);
 
@@ -233,21 +233,21 @@ const LetterStation: React.FC = () => {
                   const pdfBlob = await rendererEngine.renderToPdf(docBlob, finalName);
                   
                   if (payload.isFirst && goldenRef) {
-                    addLog('AUTOMATED_QA: Verificando integridad visual...', 'warning');
+                    addLog(t('letter.motor.qa_visual_verify'), 'warning');
                     const currentHash = await (rendererEngine as any).captureFingerprint(docBlob, finalName);
                     
                     const isMatch = currentHash === goldenRef.layoutHash;
                     
                     if (isMatch) {
-                      addLog('🏆 QA_MATCH: Integridad visual confirmada.', 'info');
+                      addLog(t('letter.motor.qa_match'), 'info');
                       setQaStatus('MATCH');
                       await db.golden_tests_v6.update(goldenRef.id!, { lastVerifiedAt: Date.now() });
                     } else {
-                      addLog('❌ QA_BREAK: Regresión de layout detectada.', 'error');
+                      addLog(t('letter.motor.qa_break'), 'error');
                       await letterService.logQAFailure(currentOperator?.id || 'system', options.lote, options.codDocumento);
                       setIsProcessing(false);
                       workerRef.current?.terminate();
-                      addLog('LOTE DETENIDO POR SEGURIDAD INDUSTRIAL (QA_BREAK).', 'error');
+                      addLog(t('letter.motor.qa_halt'), 'error');
                       return;
                     }
                   } else if (payload.isFirst) {
@@ -290,7 +290,7 @@ const LetterStation: React.FC = () => {
       };
       await db.lettertemplates_v6.add(newTemplate);
       setSelectedTemplateId(newTemplate.id!);
-      addLog(t('letter.logs.template_uploaded', { name: file.name }) || `PLANTILLA SUBIDA: ${file.name}`, 'info');
+      addLog(t('letter.logs.template_uploaded', { name: file.name }), 'info');
     } catch (err: any) {
       addLog(`ERROR SUBIDA: ${err.message}`, 'error');
     }
@@ -361,9 +361,9 @@ const LetterStation: React.FC = () => {
       const pickOptions = { mode: 'readwrite' };
       if (await (handle as any).requestPermission(pickOptions) === 'granted') {
          setOutputHandle(handle);
-         addLog(`CARPETA VINCULADA: ${handle.name} (Escritura Concedida)`);
+         addLog(`${t('letter.ui.write_granted').toUpperCase()}: ${handle.name}`);
       } else {
-         addLog('ATENCIÓN: Se denegaron los permisos de escritura.', 'error');
+         addLog(t('letter.ui.enable_write').toUpperCase(), 'error');
       }
     } catch (err: any) {
       if (err.name !== 'AbortError') addLog(`ERROR DIRECTORIO: ${err.message}`, 'error');
@@ -451,7 +451,15 @@ const LetterStation: React.FC = () => {
   };
 
   const renderWizardHeader = () => (
-    <nav className="wizard-nav station-card flex-row" style={{ padding: '12px', gap: '8px' }}>
+    <nav className="wizard-nav" style={{ 
+      display: 'flex',
+      width: '100%',
+      background: 'var(--border-color)',
+      border: '1px solid var(--border-color)',
+      borderRadius: '4px',
+      overflow: 'hidden',
+      marginBottom: '32px'
+    }}>
       {steps.map((s) => (
         <button
           key={s.id}
@@ -460,10 +468,51 @@ const LetterStation: React.FC = () => {
             complete: s.complete
           })}
           onClick={() => setCurrentStepId(s.id as WizardStepId)}
-          style={{ flex: 1 }}
+          style={{ 
+            flex: 1,
+            padding: '16px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '4px',
+            border: 'none',
+            borderRight: '1px solid var(--border-color)',
+            background: currentStepId === s.id ? 'rgba(var(--primary-color-rgb), 0.1)' : 'var(--surface-color)',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            minHeight: '80px',
+            position: 'relative',
+            boxShadow: currentStepId === s.id ? 'inset 0 -3px 0 var(--primary-color)' : 'none'
+          }}
         >
-          <span className="wizard-step-id">{s.id}</span>
-          <span className="wizard-step-label">{s.label}</span>
+          <span className="wizard-step-id" style={{ 
+            fontSize: '0.65rem', 
+            fontWeight: 800, 
+            color: currentStepId === s.id ? 'var(--primary-color)' : 'inherit',
+            opacity: currentStepId === s.id ? 1 : 0.5,
+            letterSpacing: '0.15rem'
+          }}>
+            {s.id}
+          </span>
+          <span className="wizard-step-label" style={{ 
+            fontSize: '0.85rem', 
+            fontWeight: 900, 
+            color: currentStepId === s.id ? 'var(--text-primary)' : 'var(--text-secondary)',
+            textTransform: 'uppercase'
+          }}>
+            {s.label}
+          </span>
+          {s.complete && (
+            <div style={{ 
+              position: 'absolute', 
+              top: '10px', 
+              right: '10px', 
+              color: 'var(--status-ok)',
+              fontWeight: 900,
+              fontSize: '0.7rem'
+            }}>✓</div>
+          )}
         </button>
       ))}
     </nav>
@@ -507,18 +556,18 @@ const LetterStation: React.FC = () => {
                <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                   <div className="flex-col">
                      <span style={{ fontWeight: 800, fontSize: '0.75rem', color: 'var(--primary-color)' }}>
-                        {t('catdocum.master_list') || 'MODO DINÁMICO CATDOCUM'}
+                        {t('letter.wizard.dynamic_mode').toUpperCase()}
                      </span>
                      <span style={{ fontSize: '0.65rem', opacity: 0.6 }}>
-                        Resolución automática de plantillas por código de negocio.
+                        {t('letter.wizard.dynamic_desc')}
                      </span>
                   </div>
                   <button 
-                     className={clsx('station-btn tiny', { 'primary-glow': autoCatDocum })}
+                     className={clsx('station-btn tiny', { 'station-btn-primary': autoCatDocum })}
                      onClick={() => setAutoCatDocum(!autoCatDocum)}
                      style={{ minWidth: '100px' }}
                   >
-                     {autoCatDocum ? 'ACTIVADO' : 'DESACTIVADO'}
+                     {autoCatDocum ? t('letter.wizard.active').toUpperCase() : t('letter.wizard.inactive').toUpperCase()}
                   </button>
                </div>
             </div>
@@ -537,7 +586,7 @@ const LetterStation: React.FC = () => {
              </div>
              <div className="flex-row" style={{ gap: '12px', marginTop: '12px' }}>
                 <button className="station-btn" onClick={() => (document.getElementById('docx-upload') as any).click()}>
-                   <TagIcon size={16} /> SUBIR DOCX
+                   <TagIcon size={16} /> {t('letter.ui.btn_upload').toUpperCase()} DOCX
                 </button>
                 <input id="docx-upload" type="file" accept=".docx" hidden onChange={e => {
                    const f = e.target.files?.[0];
@@ -560,7 +609,7 @@ const LetterStation: React.FC = () => {
                 const m = mappings.find(x => x.id === e.target.value);
                 if (m) setSelectedMapping(m);
               }}>
-                <option value="">-- SELECCIONAR MAPEADO --</option>
+                <option value="">{t('letter.ui.select_mapping').toUpperCase()}</option>
                 {mappings.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
             </div>
@@ -569,12 +618,12 @@ const LetterStation: React.FC = () => {
                 <MapIcon size={20} />
                 <div className="flex-col">
                   <span style={{ fontWeight: 800 }}>BRAIN_ACTIVE: {selectedMapping.name}</span>
-                  <span style={{ fontSize: '11px', opacity: 0.7 }}>Sincronizando variables con motor de renderizado...</span>
+                  <span style={{ fontSize: '11px', opacity: 0.7 }}>{t('letter.catdocum.sync_vars')}</span>
                 </div>
               </div>
             )}
             <button className="station-btn" style={{ marginTop: '20px' }} onClick={() => router.push('/letter?view=mappings')}>
-              GESTIONAR MAPEADOS
+              {t('letter.mapping').toUpperCase()}
             </button>
           </div>
         );
@@ -582,15 +631,15 @@ const LetterStation: React.FC = () => {
         return (
           <div className="flex-col animate-fade-in" style={{ gap: '20px' }}>
              <div className="station-form-field">
-                <label className="station-label">CARPETA DE SALIDA (NATIVO)</label>
+                <label className="station-label">{t('letter.ui.folder_output').toUpperCase()}</label>
                 <div className="flex-row" style={{ gap: '12px' }}>
                    <button className="station-btn station-btn-primary" onClick={handlePickOutput}>
-                      <FolderIcon size={16} /> {outputHandle ? `CONCEDIDO: ${outputHandle.name}` : 'SELECCIONAR CARPETA'}
+                      <FolderIcon size={16} /> {outputHandle ? `${t('letter.ui.write_granted').toUpperCase()}: ${outputHandle.name}` : t('letter.ui.explore').toUpperCase()}
                    </button>
                    {outputHandle && <span className="station-badge success">DIRECTORY_LINKED</span>}
                 </div>
                 <p style={{ fontSize: '11px', opacity: 0.5, marginTop: '8px' }}>
-                   ERA 6 utiliza el File System Access API para escribir directamente en el disco duro industrial sin descargas manuales.
+                   {t('letter.ui.direct_disk_desc')}
                 </p>
              </div>
           </div>
@@ -599,15 +648,15 @@ const LetterStation: React.FC = () => {
         return (
           <div className="flex-col animate-fade-in" style={{ gap: '20px' }}>
              <div className="station-form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-                <div className="station-form-field"><label className="station-label">LOTE</label><input className="station-input" value={options.lote} onChange={e => setOptions({...options, lote: e.target.value})} maxLength={4} /></div>
-                <div className="station-form-field"><label className="station-label">COD_DOC</label><input className="station-input" value={options.codDocumento} onChange={e => setOptions({...options, codDocumento: e.target.value})} maxLength={6} /></div>
-                <div className="station-form-field"><label className="station-label">OFICINA</label><input className="station-input" value={options.oficina} onChange={e => setOptions({...options, oficina: e.target.value})} maxLength={5} /></div>
-                <div className="station-form-field"><label className="station-label">FECHA_CARTA</label><input className="station-input" value={options.fechaCarta} onChange={e => setOptions({...options, fechaCarta: e.target.value})} placeholder="AAAAMMDD" /></div>
+                <div className="station-form-field"><label className="station-label">{t('letter.ui.lote_id').toUpperCase()}</label><input className="station-input" value={options.lote} onChange={e => setOptions({...options, lote: e.target.value})} maxLength={4} /></div>
+                <div className="station-form-field"><label className="station-label">{t('letter.ui.doc_code').toUpperCase()}</label><input className="station-input" value={options.codDocumento} onChange={e => setOptions({...options, codDocumento: e.target.value})} maxLength={6} /></div>
+                <div className="station-form-field"><label className="station-label">{t('letter.ui.office').toUpperCase()}</label><input className="station-input" value={options.oficina} onChange={e => setOptions({...options, oficina: e.target.value})} maxLength={5} /></div>
+                <div className="station-form-field"><label className="station-label">{t('letter.ui.letter_date').toUpperCase()}</label><input className="station-input" value={options.fechaCarta} onChange={e => setOptions({...options, fechaCarta: e.target.value})} placeholder="AAAAMMDD" /></div>
              </div>
 
              <div className="pre-flight-checklist" style={{ padding: '24px', background: 'var(--surface-color)', borderRadius: '8px', border: '1px solid var(--border-color)', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 900, opacity: 0.4, letterSpacing: '2px' }}>PRE-FLIGHT CHECKLIST INDUSTRIAL</div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 900, opacity: 0.4, letterSpacing: '2px' }}>{t('letter.wizard.preflight_title').toUpperCase()}</div>
                   {qaStatus === 'NO_GOLDEN' && (
                     <div className="station-badge warn tiny animate-pulse">NO_GOLDEN_MASTER</div>
                   )}
@@ -617,7 +666,7 @@ const LetterStation: React.FC = () => {
                 {goldenRef && (
                    <div style={{ marginBottom: '20px', padding: '12px', background: 'rgba(var(--primary-color-rgb), 0.05)', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
                       <div className="flex-row" style={{ gap: '8px', alignItems: 'center' }}>
-                         <span style={{ fontSize: '10px', fontWeight: 900 }}>🏆 GOLDEN_MASTER_ACTIVE:</span>
+                         <span style={{ fontSize: '10px', fontWeight: 900 }}>{t('letter.wizard.golden_master_active').toUpperCase()}</span>
                          <span className="station-badge success tiny">v{goldenRef.version}</span>
                       </div>
                       <div style={{ fontSize: '11px', opacity: 0.5, marginTop: '4px' }}>
@@ -636,7 +685,7 @@ const LetterStation: React.FC = () => {
                           <span style={{ fontSize: '10px', opacity: 0.3 }}>({getMappingCoverage(templateVars, selectedMapping).mappedCount}/{getMappingCoverage(templateVars, selectedMapping).totalVars})</span>
                         )}
                         <span style={{ fontWeight: 900, fontSize: '0.75rem', color: s.complete ? 'var(--status-ok)' : 'var(--status-err)', fontFamily: 'var(--font-mono)' }}>
-                          {s.complete ? 'READY' : 'PENDING'}
+                          {s.complete ? t('letter.ui.ready').toUpperCase() : t('letter.ui.pending').toUpperCase()}
                         </span>
                       </div>
                     </div>
@@ -651,7 +700,7 @@ const LetterStation: React.FC = () => {
                     onClick={handleStart}
                   >
                     {isProcessing ? <RefreshCwIcon size={24} className="spin" /> : <ZapIcon size={24} />}
-                    <span style={{ marginLeft: '12px' }}>INICIAR MOTOR</span>
+                    <span style={{ marginLeft: '12px' }}>{t('letter.ui.btn_generate').toUpperCase()}</span>
                   </button>
                 </div>
              </div>
@@ -662,40 +711,11 @@ const LetterStation: React.FC = () => {
   };
 
   return (
-    <div className="flex-col" style={{ gap: '24px', padding: '24px', width: '100%' }}>
-      {/* CABECERA INDUSTRIAL */}
-      <header className="station-card flex-col" style={{ gap: '16px', borderBottom: '2px solid var(--border-color)', borderRadius: 0, paddingBottom: '24px' }}>
-        <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div className="flex-col" style={{ gap: '4px' }}>
-            <h2 className="station-title-main" style={{ margin: 0, fontSize: '1.5rem', letterSpacing: '0.1rem' }}>
-              ABD · WIZARD
-            </h2>
-            <div className="flex-row" style={{ gap: '8px' }}>
-              <span className="station-badge">ERA 6</span>
-              <span className="station-badge success">SYS_READY</span>
-              {qaStatus !== 'PENDING' && (
-                <span className={`station-badge ${qaStatus === 'MATCH' ? 'success' : 'err'}`}>
-                  QA: {qaStatus}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex-row" style={{ gap: '12px' }}>
-            {goldenRef && (
-              <div className="flex-col" style={{ alignItems: 'flex-end', gap: '2px' }}>
-                 <span style={{ fontSize: '9px', fontWeight: 800, opacity: 0.5 }}>GOLDEN_MASTER v{goldenRef.version}</span>
-                 <span style={{ fontSize: '8px', opacity: 0.4 }}>VISTO: {new Date(goldenRef.lastVerifiedAt || 0).toLocaleDateString()}</span>
-              </div>
-            )}
-            <button className="station-btn icon-only" onClick={() => router.push('/letter?view=config')}><CogIcon size={18} /></button>
-          </div>
-        </div>
-      </header>
-
+    <div className="flex-col animate-fade-in" style={{ gap: '24px', height: '100%', padding: '0 24px' }}>
       {wizardEnabled ? (
-        <div className="wizard-container flex-col animate-fade-in" style={{ gap: '12px' }}>
+        <div className="wizard-container flex-col animate-fade-in" style={{ gap: '16px' }}>
           {renderWizardHeader()}
-          <main className="station-card letter-wizard-main" style={{ minHeight: '400px', flex: 1, width: '100%' }}>
+          <main className="station-card" style={{ minHeight: '400px', flex: 1, padding: '32px' }}>
             {renderStepContent()}
           </main>
         </div>
@@ -708,73 +728,73 @@ const LetterStation: React.FC = () => {
         </section>
       )}
 
-      <style jsx>{`
-        .letter-wizard-main {
-          padding: clamp(16px, 4vw, 32px);
+    <style jsx>{`
+      .letter-wizard-main {
+        padding: clamp(16px, 4vw, 32px);
+      }
+
+      @media (max-width: 800px) {
+        .wizard-nav {
+          flex-wrap: wrap;
+          gap: 4px;
         }
-
-        @media (max-width: 800px) {
-          .wizard-nav {
-            flex-wrap: wrap;
-            gap: 4px;
-          }
-          .wizard-step-btn {
-            flex: 1 1 45%;
-            font-size: 0.7rem;
-            padding: 8px;
-          }
-          .wizard-step-id {
-            display: none;
-          }
+        .wizard-step-btn {
+          flex: 1 1 45%;
+          font-size: 0.7rem;
+          padding: 8px;
         }
-
-        @media (max-width: 480px) {
-          .wizard-step-btn {
-            flex: 1 1 100%;
-          }
+        .wizard-step-id {
+          display: none;
         }
-      `}</style>
+      }
 
-      {/* LEGACY ACTIONS REMOVED (UNIFIED IN WIZARD) */}
+      @media (max-width: 480px) {
+        .wizard-step-btn {
+          flex: 1 1 100%;
+        }
+      }
+    `}</style>
 
-      {pendingDownload && (
-        <div className="station-card flex-col" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid var(--status-ok)', gap: '12px' }}>
-          <span style={{ color: 'var(--status-ok)', fontWeight: 700, textAlign: 'center' }}>{t('letter.ui.gen_success_inline').toUpperCase()}</span>
-          <div className="flex-row" style={{ gap: '12px' }}>
-            <button className="station-btn station-btn-primary" style={{ flex: 1, background: 'var(--status-ok)', color: 'white', height: '50px' }} onClick={() => saveFile(pendingDownload.blob, pendingDownload.name)}>
-              <DownloadIcon size={20} /> {t('letter.ui.download_full').toUpperCase()}
-            </button>
-            <button className="station-btn" style={{ height: '50px', background: 'rgba(255,215,0,0.1)', color: '#FFD700', border: '1px solid #FFD700' }} onClick={async () => {
-              if (rendererEngine && pendingDownload) {
-                const hash = await rendererEngine.captureFingerprint(pendingDownload.blob, pendingDownload.name);
-                await db.golden_tests_v6.add({
-                  templateId: selectedTemplateId!,
-                  mappingId: selectedMapping?.id || '',
-                  etlPresetId: selectedPresetId!,
-                  codDocumento: options.codDocumento,
-                  version: '1.000',
-                  layoutHash: hash,
-                  hashAlgorithm: 'SHA-256',
-                  renderSpec: 'v1:page1@144dpi:gray:512x724',
-                  createdAt: Date.now(),
-                  updatedAt: Date.now()
-                });
-                addLog('SÍMBOLO GOLDEN GUARDADO EN EL REGISTRO DE QA.', 'info');
-              }
-            }}>🏆 {t('letter.ui.save_golden').toUpperCase()}</button>
-          </div>
+    {/* LEGACY ACTIONS REMOVED (UNIFIED IN WIZARD) */}
+
+    {pendingDownload && (
+      <div className="station-card flex-col" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid var(--status-ok)', gap: '12px' }}>
+        <span style={{ color: 'var(--status-ok)', fontWeight: 700, textAlign: 'center' }}>{t('letter.ui.gen_success_inline').toUpperCase()}</span>
+        <div className="flex-row" style={{ gap: '12px' }}>
+          <button className="station-btn station-btn-primary" style={{ flex: 1, background: 'var(--status-ok)', color: 'white', height: '50px' }} onClick={() => saveFile(pendingDownload.blob, pendingDownload.name)}>
+            <DownloadIcon size={20} /> {t('letter.ui.download_full').toUpperCase()}
+          </button>
+          <button className="station-btn" style={{ height: '50px', background: 'rgba(255,215,0,0.1)', color: '#FFD700', border: '1px solid #FFD700' }} onClick={async () => {
+            if (rendererEngine && pendingDownload) {
+              const hash = await rendererEngine.captureFingerprint(pendingDownload.blob, pendingDownload.name);
+              await db.golden_tests_v6.add({
+                templateId: selectedTemplateId!,
+                mappingId: selectedMapping?.id || '',
+                etlPresetId: selectedPresetId!,
+                codDocumento: options.codDocumento,
+                version: '1.000',
+                layoutHash: hash,
+                hashAlgorithm: 'SHA-256',
+                renderSpec: 'v1:page1@144dpi:gray:512x724',
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+              });
+              addLog(t('letter.logs.golden_saved') || 'GOLDEN SAVED.', 'info');
+            }
+          }}>🏆 {t('letter.ui.save_golden').toUpperCase()}</button>
         </div>
-      )}
+      </div>
+    )}
 
       {canDiag && (environment !== 'PROD' || isTechnicianMode) && (
         <div className="station-card" style={{ background: 'rgba(239, 68, 68, 0.03)', border: '1px dashed rgba(239, 68, 68, 0.15)', marginTop: 'auto', padding: '16px' }}>
           <div className="flex-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
             <div className="flex-col">
-              <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--status-err)' }}>INDUSTRIAL_DIAGNOSTIC_CONSOLE_V4</span>
-              <span style={{ fontSize: '10px', opacity: 0.5 }}>MODO TÉCNICO ACTIVADO - PRUEBAS DE ESTRÉS PDF</span>
+              <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--status-err)' }}>{t('letter.wizard.diag_console').toUpperCase()}</span>
+              <span style={{ fontSize: '10px', opacity: 0.5 }}>{t('letter.wizard.technician_mode').toUpperCase()}</span>
             </div>
             <div className="flex-row" style={{ gap: '12px', flexWrap: 'wrap' }}>
-              <button className="station-btn" style={{ height: '36px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-err)', fontWeight: 800, border: '1px solid rgba(239, 68, 68, 0.2)' }} onClick={() => handleRunStressTest(5)} disabled={isProcessing}><ZapIcon size={14} /> TEST (5)</button>
+              <button className="station-btn" style={{ height: '36px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-err)', fontWeight: 800, border: '1px solid rgba(239, 68, 68, 0.2)' }} onClick={() => handleRunStressTest(5)} disabled={isProcessing}><ZapIcon size={14} /> {t('letter.wizard.stress_test').toUpperCase()} (5)</button>
               <button className="station-btn" style={{ height: '36px', background: 'var(--status-err)', color: 'white', fontWeight: 800 }} onClick={() => handleRunStressTest(50)} disabled={isProcessing}><ZapIcon size={14} /> MASSIVE (50)</button>
               {isTechnicianMode && (
                 <>
@@ -809,7 +829,7 @@ const LetterStation: React.FC = () => {
                     onClick={runIndustrialSmokeTest} 
                     disabled={isProcessing}
                   >
-                    <PlayIcon size={14} /> SMOKE TEST
+                    <PlayIcon size={14} /> {t('letter.wizard.smoke_test').toUpperCase()}
                   </button>
                 </>
               )}
@@ -821,7 +841,7 @@ const LetterStation: React.FC = () => {
       <div className="station-integrity-badge" style={{ position: 'fixed', bottom: '24px', right: '24px' }}>
          <div className="integrity-dot" />
          <FileTextIcon size={14} />
-         <span>ESTÁNDAR GAWEB v.1 (ERA 6)</span>
+         <span>{t('letter.wizard.integrity_badge').toUpperCase()}</span>
       </div>
 
       <RendererHost onReady={setRendererEngine} />
