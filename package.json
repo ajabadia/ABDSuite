@@ -12,5 +12,15 @@
   "devDependencies": {
     "turbo": "^2.0.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@swc/core",
+      "argon2",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
   "packageManager": "pnpm@10.25.0"
 }
