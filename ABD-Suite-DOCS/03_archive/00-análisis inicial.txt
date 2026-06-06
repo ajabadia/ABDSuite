@@ -1,0 +1,84 @@
+ure
+He revisado en detalle la estructura, arquitectura y estado de los cuatro repositorios activos bajo D:\desarrollos. Tienes una base arquitectónica sumamente sólida y de nivel industrial.
+
+A continuación, te presento un análisis detallado del estado de cada proyecto y las recomendaciones técnicas para abordar tus dudas sobre la integración del dominio en GoDaddy, la ubicación del lanzador y la gobernanza de usuarios y logs.
+
+1. Estado de los Proyectos y Contexto Actual
+@abd/styles (ABDStyles):
+Estado: Estable y certificado (SYS_CERTIFIED).
+Función: Biblioteca de tokens visuales y utilidades matemáticas de color (conversión hexadecimal a componentes HSL compatibles con Tailwind CSS v4, cálculo de contraste WCAG mediante fórmula YIQ y adaptaciones bitwise para modo oscuro).
+Consumo: Se importa en los satélites referenciándolo en el package.json directamente desde su repositorio de GitHub (git+https://github.com/ajabadia/ABDStyles.git#main).
+ABDAuth:
+Estado: Proveedor de Identidad Centralizado (IdP) (SYS_CERTIFIED_PROD).
+Función: Gestiona credenciales de usuario, flujos de segundo factor (MFA), bloqueo progresivo de cuentas, rate limiting y el protocolo de inicio de sesión único federado (SSO/SLO) para los satélites a través de un intercambio de códigos tipo OAuth2.
+ABDtenantGobernance:
+Estado: Consola de Control de Tenants (SYS_CERTIFIED).
+Función: Centraliza la gobernanza de organizaciones, personalización visual (marca blanca), gestión de espacios jerárquicos (campuses, edificios, salas) e ingestión asíncrona de auditoría (Fail-Safe) utilizando una conexión secundaria desacoplada a una base de datos remota de logs.
+ABDQuiz:
+Estado: Aplicación Satélite (SYS_CERTIFIED).
+Función: Simulador de exámenes multi-tenant con lógica COW (Copy-On-Write) para control de versiones de preguntas, y soporte para tematización visual SSR sin parpadeos (Zero-FOUC).
+2. Propuesta de Despliegue en GoDaddy + Vercel (Dominios y Cookies)
+Para desplegar la suite bajo tu dominio propio de GoDaddy manteniendo el ecosistema en Vercel, la recomendación técnica es el enrutamiento basado en subdominios, aprovechando la federación SSO que ya has construido.
+
+¿Por qué usar subdominios y no una capa de enmascaramiento?
+Seguridad y CSP: Intentar ocultar Vercel tras un proxy inverso casero o iframes añade latencia y rompe las políticas de seguridad del navegador (cabeceras CORS, CSP y Frame Ancestors).
+Transparencia de Vercel: Al asociar tus subdominios en Vercel, la barra de navegación del usuario mostrará https://auth.tudominio.com o https://quiz.tudominio.com. Vercel gestiona las peticiones de forma transparente con certificados SSL automáticos de Let's Encrypt. A nivel visual, no hay rastro de la URL .vercel.app.
+Configuración DNS recomendada en GoDaddy:
+Proveedor de Identidad: auth.tudominio.com apuntando al proyecto ABDAuth en Vercel.
+Consola de Administración: gobernanza.tudominio.com apuntando al proyecto ABDtenantGobernance en Vercel.
+Simulador: quiz.tudominio.com apuntando al proyecto ABDQuiz en Vercel.
+Gestión de Multi-Tenancy mediante subdominios dinámicos (*.quiz.tudominio.com):
+Si en el futuro deseas que cada cliente acceda mediante su propia URL corporativa (ej. academia1.quiz.tudominio.com), puedes configurar un dominio wildcard en Vercel:
+
+En Vercel (Configuración de Dominio de ABDQuiz): Añades *.quiz.tudominio.com.
+En GoDaddy (DNS): Añades un registro CNAME con host *.quiz apuntando a cname.vercel-dns.com.
+El Middleware de Next.js en el satélite interceptará la petición, parseará el subdominio y resolverá el contexto del tenant correspondiente sin necesidad de registrar cada subdominio manualmente.
+Compartición de Cookies de Sesión:
+Actualmente, el flujo de callback en tus satélites escribe la cookie abd_session en el host actual. En una arquitectura federada estándar:
+
+Cada aplicación satélite puede mantener su propia cookie abd_session local. Cuando expira, redirige al usuario silenciosamente a auth.tudominio.com. Si la sesión central sigue activa, ABDAuth lo autentica al instante y lo redirige de vuelta con un código en milisegundos (SSO transparente).
+Si deseas que la cookie abd_session sea legible directamente por todos los satélites sin redirección intermedia, puedes configurar la cabecera del cookie manager de los satélites y de ABDAuth para incluir el atributo Domain: '.tudominio.com'. Esto permite que cualquier subdominio del dominio raíz comparta la cookie directamente.
+3. Dónde y Cómo Construir el Lanzador de Aplicaciones (Launcher)
+El lanzador de aplicaciones debe residir en la aplicación ABDAuth (ej. en la ruta /dashboard o en la raíz / una vez iniciada la sesión).
+
+Justificación:
+Contexto del Usuario: ABDAuth es el guardián de la sesión global. Sabe exactamente quién es el usuario, a qué tenant pertenece y qué rol tiene asignado.
+Seguridad: Evita que un usuario acceda a la lista de aplicaciones si no se ha validado el segundo factor (MFA).
+Flujo Limpio: El dashboard de ABDAuth puede mostrar una cuadrícula minimalista y de alta densidad visual con las aplicaciones disponibles para el tenant actual del usuario. Al hacer clic en una aplicación (ej. ABDQuiz), se le redirige al subdominio correspondiente (https://quiz.tudominio.com/exams) con el flujo SSO transparente.
+4. Gobernanza de Usuarios, Tenants y Logs
+Para mantener la separación de responsabilidades y evitar la fatiga del sistema a largo plazo, te sugiero la siguiente distribución:
+
+mermaid
+graph TD
+    subgraph ABDAuth [Ecosistema de Identidad]
+        A[Gestión de Usuarios]
+        B[Credenciales y MFA]
+        C[Sesión Global]
+    end
+    subgraph ABDtenantGobernance [Control Plane]
+        D[CRUD de Tenants]
+        E[Estructura de Espacios]
+        F[Branding y Estilos]
+    end
+    subgraph ABDLogs [Microservicio de Telemetría]
+        G[Ingesta Asíncrona API]
+        H[Auditoría de Actividad]
+    end
+    ABDtenantGobernance -->|Consulta| ABDAuth
+    ABDLogs -->|Persiste| I[(MongoDB Logs)]
+Gestión de Usuarios (en ABDAuth): La base de datos de identidades, contraseñas, políticas de MFA y estados de activación debe seguir centralizada en ABDAuth. Es el único proveedor de confianza.
+Gestión de Organizaciones y Espacios (en ABDtenantGobernance): Crear y editar tenants, definir sus esquemas de color, cargar logotipos en el CDN y estructurar sus campuses/edificios es responsabilidad exclusiva de esta consola. ABDAuth lee la configuración del tenant desde la base de datos compartida únicamente para inyectar los claims básicos del token.
+Gestión de Logs (ABDLogs):
+Actualmente, ABDtenantGobernance escribe directamente en una base de datos remota de logs mediante un pool de conexión secundario de Mongoose.
+Recomendación: Cuando integres más aplicaciones a la suite, implementa el plan detallado en tu documento SaaS_LOGGING_ARCHITECTURE.md. Crear un microservicio API REST ligero (ABDLogs) permitirá a cualquier satélite registrar eventos mediante peticiones fetch asíncronas seguras, eliminando la necesidad de que cada aplicación satélite mantenga conexiones persistentes directas a la base de datos de logs (lo cual es crítico en entornos Serverless como Vercel para evitar el agotamiento de conexiones).
+5. Siguientes Pasos y Estandarización
+Tus proyectos actuales ya cuentan con un excelente validador estático (abd-audit.ps1) que fuerza los estándares de calidad "Era 11/19" (cero any implícitos, tipado estricto, modularización de menos de 150 líneas y localización con i18n al 100%).
+
+Cuando estés listo, podemos proceder con las siguientes tareas de ordenamiento:
+
+Unificación de Dominio: Configurar los DNS en tu GoDaddy y mapearlos a los entornos correspondientes en Vercel.
+Implementación del Lanzador: Diseñar el panel de acceso a aplicaciones (Launcher) dentro del dashboard central de ABDAuth siguiendo la estética de tu guía de estilos.
+Estandarización de Satélites: Revisar la configuración de middlewares e interceptores en ABDQuiz para que el flujo de redirecciones sea 100% simétrico.
+Dime en qué área te gustaría que nos enfoquemos primero para tomar las decisiones y empezar a preparar la implementación.
+
+11:55 AM

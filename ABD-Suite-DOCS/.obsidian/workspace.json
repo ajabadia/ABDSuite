@@ -1,0 +1,214 @@
+{
+  "main": {
+    "id": "f803681f520478d6",
+    "type": "split",
+    "children": [
+      {
+        "id": "88ac329df5490885",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d232d79c08b370a9",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Vista gráfica"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "51da6d7fb31f33fd",
+    "type": "split",
+    "children": [
+      {
+        "id": "2f76689def3aebe1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c543747a22c8bc56",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de archivos"
+            }
+          },
+          {
+            "id": "3799c8456158cf86",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Buscar"
+            }
+          },
+          {
+            "id": "21a570d276342797",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "cbf6c07aee0efa2a",
+    "type": "split",
+    "children": [
+      {
+        "id": "d526a7e713b2313b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b53bd0895781b4d4",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Desarrollos Suite/script python ANEXO_DPA_WORD_POLISHED.txt.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Enlaces entrantes de script python ANEXO_DPA_WORD_POLISHED.txt"
+            }
+          },
+          {
+            "id": "c76c37b020b977eb",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Desarrollos Suite/script python ANEXO_DPA_WORD_POLISHED.txt.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Enlaces salientes de script python ANEXO_DPA_WORD_POLISHED.txt"
+            }
+          },
+          {
+            "id": "7ecdf23e5be74b91",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "59216f653ed29b74",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas las propiedades"
+            }
+          },
+          {
+            "id": "2ebfd53ef7f0ee9c",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Desarrollos Suite/script python ANEXO_DPA_WORD_POLISHED.txt.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Esquema de script python ANEXO_DPA_WORD_POLISHED.txt"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Abrir selector rápido": false,
+      "graph:Abrir vista gráfica": false,
+      "canvas:Crear nuevo lienzo": false,
+      "daily-notes:Abrir la nota de hoy": false,
+      "templates:Insertar plantilla": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Crear nueva base": false
+    }
+  },
+  "active": "d232d79c08b370a9",
+  "lastOpenFiles": [
+    "02_architecture/ARQUITECTURA_WIDGETS.md",
+    "grafos/ABDFiles.md",
+    "02_architecture/ANALISIS_ARQUITECTURA.md",
+    "grafos/Mapa_Global_Suite.md",
+    "Desarrollos Suite/script python ANEXO_DPA_WORD_POLISHED.txt.md",
+    "02_architecture/Configurar una Nueva Aplicación Satélite.md",
+    "Configurar una Nueva Aplicación Satélite.md",
+    "Desarrollos Suite/plan_arquitectura_pdf_suite_abd.md",
+    "Desarrollos Suite/Historial de Perplexity - PDF - GESTOR DOCUMENTAL.md",
+    "Desarrollos Suite/script python para ANEXO_DPA_WORD_POLISHED.md",
+    "Desarrollos Suite/ANEXO_DPA_WORD_READY.txt",
+    "Desarrollos Suite/plan_arquitectura_pdf_suite_abd_v2.md",
+    "Desarrollos Suite/historial perplexity - gestor documental.md",
+    "Desarrollos Suite/anexo_tecnico_pdf_accesible_pipeline.md",
+    "Desarrollos Suite/Aspectos técnicos PDFs.md",
+    "Desarrollos Suite/ANEXO_DPA_WORD_READY.md",
+    "Desarrollos Suite/ANEXO_DPA_WORD_POLISHED.md",
+    "Desarrollos Suite/ANEXO_DPA_WORD_POLISHED -2.md",
+    "Desarrollos Suite/ABDDocs & ABDTemplates.md",
+    "Desarrollos Suite",
+    "grafos/ABDLanding.md",
+    "grafos/ABDQuiz.md",
+    "grafos/ABDAnalytics.md",
+    "grafos/ABDEcosystemWidgets.md",
+    "grafos/ABDSatelliteSDK.md",
+    "grafos/ABDLogs.md",
+    "grafos/ABDAuth.md",
+    "grafos/ABDtenantGobernance.md",
+    "grafos"
+  ]
+}

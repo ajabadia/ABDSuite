@@ -1,0 +1,14 @@
+packages:
+  # Shared libraries
+  - "ABDStyles"
+  - "ABDSatelliteSDK"
+  - "ABDEcosystemWidgets"
+  # Satellite Apps
+  - "ABDAnalytics"
+  - "ABDAuth"
+  - "ABDFiles"
+  - "ABDLanding"
+  - "ABDLogs"
+  - "ABDQuiz"
+  - "ABDtenantGobernance"
+  - "ABD___BASE"
