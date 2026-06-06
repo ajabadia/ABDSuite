@@ -19,6 +19,7 @@ Para evitar la duplicación de código redundante e incoherencias de maquetació
      ```
      *(Nota: Esto permite enlazar localmente con [ABDEcosystemWidgets](file:///d:/desarrollos/ABDSuite/ABDEcosystemWidgets) y [ABDSatelliteSDK](file:///d:/desarrollos/ABDSuite/ABDSatelliteSDK) durante el desarrollo local)*.
    * Modifica los puertos en `"scripts"` para evitar colisiones en desarrollo local (ej. Files utiliza `5005`, etc.).
+   * **Consistencia de Dependencias (Catálogo)**: No utilices la sintaxis de catálogo (`"next": "catalog:"`) en los archivos `package.json` de los satélites, ya que se despliegan de forma aislada e independiente en Vercel a partir de sus propios repositorios. En su lugar, consulta las versiones de referencia en el catálogo centralizado del archivo [pnpm-workspace.yaml](file:///d:/desarrollos/ABDSuite/pnpm-workspace.yaml) de la raíz del monorepo y fija exactamente las mismas versiones (sin prefijos de rango como `^` o `~`).
 3. **Limpieza e Inicialización**:
    * Configura la lógica base de tu nueva aplicación en `src/features/`, `src/models/`, etc.
    * **Mantén intacto**: El chasis visual (`SidebarNavigation`), el layout de traducción (`src/app/[locale]/layout.tsx`), los archivos de mensajes (`messages/`) y la inyección de branding (`<BrandingStyles />` del SDK en el `<head>` del layout).
