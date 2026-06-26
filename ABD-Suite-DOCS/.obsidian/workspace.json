@@ -11,10 +11,14 @@
             "id": "d232d79c08b370a9",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Vista gráfica"
+              "type": "markdown",
+              "state": {
+                "file": "Desarrollos Suite/Historial de Perplexity - PDF - GESTOR DOCUMENTAL.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Historial de Perplexity - PDF - GESTOR DOCUMENTAL"
             }
           }
         ]
@@ -181,6 +185,9 @@
   },
   "active": "d232d79c08b370a9",
   "lastOpenFiles": [
+    "01_active_specs/ESPECIFICACIONES_ABDFILES.md",
+    "grafos/ABDAnalytics.md",
+    "Desarrollos Suite/ANEXO_DPA_WORD_POLISHED.md",
     "02_architecture/ARQUITECTURA_WIDGETS.md",
     "grafos/ABDFiles.md",
     "02_architecture/ANALISIS_ARQUITECTURA.md",
@@ -197,18 +204,15 @@
     "Desarrollos Suite/anexo_tecnico_pdf_accesible_pipeline.md",
     "Desarrollos Suite/Aspectos técnicos PDFs.md",
     "Desarrollos Suite/ANEXO_DPA_WORD_READY.md",
-    "Desarrollos Suite/ANEXO_DPA_WORD_POLISHED.md",
     "Desarrollos Suite/ANEXO_DPA_WORD_POLISHED -2.md",
     "Desarrollos Suite/ABDDocs & ABDTemplates.md",
     "Desarrollos Suite",
     "grafos/ABDLanding.md",
     "grafos/ABDQuiz.md",
-    "grafos/ABDAnalytics.md",
     "grafos/ABDEcosystemWidgets.md",
     "grafos/ABDSatelliteSDK.md",
     "grafos/ABDLogs.md",
     "grafos/ABDAuth.md",
-    "grafos/ABDtenantGobernance.md",
     "grafos"
   ]
 }

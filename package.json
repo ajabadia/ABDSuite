@@ -7,10 +7,12 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "sync-env": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sync-env.ps1",
-    "sync-i18n": "node ./scripts/sync-i18n.mjs"
+    "sync-i18n": "node ./scripts/sync-i18n.mjs",
+    "typecheck": "turbo run typecheck",
+    "full-audit": "node ./scripts/audit-all.mjs"
   },
   "devDependencies": {
-    "turbo": "^2.0.0"
+    "turbo": "^2.9.16"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -22,5 +24,8 @@
       "unrs-resolver"
     ]
   },
-  "packageManager": "pnpm@10.25.0"
+  "packageManager": "pnpm@10.25.0",
+  "dependencies": {
+    "bcryptjs": "^3.0.3"
+  }
 }
