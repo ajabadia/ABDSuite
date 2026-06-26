@@ -6,8 +6,8 @@
 !/pnpm-workspace.yaml
 !/pnpm-lock.yaml
 !/turbo.json
-!/.env.shared
 !/.gitignore
+!/.env.example
 !/scripts/
 !/scripts/**
 !/utilidades/
