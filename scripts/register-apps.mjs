@@ -11,6 +11,8 @@ const apps = [
     clientId: "auth",
     clientSecret: "abd-auth-industrial-client-secret-" + crypto.randomBytes(16).toString('hex'),
     redirectUris: [
+      "https://abdia.es/auth/api/abd-auth/federated/callback",
+      "https://abdia.es/auth/api/auth/federated/callback",
       "http://localhost:5001/api/auth/federated/callback",
       "https://abdia.es/auth/api/auth/federated/callback"
     ],
@@ -25,6 +27,12 @@ const apps = [
     clientId: "analytics",
     clientSecret: "dev-analytics-client-secret-" + crypto.randomBytes(16).toString('hex'),
     redirectUris: [
+      "https://abdia.es/analytics/api/abd-auth/federated/callback",
+      "https://abdia.es/analytics/api/auth/federated/callback",
+      "https://abdia.es/analytics",
+      "https://analytics.abdia.es/api/abd-auth/federated/callback",
+      "https://analytics.abdia.es/api/auth/federated/callback",
+      "https://analytics.abdia.es",
       "http://localhost:5004/api/auth/federated/callback",
       "https://abdia.es/analytics/api/auth/federated/callback"
     ],
@@ -39,6 +47,12 @@ const apps = [
     clientId: "logs",
     clientSecret: "dev-logs-client-secret-" + crypto.randomBytes(16).toString('hex'),
     redirectUris: [
+      "https://abdia.es/logs/api/abd-auth/federated/callback",
+      "https://abdia.es/logs/api/auth/federated/callback",
+      "https://abdia.es/logs",
+      "https://logs.abdia.es/api/abd-auth/federated/callback",
+      "https://logs.abdia.es/api/auth/federated/callback",
+      "https://logs.abdia.es",
       "http://localhost:5003/api/auth/federated/callback",
       "https://abdia.es/logs/api/auth/federated/callback"
     ],
@@ -53,6 +67,12 @@ const apps = [
     clientId: "quiz",
     clientSecret: "abdquiz-industrial-client-secret-" + crypto.randomBytes(16).toString('hex'),
     redirectUris: [
+      "https://abdia.es/quiz/api/abd-auth/federated/callback",
+      "https://abdia.es/quiz/api/auth/federated/callback",
+      "https://abdia.es/quiz",
+      "https://quiz.abdia.es/api/abd-auth/federated/callback",
+      "https://quiz.abdia.es/api/auth/federated/callback",
+      "https://quiz.abdia.es",
       "http://localhost:5020/api/auth/federated/callback",
       "https://abdia.es/quiz/api/auth/federated/callback"
     ],
@@ -67,6 +87,12 @@ const apps = [
     clientId: "files",
     clientSecret: "dev-files-client-secret-" + crypto.randomBytes(16).toString('hex'),
     redirectUris: [
+      "https://abdia.es/files/api/abd-auth/federated/callback",
+      "https://abdia.es/files/api/auth/federated/callback",
+      "https://abdia.es/files",
+      "https://files.abdia.es/api/abd-auth/federated/callback",
+      "https://files.abdia.es/api/auth/federated/callback",
+      "https://files.abdia.es",
       "http://localhost:5005/api/auth/federated/callback",
       "https://abdia.es/files/api/auth/federated/callback"
     ],
@@ -81,6 +107,12 @@ const apps = [
     clientId: "gobernanza",
     clientSecret: "dev-gobernanza-client-secret-" + crypto.randomBytes(16).toString('hex'),
     redirectUris: [
+      "https://abdia.es/gobernanza/api/abd-auth/federated/callback",
+      "https://abdia.es/gobernanza/api/auth/federated/callback",
+      "https://abdia.es/gobernanza",
+      "https://tenantgobernance.abdia.es/api/abd-auth/federated/callback",
+      "https://tenantgobernance.abdia.es/api/auth/federated/callback",
+      "https://tenantgobernance.abdia.es",
       "http://localhost:5002/api/auth/federated/callback",
       "https://abdia.es/gobernanza/api/auth/federated/callback"
     ],
@@ -95,6 +127,12 @@ const apps = [
     clientId: "landing",
     clientSecret: "dev-landing-client-secret-" + crypto.randomBytes(16).toString('hex'),
     redirectUris: [
+      "https://abdia.es/api/abd-auth/federated/callback",
+      "https://abdia.es/api/auth/federated/callback",
+      "https://abdia.es",
+      "https://www.abdia.es/api/abd-auth/federated/callback",
+      "https://www.abdia.es/api/auth/federated/callback",
+      "https://www.abdia.es",
       "http://localhost:3000/api/auth/federated/callback",
       "https://abdia.es/api/auth/federated/callback"
     ],
