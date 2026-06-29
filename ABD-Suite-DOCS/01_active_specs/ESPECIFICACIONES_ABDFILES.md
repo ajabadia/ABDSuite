@@ -1,10 +1,10 @@
-# Especificaciones Técnicas: ABDFiles — Gestor Documental de ABDSuite (v1.0 - Era 6.1)
+# Especificaciones Técnicas: ABDFiles — Gestor Documental de ABDSuite (v2.0 - Era 7.x)
 
 > **Nombre canónico**: ABDFiles  
 > **Subdominio**: `files.abdia.es` (alias: `documents.abdia.es`)  
-> **Rol en la suite**: Satélite de almacenamiento, versionado, retención y trazabilidad de activos documentales  
+> **Rol en la suite**: Satélite de almacenamiento, versionado, retención, trazabilidad y **conversión universal** de activos documentales  
 > **Spec de referencia**: [ESPECIFICACIONES_DOCUMENTOS.md](./ESPECIFICACIONES_DOCUMENTOS.md)  
-> **Estado**: Diseño aprobado — Implementación pendiente
+> **Estado**: Implementado — Fases 1-6 (Core documental) completas. Fase 7 (Conversión universal) completada.
 
 ---
 
@@ -16,9 +16,23 @@ La unidad de trabajo no es el archivo, sino el **asset documental**: un document
 
 ### Qué NO es ABDFiles
 
-- **No es un procesador**: el procesamiento OCR/extracción lo hace `docs.abdia.es`.
 - **No es un motor de plantillas**: la gobernanza y render lo hace `templates.abdia.es`.
-- **No tiene lógica de negocio de otros satélites**: solo almacena, versiona y sirve activos.
+- **No tiene lógica de negocio de otros satélites**: los servicios de negocio (cursos, exámenes, facturación) residen en sus respectivos satélites.
+
+### ABDFiles SÍ es Procesador
+
+ABDFiles ha evolucionado para incluir un **motor de conversión universal** con 6 engines que operan tanto en servidor como en el navegador (WASM):
+
+| Engine | Tecnología | Formatos |
+|--------|-----------|----------|
+| **Pandoc** | `pandoc-wasm` | Documentos: markdown, html, docx, epub, latex, pdf, pptx, odt, rst, asciidoc, mediawiki, csv, json, yaml (30+) |
+| **Sharp** | `sharp` | Imágenes: jpeg, png, webp, avif, tiff, gif, heif |
+| **FFmpeg** | `@ffmpeg/ffmpeg` WASM | Audio: mp3, wav, ogg, flac, aac. Vídeo: mp4, webm, avi, mkv, mov |
+| **Tesseract.js** | `tesseract.js` | OCR: extracción de texto de imágenes y PDFs |
+| **Whisper** | `@xenova/transformers` (server) / `@remotion/whisper-web` (browser) | Speech-to-Text: transcripción con salida texto, SRT, VTT |
+| **Kokoro** | `kokoro-js` (ONNX WASM) | Text-to-Speech: 35+ voces, salida wav/mp3/ogg |
+
+La API REST de conversión se expone bajo `/api/v1/convert/*` con un router central (`conversion-router.ts`) que inspecciona MIME types y delega al engine apropiado. Soporta **pipelines multi-step** (ej. vídeo → FFmpeg → Whisper → Pandoc → documento).
 
 ### Arquitectura de Capas
 

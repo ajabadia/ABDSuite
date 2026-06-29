@@ -33,6 +33,12 @@ catalogs:
     next-intl:
       specifier: 4.13.0
       version: 4.13.0
+    next-themes:
+      specifier: 0.4.6
+      version: 0.4.6
+    nextjs-toploader:
+      specifier: 3.9.17
+      version: 3.9.17
     otplib:
       specifier: 13.4.1
       version: 13.4.1
@@ -42,6 +48,9 @@ catalogs:
     react-dom:
       specifier: 19.2.6
       version: 19.2.6
+    sonner:
+      specifier: 2.0.7
+      version: 2.0.7
     typescript:
       specifier: 6.0.3
       version: 6.0.3
@@ -64,17 +73,17 @@ importers:
   ABDAnalytics:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: ^1.0.10
-        version: 1.0.40(@ajabadia/satellite-sdk@1.0.90(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(radix-ui@1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: ^1.0.37
-        version: 1.0.39
+        specifier: workspace:^
+        version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.90
-        version: 1.0.90(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 1.0.90(@ajabadia/styles@ABDStyles)(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: ^1.0.15
-        version: 1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDStyles
       '@radix-ui/react-progress':
         specifier: ^1.1.8
         version: 1.1.9(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -101,13 +110,13 @@ importers:
         version: 16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       next-intl:
         specifier: 4.13.0
-        version: 4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
+        version: 4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
       next-themes:
         specifier: 0.4.6
         version: 0.4.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       nextjs-toploader:
         specifier: 3.9.17
-        version: 3.9.17(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 3.9.17(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       radix-ui:
         specifier: ^1.4.3
         version: 1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -162,7 +171,7 @@ importers:
         version: 9.39.4(jiti@2.7.0)
       eslint-config-next:
         specifier: 16.2.6
-        version: 16.2.6(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
+        version: 16.2.6(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3))(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
       tailwindcss:
         specifier: 4.3.0
         version: 4.3.0
@@ -176,17 +185,17 @@ importers:
   ABDAuth:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: ^1.0.37
-        version: 1.0.40(@ajabadia/satellite-sdk@1.0.80(@ajabadia/styles@1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(radix-ui@1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: ^1.0.37
-        version: 1.0.39
+        specifier: workspace:^
+        version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.80
-        version: 1.0.80(@ajabadia/styles@1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 1.0.80(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: latest
-        version: 1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDStyles
       '@better-auth/mongo-adapter':
         specifier: 1.6.11
         version: 1.6.11(@better-auth/core@1.6.14(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.1)(mongodb@7.2.0)
@@ -210,7 +219,7 @@ importers:
         version: 0.44.0
       better-auth:
         specifier: 1.6.11
-        version: 1.6.11(mongodb@7.2.0)(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(vitest@4.1.8)
+        version: 1.6.11(mongodb@7.2.0)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(vitest@4.1.8)
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1
@@ -243,13 +252,13 @@ importers:
         version: 16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       next-intl:
         specifier: 4.13.0
-        version: 4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
+        version: 4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
       next-themes:
         specifier: 0.4.6
         version: 0.4.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       nextjs-toploader:
         specifier: 3.9.17
-        version: 3.9.17(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 3.9.17(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -289,7 +298,7 @@ importers:
         version: 9.39.4(jiti@2.7.0)
       eslint-config-next:
         specifier: 16.2.6
-        version: 16.2.6(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3))(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
+        version: 16.2.6(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
       postcss:
         specifier: 8.5.14
         version: 8.5.14
@@ -323,6 +332,9 @@ importers:
       '@ajabadia/styles':
         specifier: latest
         version: 1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
       clsx:
         specifier: 2.1.1
         version: 2.1.1
@@ -369,6 +381,12 @@ importers:
       next-intl:
         specifier: 'catalog:'
         version: 4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
+      next-themes:
+        specifier: 'catalog:'
+        version: 0.4.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      nextjs-toploader:
+        specifier: 'catalog:'
+        version: 3.9.17(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       radix-ui:
         specifier: ^1.4.3
         version: 1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -381,6 +399,9 @@ importers:
       rimraf:
         specifier: ^6.1.3
         version: 6.1.3
+      sonner:
+        specifier: 'catalog:'
+        version: 2.0.7(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       tsup:
         specifier: ^8.0.2
         version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)
@@ -394,17 +415,17 @@ importers:
   ABDFiles:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: ^1.0.38
-        version: 1.0.40(@ajabadia/satellite-sdk@1.0.90(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(radix-ui@1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: ^1.0.37
-        version: 1.0.39
+        specifier: workspace:^
+        version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.90
-        version: 1.0.90(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 1.0.90(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: ^1.0.46
-        version: 1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDStyles
       '@aws-sdk/client-s3':
         specifier: ^3.1062.0
         version: 3.1063.0
@@ -551,17 +572,17 @@ importers:
   ABDLanding:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: ^1.0.10
-        version: 1.0.40(@ajabadia/satellite-sdk@1.0.90(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(radix-ui@1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: ^1.0.37
-        version: 1.0.39
+        specifier: workspace:^
+        version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.90
-        version: 1.0.90(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 1.0.90(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: ^1.0.15
-        version: 1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDStyles
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1
@@ -648,17 +669,17 @@ importers:
   ABDLogs:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: ^1.0.10
-        version: 1.0.40(@ajabadia/satellite-sdk@1.0.90(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(radix-ui@1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: ^1.0.37
-        version: 1.0.39
+        specifier: workspace:^
+        version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.90
-        version: 1.0.90(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 1.0.90(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: ^1.0.15
-        version: 1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDStyles
       '@radix-ui/react-progress':
         specifier: ^1.1.8
         version: 1.1.9(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -766,17 +787,17 @@ importers:
   ABDQuiz:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: ^1.0.10
-        version: 1.0.40(@ajabadia/satellite-sdk@1.0.83(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(radix-ui@1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: ^1.0.37
-        version: 1.0.39
+        specifier: workspace:^
+        version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.81
-        version: 1.0.83(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 1.0.83(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: ^1.0.15
-        version: 1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDStyles
       '@google/generative-ai':
         specifier: ^0.24.1
         version: 0.24.1
@@ -1000,17 +1021,17 @@ importers:
   ABD___BASE:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: ^1.0.10
-        version: 1.0.40(@ajabadia/satellite-sdk@1.0.83(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(radix-ui@1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: ^1.0.37
-        version: 1.0.39
+        specifier: workspace:^
+        version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.81
-        version: 1.0.83(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 1.0.83(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: ^1.0.15
-        version: 1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDStyles
       '@radix-ui/react-progress':
         specifier: ^1.1.8
         version: 1.1.9(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -1098,10 +1119,23 @@ importers:
         version: 4.1.8(@types/node@25.8.0)(@vitest/coverage-v8@4.1.8)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@6.4.3(@types/node@25.8.0)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4))
 
   ABDi18n:
+    dependencies:
+      next-intl:
+        specifier: ^4.13.0
+        version: 4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.7(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 25.8.0
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.14)
+      next:
+        specifier: 'catalog:'
+        version: 16.2.6(@playwright/test@1.60.0)(react-dom@19.2.7(react@19.2.6))(react@19.2.6)
       tsup:
         specifier: ^8.3.5
         version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)
@@ -1115,17 +1149,17 @@ importers:
   ABDtenantGobernance:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: ^1.0.10
-        version: 1.0.40(@ajabadia/satellite-sdk@1.0.83(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(radix-ui@1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: ^1.0.37
-        version: 1.0.39
+        specifier: workspace:^
+        version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.81
-        version: 1.0.83(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 1.0.83(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: ^1.0.15
-        version: 1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
+        specifier: workspace:^
+        version: link:../ABDStyles
       '@radix-ui/react-progress':
         specifier: ^1.1.8
         version: 1.1.9(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -1238,18 +1272,6 @@ packages:
   '@adobe/css-tools@4.5.0':
     resolution: {integrity: sha512-6OzddxPio9UiWTCemp4N8cYLV2ZN1ncRnV1cVGtve7dhPOtRkleRyx32GQCYSwDYgaHU3USMm84tNsvKzRCa1Q==}
 
-  '@ajabadia/ecosystem-widgets@1.0.40':
-    resolution: {integrity: sha512-NwIRzyItUv4tG6xh/ZJ70QbL3S/DsUvdCWHvaAp8KIK23jycnAJ/OeLJrye8PHiF6KmA4ijQZ2wEhmexQwLflQ==, tarball: https://npm.pkg.github.com/download/@ajabadia/ecosystem-widgets/1.0.40/98739920a68e4aaa68224e0c3bd8165d813946ba}
-    peerDependencies:
-      '@ajabadia/satellite-sdk': ^1.0.0
-      lucide-react: ^0.46.0 || ^1.0.0
-      next-intl: ^4.12.0
-      radix-ui: ^1.0.0
-      react: ^19.0.0
-
-  '@ajabadia/i18n@1.0.39':
-    resolution: {integrity: sha512-+BmO2mJ5Pd94JvCUhBFOwXL18pdMVcrRKayPMP+1Z5048P45fwccgE+OmJxF9Apbx+8NB4nNzSrBKvHoFZrOpQ==, tarball: https://npm.pkg.github.com/download/@ajabadia/i18n/1.0.39/6a589924627f00dc8a4e28d5a6828b8cb5ef6fcb}
-
   '@ajabadia/satellite-sdk@1.0.80':
     resolution: {integrity: sha512-qoTt+5b9Mnr6T75hPgnguU+K1ouNs6+fWC8W5H2pVoCMCuu1iEIaz/AHUqQ8+9jPLYiEG4m2sWdnMOlD14qO7g==, tarball: https://npm.pkg.github.com/download/@ajabadia/satellite-sdk/1.0.80/f63a5eaa016a8a0f345eaa4157bccfb92564473e}
     peerDependencies:
@@ -1273,13 +1295,6 @@ packages:
       next: '>=14.0.0'
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
-
-  '@ajabadia/styles@1.0.48':
-    resolution: {integrity: sha512-cBpu80Tkv2tlqleGsxiiROwhS6zSt7ScbNYFTvJX/PxsgElVgP33KktGk7p9SvIgCNYEMiCztjGLBxzR6Uto4Q==, tarball: https://npm.pkg.github.com/download/@ajabadia/styles/1.0.48/1595b7068144e7e8310e73dc41da1c408fa14977}
-    peerDependencies:
-      lucide-react: ^0.46.0 || ^1.0.0
-      next-intl: ^4.12.0
-      react: ^19.0.0
 
   '@ajabadia/styles@1.0.93':
     resolution: {integrity: sha512-R77Nq3t2IxUqfeIrxn5MisDQeUPKvTowse37GdtHQRhluALJ9F6VYDTkkitYAH3KiuupVbbolpRqBcB02wrHvQ==, tarball: https://npm.pkg.github.com/download/@ajabadia/styles/1.0.93/2c4140608d44b2cb6362b4af74f6c73db014d286}
@@ -7200,44 +7215,51 @@ snapshots:
 
   '@adobe/css-tools@4.5.0': {}
 
-  '@ajabadia/ecosystem-widgets@1.0.40(@ajabadia/satellite-sdk@1.0.80(@ajabadia/styles@1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(radix-ui@1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)':
+  '@ajabadia/satellite-sdk@1.0.80(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
-      '@ajabadia/satellite-sdk': 1.0.80(@ajabadia/styles@1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
-      '@ajabadia/styles': 1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
-      clsx: 2.1.1
-      lucide-react: 1.17.0(react@19.2.6)
-      next-intl: 4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
-      radix-ui: 1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@ajabadia/styles': link:ABDStyles
+      '@upstash/redis': 1.38.0
+      cloudinary: 2.10.0
+      fast-json-stable-stringify: 2.1.0
+      jose: 6.2.3
+      mongoose: 9.6.3
+      next: 16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       react: 19.2.6
-      tailwind-merge: 3.6.0
+      react-dom: 19.2.6(react@19.2.6)
+      zod: 4.4.3
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@mongodb-js/zstd'
+      - gcp-metadata
+      - kerberos
+      - mongodb-client-encryption
+      - snappy
+      - socks
 
-  '@ajabadia/ecosystem-widgets@1.0.40(@ajabadia/satellite-sdk@1.0.83(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(radix-ui@1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)':
+  '@ajabadia/satellite-sdk@1.0.83(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
-      '@ajabadia/satellite-sdk': 1.0.83(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
-      '@ajabadia/styles': 1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
-      clsx: 2.1.1
-      lucide-react: 1.17.0(react@19.2.6)
-      next-intl: 4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
-      radix-ui: 1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@ajabadia/styles': link:ABDStyles
+      '@upstash/redis': 1.38.0
+      cloudinary: 2.10.0
+      fast-json-stable-stringify: 2.1.0
+      jose: 6.2.3
+      mongoose: 9.6.3
+      next: 16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       react: 19.2.6
-      tailwind-merge: 3.6.0
+      react-dom: 19.2.6(react@19.2.6)
+      zod: 4.4.3
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@mongodb-js/zstd'
+      - gcp-metadata
+      - kerberos
+      - mongodb-client-encryption
+      - snappy
+      - socks
 
-  '@ajabadia/ecosystem-widgets@1.0.40(@ajabadia/satellite-sdk@1.0.90(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(radix-ui@1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)':
+  '@ajabadia/satellite-sdk@1.0.90(@ajabadia/styles@ABDStyles)(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
-      '@ajabadia/satellite-sdk': 1.0.90(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
-      '@ajabadia/styles': 1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
-      clsx: 2.1.1
-      lucide-react: 1.17.0(react@19.2.6)
-      next-intl: 4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
-      radix-ui: 1.5.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
-      react: 19.2.6
-      tailwind-merge: 3.6.0
-
-  '@ajabadia/i18n@1.0.39': {}
-
-  '@ajabadia/satellite-sdk@1.0.80(@ajabadia/styles@1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
-    dependencies:
-      '@ajabadia/styles': 1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
+      '@ajabadia/styles': link:ABDStyles
       '@upstash/redis': 1.38.0
       cloudinary: 2.10.0
       fast-json-stable-stringify: 2.1.0
@@ -7256,9 +7278,9 @@ snapshots:
       - snappy
       - socks
 
-  '@ajabadia/satellite-sdk@1.0.83(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+  '@ajabadia/satellite-sdk@1.0.90(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
-      '@ajabadia/styles': 1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
+      '@ajabadia/styles': link:ABDStyles
       '@upstash/redis': 1.38.0
       cloudinary: 2.10.0
       fast-json-stable-stringify: 2.1.0
@@ -7276,45 +7298,6 @@ snapshots:
       - mongodb-client-encryption
       - snappy
       - socks
-
-  '@ajabadia/satellite-sdk@1.0.90(@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6))(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
-    dependencies:
-      '@ajabadia/styles': 1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)
-      '@upstash/redis': 1.38.0
-      cloudinary: 2.10.0
-      fast-json-stable-stringify: 2.1.0
-      jose: 6.2.3
-      mongoose: 9.6.3
-      next: 16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
-      react: 19.2.6
-      react-dom: 19.2.6(react@19.2.6)
-      zod: 4.4.3
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-providers'
-      - '@mongodb-js/zstd'
-      - gcp-metadata
-      - kerberos
-      - mongodb-client-encryption
-      - snappy
-      - socks
-
-  '@ajabadia/styles@1.0.48(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)':
-    dependencies:
-      clsx: 2.1.1
-      lucide-react: 1.17.0(react@19.2.6)
-      next-intl: 4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
-      react: 19.2.6
-      tailwind-merge: 3.6.0
-      zod: 4.4.3
-
-  '@ajabadia/styles@1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)':
-    dependencies:
-      clsx: 2.1.1
-      lucide-react: 1.17.0(react@19.2.6)
-      next-intl: 4.13.0(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
-      react: 19.2.6
-      tailwind-merge: 3.6.0
-      zod: 4.4.3
 
   '@ajabadia/styles@1.0.93(lucide-react@1.17.0(react@19.2.6))(next-intl@4.13.0(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)(typescript@6.0.3))(react@19.2.6)':
     dependencies:
@@ -9835,7 +9818,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 8.60.1
       debug: 4.4.3
       minimatch: 10.2.5
-      semver: 7.8.2
+      semver: 7.8.5
       tinyglobby: 0.2.17
       ts-api-utils: 2.5.0(typescript@6.0.3)
       typescript: 6.0.3
@@ -10192,7 +10175,7 @@ snapshots:
 
   bcryptjs@3.0.3: {}
 
-  better-auth@1.6.11(mongodb@7.2.0)(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(vitest@4.1.8):
+  better-auth@1.6.11(mongodb@7.2.0)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(vitest@4.1.8):
     dependencies:
       '@better-auth/core': 1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)
       '@better-auth/drizzle-adapter': 1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)
@@ -10213,7 +10196,7 @@ snapshots:
       zod: 4.4.3
     optionalDependencies:
       mongodb: 7.2.0
-      next: 16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      next: 16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       react: 19.2.6
       react-dom: 19.2.6(react@19.2.6)
       vitest: 4.1.8(@types/node@25.8.0)(@vitest/coverage-v8@4.1.8)(jsdom@29.1.1(@noble/hashes@2.2.0))(vite@6.4.3(@types/node@25.8.0)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.22.4))
@@ -11453,7 +11436,7 @@ snapshots:
 
   is-bun-module@2.0.0:
     dependencies:
-      semver: 7.8.2
+      semver: 7.8.5
 
   is-callable@1.2.7: {}
 

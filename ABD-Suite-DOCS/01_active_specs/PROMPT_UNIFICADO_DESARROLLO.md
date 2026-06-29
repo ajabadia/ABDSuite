@@ -65,9 +65,9 @@ Todas las páginas operativas deben utilizar exactamente la misma envoltura de c
 
 ---
 
-## ⚙️ 3. PATRÓN DE CONSUMO DEL CHASIS SUPERIOR UNIFICADO (`SmartNavbar`)
+## ⚙️ 3. PATRÓN DE CONSUMO DEL CHASIS SUPERIOR UNIFICADO (`AppSidebarNavigation`)
 
-**Queda PROHIBIDO** importar directamente `SmartNavbar` en el layout de una aplicación satélite. El ecosistema exige un **Wrapper Local Obligatorio** desde el primer día de scaffolding para garantizar simetría absoluta, autenticación federada y branding sin parpadeos.
+**Queda PROHIBIDO** importar directamente `SmartNavbar` en el layout de una aplicación satélite. El ecosistema exige un **Wrapper Local Obligatorio** a través de `AppSidebarNavigation` desde el primer día de scaffolding para garantizar simetría absoluta, autenticación federada y branding sin parpadeos.
 
 ### A. Archivos Obligatorios del Layout Ecosistema
 
@@ -78,7 +78,7 @@ Cada satélite debe contener estos 8 archivos base para la estructura de layout:
 | `src/app/layout.tsx` | RSC | Layout raíz de Next.js. Obtiene sesión con `getIndustrialSession()`. Pasa `initialSession` a `<SessionProvider>` (cliente) y renderiza `<BrandingStyles />` en `<head>`. |
 | `src/app/[locale]/layout.tsx` | RSC | Layout localizado. Envuelve el children con `<NextIntlClientProvider>`, inyecta `<SidebarNavigation>` (wrapper), `<TenantSelector>`, `<SystemSettings>` y `<LogsCommandPalette>`. Renderiza también `<NextTopLoader>` y `<Toaster>`. |
 | `src/components/ThemeProvider.tsx` | RCC | Wrapper de `next-themes` con tema forzado `dark`. |
-| `src/components/layout/SidebarNavigation.tsx` | RCC | **Wrapper OBLIGATORIO** de `<SmartNavbar>` (de `@ajabadia/ecosystem-widgets`). Configura los enlaces locales, los handlers (`onLogout`, `onLocaleChange`), el `appBadge` y el `transformHref`. |
+| `src/components/layout/SidebarNavigation.tsx` | RCC | **Wrapper OBLIGATORIO** de `<AppSidebarNavigation>` (de `@ajabadia/ecosystem-widgets`). Define los enlaces locales, las props de configuración y los overrides (sesión, `appBadge`, `transformHref`, `translations`). |
 | `src/components/ui/SystemSettings.tsx` | RCC | Wrapper de `<SystemSettings>` compartido (de `@ajabadia/ecosystem-widgets`). Inyecta `next-themes`, `next-intl` y los handlers de login/logout locales. |
 | `src/components/ui/TenantSelector.tsx` | RCC | Wrapper del componente compartido `<TenantSelectorConnector>`. |
 | `src/components/layout/LogsCommandPalette.tsx` | RCC | Instancia local de `<CommandPalette>` que define los comandos de navegación específicos del satélite. |
@@ -165,57 +165,61 @@ export default async function LocaleLayout({ children, params }: { children: Rea
 
 ### D. Ejemplo de Wrapper `SidebarNavigation.tsx`
 
-Este archivo **NO** debe importarse directamente de `@ajabadia/ecosystem-widgets`. Es un wrapper local obligatorio que mapea la lógica del satélite al componente genérico.
+Este archivo **NO** debe importar directamente `SmartNavbar`. Es un wrapper local obligatorio que mapea los enlaces y configuraciones del satélite al componente genérico `AppSidebarNavigation`. El componente compartido maneja internamente el RBAC, locale stripping, cambio de idioma y búsqueda.
 
 ```tsx
 'use client';
-import { useTranslations, useLocale } from 'next-intl';
-import { usePathname, useRouter } from '@/i18n/routing';
-import { SmartNavbar, buildSidebarLinks } from '@ajabadia/ecosystem-widgets';
+import { useTranslations } from 'next-intl';
+import { AppSidebarNavigation, type AppSidebarLink } from '@ajabadia/ecosystem-widgets';
+import { Home } from 'lucide-react';
 
 interface SidebarNavigationProps {
   session: any;
   logoUrl?: string | null;
   tenantSelectorSlot?: React.ReactNode;
   settingsSlot?: React.ReactNode;
+  notificationsSlot?: React.ReactNode;
+  onLogin?: () => void;
+  onLogout?: () => void;
+  transformHref?: (href: string) => string;
+  appBadge?: string;
+  translations?: Record<string, string>;
 }
 
-export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settingsSlot }: SidebarNavigationProps) {
+export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settingsSlot, notificationsSlot, onLogin, onLogout, transformHref, appBadge, translations }: SidebarNavigationProps) {
   const t = useTranslations('common');
-  const locale = useLocale();
-  const pathname = usePathname();
-  const router = useRouter();
 
-  const isLoggedIn = session.authenticated && !!session.user;
-  const user = session.user;
-
-  // Define los enlaces locales del satélite
-  const allLinks = [
-    { href: '/', label: locale === 'es' ? 'Inicio' : 'Home', icon: <Home size={14} /> },
+  // Define los enlaces locales del satélite (sin prefijo locale, AppSidebarNavigation lo añade)
+  const allLinks: AppSidebarLink[] = [
+    { href: '/', label: t('home'), icon: <Home size={14} /> },
     // Añade aquí los enlaces propios del satélite (ej. /dashboard, /admin, etc.)
   ];
 
-  const links = buildSidebarLinks(allLinks, user?.role, isLoggedIn);
-
   return (
-    <SmartNavbar
+    <AppSidebarNavigation
       session={session}
-      links={links}
-      logoUrl={logoUrl}
-      onLogout={() => { window.location.href = '/api/auth/logout'; }}
-      appBadge="APP" // <-- Reemplaza por el identificador de tu satélite (ej. QUIZ, GOV, AUTH)
-      brandName={t('appTitle') || 'ABD SUITE'}
-      activeHref={pathname}
-      locale={locale}
+      logoUrl={logoUrl || null}
+      links={allLinks}
+      brandName={t('appTitle') || 'ABD SYSTEM'}
+      appBadge={appBadge}
       tenantSelectorSlot={tenantSelectorSlot}
       settingsSlot={settingsSlot}
-      onLocaleChange={(newLocale) => { /* Lógica de cambio de cookie + router.replace */ }}
-      onSearchTrigger={() => { window.dispatchEvent(new CustomEvent('abd-command-palette-open')); }}
-      translations={{ /* Opcional: Override de textos */ }}
+      notificationsSlot={notificationsSlot}
+      onLogin={onLogin}
+      onLogout={onLogout}
+      transformHref={transformHref}
+      translations={translations}
     />
   );
 }
 ```
+
+> **Nota**: `AppSidebarNavigation` se encarga automáticamente de:
+> *   Stripping del prefijo locale del pathname
+> *   Filtrado RBAC via `buildSidebarLinks(links, user?.role, isLoggedIn)`
+> *   Cambio de locale (cookie `NEXT_LOCALE` + navegación)
+> *   Dispatch de `CustomEvent('abd-command-palette-open')` para la paleta de comandos
+> *   Traducciones por defecto ES/EN con merge de overrides vía prop `translations`
 
 ---
 
