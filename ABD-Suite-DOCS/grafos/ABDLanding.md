@@ -20,7 +20,7 @@ Este documento representa el mapa de interrelaciones y redirecciones del portal 
 		* [[ABDLogs.md|📊 ABD Logs]] (`https://logs.abdia.es`)
 		* [[ABDFiles.md|📂 ABD Files]] (`https://files.abdia.es`)
 		* [[ABDQuiz.md|🎓 ABD Quiz]] (`https://quiz.abdia.es`)
-		* [[ABDtenantGobernance.md|🛡️ ABD Gobernanza]] (`https://tenantgobernance.abdia.es`)
+		* [[ABDtenantGovernance.md|🛡️ ABD Gobernanza]] (`https://tenantgovernance.abdia.es`)
 	* Inyecta la librería de diseño `[[@ajabadia/styles]]` (HeroHeader) y la cabecera unificada.
 	* Renderiza el componente de pie de página `GlobalFooter` desde `[[ABDEcosystemWidgets.md|🎨 ABDEcosystemWidgets]]`.
 

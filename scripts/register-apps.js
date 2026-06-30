@@ -110,11 +110,11 @@ const apps = [
       "https://abdia.es/gobernanza/api/abd-auth/federated/callback",
       "https://abdia.es/gobernanza/api/auth/federated/callback",
       "https://abdia.es/gobernanza",
-      "https://tenantgobernance.abdia.es/api/abd-auth/federated/callback",
-      "https://tenantgobernance.abdia.es/api/auth/federated/callback",
-      "https://tenantgobernance.abdia.es",
+      "https://tenantgovernance.abdia.es/api/abd-auth/federated/callback",
+      "https://tenantgovernance.abdia.es/api/auth/federated/callback",
+      "https://tenantgovernance.abdia.es",
       "http://localhost:5002/api/auth/federated/callback",
-      "https://tenantgobernance.abdia.es/api/auth/federated/callback"
+      "https://tenantgovernance.abdia.es/api/auth/federated/callback"
     ],
     slug: "gobernanza",
     active: true,

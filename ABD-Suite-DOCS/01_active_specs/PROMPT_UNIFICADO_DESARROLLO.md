@@ -300,7 +300,7 @@ Todas las aplicaciones satélite del ecosistema ABD (ej. `ABDQuiz`, `ABDtenantGo
      ```
 7. **Prevención de Bucles de Redirección (SSO Loop Prevention)**:
    * El SDK gestiona internamente la limpieza de cookies y la redirección con parámetros de error hacia `ABDAuth` para evitar bucles infinitos.
-   * Adicionalmente, el resolutor de subdominios excluye explícitamente los subdominios de sistema (`auth`, `logs`, `quiz`, `analytics`, `tenantgobernance`, `www`, `landing`) para que no se traten erróneamente como nombres de tenant, previniendo fallos de `tenant_not_found` y bucles infinitos en redirecciones de logout.
+   * Adicionalmente, el resolutor de subdominios excluye explícitamente los subdominios de sistema (`auth`, `logs`, `quiz`, `analytics`, `tenantgovernance`, `www`, `landing`) para que no se traten erróneamente como nombres de tenant, previniendo fallos de `tenant_not_found` y bucles infinitos en redirecciones de logout.
 8. **Referencia Completa**:
    * Para consultar la guía de integración rápida y firmas de API, lee `D:\desarrollos\ABDSuite\ABDSatelliteSDK\docs\INTEGRATION_PROMPT.md` y `D:\desarrollos\ABDSuite\ABDSatelliteSDK\docs\TECHNICAL_DOCUMENTATION.md`.
 9. **Separación Server / Client en el SDK**:
