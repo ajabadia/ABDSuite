@@ -73,16 +73,16 @@ importers:
   ABDAnalytics:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: workspace:^
+        specifier: ^1.0.83
         version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: workspace:^
+        specifier: ^1.0.42
         version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.90
         version: 1.0.90(@ajabadia/styles@ABDStyles)(next@16.2.6(@babel/core@7.29.7)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: workspace:^
+        specifier: ^1.0.93
         version: link:../ABDStyles
       '@radix-ui/react-progress':
         specifier: ^1.1.8
@@ -185,16 +185,16 @@ importers:
   ABDAuth:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: workspace:^
+        specifier: ^1.0.83
         version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: workspace:^
+        specifier: ^1.0.42
         version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.80
         version: 1.0.80(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: workspace:^
+        specifier: ^1.0.93
         version: link:../ABDStyles
       '@better-auth/mongo-adapter':
         specifier: 1.6.11
@@ -415,16 +415,16 @@ importers:
   ABDFiles:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: workspace:^
+        specifier: ^1.0.83
         version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: workspace:^
+        specifier: ^1.0.42
         version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.90
         version: 1.0.90(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: workspace:^
+        specifier: ^1.0.93
         version: link:../ABDStyles
       '@aws-sdk/client-s3':
         specifier: ^3.1062.0
@@ -572,16 +572,16 @@ importers:
   ABDLanding:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: workspace:^
+        specifier: ^1.0.83
         version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: workspace:^
+        specifier: ^1.0.42
         version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.90
         version: 1.0.90(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: workspace:^
+        specifier: ^1.0.93
         version: link:../ABDStyles
       class-variance-authority:
         specifier: 0.7.1
@@ -669,16 +669,16 @@ importers:
   ABDLogs:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: workspace:^
+        specifier: ^1.0.83
         version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: workspace:^
+        specifier: ^1.0.42
         version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.90
         version: 1.0.90(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: workspace:^
+        specifier: ^1.0.93
         version: link:../ABDStyles
       '@radix-ui/react-progress':
         specifier: ^1.1.8
@@ -787,16 +787,16 @@ importers:
   ABDQuiz:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: workspace:^
+        specifier: ^1.0.83
         version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: workspace:^
+        specifier: ^1.0.42
         version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.81
         version: 1.0.83(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: workspace:^
+        specifier: ^1.0.93
         version: link:../ABDStyles
       '@google/generative-ai':
         specifier: ^0.24.1
@@ -1021,16 +1021,16 @@ importers:
   ABD___BASE:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: workspace:^
+        specifier: ^1.0.83
         version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: workspace:^
+        specifier: ^1.0.42
         version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.81
         version: 1.0.83(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: workspace:^
+        specifier: ^1.0.93
         version: link:../ABDStyles
       '@radix-ui/react-progress':
         specifier: ^1.1.8
@@ -1149,16 +1149,16 @@ importers:
   ABDtenantGobernance:
     dependencies:
       '@ajabadia/ecosystem-widgets':
-        specifier: workspace:^
+        specifier: ^1.0.83
         version: link:../ABDEcosystemWidgets
       '@ajabadia/i18n':
-        specifier: workspace:^
+        specifier: ^1.0.42
         version: link:../ABDi18n
       '@ajabadia/satellite-sdk':
         specifier: ^1.0.81
         version: 1.0.83(@ajabadia/styles@ABDStyles)(next@16.2.6(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@ajabadia/styles':
-        specifier: workspace:^
+        specifier: ^1.0.93
         version: link:../ABDStyles
       '@radix-ui/react-progress':
         specifier: ^1.1.8
