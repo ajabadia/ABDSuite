@@ -46,6 +46,7 @@ Para unificar la suite bajo el dominio propio en GoDaddy y mantener los desplieg
 ### Compartición de Sesión:
 *   **OAuth2 Redirect Flow**: Cada satélite guarda su propia cookie de sesión local (`abd_session`). Si el usuario no está logueado en el satélite, es redirigido a `auth.tudominio.com`. Si allí ya tiene sesión iniciada, el IdP valida al usuario y lo redirige de vuelta con un código en milisegundos de forma imperceptible.
 *   **Wildcard Cookies**: Si se requiere que la cookie central de `ABDAuth` sea leída directamente por cualquier subdominio sin redirecciones, se puede añadir el atributo `Domain: '.tudominio.com'` en la definición de la cookie del IdP y satélites.
+    *   ⚠️ **Caveat localhost**: El navegador rechaza silenciosamente cualquier cookie con `Domain=.abdia.es` en `localhost`. COOKIE_DOMAIN debe estar comentado en desarrollo (ver `.env.shared` línea 16), de lo contrario se produce un redirect loop infinito.
 
 ---
 
