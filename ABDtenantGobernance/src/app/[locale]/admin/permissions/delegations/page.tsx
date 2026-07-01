@@ -1,0 +1,74 @@
+'use client';
+
+/**
+ * @purpose Gestiona una página para administrar delegaciones de roles dentro de un inquilino, incluyendo un encabezado y una tabla que muestra detalles de delegación.
+ * @purpose_en ** Renders a page for managing role delegations within a tenant, including a header and a table displaying delegation details.
+ * @refactorable false
+ * @classification ** UI Component
+ * @complexity ** Medium
+ * @fingerprint exports:1,imports:7,sig:jtotgh
+ * @lastUpdated 2026-06-23T20:39:05.497Z
+ */
+
+import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+import { useSearchParams, useParams } from 'next/navigation';
+import Link from 'next/link';
+import { Clock, ArrowLeft } from 'lucide-react';
+import { AdminPageHeader } from '@ajabadia/styles';
+import { DelegationTable } from './DelegationTable';
+
+export default function DelegationsPage() {
+  const t = useTranslations('admin');
+  const searchParams = useSearchParams();
+  const params = useParams();
+  const locale = params?.locale as string || 'en';
+  const [tenantId, setTenantId] = useState<string>('');
+
+  useEffect(() => {
+    const resolveTenant = async () => {
+      const explicit = searchParams.get('tenantId');
+      if (explicit) {
+        setTenantId(explicit);
+      } else {
+        setTenantId('academia-alfa');
+      }
+    };
+    resolveTenant();
+  }, [searchParams]);
+
+  if (!tenantId) {
+    return (
+      <div className="min-h-screen bg-background text-foreground p-6 md:p-12 flex items-center justify-center font-mono text-[10px] uppercase tracking-widest">
+        Cargando datos del tenant...
+      </div>
+    );
+  }
+  
+  return (
+    <main className="min-h-screen bg-background text-foreground p-6 md:p-12 selection:bg-primary/30" role="main">
+      <div className="max-w-7xl mx-auto flex flex-col gap-10">
+        
+        {/* Header */}
+        <AdminPageHeader
+          icon={Clock}
+          breadcrumb={<>{t('controlConsole')} • {'DELEGACIONES'}</>}
+          title="Delegación de Roles"
+          backButton={
+              <Link
+                href={`/${locale}/admin/permissions${searchParams.toString() ? `?${searchParams.toString()}` : ''}`}
+                className="inline-flex items-center justify-center p-2 bg-transparent text-muted-foreground hover:text-foreground border border-border hover:border-border/80 transition-all duration-200 cursor-pointer rounded-none active:scale-[0.95] shrink-0 focus:outline-none focus:ring-1 focus:ring-primary/50"
+                aria-label="Volver a Permisos"
+              >
+                <ArrowLeft size={14} aria-hidden="true" />
+              </Link>
+          }
+          description={<>Administra los permisos temporales delegados a usuarios dentro del tenant{' '}
+              <span className="text-primary font-bold">{tenantId}</span>.</>}
+        />
+
+        <DelegationTable tenantId={tenantId} />
+      </div>
+    </main>
+  );
+}

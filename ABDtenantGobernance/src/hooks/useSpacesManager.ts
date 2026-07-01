@@ -1,0 +1,130 @@
+'use client';
+
+/**
+ * @purpose Gestiona datos espaciales y proporciona funciones para manejar operaciones espaciales como obtener, eliminar y editar.
+ * @purpose_en Manages spaces data and provides functions to handle space operations such as fetching, deleting, and editing.
+ * @refactorable true (contains too many state variables and UI parts)
+ * @classification Custom Hook
+ * @complexity Medium
+ * @fingerprint exports:2,imports:5,sig:sfxv8c
+ * @lastUpdated 2026-06-23T21:46:56.779Z
+ */
+
+import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@ajabadia/ecosystem-widgets';
+import { SpaceData } from '@/components/admin/spaces/SpaceForm';
+
+export function useSpacesManager(explicitTenantId: string | null) {
+  const t = useTranslations('dashboard.spaces');
+
+  const [spaces, setSpaces] = useState<SpaceData[]>([]);
+  const [loading, setLoading] = useState(true);
+  // explicitTenantId is used as the source of truth; state mirrors it for local mutations
+  const [tenantId, setTenantId] = useState<string>(explicitTenantId || '');
+
+  // Sync when the parent passes a new explicitTenantId (avoid synchronous setState in effect)
+  const resolvedTenantId = explicitTenantId || tenantId;
+
+  const [allTenants, setAllTenants] = useState<{tenantId: string, name: string, customSpaceLabels?: string[]}[]>([]);
+
+  const activeTenant = allTenants.find(t => t.tenantId === resolvedTenantId);
+  const customSpaceLabels = activeTenant?.customSpaceLabels && activeTenant.customSpaceLabels.length > 0
+    ? activeTenant.customSpaceLabels
+    : ['L01', 'L02', 'L03'];
+  
+  const [modalOpen, setModalOpen] = useState(false);
+  const [spaceToEdit, setSpaceToEdit] = useState<SpaceData | null>(null);
+
+  // Confirm delete dialog (managed by useConfirmDialog)
+  const deleteDialog = useConfirmDialog<string>({
+    onConfirm: async (id) => {
+      try {
+        const res = await fetch(`/api/admin/spaces/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Error deleting space');
+        }
+        toast.success('Espacio eliminado');
+        fetchSpaces();
+      } catch (err: unknown) {
+        if (err instanceof Error) toast.error(err.message);
+      }
+    },
+  });
+
+  const fetchSpaces = async () => {
+    setLoading(true);
+    try {
+      const activeTenantId = resolvedTenantId;
+      const url = activeTenantId ? `/api/admin/spaces?tenantId=${activeTenantId}` : `/api/admin/spaces`;
+      
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch spaces');
+      
+      const data = await res.json();
+      setSpaces(data);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message || 'Error cargando espacios');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchTenants = async () => {
+      try {
+        const res = await fetch('/api/admin/tenants');
+        if (res.ok) {
+          const data = await res.json();
+          setAllTenants(data);
+          
+          if (!tenantId && data.length > 0) {
+            setTenantId(data[0].tenantId);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch tenants', err);
+      }
+    };
+    fetchTenants();
+  }, []);
+
+  useEffect(() => {
+    if (resolvedTenantId) {
+      /* eslint-disable-next-line react-hooks/set-state-in-effect */
+      fetchSpaces();
+    }
+  }, [resolvedTenantId]);
+
+  const handleDelete = (spaceId: string) => {
+    deleteDialog.trigger(spaceId);
+  };
+
+  const handleConfirmDelete = deleteDialog.confirm;
+
+  const handleCancelDelete = deleteDialog.cancel;
+
+  return {
+    spaces,
+    loading,
+    tenantId: resolvedTenantId,
+    setTenantId,
+    allTenants,
+    customSpaceLabels,
+    modalOpen,
+    setModalOpen,
+    spaceToEdit,
+    setSpaceToEdit,
+    fetchSpaces,
+    handleDelete,
+    deleteTargetId: deleteDialog.data,
+    handleConfirmDelete,
+    handleCancelDelete,
+    isDeleting: deleteDialog.isLoading,
+  };
+}
+export type { SpaceData };

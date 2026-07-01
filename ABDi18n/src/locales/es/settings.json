@@ -1,0 +1,11 @@
+{
+  "title": "Ajustes de Sistema",
+  "close": "Cerrar",
+  "language": "Idioma",
+  "theme": "Tema",
+  "theme_light": "Claro",
+  "theme_dark": "Oscuro",
+  "theme_system": "Sistema",
+  "logout": "Cerrar Sesión",
+  "login": "Iniciar Sesión"
+}

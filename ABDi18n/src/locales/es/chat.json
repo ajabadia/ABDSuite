@@ -1,0 +1,13 @@
+{
+  "title": "Chat Alumno-Profesor",
+  "messageCount": "mensajes",
+  "empty": "Sin mensajes aún",
+  "emptyStudentHint": "Escribe una consulta sobre tu examen al profesor.",
+  "emptyProfessorHint": "Responde las dudas del alumno sobre su examen.",
+  "inputPlaceholder": "Escribe un mensaje...",
+  "send": "Enviar",
+  "collapse": "Colapsar chat",
+  "expand": "Expandir chat",
+  "student": "Alumno",
+  "professor": "Profesor"
+}

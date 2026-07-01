@@ -1,0 +1,38 @@
+{
+  "title": "Tactical Analytics Center",
+  "kpi": {
+    "completionRate": "Completion Rate",
+    "averageGrade": "Average Grade",
+    "activeAlerts": "Inactivity Alerts"
+  },
+  "remediation": {
+    "title": "Recommended Reinforcement",
+    "body": "We have identified areas of opportunity in the following topics:",
+    "action": "Start guided practice"
+  },
+  "verification": {
+    "success": "Report certified. Document signature matches the immutable record in ABDLogs.",
+    "failure": "Warning: Document could not be validated or has been altered post-generation."
+  },
+  "subtitle": "Cognitive performance evolution, topic heat maps, and simulation history.",
+  "kpiAttempts": "Total Attempts",
+  "kpiCompleted": "Completed",
+  "kpiAvgScore": "Average Score",
+  "kpiAvgTime": "Time Per Question",
+  "avgTimeValue": "{seconds}s",
+  "cognitiveMap": "Cognitive Performance Map",
+  "moduleHeader": "Module / Topic",
+  "successRateHeader": "Success Rate",
+  "timelineTitle": "Simulations Evolution",
+  "recentAttempts": "Recent Attempts History",
+  "modeHeader": "Mode",
+  "scoreHeader": "Score",
+  "dateHeader": "Date",
+  "statusHeader": "Status",
+  "actionHeader": "Analysis",
+  "btnViewAnalysis": "View Detail",
+  "noAttempts": "No simulation attempts have been detected yet for this user.",
+  "cognitiveStrength": "Strengths",
+  "cognitiveWeakness": "Weaknesses",
+  "generalGroup": "General Module"
+}

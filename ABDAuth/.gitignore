@@ -1,0 +1,28 @@
+# ABDAuth Module Ignore
+node_modules
+.next
+out
+build
+*.log
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Audit Artifacts
+abd-audit-results.log
+lint/
+.vercel
+
+# Playwright Artifacts
+test-results/
+playwright-report/
+
+# IDE ignores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+secretos/

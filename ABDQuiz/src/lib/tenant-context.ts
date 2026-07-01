@@ -1,0 +1,53 @@
+/**
+ * @purpose Gestiona y resuelve el contexto del inquilino para una solicitud o página basado en sesión y searchParams, asegurando la seguridad al prevenir ataques IDOR.
+ * @purpose_en Manages and resolves the tenant context for a request or page based on session and searchParams, ensuring security by preventing IDOR attacks.
+ * @refactorable false
+ * @classification Helper Utility
+ * @complexity Low
+ * @fingerprint exports:1,imports:1,sig:11jjf7r
+ * @lastUpdated 2026-06-23T23:23:01.928Z
+ */
+
+import { ensureAdminOrProfessor } from '@/lib/auth/ensureQuizAccess';
+
+/**
+ * Resolves the tenant context for a request or page based on session and searchParams.
+ * Implements the security guard (Anti-IDOR):
+ * - If the user is SUPER_ADMIN and queryTenantId is provided, returns that queryTenantId.
+ * - Otherwise, returns the user's default session tenantId, ignoring any manipulated query params.
+ */
+type ResolvedSearchParams = URLSearchParams | Record<string, string | string[] | undefined>;
+
+export async function resolveTenantContext(
+  searchParams: ResolvedSearchParams | Promise<ResolvedSearchParams>
+): Promise<string> {
+  // 🛡️ Ecosystem Identity Guard
+  const user = await ensureAdminOrProfessor();
+  
+  // Resolve searchParams if it is passed as a Promise (Next.js 15+ async params)
+  const resolvedParams: ResolvedSearchParams = searchParams instanceof Promise
+    ? await searchParams
+    : searchParams;
+  
+  let queryTenantId: string | null = null;
+  
+  if (resolvedParams) {
+    if (resolvedParams instanceof URLSearchParams) {
+      queryTenantId = resolvedParams.get('tenantId');
+    } else {
+      const val = (resolvedParams as Record<string, string | string[] | undefined>)['tenantId'];
+      if (typeof val === 'string') {
+        queryTenantId = val;
+      } else if (Array.isArray(val)) {
+        queryTenantId = val[0] ?? null;
+      }
+    }
+  }
+
+  // 🛡️ Anti-IDOR: Only allow context shifting if user is a SUPER_ADMIN
+  if (user.role === 'SUPER_ADMIN' && queryTenantId) {
+    return queryTenantId;
+  }
+  
+  return user.tenantId;
+}

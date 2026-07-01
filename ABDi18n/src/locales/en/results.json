@@ -1,0 +1,20 @@
+{
+  "passed": "MISSION ACCOMPLISHED",
+  "failed": "Failed",
+  "attemptId": "Attempt ID",
+  "mode": "Mode",
+  "finalScore": "Final Score",
+  "ofPoints": "of {total} points",
+  "performance": "Performance",
+  "timeSpent": "Time Spent",
+  "minutes": "minutes",
+  "auditDetail": "Audit Detail",
+  "viewExplanation": "View Explanation",
+  "backHome": "Back to Home",
+  "retry": "Retry Simulation",
+  "placeholderTime": "--:--",
+  "module": "MODULE",
+  "source": "SOURCE",
+  "explanation": "TECHNICAL_INTELLIGENCE",
+  "aiFeedback": "AI TUTOR"
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Centro de Analítica Táctica",
+  "kpi": {
+    "completionRate": "Tasa de Finalización",
+    "averageGrade": "Calificación Promedio",
+    "activeAlerts": "Alertas de Inactividad"
+  },
+  "remediation": {
+    "title": "Refuerzo Recomendado",
+    "body": "Hemos identificado áreas de oportunidad en las siguientes temáticas:",
+    "action": "Iniciar práctica guiada"
+  },
+  "verification": {
+    "success": "Reporte certificado. La firma del documento coincide con el registro inmutable de ABDLogs.",
+    "failure": "Advertencia: El documento no ha podido ser validado o ha sido alterado post-generación."
+  },
+  "subtitle": "Evolución de rendimiento cognitivo, mapas de calor por temas e historial de simulación.",
+  "kpiAttempts": "Intentos Totales",
+  "kpiCompleted": "Completados",
+  "kpiAvgScore": "Puntuación Media",
+  "kpiAvgTime": "Tiempo por Pregunta",
+  "avgTimeValue": "{seconds}s",
+  "cognitiveMap": "Mapa de Rendimiento Cognitivo",
+  "moduleHeader": "Módulo / Tema",
+  "successRateHeader": "Tasa de Éxito",
+  "timelineTitle": "Evolución en Simulacros",
+  "recentAttempts": "Historial de Intentos Recientes",
+  "modeHeader": "Modo",
+  "scoreHeader": "Nota",
+  "dateHeader": "Fecha",
+  "statusHeader": "Estado",
+  "actionHeader": "Análisis",
+  "btnViewAnalysis": "Ver Detalle",
+  "noAttempts": "No se han detectado intentos de simulación aún para este usuario.",
+  "cognitiveStrength": "Fortalezas",
+  "cognitiveWeakness": "Debilidades",
+  "generalGroup": "Módulo General"
+}

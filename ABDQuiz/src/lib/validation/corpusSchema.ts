@@ -1,0 +1,51 @@
+/**
+ * @purpose Valida la estructura y contenido de las preguntas individuales durante la ingestión del corpus para ABDQuiz.
+ * @purpose_en Validates the structure and content of individual questions during corpus ingestion for ABDQuiz.
+ * @refactorable false
+ * @classification Type Definition
+ * @complexity Low
+ * @fingerprint exports:3,imports:1,sig:d4qd7d
+ * @lastUpdated 2026-06-23T23:23:06.453Z
+ */
+
+import { z } from 'zod';
+
+/**
+ * Esquema de validación para una pregunta individual durante la ingesta
+ */
+export const IngestQuestionSchema = z.object({
+  pregunta: z.string().min(10, "El enunciado es demasiado corto"),
+  opciones: z.array(z.string()).min(2, "Se requieren al menos 2 opciones").max(6, "Máximo 6 opciones"),
+  respuesta_correcta: z.preprocess((val) => {
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') {
+      const match = val.trim().match(/^([A-F])/i);
+      if (match) {
+        const map: Record<string, number> = { 'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5 };
+        return map[match[1].toUpperCase()];
+      }
+    }
+    return val;
+  }, z.number().int().min(0, "Índice de respuesta inválido")),
+  explicacion: z.string().optional().default(""),
+  modulo: z.string().optional().default(""),
+  fuente: z.string().optional().default(""),
+  difficulty: z.enum(['easy', 'medium', 'hard']).optional().default('medium'),
+  tags: z.array(z.string()).optional().default([]),
+  // --- Metadatos Jerárquicos (opcionales en lote) ---
+  spaceId: z.string().optional(),
+  courseId: z.string().optional(),
+  loadedAt: z.string().optional(),
+  generatedAt: z.string().optional(),
+  importVersion: z.string().optional(),
+}).refine(data => data.respuesta_correcta < data.opciones.length, {
+  message: "El índice de respuesta_correcta está fuera de rango",
+  path: ["respuesta_correcta"]
+});
+
+/**
+ * Esquema para un lote completo de importación (Array)
+ */
+export const CorpusImportSchema = z.array(IngestQuestionSchema);
+
+export type IngestQuestion = z.infer<typeof IngestQuestionSchema>;

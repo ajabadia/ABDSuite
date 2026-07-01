@@ -1,0 +1,17 @@
+{
+  "upgrade": true,
+  "reject": [
+    "next",
+    "react",
+    "react-dom",
+    "typescript"
+  ],
+  "filter": [
+    "@ajabadia",
+    "next-intl",
+    "next-themes",
+    "nextjs-toploader",
+    "jose",
+    "zod"
+  ]
+}

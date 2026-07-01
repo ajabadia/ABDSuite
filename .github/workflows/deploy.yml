@@ -1,0 +1,213 @@
+# 🚀 ABD Ecosystem — Vercel Deploy
+#
+# Deploys satellite apps to Vercel:
+#   - Pull Request  → Preview Deploy (per-app, URL posted as PR comment)
+#   - Push to main  → Production Deploy (all apps)
+#
+# Required GitHub Secrets:
+#   VERCEL_TOKEN                     – Vercel API token (from https://vercel.com/account/tokens)
+#   VERCEL_ORG_ID                    – Vercel Team/Personal Org ID
+#   VERCEL_PROJECT_ID_ABDFILES       – Project ID for ABDFiles
+#   VERCEL_PROJECT_ID_ABDLOGS        – Project ID for ABDLogs
+#   VERCEL_PROJECT_ID_ABDQUIZ        – Project ID for ABDQuiz
+#   VERCEL_PROJECT_ID_ABDLANDING     – Project ID for ABDLanding
+#   VERCEL_PROJECT_ID_ABDANALYTICS   – Project ID for ABDAnalytics
+#   VERCEL_PROJECT_ID_ABDAUTH        – Project ID for ABDAuth
+#   VERCEL_PROJECT_ID_ABDTENANTGOV   – Project ID for ABDtenantGobernance
+#
+# To get a project ID:  vercel project ls  (or Vercel Dashboard > Project > Settings > Project ID)
+
+name: 🚀 ABD Ecosystem — Vercel Deploy
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: latest
+  NODE_VERSION: '20'
+  # Foundation libraries that must be built before any app deploy
+  FOUNDATIONS: ABDStyles ABDSatelliteSDK ABDEcosystemWidgets
+
+jobs:
+  # ── Build foundation libraries (shared dependency for all apps) ──
+  build-foundations:
+    name: 🏗️ Build Foundations
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: ⚡ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: '**/pnpm-lock.yaml'
+
+      - name: 📦 Install Dependencies
+        run: pnpm install
+
+      - name: 🏗️ Build Foundation Libraries
+        run: |
+          $foundations = $env:FOUNDATIONS.Split(' ')
+          foreach ($svc in $foundations) {
+            Write-Host "🔨 Building $svc..." -ForegroundColor Yellow
+            Set-Location $svc
+            pnpm run build
+            if ($LASTEXITCODE -ne 0) { throw "Build failed for $svc" }
+            Set-Location ..
+            Write-Host " ✅ $svc built" -ForegroundColor Green
+          }
+
+      - name: 📦 Upload Foundation Builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-builds
+          path: |
+            ABDStyles/dist/
+            ABDSatelliteSDK/dist/
+            ABDEcosystemWidgets/dist/
+          retention-days: 1
+
+  # ── Deploy each satellite app to Vercel ──
+  deploy:
+    name: 🚀 Deploy ${{ matrix.app.name }}
+    runs-on: ubuntu-latest
+    needs: [build-foundations]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - { name: ABDFiles,            dir: ABDFiles,            project: ABDFILES }
+          - { name: ABDLogs,             dir: ABDLogs,             project: ABDLOGS }
+          - { name: ABDQuiz,             dir: ABDQuiz,             project: ABDQUIZ }
+          - { name: ABDLanding,          dir: ABDLanding,          project: ABDLANDING }
+          - { name: ABDAnalytics,        dir: ABDAnalytics,        project: ABDANALYTICS }
+          - { name: ABDAuth,             dir: ABDAuth,             project: ABDAUTH }
+          - { name: ABDtenantGobernance, dir: ABDtenantGobernance, project: ABDTENANTGOV }
+
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: ⚡ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: '**/pnpm-lock.yaml'
+
+      - name: 📥 Download Foundation Builds
+        uses: actions/download-artifact@v4
+        with:
+          name: foundation-builds
+          path: .
+
+      - name: 📦 Install Dependencies
+        run: pnpm install
+
+      - name: 🚀 Deploy to Vercel (Production)
+        uses: amondnet/vercel-action@v25
+        id: vercel-deploy
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets[format('VERCEL_PROJECT_ID_{0}', matrix.app.project)] }}
+          vercel-args: '--prod'
+          working-directory: ./${{ matrix.app.dir }}
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+      - name: 📋 Log Deploy URL
+        run: |
+          deployUrl="${{ steps.vercel-deploy.outputs.preview-url }}"
+          echo "✅ ${{ matrix.app.name }} deployed to: $deployUrl"
+
+  # ── Preview deploy on Pull Request ──
+  preview:
+    name: 👁️ Preview ${{ matrix.app.name }}
+    runs-on: ubuntu-latest
+    needs: [build-foundations]
+    if: github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - { name: ABDFiles,            dir: ABDFiles,            project: ABDFILES }
+          - { name: ABDLogs,             dir: ABDLogs,             project: ABDLOGS }
+          - { name: ABDQuiz,             dir: ABDQuiz,             project: ABDQUIZ }
+          - { name: ABDLanding,          dir: ABDLanding,          project: ABDLANDING }
+          - { name: ABDAnalytics,        dir: ABDAnalytics,        project: ABDANALYTICS }
+          - { name: ABDAuth,             dir: ABDAuth,             project: ABDAUTH }
+          - { name: ABDtenantGobernance, dir: ABDtenantGobernance, project: ABDTENANTGOV }
+
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: ⚡ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: '**/pnpm-lock.yaml'
+
+      - name: 📥 Download Foundation Builds
+        uses: actions/download-artifact@v4
+        with:
+          name: foundation-builds
+          path: .
+
+      - name: 📦 Install Dependencies
+        run: pnpm install
+
+      - name: 🚀 Deploy Preview to Vercel
+        uses: amondnet/vercel-action@v25
+        id: vercel-preview
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets[format('VERCEL_PROJECT_ID_{0}', matrix.app.project)] }}
+          working-directory: ./${{ matrix.app.dir }}
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+      - name: 📋 Post Preview URL as Comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const deployUrl = '${{ steps.vercel-preview.outputs.preview-url }}';
+            const appName = '${{ matrix.app.name }}';
+            const body = `🚀 **${appName}** preview deployed: [${deployUrl}](${deployUrl})`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

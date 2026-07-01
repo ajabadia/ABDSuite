@@ -1,0 +1,10 @@
+{
+  "connectedLabel": "CONNECTED",
+  "disconnectedLabel": "DISCONNECTED",
+  "checkingLabel": "CHECKING...",
+  "connectedTooltip": "ABDLogs reachable — {latency}ms latency",
+  "disconnectedTooltip": "ABDLogs unreachable — logs stored locally",
+  "checkingTooltip": "Checking connection to ABDLogs...",
+  "bufferTooltip": "{count} log(s) pending sync",
+  "checkConnection": "Check connection to ABDLogs"
+}

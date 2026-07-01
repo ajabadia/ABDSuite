@@ -1,0 +1,43 @@
+'use client';
+
+/**
+ * @purpose Renderiza una notificacion emergente que indica el nivel de conflicto y proporciona información adicional basada en la puntuación de similitud.
+ * @purpose_en Renders a badge indicating the level of conflict and providing additional information based on the similarity score.
+ * @refactorable false
+ * @classification UI Component
+ * @complexity Low
+ * @fingerprint exports:1,imports:3,sig:63s6gc
+ * @lastUpdated 2026-06-23T17:41:11.098Z
+ */
+
+import { AlertTriangle, CopyPlus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import type { ConflictPair } from './types';
+
+export function ConflictLevelBadge({ conflict }: { conflict: ConflictPair }) {
+  const ap = useTranslations('adminPortal');
+  const similarityPercent = conflict.similarityScore ? Math.round(conflict.similarityScore * 100) : null;
+  const isLevel2 = conflict.level === 2;
+
+  return (
+    <div className={`p-3 border ${isLevel2 ? 'bg-destructive/5 border-destructive/20' : 'bg-warning/5 border-warning/20'}`}>
+      <div className="flex items-start gap-3">
+        {isLevel2 ? (
+          <CopyPlus className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+        ) : (
+          <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+        )}
+        <div className="space-y-1">
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${isLevel2 ? 'text-destructive' : 'text-warning'}`}>
+            {isLevel2 ? ap('remediationConflictsLevel2') : ap('remediationConflictsLevel3')}
+          </span>
+          <p className="text-[9px] text-muted-foreground uppercase leading-relaxed font-mono">
+            {isLevel2
+              ? ap('remediationConflictsLevel2Desc')
+              : ap('remediationConflictsLevel3Desc', { score: String(similarityPercent ?? 0) })}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

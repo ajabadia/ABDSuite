@@ -1,0 +1,33 @@
+# Dependency directories
+node_modules/
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Log files
+*.log
+abd-audit-results.log
+
+# IDE files
+.vscode/
+.idea/
+.DS_Store
+
+# Build artifacts
+dist/api/
+
+# Leftover files
+ABDtenantGobernance
+auditoria.md
+auditoria_v01.md
+
+# Bundled config artifacts
+*.bundled*
+
+# Turbo cache
+.turbo/
+
+# Temporary files
+scripts/cleanup.js

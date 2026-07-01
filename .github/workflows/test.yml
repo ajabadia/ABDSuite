@@ -1,0 +1,162 @@
+# 🧪 ABD Ecosystem — Typecheck + Unit Tests
+#
+# Runs `typecheck` (tsc --noEmit) and `test` (vitest) on packages affected
+# by code changes using Turborepo affected detection. Quick feedback loop
+# (~1–3min) for every PR commit. Typecheck fails fast before tests run.
+#
+# How it works:
+#   - Builds foundation libraries first (needed as local workspace deps)
+#   - Uses `turbo run typecheck --filter=...[origin/main]` to only
+#     typecheck packages whose source changed vs. the base branch
+#   - If typecheck passes, runs `turbo run test --filter=...[origin/main]`
+#   - Falls back to checking all packages if the base branch is unavailable
+
+name: 🧪 ABD Ecosystem — Typecheck & Tests
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: latest
+  NODE_VERSION: '20'
+
+jobs:
+  test:
+    name: 🧪 Test Affected Packages
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: ⬇️ Checkout Repository (with full history for affected detection)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: ⚡ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: '**/pnpm-lock.yaml'
+
+      - name: 📦 Install Dependencies
+        run: pnpm install
+
+      - name: 🏗️ Build Foundation Libraries
+        run: |
+          $foundations = @('ABDStyles', 'ABDSatelliteSDK', 'ABDEcosystemWidgets')
+          foreach ($svc in $foundations) {
+            Write-Host "🔨 Building $svc..." -ForegroundColor Yellow
+            Set-Location $svc
+            pnpm run build
+            if ($LASTEXITCODE -ne 0) { throw "Build failed for $svc" }
+            Set-Location ..
+            Write-Host " ✅ $svc built" -ForegroundColor Green
+          }
+
+      - name: 🔍 Fetch Base Branch (for affected detection)
+        run: |
+          # Fetch the base branch so Turborepo can detect affected packages
+          $baseRef = "${{ github.base_ref }}"
+          if ([string]::IsNullOrEmpty($baseRef)) {
+            # Push event — compare against previous commit
+            Write-Host "Push event: using HEAD^1 as baseline" -ForegroundColor Gray
+          } else {
+            Write-Host "PR event: fetching origin/$baseRef..." -ForegroundColor Gray
+            git fetch origin $baseRef --depth=100
+          }
+
+      - name: 🔍 Typecheck Affected Packages
+        id: typecheck
+        run: |
+          $baseRef = "${{ github.base_ref }}"
+
+          if ([string]::IsNullOrEmpty($baseRef)) {
+            Write-Host "Typechecking affected packages (push event, baseline: HEAD^1)..." -ForegroundColor Cyan
+            pnpm exec turbo run typecheck --filter=...[HEAD^1]
+          } else {
+            Write-Host "Typechecking affected packages vs origin/$baseRef..." -ForegroundColor Cyan
+            pnpm exec turbo run typecheck --filter=...[origin/$baseRef]
+          }
+
+          $typecheckCode = $LASTEXITCODE
+
+          if ($typecheckCode -eq 0) {
+            Write-Host "`n ✅  TYPECHECK PASSED" -ForegroundColor Green
+          } else {
+            Write-Host "`n ❌  TYPECHECK FAILED (exit code: $typecheckCode)" -ForegroundColor Red
+          }
+
+          "typecheck_exit_code=$typecheckCode" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+          if ($typecheckCode -ne 0) {
+            throw "Typecheck failed. Fix type errors before running tests."
+          }
+
+      - name: 🧪 Run Tests on Affected Packages
+        id: tests
+        run: |
+          $baseRef = "${{ github.base_ref }}"
+
+          if ([string]::IsNullOrEmpty($baseRef)) {
+            # Push to main/develop — compare against previous commit
+            Write-Host "Running tests on affected packages (push event, baseline: HEAD^1)..." -ForegroundColor Cyan
+            pnpm exec turbo run test --filter=...[HEAD^1]
+            $exitCode = $LASTEXITCODE
+          } else {
+            # PR — test only packages affected by changes vs base branch
+            Write-Host "Running tests on affected packages vs origin/$baseRef..." -ForegroundColor Cyan
+            pnpm exec turbo run test --filter=...[origin/$baseRef]
+            $exitCode = $LASTEXITCODE
+          }
+
+          if ($exitCode -eq 0) {
+            Write-Host "`n ✅  ALL TESTS PASSED" -ForegroundColor Green
+          } else {
+            Write-Host "`n ❌  TESTS FAILED (exit code: $exitCode)" -ForegroundColor Red
+          }
+
+          "test_exit_code=$exitCode" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+          if ($exitCode -ne 0) {
+            throw "Tests failed. Check logs above for details."
+          }
+
+      - name: 📋 Generate Test Summary
+        if: always()
+        run: |
+          $exitCode = ${{ steps.tests.outputs.test_exit_code }}
+          $overallIcon = if ($exitCode -eq 0) { '✅' } else { '❌' }
+          $overallText = if ($exitCode -eq 0) { 'ALL TESTS PASSED' } else { 'TESTS FAILED' }
+          $baseRef = "${{ github.base_ref }}"
+          $affectedLabel = if ([string]::IsNullOrEmpty($baseRef)) { 'HEAD^1' } else { "origin/$baseRef" }
+
+          $summary = @"
+          ## 🧪 ABD Ecosystem — Unit Tests
+
+          **Result: $overallIcon $overallText**
+
+          | Detail | Value |
+          |--------|-------|
+          | Scope | Changed packages vs `$affectedLabel` |
+          | Runner | Turborepo + Vitest |
+          | Total packages | 10 |
+
+          **$overallIcon $overallText**
+          "@
+
+          $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8

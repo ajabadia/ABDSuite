@@ -1,33 +1,69 @@
-# Ignorar todo por defecto (satélites con sus propios repositorios)
-/*
-
-# Permitir explícitamente rastrear los archivos de orquestación y scripts
-!/package.json
-!/pnpm-workspace.yaml
-!/pnpm-lock.yaml
-!/turbo.json
-!/.gitignore
-!/.env.example
-!/scripts/
-!/scripts/**
-!/utilidades/
-!/utilidades/**
-!/ABD-Suite-DOCS/
-!/ABD-Suite-DOCS/**
-
-# EXCLUSIONES DE SEGURIDAD (Nunca trackear secretos ni resultados locales)
-/secretos/
-/test-results/
-/ABD-Suite-DOCS/secretos/
-.env.local
-.env.*.local
-
-# Exclusiones de node modules y caché local
+# Node & pnpm dependency folders
 node_modules/
-.turbo/
-.next/
-dist/
-*.log
+**/node_modules/
 
-# Turborepo
-.turbo
+# Next.js and build outputs
+.next/
+**/.next/
+dist/
+**/dist/
+.turbo/
+**/.turbo/
+
+# Environmental variables (never commit local secrets)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+secretos/
+**/secretos/
+
+# Logs and system files
+*.log
+.DS_Store
+Thumbs.db
+
+# Test reports
+test-results/
+playwright-report/
+coverage/
+.server-error.txt
+.server-output.txt
+dev-output.txt
+superbuild.log
+
+# AI agent work files (local, not for repo)
+.agent/
+.brain/
+
+# Internal documentation and chat logs (local copies)
+docs/
+CHAT_LOG.md
+LLM_DOCUMENTATION_PLAN.md
+ARCHITECTURE.md
+auditoria_kimi.md
+
+# Scratch / one-off utilities
+scratch/
+utilidades/
+documentar_lote.ps1
+_temp_catalog.ps1
+_legacy_prefix_patch.ps1
+
+# External third-party tooling
+.antigravitycli/
+.antigravity-context
+.antigravityignore
+
+# Cache
+.cache/
+
+# Migration and temp artifacts
+abdquiz-files-to-migrate.txt
+dev-output-ABDAuth.txt
+El_Konstructo_v1_8_10.html
+antigravity CLI.bat
+
+# External docs copy (not part of the monorepo)
+ABD-Suite-DOCS/

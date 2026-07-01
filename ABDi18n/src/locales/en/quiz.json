@@ -1,0 +1,23 @@
+{
+  "module": "MODULE",
+  "source": "SOURCE",
+  "skip": "Skip Question",
+  "bypassTask": "Bypass Task",
+  "analyzeLogic": "Analyze Logic",
+  "terminateManifest": "Terminate Manifest",
+  "commitProceed": "Commit \\u0026 Proceed",
+  "finishTitle": "Finalize Simulation?",
+  "finishDescription": "You are about to terminate the current manifest. Your final audit index will be calculated and no further changes can be made.",
+  "cancelAction": "Cancel \\u0026 Continue",
+  "confirmFinish": "Terminate Manifest",
+  "errorProcess": "Error during the exam process",
+  "questionTimeout": "Question time limit reached. Skipping...",
+  "globalTimeout": "Global time limit reached. Finishing exam...",
+  "yourAnswer": "Your answer",
+  "openTextBadge": "OPEN TEXT",
+  "openTextPlaceholder": "Write your answer here...",
+  "characters": "characters",
+  "aiFeedback": "AI TUTOR",
+  "aiFeedbackGenerating": "Generating personalized feedback...",
+  "aiFeedbackError": "Could not generate automatic feedback."
+}

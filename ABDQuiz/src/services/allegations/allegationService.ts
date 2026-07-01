@@ -1,0 +1,189 @@
+/**
+ * @purpose Gestiona la creación, rechazo y recuperación de acusaciones para intentos de examen.
+ * @purpose_en Manages the creation, rejection, and retrieval of allegations for exam attempts.
+ * @refactorable true (contains too many state variables and UI parts)
+ * @classification Business Service
+ * @complexity Medium
+ * @fingerprint exports:1,imports:7,sig:m6xzyw
+ * @lastUpdated 2026-06-23T23:23:38.819Z
+ */
+
+import { connectDB } from '@ajabadia/satellite-sdk/db';
+import Allegation, { type IAllegation } from '@/models/Allegation';
+import ExamAttempt from '@/models/ExamAttempt';
+import ExamConfig from '@/models/ExamConfig';
+import Question from '@/models/Question';
+import mongoose from 'mongoose';
+import {
+  type IAttemptQuestion,
+  applyCorrectionShift,
+  applyCancelQuestion,
+  applyGivePoints,
+  recalculateAttemptScore,
+} from './allegationHelpers';
+
+export class AllegationService {
+  /**
+   * Envía una nueva reclamación técnica de un alumno
+   */
+  static async submitAllegation(
+    userId: string,
+    tenantId: string,
+    userEmail: string,
+    userName: string,
+    examAttemptId: string,
+    questionId: string,
+    reason: string
+  ): Promise<IAllegation> {
+    await connectDB();
+
+    // 1. Validar existencia del intento
+    const attempt = await ExamAttempt.findById(examAttemptId);
+    if (!attempt) {
+      throw new Error('Intento de examen no encontrado');
+    }
+
+    // 2. Extraer el texto estático del snapshot de la pregunta
+    const questionBlock = (attempt.questions as unknown as IAttemptQuestion[]).find(
+      (q) => q.questionId.toString() === questionId
+    );
+    if (!questionBlock) {
+      throw new Error('La pregunta no pertenece a este intento de examen');
+    }
+
+    const questionText = questionBlock.questionSnapshot.questionText;
+
+    // 3. Crear la reclamación
+    const allegation = await Allegation.create({
+      tenantId,
+      userId,
+      userEmail,
+      userName,
+      examAttemptId: new mongoose.Types.ObjectId(examAttemptId),
+      questionId: new mongoose.Types.ObjectId(questionId),
+      questionText,
+      reason,
+      status: 'pending',
+    });
+
+    return allegation;
+  }
+
+  /**
+   * Rechaza una reclamación de forma directa
+   */
+  static async rejectAllegation(
+    allegationId: string,
+    feedback: string,
+    resolvedBy: string
+  ): Promise<IAllegation> {
+    await connectDB();
+
+    const allegation = await Allegation.findById(allegationId);
+    if (!allegation || allegation.status !== 'pending') {
+      throw new Error('Reclamación no encontrada o ya procesada');
+    }
+
+    allegation.status = 'rejected';
+    allegation.feedback = feedback;
+    allegation.resolvedBy = resolvedBy;
+    allegation.resolvedAt = new Date();
+
+    await allegation.save();
+    return allegation;
+  }
+
+  /**
+   * Resuelve técnicamente una impugnación y ejecuta el recálculo retroactivo
+   */
+  static async resolveAllegation(
+    allegationId: string,
+    resolutionMode: 'CORRECTION_SHIFT' | 'CANCEL_QUESTION' | 'GIVE_POINTS_TO_ALL',
+    feedback: string,
+    resolvedBy: string,
+    nextCorrectOptionIndex?: number
+  ): Promise<IAllegation> {
+    await connectDB();
+
+    // 1. Validar la reclamación
+    const allegation = await Allegation.findById(allegationId);
+    if (!allegation || allegation.status !== 'pending') {
+      throw new Error('Reclamación no encontrada o ya procesada');
+    }
+
+    const tenantId = allegation.tenantId;
+    const questionId = allegation.questionId;
+
+    // 2. Modificación de la base de datos de preguntas activa para futuros exámenes
+    if (resolutionMode === 'CORRECTION_SHIFT' && typeof nextCorrectOptionIndex === 'number') {
+      await Question.updateOne(
+        { _id: questionId },
+        { $set: { correctOptionIndex: nextCorrectOptionIndex } }
+      );
+    } else if (resolutionMode === 'CANCEL_QUESTION') {
+      // Si se anula, se desactiva del pool de preguntas activas
+      await Question.updateOne(
+        { _id: questionId },
+        { $set: { active: false } }
+      );
+    }
+
+    // 3. Recálculo retroactivo de intentos
+    // Buscar todos los intentos de exámenes finalizados o en curso del tenant que contienen esta pregunta
+    const attempts = await ExamAttempt.find({
+      tenantId,
+      'questions.questionId': questionId.toString(),
+    });
+
+
+
+    for (const attempt of attempts) {
+      // Buscar la pregunta dentro del intento
+      const qBlock = (attempt.questions as unknown as IAttemptQuestion[]).find(
+        (q) => q.questionId.toString() === questionId.toString()
+      );
+
+      if (!qBlock) continue;
+
+      // Aplicar estrategia
+      if (resolutionMode === 'CORRECTION_SHIFT' && typeof nextCorrectOptionIndex === 'number') {
+        applyCorrectionShift(qBlock, nextCorrectOptionIndex);
+      } else if (resolutionMode === 'CANCEL_QUESTION') {
+        applyCancelQuestion(qBlock);
+      } else if (resolutionMode === 'GIVE_POINTS_TO_ALL') {
+        applyGivePoints(qBlock);
+      }
+
+      // Marcar modificación del array mixto para asegurar que Mongoose detecte cambios
+      attempt.markModified('questions');
+
+      // Si el intento ya está completado o en timeout, recalculamos sus calificaciones finales
+      if (attempt.status === 'completed' || attempt.status === 'timeout') {
+        const config = await ExamConfig.findById(attempt.examConfigId).lean();
+        await recalculateAttemptScore(attempt, config);
+      }
+
+      await attempt.save();
+    }
+
+    // 4. Salvar estado de la reclamación
+    allegation.status = 'approved';
+    allegation.resolution = resolutionMode;
+    allegation.feedback = feedback;
+    allegation.resolvedBy = resolvedBy;
+    allegation.resolvedAt = new Date();
+
+    await allegation.save();
+
+
+    return allegation;
+  }
+
+  /**
+   * Obtiene las alegaciones registradas para un Tenant
+   */
+  static async getTenantAllegations(tenantId: string): Promise<IAllegation[]> {
+    await connectDB();
+    return Allegation.find({ tenantId }).sort({ createdAt: -1 });
+  }
+}

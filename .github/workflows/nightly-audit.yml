@@ -1,0 +1,184 @@
+# 🌙 ABD Ecosystem — Nightly ERA 11 Audit
+#
+# Scheduled audit that runs every night to catch regressions introduced
+# during the day. Also supports manual trigger (workflow_dispatch) for
+# on-demand certification verification.
+#
+# Builds foundation libraries, then runs the global full-audit orchestrator
+# (pnpm run full-audit) across all 8 packages.
+#
+# On failure, creates a GitHub Issue with the audit summary so the team
+# can investigate the next morning.
+#
+# Schedule: 2:00 AM UTC daily (3:00 AM CET / 4:00 AM CEST)
+
+name: 🌙 ABD Ecosystem — Nightly ERA 11 Audit
+
+on:
+  schedule:
+    # ── Every day at 02:00 UTC ──
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Allows manual trigger from GitHub Actions tab
+
+concurrency:
+  group: ${{ github.workflow }}-nightly
+  cancel-in-progress: false
+
+env:
+  PNPM_VERSION: latest
+  NODE_VERSION: '20'
+
+jobs:
+  audit:
+    name: 🌙 Nightly ERA 11 Audit
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: ⚡ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: '**/pnpm-lock.yaml'
+
+      - name: 📝 Log Audit Timestamp
+        id: info
+        run: |
+          $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC"
+          Write-Host "🌙 Nightly ERA 11 Audit started at: $timestamp" -ForegroundColor Cyan
+          "audit_timestamp=$timestamp" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: 🏗️ Build Foundation Libraries
+        run: |
+          $foundations = @('ABDStyles', 'ABDSatelliteSDK', 'ABDEcosystemWidgets')
+
+          foreach ($svc in $foundations) {
+            Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+            Write-Host " 🔨 Building $svc..." -ForegroundColor Yellow
+            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+
+            Set-Location $svc
+            pnpm install
+            if ($LASTEXITCODE -ne 0) { throw "pnpm install failed for $svc" }
+            pnpm run build
+            if ($LASTEXITCODE -ne 0) { throw "Build failed for $svc" }
+            Set-Location ..
+
+            Write-Host " ✅ $svc built successfully" -ForegroundColor Green
+          }
+
+      - name: 📦 Install Workspace Dependencies
+        run: |
+          pnpm install
+          if ($LASTEXITCODE -ne 0) { throw "Root pnpm install failed" }
+          Write-Host " ✅ All workspace dependencies installed" -ForegroundColor Green
+
+      - name: 🏆 Run Global ERA 11 Audit
+        id: audit
+        run: |
+          Write-Host "`n" -NoNewline
+          Write-Host "╔══════════════════════════════════════════════════════════╗" -ForegroundColor White
+          Write-Host "║   🌙  NIGHTLY ERA 11 — Full Audit (8 packages)        ║" -ForegroundColor White
+          Write-Host "╚══════════════════════════════════════════════════════════╝" -ForegroundColor White
+          Write-Host "`n" -NoNewline
+
+          pnpm run full-audit
+          $exitCode = $LASTEXITCODE
+
+          if ($exitCode -eq 0) {
+            Write-Host "`n ✅  ALL 8 PACKAGES ERA 11 CERTIFIED" -ForegroundColor Green -BackgroundColor Black
+          } else {
+            Write-Host "`n ❌  GLOBAL AUDIT FAILED (exit code: $exitCode)" -ForegroundColor Red -BackgroundColor Black
+          }
+
+          "exit_code=$exitCode" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+          if ($exitCode -ne 0) {
+            throw "Global ERA 11 audit failed. Check the detailed output above."
+          }
+
+      - name: 📋 Generate Job Summary
+        if: always()
+        run: |
+          $exitCode = ${{ steps.audit.outputs.exit_code }}
+          $overallIcon = if ($exitCode -eq 0) { '✅' } else { '❌' }
+          $overallText = if ($exitCode -eq 0) { 'ALL 8 PACKAGES ERA 11 CERTIFIED' } else { 'GLOBAL AUDIT FAILED' }
+          $overallColor = if ($exitCode -eq 0) { 'Green' } else { 'Red' }
+
+          $summary = @"
+          ## 🌙 ABD Ecosystem — Nightly ERA 11 Audit
+
+          **Result: $overallIcon $overallText**
+
+          | Detail | Value |
+          |--------|-------|
+          | Trigger | ${{ github.event_name }} |
+          | Timestamp | ${{ steps.info.outputs.audit_timestamp }} |
+          | Branch | ${{ github.ref_name }} |
+          | Commit | ${{ github.sha }} |
+
+          The nightly orchestrator ran the 6-phase certification pipeline
+          sequentially across all 8 packages:
+
+          | # | Package |
+          |---|---------|
+          | 1 | ABDFiles |
+          | 2 | ABDLogs |
+          | 3 | ABDQuiz |
+          | 4 | ABDLanding |
+          | 5 | ABDAnalytics |
+          | 6 | ABDAuth |
+          | 7 | ABDtenantGobernance |
+          | 8 | ABDSatelliteSDK |
+
+          **Overall: $overallIcon $overallText**
+          "@
+
+          $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: 🐛 Create GitHub Issue on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const timestamp = new Date().toISOString();
+            const sha = context.sha.substring(0, 7);
+            const serverUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
+            const runUrl = `${serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🌙 Nightly ERA 11 Audit FAILED — ${timestamp.substring(0, 10)}`,
+              body: `## ❌ Nightly ERA 11 Audit Failed
+
+            | Detail | Value |
+            |--------|-------|
+            | **Date** | ${timestamp.substring(0, 10)} |
+            | **Commit** | [${sha}](https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}) |
+            | **Branch** | ${context.refName} |
+            | **Workflow Run** | [View Logs](${runUrl}) |
+
+            The nightly ERA 11 audit detected a regression. Please investigate
+            and fix the issue to restore certification status.
+
+            **Actions to take:**
+            1. Review the [workflow logs](${runUrl}) for the failing package(s)
+            2. Fix the regression
+            3. Run \`pnpm run full-audit\` locally to confirm certification
+            4. Close this issue once resolved
+            `,
+              labels: ['audit', 'bug', 'automated']
+            });

@@ -1,0 +1,20 @@
+{
+  "passed": "MISIÓN CUMPLIDA",
+  "failed": "EVALUACIÓN FALLIDA",
+  "attemptId": "ID de Intento",
+  "mode": "Modo",
+  "finalScore": "Puntuación Final",
+  "ofPoints": "de {total} puntos",
+  "performance": "Rendimiento",
+  "timeSpent": "Tiempo Empleado",
+  "minutes": "minutos",
+  "auditDetail": "Detalle de Auditoría",
+  "viewExplanation": "Ver Explicación",
+  "backHome": "Volver al Inicio",
+  "retry": "Reintentar Simulacro",
+  "placeholderTime": "--:--",
+  "module": "MÓDULO",
+  "source": "FUENTE",
+  "explanation": "INTELIGENCIA_TECNICA",
+  "aiFeedback": "TUTOR IA"
+}

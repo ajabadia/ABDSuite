@@ -1,0 +1,21 @@
+Entorno: Node.js con TypeScript, Next.js (App Router).
+Modelo preferido: Gemini 3.5 Flash (ahorro de tokens).
+
+# 1. REGLAS DE CONSUMO DE TOKENS Y ESTILO DE TRABAJO
+1. Sé extremadamente conciso. No saludes ni des explicaciones teóricas.
+2. Muestra únicamente las líneas de código modificadas, no reescribas archivos enteros.
+3. No ejecutes comandos en bucle ni instales dependencias por tu cuenta.
+4. Si falta información o una librería, pídela directamente en el chat.
+5. Trabaja por piezas: Al intervenir en una ruta o función, céntrate solo en ese archivo sin analizar globalmente a menos que se te indique.
+
+# 2. REGLAS DE ORO PARA LA TERMINAL (EL MAYOR PELIGRO)
+1. **Permiso "Ask Every Time":** El permiso de la terminal debe estar configurado para preguntar cada vez.
+2. **Servidores en vivo fuera:** Nunca ejecutes comandos de desarrollo (como `npm run dev`, `nodemon`, `tsx`, `tsc --watch`) en la terminal del agente.
+3. **Instalaciones manuales:** No instales dependencias (`npm install`, `pnpm add`). El usuario lo hará externamente para evitar que el agente lea todo el árbol.
+4. **Mantén la terminal limpia:** Si se usa la terminal, escribe el comando `clear` frecuentemente para borrar el historial visual de texto.
+
+# 3. NEXT.JS SPECIFIC RULES
+- **This is NOT the Next.js you know**: This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+
+# 4. CONSEJOS DE TYPESCRIPT
+- **El truco de skipLibCheck:** Los archivos `tsconfig.json` deben tener `"skipLibCheck": true` para evitar el análisis profundo de tipos ajenos en node_modules.

@@ -1,0 +1,11 @@
+{
+  "title": "System Settings",
+  "close": "Close",
+  "language": "Language",
+  "theme": "Theme",
+  "theme_light": "Light",
+  "theme_dark": "Dark",
+  "theme_system": "System",
+  "logout": "Logout",
+  "login": "Login"
+}

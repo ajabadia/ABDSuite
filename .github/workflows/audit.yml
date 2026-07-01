@@ -1,0 +1,172 @@
+# 🔬 ABD Ecosystem — Global ERA 11 Audit
+#
+# Builds foundation libraries, then runs the global full-audit orchestrator
+# (pnpm run full-audit) which audits all 8 packages sequentially and
+# produces a consolidated ERA 11 certification report.
+#
+# Foundation libraries are built first to satisfy local file:dependencies:
+#   - ABDStyles          (design system library)
+#   - ABDSatelliteSDK    (shared SDK library)
+#   - ABDEcosystemWidgets (shared widget library)
+#
+# Audited packages (8):
+#   - ABDFiles, ABDLogs, ABDQuiz, ABDLanding, ABDAnalytics, ABDAuth,
+#   - ABDtenantGobernance, ABDSatelliteSDK
+
+name: 🔬 ABD Ecosystem — ERA 11 Global Audit
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: latest
+  NODE_VERSION: '20'
+
+jobs:
+  audit:
+    name: ERA 11 Global Audit
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: ⚡ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: '**/pnpm-lock.yaml'
+
+      - name: ✅ Validate YAML Syntax
+        run: |
+          Write-Host "🔍 Validating YAML syntax in .github/workflows/..." -ForegroundColor Cyan
+          $workflows = Get-ChildItem -Path '.github/workflows' -Filter '*.yml' -Recurse
+          $failed = $false
+
+          foreach ($wf in $workflows) {
+            Write-Host "  Checking $($wf.Name)..." -NoNewline
+            $output = & npx --yes yaml-lint $wf.FullName 2>&1
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -eq 0) {
+              Write-Host " ✅" -ForegroundColor Green
+            } else {
+              Write-Host " ❌" -ForegroundColor Red
+              Write-Host "$output" -ForegroundColor Red
+              $failed = $true
+            }
+          }
+
+          if ($failed) {
+            throw "YAML validation failed. Fix the errors above and retry."
+          }
+
+          Write-Host ""
+          Write-Host "✅  All YAML files valid" -ForegroundColor Green
+
+      - name: 🏗️ Build Foundation Libraries
+        run: |
+          $foundations = @('ABDStyles', 'ABDSatelliteSDK', 'ABDEcosystemWidgets')
+
+          foreach ($svc in $foundations) {
+            Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+            Write-Host " 🔨 Building $svc..." -ForegroundColor Yellow
+            Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+
+            Set-Location $svc
+
+            Write-Host "  → Installing dependencies..." -ForegroundColor Gray
+            pnpm install
+            if ($LASTEXITCODE -ne 0) { throw "pnpm install failed for $svc" }
+
+            Write-Host "  → Building..." -ForegroundColor Gray
+            pnpm run build
+            if ($LASTEXITCODE -ne 0) { throw "Build failed for $svc" }
+
+            Set-Location ..
+
+            Write-Host " ✅ $svc built successfully" -ForegroundColor Green
+          }
+
+      - name: 📦 Install Workspace Dependencies
+        run: |
+          Write-Host "  → Installing all workspace dependencies..." -ForegroundColor Gray
+          pnpm install
+          if ($LASTEXITCODE -ne 0) { throw "Root pnpm install failed" }
+          Write-Host " ✅ All workspace dependencies installed" -ForegroundColor Green
+
+      - name: 🏆 Run Global ERA 11 Audit
+        id: audit
+        run: |
+          Write-Host "`n" -NoNewline
+          Write-Host "╔══════════════════════════════════════════════════════════╗" -ForegroundColor White
+          Write-Host "║   🏆  ERA 11 — Full Audit Orchestrator (8 packages)    ║" -ForegroundColor White
+          Write-Host "╚══════════════════════════════════════════════════════════╝" -ForegroundColor White
+          Write-Host "`n" -NoNewline
+
+          # Run the global orchestrator directly (not captured) so live
+          # per-satellite output streams to the CI log in real time.
+          # $LASTEXITCODE captures the exit code after completion.
+          pnpm run full-audit
+          $exitCode = $LASTEXITCODE
+
+          if ($exitCode -eq 0) {
+            Write-Host "`n ✅  ALL 8 PACKAGES ERA 11 CERTIFIED" -ForegroundColor Green -BackgroundColor Black
+          } else {
+            Write-Host "`n ❌  GLOBAL AUDIT FAILED (exit code: $exitCode)" -ForegroundColor Red -BackgroundColor Black
+          }
+
+          "exit_code=$exitCode" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+          if ($exitCode -ne 0) {
+            throw "Global ERA 11 audit failed. Check the detailed output above."
+          }
+
+      - name: 📋 Generate Job Summary
+        if: always()
+        run: |
+          $exitCode = ${{ steps.audit.outputs.exit_code }}
+          $overallIcon = if ($exitCode -eq 0) { '✅' } else { '❌' }
+          $overallText = if ($exitCode -eq 0) { 'ALL 8 PACKAGES ERA 11 CERTIFIED' } else { 'GLOBAL AUDIT FAILED' }
+          $overallColor = if ($exitCode -eq 0) { 'Green' } else { 'Red' }
+
+          $summary = @"
+          
+          ## 🔬 ABD Ecosystem — Global ERA 11 Audit
+          
+          **Result: $overallIcon $overallText**
+          
+          The global ERA 11 orchestrator (`pnpm run full-audit`) ran the 6-phase
+          certification pipeline sequentially across all 8 packages:
+          
+          | # | Package | Phases |
+          |---|---------|--------|
+          | 1 | ABDFiles | Structural → i18n → a11y → Purity → TypeScript → ESLint |
+          | 2 | ABDLogs | Structural → i18n → a11y → Purity → TypeScript → ESLint |
+          | 3 | ABDQuiz | Structural → i18n → a11y → Purity → TypeScript → ESLint |
+          | 4 | ABDLanding | Structural → i18n → a11y → Purity → TypeScript → ESLint |
+          | 5 | ABDAnalytics | Structural → i18n → a11y → Purity → TypeScript → ESLint |
+          | 6 | ABDAuth | Structural → i18n → a11y → Purity → TypeScript → ESLint |
+          | 7 | ABDtenantGobernance | Structural → i18n → a11y → Purity → TypeScript → ESLint |
+          | 8 | ABDSatelliteSDK | Structural → i18n → a11y → Purity → TypeScript → ESLint |
+          
+          **Overall: $overallIcon $overallText**
+          "@
+
+          $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8

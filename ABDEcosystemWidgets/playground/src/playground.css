@@ -1,0 +1,51 @@
+/* ──────────────────────────────────────────────
+   Responsive utility overrides for playground
+   (Tailwind v4 responsive variants may be purged
+    from industrial-core.css)
+   ────────────────────────────────────────────── */
+
+/* Mobile: show hamburger, hide desktop nav and search */
+@media (max-width: 767px) {
+  .md\\:hidden {
+    display: flex !important;
+  }
+  .hidden.md\\:flex {
+    display: none !important;
+  }
+  .hidden.md\\:flex.items-center.gap-1 {
+    display: none !important;
+  }
+  /* Desktop search should be hidden on mobile */
+  [data-testid="navbar-search-trigger"] {
+    display: none !important;
+  }
+}
+
+/* Desktop: hide hamburger */
+@media (min-width: 768px) {
+  .md\\:hidden {
+    display: none !important;
+  }
+  .hidden.md\\:flex {
+    display: flex !important;
+  }
+}
+
+/* Debug tag visible on desktop only */
+@media (max-width: 1023px) {
+  .lg\\:inline {
+    display: none !important;
+  }
+}
+@media (min-width: 1024px) {
+  .lg\\:inline {
+    display: inline !important;
+  }
+}
+
+/* Settings locale text on desktop */
+@media (max-width: 1023px) {
+  .hidden.lg\\:inline {
+    display: none !important;
+  }
+}

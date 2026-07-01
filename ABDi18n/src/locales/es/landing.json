@@ -1,0 +1,18 @@
+{
+  "hero_title": "ABD Industrial Identity Gateway",
+  "hero_subtitle": "La columna vertebral de identidad para el ecosistema ABD. Seguridad federada, aislamiento multitenant y auditoría inmutable.",
+  "cta_login": "Acceso Industrial",
+  "cta_dashboard": "Ir al Dashboard",
+  "features": {
+    "federated": "Identidad Federada",
+    "federated_desc": "Protocolo SSO industrial para todos tus satélites.",
+    "isolation": "Aislamiento Total",
+    "isolation_desc": "Arquitectura Multitenant con bases de datos segregadas.",
+    "security": "Seguridad SOC2",
+    "security_desc": "Monitoreo en tiempo real y registros de auditoría inmutables."
+  },
+  "footer": {
+    "core": "Core: Next.js 16",
+    "auth": "Auth: Industry-Federated"
+  }
+}

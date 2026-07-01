@@ -1,0 +1,102 @@
+/**
+ * @purpose Renderiza la página de administración central para el gobierno de los inquilinos y la marca blanca, incluyendo un encabezado, una pestaña de telemetry y tarjetas de dashboard.
+ * @purpose_en Renders the central admin governance portal page for managing tenants and white branding, including a header, telemetry panel, and dashboard cards.
+ * @refactorable true (contains too many state variables and UI parts)
+ * @classification UI Component
+ * @complexity Medium
+ * @fingerprint exports:1,imports:10,sig:1powk7r
+ * @lastUpdated 2026-06-26T10:04:36.340Z
+ */
+
+import { getTranslations } from 'next-intl/server';
+import { ensureIndustrialAccess } from '@ajabadia/satellite-sdk/auth-middleware';
+import { connectDB } from '@ajabadia/satellite-sdk/db';
+import StorageConnector from '@/models/StorageConnector';
+import { LayoutDashboard, ArrowLeft, HardDrive } from 'lucide-react';
+import { SystemTelemetryPanel } from '@/components/admin/dashboard/SystemTelemetryPanel';
+import { DashboardCardsGrid } from '@/components/admin/dashboard/DashboardCardsGrid';
+import { AdminPageHeader } from '@ajabadia/styles';
+import { GlobalFooter } from '@ajabadia/ecosystem-widgets';
+import Link from 'next/link';
+
+/**
+ * 🛰️ Central Admin Governance Portal Page (Federated Server Component)
+ * Rediseñado específicamente para la Gobernanza de Tenants y Marca Blanca.
+ */
+export default async function AdminPortalPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ tenantId?: string; contextId?: string; contextType?: string }>;
+}) {
+  const { locale } = await params;
+  const sParams = await searchParams;
+  const t = await getTranslations('admin');
+  const ap = await getTranslations('adminPortal');
+
+  // 🛡️ Ecosystem Identity Guard
+  // Only users authenticated via ABDAuth with ADMIN privileges can enter.
+  const user = await ensureIndustrialAccess('ADMIN');
+
+  const activeTenantId = sParams?.tenantId || user.tenantId;
+
+  // 🔌 Active Storage Provider
+  await connectDB();
+  const activeConnector = await StorageConnector.findOne({ tenantId: activeTenantId, status: 'active' });
+  const activeProvider = activeConnector?.providerType || 'cloudinary';
+  const activeContextId = sParams?.contextId;
+  const activeContextType = sParams?.contextType;
+
+  const queryParts = [];
+  if (activeTenantId) queryParts.push(`tenantId=${activeTenantId}`);
+  if (activeContextId) queryParts.push(`contextId=${activeContextId}`);
+  if (activeContextType) queryParts.push(`contextType=${activeContextType}`);
+  const tenantQuery = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
+
+  return (
+    <main className="min-h-screen bg-background text-foreground pb-12 px-6 md:px-12 selection:bg-primary/30 relative z-10" role="main">
+      <div className="max-w-7xl mx-auto flex flex-col gap-10">
+        
+        {/* Back to home */}
+        <Link
+          href={`/${locale}`}
+          className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors w-fit"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          {locale === 'es' ? 'Volver a Inicio' : 'Back to Home'}
+        </Link>
+
+        {/* Header */}
+        <AdminPageHeader
+          icon={LayoutDashboard}
+          breadcrumb={<>{t('controlConsole')} • DASHBOARD</>}
+          title={<>{ap('abdTitle')} <span className="text-primary">{ap('gobernanza')}</span></>}
+          description={<>{ap.rich('adminDescriptionFull', { tenantId: user.tenantId, tenant: (chunks) => <span className="text-primary font-bold">{chunks}</span> })}</>}
+        />
+
+        {/* System Telemetry Panel */}
+        <SystemTelemetryPanel 
+          userId={user.id}
+          userRole={user.role}
+          locale={locale}
+        />
+
+        {/* Active Storage Provider Card */}
+        <div className="bg-card border p-4 rounded">
+          <div className="flex items-center gap-2 mb-2">
+            <HardDrive className="w-4 h-4 text-muted-foreground" />
+            <span className="text-[9px] font-mono font-black text-muted-foreground uppercase">ALMACENAMIENTO_ACTIVO</span>
+          </div>
+          <div className="text-xl font-mono font-black text-primary uppercase">{activeProvider}</div>
+        </div>
+
+        <DashboardCardsGrid locale={locale} tenantQuery={tenantQuery} adminT={t} portalT={ap} />
+
+        {/* Footer */}
+        <GlobalFooter label={t('footer')} />
+
+      </div>
+    </main>
+  );
+}

@@ -1,0 +1,2 @@
+@import "./industrial-core.css";
+@custom-variant dark (&:is(.dark *));

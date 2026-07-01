@@ -1,0 +1,23 @@
+{
+  "module": "MÓDULO",
+  "source": "FUENTE",
+  "skip": "Saltar Pregunta",
+  "bypassTask": "Bypass de Tarea",
+  "analyzeLogic": "Analizar Lógica",
+  "terminateManifest": "Terminar Manifiesto",
+  "commitProceed": "Commit y Continuar",
+  "finishTitle": "¿Finalizar Simulación?",
+  "finishDescription": "Estás a punto de terminar el manifiesto actual. Se calculará tu índice de auditoría final y no podrás realizar más cambios.",
+  "cancelAction": "Cancelar y Continuar",
+  "confirmFinish": "Finalizar Manifiesto",
+  "errorProcess": "Error en el proceso del examen",
+  "questionTimeout": "Tiempo de pregunta agotado. Saltando...",
+  "globalTimeout": "Tiempo global agotado. Finalizando examen...",
+  "yourAnswer": "Tu respuesta",
+  "openTextBadge": "DESARROLLO",
+  "openTextPlaceholder": "Escribe tu respuesta aquí...",
+  "characters": "caracteres",
+  "aiFeedback": "TUTOR IA",
+  "aiFeedbackGenerating": "Generando feedback personalizado...",
+  "aiFeedbackError": "No se pudo generar el feedback automático."
+}
