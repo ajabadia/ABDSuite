@@ -67,3 +67,5 @@ antigravity CLI.bat
 
 # External docs copy (not part of the monorepo)
 ABD-Suite-DOCS/
+
+*.vercel*.tmp
