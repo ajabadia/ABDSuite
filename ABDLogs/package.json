@@ -43,7 +43,7 @@
     "devDependencies":  {
                             "vitest":  "4.1.9",
                             "eslint":  "10.6.0",
-    "@eslint/compat":  "^2.1.0",
+    "@eslint/compat":  "catalog:",
                             "@types/adm-zip":  "^0.5.8",
                             "@eslint/eslintrc":  "3.3.5",
                             "eslint-config-next":  "16.2.9",

@@ -42,7 +42,7 @@
     "devDependencies":  {
                             "vitest":  "4.1.9",
                             "eslint":  "10.6.0",
-    "@eslint/compat":  "^2.1.0",
+    "@eslint/compat":  "catalog:",
                             "jose":  "6.2.3",
                             "@types/jszip":  "^3.4.1",
                             "eslint-config-next":  "16.2.9",
