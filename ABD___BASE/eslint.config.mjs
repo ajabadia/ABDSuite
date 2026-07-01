@@ -1,13 +1,14 @@
 import { defineConfig, globalIgnores } from "eslint/config";
-import { fixupConfigRules } from "@eslint/compat";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import nextjs from "@repo/eslint-config/nextjs";
 
 const eslintConfig = defineConfig([
-  ...fixupConfigRules(nextVitals),
-  ...fixupConfigRules(nextTs),
+  ...nextjs,
   globalIgnores([
-    ".next/**", "out/**", "build/**", "next-env.d.ts", "scripts/**",
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "scripts/**",
   ]),
 ]);
 

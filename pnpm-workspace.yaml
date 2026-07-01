@@ -12,6 +12,7 @@ packages:
   - ABDtenantGobernance
   - ABD___BASE
   - ABDE2E
+  - packages/*
 
 catalog:
   '@axe-core/playwright': 4.12.1

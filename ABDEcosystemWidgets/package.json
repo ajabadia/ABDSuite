@@ -1,6 +1,6 @@
 {
   "name": "@ajabadia/ecosystem-widgets",
-  "version": "1.0.92",
+  "version": "1.0.93",
   "type": "module",
   "description": "Smart components and widgets for ABD Suite Ecosystem.",
   "main": "./dist/index.js",

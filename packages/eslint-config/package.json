@@ -1,0 +1,17 @@
+{
+  "name": "@repo/eslint-config",
+  "version": "0.0.1",
+  "private": true,
+  "main": "nextjs.mjs",
+  "exports": {
+    "./nextjs": "./nextjs.mjs"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@eslint/compat": "catalog:",
+    "eslint-config-next": "catalog:"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

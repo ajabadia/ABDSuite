@@ -1,1 +1,0 @@
-C:\Users\ajaba\AppData\Local\agy\bin\agy.exe
