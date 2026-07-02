@@ -5,7 +5,9 @@
   "login": "Iniciar Sesión",
   "logout": "Cerrar Sesión",
   "menuTitle": "Panel de Control",
+  "home": "Inicio",
   "homeMenu": "Inicio",
+  "myDashboard": "Mi Panel",
   "adminMenu": "Administración",
   "historyMenu": "Historial & Analíticas",
   "brand": "ABDAuth",
@@ -84,6 +86,8 @@
   "navAudit": "Auditoría en Cadena",
   "navContextualRoles": "Roles Contextuales",
   "navStorageProviders": "Proveedores de Almacenamiento",
+  "navSandbox": "Sandbox JWT",
+  "navGdpr": "Purga GDPR",
   "commandPalette": {
     "navDashboard": "Ir al Dashboard Central",
     "navDashboardDesc": "Volver a la vista general",

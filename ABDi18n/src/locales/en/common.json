@@ -5,7 +5,9 @@
   "login": "Sign In",
   "logout": "Logout",
   "menuTitle": "Control Panel",
+  "home": "Home",
   "homeMenu": "Home",
+  "myDashboard": "My Dashboard",
   "adminMenu": "Administration",
   "historyMenu": "History \\u0026 Analytics",
   "brand": "ABDAuth",
@@ -84,6 +86,8 @@
   "navAudit": "Chain Auditing",
   "navContextualRoles": "Contextual Roles",
   "navStorageProviders": "Storage Providers",
+  "navSandbox": "Sandbox JWT",
+  "navGdpr": "GDPR Purge",
   "commandPalette": {
     "navDashboard": "Go to Main Dashboard",
     "navDashboardDesc": "Return to overview",

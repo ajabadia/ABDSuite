@@ -50,7 +50,7 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
   const allLinks: AppSidebarLink[] = [
     { href: '/', label: t('home'), icon: <Home className="w-4 h-4" /> },
     { href: '/dashboard', label: t('myDashboard'), icon: <LayoutDashboard className="w-4 h-4" />, requiresAuth: true },
-    { href: '/admin', label: t('adminPortal'), icon: <Terminal className="w-4 h-4" />, requiresAdmin: true },
+    { href: '/admin', label: t('adminMenu'), icon: <Terminal className="w-4 h-4" />, requiresAdmin: true },
   ];
 
   const transformHref = React.useCallback(

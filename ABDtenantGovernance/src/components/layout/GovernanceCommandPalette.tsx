@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * @purpose Renderiza una pestaña de comandos con diversas acciones relacionadas con la gobernanza, incluyendo acciones de navegación y configuración.
+ * @purpose Renders a command palette with various governance-related commands, including navigation and settings actions.
  * @purpose_en Renders a command palette with various governance-related commands, including navigation and settings actions.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component

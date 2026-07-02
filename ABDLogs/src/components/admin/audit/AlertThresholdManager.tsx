@@ -63,7 +63,7 @@ const APP_IDS = [
   { value: '', label: 'All Apps' },
   { value: 'AUTH', label: 'ABDAuth' },
   { value: 'QUIZ', label: 'ABDQuiz' },
-  { value: 'GOBERNANZA', label: 'Gobernanza' },
+  { value: 'GOBERNANZA', label: 'Governance' },
 ];
 
 const PRESETS = [
@@ -290,7 +290,7 @@ export function AlertThresholdManager({ tenantId }: AlertThresholdManagerProps) 
                 className="w-full px-2.5 py-1.5 rounded-md bg-background border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
               >
                 {APP_IDS.map(a => (
-                  <option key={a.value} value={a.value}>{a.value === '' ? t('threshold_form_all_apps') : a.label}</option>
+                  <option key={a.value} value={a.value}>{a.value === '' ? t('threshold_form_all_apps') : a.value === 'GOBERNANZA' ? t('appGovernance') : a.label}</option>
                 ))}
               </select>
             </div>

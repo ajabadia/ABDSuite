@@ -739,6 +739,8 @@
   "delegationsRevokeDialogMessage": "¿Estás seguro de que deseas revocar esta delegación de forma anticipada?",
   "delegationsRevokeDialogConfirm": "REVOCAR",
   "delegationsRevokeDialogCancel": "CANCELAR",
+  "sandboxBreadcrumbSuffix": "SANDBOX",
+  "tenantIdLabel": "ID:",
   "delegationsRevokeError": "Error al revocar",
   "tenantCardSpaces": "Espacios",
   "tenantCardUsers": "Usuarios",
@@ -831,5 +833,8 @@
   "toast_integrity_loading": "🔍 Verificando cadena de bloques...",
   "toast_integrity_valid": "✅ Cadena de bloques válida y sin alteraciones.",
   "toast_integrity_invalid": "⚠️ Se encontraron {count} bloques alterados.",
-  "toast_integrity_error": "Error inesperado al verificar la cadena"
+  "toast_integrity_error": "Error inesperado al verificar la cadena",
+  "storageLoading": "CARGANDO...",
+  "audit_filter_gobernanza": "Gobernanza",
+  "appGovernance": "Gobernanza"
 }

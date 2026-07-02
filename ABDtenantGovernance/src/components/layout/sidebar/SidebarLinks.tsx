@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * @purpose Renderiza un menú de navegación lateral con enlaces a páginas administrativas y públicas, basado en la autenticación del usuario y su rol.
+ * @purpose Renders a sidebar navigation menu with links to various administrative and public pages, conditional rendering based on user authentication and role.
  * @purpose_en Renders a sidebar navigation menu with links to various administrative and public pages, conditional rendering based on user authentication and role.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component

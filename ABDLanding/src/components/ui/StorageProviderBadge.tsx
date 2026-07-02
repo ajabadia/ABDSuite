@@ -11,13 +11,13 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { HardDrive } from 'lucide-react';
 
 const FILES_BASE = process.env.NEXT_PUBLIC_FILES_URL || 'https://files.abdia.es';
 
 export function StorageProviderBadge() {
-  const locale = useLocale();
+  const t = useTranslations('common');
   const [provider, setProvider] = useState('CARGANDO...');
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function StorageProviderBadge() {
     <div className="bg-card border p-4 rounded flex items-center justify-between">
       <div className="flex items-center gap-2">
         <HardDrive className="w-4 h-4 text-muted-foreground" />
-        <span className="text-[9px] font-mono font-black text-muted-foreground uppercase">{locale === 'es' ? 'ALMACENAMIENTO_ACTIVO' : 'ACTIVE_STORAGE'}</span>
+        <span className="text-[9px] font-mono font-black text-muted-foreground uppercase">{t('activeStorageLabel')}</span>
       </div>
       <div className="text-lg font-mono font-black text-primary uppercase">{provider}</div>
     </div>

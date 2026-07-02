@@ -1,7 +1,7 @@
 "use client"
 
 /**
- * @purpose Rendra un componente de tarjeta para mostrar y gestionar información de inquilinos, incluyendo acciones como editar y eliminar.
+ * @purpose Renders a card component for displaying and managing tenant information, including actions like editing and deleting.
  * @purpose_en Renders a card component for displaying and managing tenant information, including actions like editing and deleting.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
@@ -33,11 +33,11 @@ export function TenantCard({ tenant, translations: t, onEdit, onDelete }: Tenant
 
   return (
     <div className="group relative p-8 flex flex-col justify-between min-h-[300px] overflow-hidden rounded-none bg-card backdrop-blur-sm border border-border transition-all duration-500 hover:border-primary/40">
-      {/* Marca de Agua Decorativa */}
+      {/* Decorative Watermark */}
       <Building2 className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none text-foreground" size={96} aria-hidden="true" />
       
       <div className="z-10">
-        {/* Bloque Narrativo Superior */}
+        {/* Top Narrative Block */}
         <div className="flex flex-col gap-2 mb-6">
            <div className="flex items-center gap-3">
              <h3 className="text-2xl font-bold uppercase tracking-tight text-foreground leading-none truncate">{tenant.name}</h3>
@@ -48,11 +48,11 @@ export function TenantCard({ tenant, translations: t, onEdit, onDelete }: Tenant
              )}
            </div>
            <p className="text-sm text-muted-foreground leading-relaxed">
-             {'ID:'} <span className="font-mono text-primary font-bold">{tenant.tenantId}</span>
+                           {adminT('tenantIdLabel')} <span className="font-mono text-primary font-bold">{tenant.tenantId}</span>
            </p>
         </div>
         
-        {/* Bandeja de Metadatos */}
+        {/* Metadata Tray */}
         <div className="border-t border-border pt-4 mb-6 flex flex-wrap gap-4 text-[9px] font-mono uppercase tracking-widest text-muted-foreground/50">
            <div className="flex items-center gap-1.5">
              <Globe size={10} className="text-primary opacity-80" aria-hidden="true" />
@@ -69,7 +69,7 @@ export function TenantCard({ tenant, translations: t, onEdit, onDelete }: Tenant
         </div>
       </div>
 
-      {/* Consola de Ejecución — Distribución Uniforme */}
+      {/* Execution Console — Uniform Distribution */}
       <div className="grid grid-cols-7 gap-1.5 h-12 z-10">
          {/* Branding */}
           <Link 

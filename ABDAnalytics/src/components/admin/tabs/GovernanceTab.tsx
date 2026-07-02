@@ -101,7 +101,7 @@ export default function GovernanceTab({ metrics }: GovernanceTabProps) {
             </div>
             <div className="border border-border/30 p-4 bg-card/20 flex flex-col gap-1">
               <span className="text-muted-foreground text-[8px] uppercase">
-                {locale === 'es' ? 'COLABORADORES ACTIVOS' : 'ACTIVE COLLABORATORS'}
+                {t('activeCollaborators')}
               </span>
               <span className="text-xl font-bold">{metrics.governance.activeCollaboratorsCount}</span>
             </div>

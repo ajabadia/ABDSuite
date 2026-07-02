@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * @purpose Renderiza una tarjeta de usuario con funcionalidad de inicio de sesión y salida.
+ * @purpose Renders a sidebar user card with login and logout functionality.
  * @purpose_en Renders a sidebar user card with login and logout functionality.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component

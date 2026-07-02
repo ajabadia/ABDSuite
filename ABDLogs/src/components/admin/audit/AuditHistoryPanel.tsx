@@ -188,7 +188,7 @@ export function AuditHistoryPanel({ tenantId }: AuditHistoryPanelProps) {
         <FilterChip id="ALL" label={t('audit_filter_all')} ariaLabel={t('filterAllLabel')} icon={Activity} activeFilter={filter} onSelect={setFilter} />
         <FilterChip id="AUTH" label="ABDAuth" ariaLabel={t('filterAuthLabel')} icon={ShieldAlert} activeFilter={filter} onSelect={setFilter} />
         <FilterChip id="QUIZ" label="ABDQuiz" ariaLabel={t('filterQuizLabel')} icon={FileText} activeFilter={filter} onSelect={setFilter} />
-        <FilterChip id="GOBERNANZA" label="Gobernanza" ariaLabel={t('filterGobernanzaLabel')} icon={Settings} activeFilter={filter} onSelect={setFilter} />
+        <FilterChip id="GOBERNANZA" label={t('audit_filter_gobernanza')} ariaLabel={t('filterGobernanzaLabel')} icon={Settings} activeFilter={filter} onSelect={setFilter} />
       </div>
 
       {/* Logs List */}

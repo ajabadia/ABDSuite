@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { useRouter, usePathname } from '@/i18n/routing';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { CommandPalette, type Command, buildCommonCommands } from '@ajabadia/ecosystem-widgets';
 import { Home, Cpu } from 'lucide-react';
 
@@ -20,13 +20,14 @@ export function LandingCommandPalette() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
+  const t = useTranslations('home');
 
   const commands: Command[] = [
     {
       id: 'nav-home',
-      title: locale === 'es' ? 'Inicio' : 'Home',
-      description: locale === 'es' ? 'Ir a la página principal' : 'Go to the main page',
-      category: locale === 'es' ? 'Navegación' : 'Navigation',
+      title: t('commandHome'),
+      description: t('commandHomeDesc'),
+      category: t('commandCategoryNav'),
       shortcut: ['g', 'h'],
       icon: <Home className="w-4 h-4" />,
       action: () => {
@@ -35,9 +36,9 @@ export function LandingCommandPalette() {
     },
     {
       id: 'nav-services',
-      title: locale === 'es' ? 'Servicios / Aplicaciones' : 'Services & Applications',
-      description: locale === 'es' ? 'Explorar aplicaciones del ecosistema' : 'Explore ecosystem applications',
-      category: locale === 'es' ? 'Navegación' : 'Navigation',
+      title: t('commandServices'),
+      description: t('commandServicesDesc'),
+      category: t('commandCategoryNav'),
       shortcut: ['g', 's'],
       icon: <Cpu className="w-4 h-4" />,
       action: () => {
@@ -49,7 +50,7 @@ export function LandingCommandPalette() {
 
   return (
     <CommandPalette
-      placeholder={locale === 'es' ? 'Escribe un comando para navegar...' : 'Type a command to navigate...'}
+      placeholder={t('commandPlaceholder')}
       commands={commands}
     />
   );

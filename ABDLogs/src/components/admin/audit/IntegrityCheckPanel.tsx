@@ -32,7 +32,7 @@ export function IntegrityCheckPanel({ tenantId }: IntegrityCheckPanelProps) {
           setResult(response.data);
           return response.data;
         }
-        throw new Error(response.error || 'Error al verificar la cadena');
+        throw new Error(response.error || t('toast_integrity_error'));
       });
 
       toast.promise(promise, {

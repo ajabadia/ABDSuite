@@ -692,7 +692,6 @@
   },
   "sandbox": {
     "generateJwt": "Generate JWT",
-    "generateJwt": "Generate JWT",
     "generating": "Generating...",
     "generatedToken": "Generated Token",
     "copyToken": "Copy token",
@@ -739,6 +738,8 @@
   "delegationsRevokeDialogMessage": "Are you sure you want to revoke this delegation early?",
   "delegationsRevokeDialogConfirm": "REVOKE",
   "delegationsRevokeDialogCancel": "CANCEL",
+  "sandboxBreadcrumbSuffix": "SANDBOX",
+  "tenantIdLabel": "ID:",
   "delegationsRevokeError": "Error revoking delegation",
   "tenantCardSpaces": "Spaces",
   "tenantCardUsers": "Users",
@@ -831,5 +832,8 @@
   "toast_integrity_loading": "🔍 Verifying blockchain...",
   "toast_integrity_valid": "✅ Blockchain valid and unaltered.",
   "toast_integrity_invalid": "⚠️ {count} altered block(s) found.",
-  "toast_integrity_error": "Unexpected error verifying the chain"
+  "toast_integrity_error": "Unexpected error verifying the chain",
+  "storageLoading": "LOADING...",
+  "audit_filter_gobernanza": "Governance",
+  "appGovernance": "Governance"
 }

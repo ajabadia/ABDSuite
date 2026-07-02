@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * @purpose Renderiza un componente de navegación lateral con enlaces variados según la autenticación del usuario y su rol.
+ * @purpose Renders a sidebar navigation component with various links based on user authentication and role.
  * @purpose_en Renders a sidebar navigation component with various links based on user authentication and role.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
@@ -102,13 +102,13 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
     },
     {
       href: `/admin/sandbox${tenantQuery}`,
-      label: 'Sandbox JWT',
+      label: t('navSandbox'),
       icon: <Zap size={14} />,
       requiresSuperAdmin: true
     },
     {
       href: `/admin/gdpr${tenantQuery}`,
-      label: 'GDPR Purge',
+      label: t('navGdpr'),
       icon: <ShieldX size={14} />,
       requiresSuperAdmin: true
     },

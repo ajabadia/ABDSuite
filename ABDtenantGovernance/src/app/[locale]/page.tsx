@@ -1,6 +1,6 @@
 /**
- * @purpose Renderiza la página principal del ABDtenantGobernance, incluyendo un encabezado heroico, botón de inicio de sesión y sección de capacidades del sistema.
- * @purpose_en Renders the home page for the ABDtenantGobernance application, including a hero header, login button, and system capabilities section.
+ * @purpose Renders the home page for the ABDtenantGovernance application, including a hero header, login button, and system capabilities section.
+ * @purpose_en Renders the home page for the ABDtenantGovernance application, including a hero header, login button, and system capabilities section.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Low
@@ -86,8 +86,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <GlobalFooter
         separatorWidth="short"
         telemetryItems={[
-          { label: 'Control Plane', value: h('version') },
-          { label: 'Estilo', value: h('style') }
+          { label: h('footerLabelControlPlane'), value: h('version') },
+          { label: h('footerLabelStyle'), value: h('style') }
         ]}
       />
     </LandingPageLayout>

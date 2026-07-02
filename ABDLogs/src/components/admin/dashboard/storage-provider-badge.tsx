@@ -16,7 +16,7 @@ import { HardDrive } from 'lucide-react';
 
 export function StorageProviderBadge() {
   const t = useTranslations('admin');
-  const [provider, setProvider] = useState('CARGANDO...');
+  const [provider, setProvider] = useState(t('storageLoading'));
 
   useEffect(() => {
     fetch('/files/api/v1/storage/active-provider')

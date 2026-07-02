@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * @purpose Renderiza una tabla para mostrar y gestionar delegaciones de roles dentro de un inquilino, incluyendo la capacidad de revocar delegaciones activas.
+ * @purpose Renders a table to display and manage delegations of roles within a tenant, including the ability to revoke active delegations.
  * @purpose_en Renders a table to display and manage delegations of roles within a tenant, including the ability to revoke active delegations.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
