@@ -94,7 +94,23 @@ export function withIndustrialAuth(options: IndustrialAuthOptions) {
       if (tenantInfo) authorizeUrl.searchParams.set('tenant', tenantInfo.tenantId);
       const clearConfig: Record<string, unknown> = { path: '/', maxAge: 0, expires: new Date(0) };
       if (cookieDomain) clearConfig.domain = cookieDomain;
-      const response = NextResponse.redirect(authorizeUrl);
+
+      // 🌐 Next.js RSC & Client Fetch CORS mitigation:
+      // If the request is a React Server Component (RSC) fetch/prefetch,
+      // return the redirect URL via 'x-middleware-redirect' header instead of standard redirect.
+      const isRscRequest = request.headers.get('rsc') === '1' || request.headers.has('next-router-state-tree');
+      let response: NextResponse;
+      if (isRscRequest) {
+        response = new NextResponse('', {
+          status: 307,
+          headers: {
+            'x-middleware-redirect': authorizeUrl.toString(),
+            'Location': authorizeUrl.toString()
+          }
+        });
+      } else {
+        response = NextResponse.redirect(authorizeUrl);
+      }
       response.cookies.set(cookieName, '', clearConfig);
       response.cookies.set(verifiedCookieName, '', clearConfig);
       return response;
