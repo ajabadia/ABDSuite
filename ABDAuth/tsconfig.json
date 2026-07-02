@@ -1,7 +1,10 @@
 {
   "extends": "@repo/typescript-config/nextjs.json",
   "compilerOptions": {
-    "target": "ESNext"
+    "target": "ESNext",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": [
     "next-env.d.ts",
@@ -11,6 +14,7 @@
   ],
   "exclude": [
     "node_modules",
-    "scripts"
+    "scripts",
+    "scratch"
   ]
 }

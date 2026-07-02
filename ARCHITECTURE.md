@@ -1,41 +1,33 @@
-# 🏗️ ABD Suite — Arquitectura del Ecosistema
+# ABD Suite — Arquitectura del Ecosistema
 
-> **Versión**: 1.0 — Junio 2026
-> **Estatus**: `SYS_CERTIFIED`
+> **Versión**: 2.0 — Julio 2026
 > **Stack**: Next.js 16 · React 19 · Tailwind CSS v4 · MongoDB/Mongoose 9 · pnpm Workspaces · Turborepo
-
----
-
-## 📋 Índice
-
-1. [Vista General del Monorepo](#1-vista-general-del-monorepo)
-2. [Grafo de Dependencias entre Paquetes](#2-grafo-de-dependencias-entre-paquetes)
-3. [Flujo de Autenticación (SSO Federado)](#3-flujo-de-autenticación-sso-federado)
-4. [Arquitectura Multi-Tenant](#4-arquitectura-multi-tenant)
-5. [Mapa de Interacción entre Servicios](#5-mapa-de-interacción-entre-servicios)
-   - [5.1 Arquitectura del EventBus (Mensajería Asíncrona)](#51-arquitectura-del-eventbus-mensajer%C3%ADa-as%C3%ADncrona)
-   - [5.2 Estrategia de Pruebas de Integración y E2E (Playwright)](#52-estrategia-de-pruebas-de-integraci%C3%B3n-y-e2e-playwright)
-   - [5.3 Monitoreo de Anomalías y Alertas Convergentes](#53-monitoreo-de-anomal%C3%ADas-y-alertas-convergentes)
-6. [Ciclo de Vida de una Petición](#6-ciclo-de-vida-de-una-petición)
-7. [Pipeline de Calidad y Certificación](#7-pipeline-de-calidad-y-certificación)
-8. [Despliegue en Vercel](#8-despliegue-en-vercel)
 
 ---
 
 ## 1. Vista General del Monorepo
 
-El ecosistema ABD Suite se organiza como un **monorepo** orquestado por `pnpm workspaces` + `Turborepo`. Contiene **4 librerías compartidas** (publicadas como paquetes NPM en GitHub Packages) y **8 aplicaciones satélite** (desplegadas como proyectos independientes en Vercel).
+El ecosistema ABD Suite se organiza como un **monorepo** orquestado por `pnpm workspaces` + `Turborepo`. Contiene **4 librerías compartidas** (publicadas como NPM en GitHub Packages), **8 aplicaciones satélite** (desplegadas como proyectos independientes en Vercel), y **2 paquetes de configuración interna** (`packages/typescript-config`, `packages/eslint-config`).
 
 ```mermaid
 graph TB
     subgraph Root["🏢 Monorepo (ABDSuite)"]
         direction TB
-        
+
+        subgraph Config["⚙️ Configuración Compartida"]
+            TC["@repo/typescript-config<br/>base.json, nextjs.json, library.json"]
+            EC["@repo/eslint-config<br/>nextjs.mjs"]
+        end
+
         subgraph Libs["📦 Librerías Compartidas (NPM - GitHub Packages)"]
-            I18N["@abd/i18n<br/>Traducciones centralizadas"]
+            I18N["@ajabadia/i18n<br/>Traducciones centralizadas"]
             STYLES["@ajabadia/styles<br/>Motor de estilos SSR<br/>Componentes UI"]
-            SDK["@ajabadia/satellite-sdk<br/>Auth · Sesión · Logging · Branding"]
+            SDK["@ajabadia/satellite-sdk<br/>Auth · Sesión · Logging ·<br/>EventBus · Branding"]
             WIDGETS["@ajabadia/ecosystem-widgets<br/>Smart components<br/>SmartNavbar · CommandPalette"]
+        end
+
+        subgraph E2E["🧪 Tests de Integración"]
+            E2E["@ajabadia/e2e<br/>Playwright E2E cross-satélite"]
         end
 
         subgraph Satellites["🛰️ Aplicaciones Satélite (Vercel)"]
@@ -51,16 +43,18 @@ graph TB
     end
 
     style Root fill:#0a0a1a,stroke:#00f0ff,stroke-width:2px
+    style Config fill:#0a1a0a,stroke:#88ff00,stroke-width:1px
     style Libs fill:#0a1a2a,stroke:#00ff88,stroke-width:1px
+    style E2E fill:#1a1a0a,stroke:#ff8800,stroke-width:1px
     style Satellites fill:#1a0a2a,stroke:#ff00ff,stroke-width:1px
 ```
 
-| Rol | Paquete | Publicado como | Versión |
-|-----|---------|---------------|---------|
-| Traducciones | `ABDi18n` | `@abd/i18n` | 1.0.37 |
-| Estilos | `ABDStyles` | `@ajabadia/styles` | 1.0.89 |
-| SDK | `ABDSatelliteSDK` | `@ajabadia/satellite-sdk` | 1.0.84 |
-| Widgets | `ABDEcosystemWidgets` | `@ajabadia/ecosystem-widgets` | 1.0.80 |
+| Rol | Paquete | Publicado como | Versión actual |
+|-----|---------|---------------|:---:|
+| Traducciones | `ABDi18n` | `@ajabadia/i18n` | 1.0.53 |
+| Estilos | `ABDStyles` | `@ajabadia/styles` | 1.0.104 |
+| SDK | `ABDSatelliteSDK` | `@ajabadia/satellite-sdk` | 1.0.101 |
+| Widgets | `ABDEcosystemWidgets` | `@ajabadia/ecosystem-widgets` | 1.0.94 |
 | IdP | `ABDAuth` | — | 0.1.0 |
 | Control Plane | `ABDtenantGovernance` | — | 0.1.0 |
 | LMS | `ABDQuiz` | — | 0.1.0 |
@@ -69,17 +63,27 @@ graph TB
 | Files | `ABDFiles` | — | 0.1.0 |
 | Landing | `ABDLanding` | — | 0.1.0 |
 | Template | `ABD___BASE` | — | 0.1.0 |
+| E2E | `ABDE2E` | — | 0.1.0 |
 
 ---
 
 ## 2. Grafo de Dependencias entre Paquetes
 
-Las librerías compartidas forman una cadena de dependencias que los satélites consumen. El orden de compilación en Turborepo es: `ABDi18n → ABDStyles → ABDSatelliteSDK → ABDEcosystemWidgets → (satélites)`.
+Las librerías compartidas forman una cadena de dependencias que los satélites consumen. El orden de compilación en Turborepo es:
+
+`ABDi18n → ABDStyles → ABDSatelliteSDK → ABDEcosystemWidgets → (satélites)`
+
+Además, cada satélite consume `@repo/typescript-config` y `@repo/eslint-config` como devDependencies para estandarizar TypeScript y ESLint.
 
 ```mermaid
 graph LR
+    subgraph Capa0["Capa 0: Config Compartida"]
+        TC["@repo/typescript-config"]
+        EC["@repo/eslint-config"]
+    end
+
     subgraph Capa1["Capa 1: Traducciones"]
-        I18N["@abd/i18n"]
+        I18N["@ajabadia/i18n"]
     end
 
     subgraph Capa2["Capa 2: Estilos Base"]
@@ -147,11 +151,53 @@ graph LR
     STYLES --> LANDING
     STYLES --> BASE
 
+    TC -.->|"devDep"| AUTH
+    TC -.->|"devDep"| TENANT
+    TC -.->|"devDep"| QUIZ
+    TC -.->|"devDep"| LOGS
+    TC -.->|"devDep"| ANALYTICS
+    TC -.->|"devDep"| FILES
+    TC -.->|"devDep"| LANDING
+    TC -.->|"devDep"| BASE
+
+    EC -.->|"devDep"| AUTH
+    EC -.->|"devDep"| TENANT
+    EC -.->|"devDep"| LOGS
+    EC -.->|"devDep"| ANALYTICS
+    EC -.->|"devDep"| FILES
+    EC -.->|"devDep"| LANDING
+    EC -.->|"devDep"| BASE
+
     style I18N fill:#003366,stroke:#00f0ff,color:#fff
     style STYLES fill:#003366,stroke:#00f0ff,color:#fff
     style SDK fill:#003366,stroke:#00f0ff,color:#fff
     style WIDGETS fill:#003366,stroke:#00f0ff,color:#fff
+    style TC fill:#2a3a00,stroke:#88ff00,color:#fff
+    style EC fill:#2a3a00,stroke:#88ff00,color:#fff
 ```
+
+### Paquetes de Configuración (`packages/`)
+
+| Paquete | Contenido | Consumido por |
+|---------|-----------|---------------|
+| `@repo/typescript-config` | `base.json`, `nextjs.json`, `library.json` | Todos los satélites Next.js + ABDQuiz |
+| `@repo/eslint-config` | `nextjs.mjs` (extiende `eslint-config-next` + `@eslint/compat`) | Todos los satélites excepto ABDQuiz (usa config propia) |
+
+### Subpaths exportados por `@ajabadia/satellite-sdk`
+
+El SDK expone 10 submódulos independientes para import selectivo:
+
+| Subpath | Propósito |
+|---------|-----------|
+| `.` (core) | Funciones principales: `getIndustrialSession`, `withIndustrialAuth`, `ensureIndustrialAccess` |
+| `./auth-middleware` | Middleware de autenticación para Next.js (`createAuthRouteHandler`) |
+| `./client` | `SessionProvider`, `BrandingStyles` (componentes React client-side) |
+| `./db` | Conexiones Mongoose multi-tenant (`getTenantModel`, `getTenantConnection`) |
+| `./logger` | Logging forense centralizado (`logger.audit`) |
+| `./event-bus` | Mensajería asíncrona vía Redis Streams (publisher, consumer, schema registry) |
+| `./styles` | Temas dinámicos SSR (`BrandingStyles`) |
+| `./contracts` | Tipos compartidos Zod (sesión, tenant, evento) |
+| `./utils` | Utilidades varias |
 
 ---
 
@@ -162,8 +208,8 @@ Todos los satélites delegan la autenticación en **ABDAuth** (IdP central) medi
 ```mermaid
 sequenceDiagram
     participant User as 👤 Usuario
-    participant Satellite as 🛰️ Satélite (ej. ABDQuiz)
-    participant SDK as 🔌 @abd/satellite-sdk
+    participant Satellite as 🛰️ Satélite
+    participant SDK as 🔌 @ajabadia/satellite-sdk
     participant ABDAuth as 🛡️ ABDAuth (IdP)
     participant Mongo as 🗄️ MongoDB
 
@@ -190,24 +236,13 @@ sequenceDiagram
     Note over ABDAuth: Rate limiting: 10 intentos/minuto por IP
 ```
 
-### Componentes del SDK involucrados
-
-| Componente | Ubicación | Propósito |
-|-----------|-----------|-----------|
-| `withIndustrialAuth` | Middleware (proxy.ts) | Protege rutas, redirige a IdP si no hay sesión |
-| `createAuthRouteHandler` | `app/api/auth/[...auth]/route.ts` | Maneja callbacks OAuth2, logout, verificación |
-| `getIndustrialSession` | Server Component / API | Lee y descifra la cookie de sesión JWT |
-| `ensureIndustrialAccess` | Server Action | Valida rol específico (ej. admin) |
-| `BrandingStyles` | Layout (head) | Inyecta CSS dinámico del tenant (Zero-FOUC) |
-| `SessionProvider` | Layout (body) | Provee contexto de sesión a client components |
-
-> **⚠️ COOKIE_DOMAIN Caveat (Local Dev):** `COOKIE_DOMAIN=.abdia.es` permite que la cookie `abd_session` sea compartida entre subdominios en producción. Sin embargo, **en localhost el navegador rechaza silenciosamente cualquier cookie con `Domain=.abdia.es`**, causando un redirect loop infinito (middleware satélite → ABDAuth authorize → login → ...). Para desarrollo local, `COOKIE_DOMAIN` debe estar comentado (ver `.env.shared` línea 16).
+> **COOKIE_DOMAIN Caveat (Local Dev):** `COOKIE_DOMAIN=.abdia.es` permite compartir la cookie `abd_session` entre subdominios en producción. En localhost el navegador rechaza cookies con `Domain=.abdia.es`, causando redirect loop. Para desarrollo local, `COOKIE_DOMAIN` debe estar comentado (ver `.env.shared`).
 
 ---
 
 ## 4. Arquitectura Multi-Tenant
 
-Cada inquilino (tenant) opera de forma aislada. El sistema soporta tres estrategias de aislamiento configurables por tenant desde `ABDtenantGovernance`.
+Cada inquilino (tenant) opera de forma aislada. El sistema soporta tres estrategias de aislamiento configurables desde `ABDtenantGovernance`.
 
 ```mermaid
 graph TB
@@ -217,14 +252,12 @@ graph TB
     end
 
     subgraph TenantA["🏢 Tenant: Academia Alpha"]
-        direction TB
         USERS_A["Usuarios Alpha"]
         DATA_A[(MongoDB: abd_tenant_alpha<br/>o colección: alpha_quiz)]
         STORAGE_A["☁️ Cloudinary / Google Drive<br/>(config por tenant)"]
     end
 
     subgraph TenantB["🏢 Tenant: Corporación Beta"]
-        direction TB
         USERS_B["Usuarios Beta"]
         DATA_B[(MongoDB: abd_tenant_beta<br/>o colección: beta_quiz)]
         STORAGE_B["☁️ OneDrive / S3<br/>(config por tenant)"]
@@ -252,11 +285,11 @@ graph TB
 
 | Estrategia | Descripción | Cuándo usarla |
 |-----------|-------------|---------------|
-| `COLLECTION_PREFIX` | Misma base de datos, colecciones prefijadas (`alpha_questions`, `beta_questions`) | Plan gratuito de MongoDB Atlas (1 DB) |
-| `DATABASE_PER_TENANT` | Base de datos dedicada (`abd_tenant_alpha`, `abd_tenant_beta`) | Clientes enterprise que requieren aislamiento físico |
+| `COLLECTION_PREFIX` | Misma base de datos, colecciones prefijadas | Plan gratuito de MongoDB Atlas (1 DB) |
+| `DATABASE_PER_TENANT` | Base de datos dedicada por tenant | Clientes enterprise |
 | **Híbrido** | Pool de conexiones dinámico con `getTenantModel()` | Transición entre estrategias |
 
-El helper `getTenantModel` (en cada satélite) conmuta automáticamente el modelo Mongoose según el `tenantId` de la sesión, usando `AsyncLocalStorage` para el contexto del hilo de ejecución.
+El helper `getTenantModel` (en cada satélite) conmuta automáticamente el modelo Mongoose según el `tenantId` de la sesión, usando `AsyncLocalStorage` para el contexto del hilo.
 
 ---
 
@@ -279,6 +312,7 @@ graph TB
 
     subgraph External["☁️ Servicios Externos"]
         MDB[(MongoDB Atlas)]
+        REDIS[(Upstash Redis<br/>EventBus Streams)]
         CLOUD[Cloudinary]
         S3[AWS S3]
         GDRIVE[Google Drive API]
@@ -286,31 +320,32 @@ graph TB
         RESEND[Resend<br/>Email Transaccional]
     end
 
-    %% Auth flow
     QUIZ -->|"SSO OAuth2"| AUTH
     TENANT -->|"SSO OAuth2"| AUTH
     FILES -->|"SSO OAuth2"| AUTH
     LANDING -->|"SSO OAuth2"| AUTH
     ANALYTICS -->|"SSO OAuth2"| AUTH
 
-    %% Logging flow
     QUIZ -->|"logger.audit"| LOGS
     TENANT -->|"logger.audit"| LOGS
     FILES -->|"logger.audit"| LOGS
     AUTH -->|"logger.audit"| LOGS
     ANALYTICS -->|"logger.audit"| LOGS
 
-    %% Governance
+    QUIZ -->|"EventBus: publisher"| REDIS
+    TENANT -->|"EventBus: publisher"| REDIS
+
+    REDIS -->|"EventBus: consumer"| LOGS
+    REDIS -->|"EventBus: consumer"| FILES
+
     TENANT -->|"CRUD tenants, espacios, roles"| AUTH
     FILES -->|"consulta espacios"| TENANT
 
-    %% External storage
     FILES --> CLOUD
     FILES --> S3
     FILES --> GDRIVE
     FILES --> ODRIVE
 
-    %% Database
     AUTH --> MDB
     TENANT --> MDB
     QUIZ --> MDB
@@ -318,7 +353,6 @@ graph TB
     FILES --> MDB
     ANALYTICS --> MDB
 
-    %% Email
     AUTH --> RESEND
 
     style Core fill:#0a1a2a,stroke:#00f0ff,stroke-width:2px
@@ -333,109 +367,90 @@ graph TB
 | Satélite → ABDAuth | HTTP (OAuth2 redirect) | JWT + cookie de sesión |
 | Satélite → ABDLogs | HTTP POST (fetch) | `x-logs-token` (secreto compartido) |
 | ABDtenantGovernance → ABDAuth | HTTP (API interna) | `x-internal-iam-key` |
-| ABDtenantGovernance → Satélites | HTTP POST (S2S GDPR Export) | `x-internal-secret` (secreto compartido) |
+| ABDtenantGovernance → Satélites | HTTP POST (S2S GDPR Export) | `x-internal-secret` |
 | ABDFiles → Webhooks externos | HTTP POST con HMAC | HMAC-SHA256 firmado |
+| Satélite → Upstash Redis | Redis Streams (xadd/xread) | `UPSTASH_REDIS_REST_TOKEN` |
 
-### 5.1 Arquitectura del EventBus (Mensajería Asíncrona)
+### 5.1 EventBus (Mensajería Asíncrona con Redis Streams)
 
-Para desacoplar las interacciones y flujos cruzados de la suite (ej. auditoría de exámenes, notificaciones de conectores de storage), se implementa un **EventBus** distribuido basado en **Redis Streams** con fallback automático a MongoDB (en caso de caída de Redis).
+Para desacoplar interacciones cross-satélite se implementa un **EventBus** distribuido basado en **Redis Streams** (Upstash Redis REST API), con schema registry en memoria (Zod) para validación de eventos.
 
 ```mermaid
 graph TB
-    subgraph Publishers["📢 Publicadores de Eventos"]
+    subgraph Publishers["📢 Publicadores"]
         QUIZ["ABDQuiz<br/>(quiz-publisher.ts)"]
         GOV["ABDtenantGovernance<br/>(connector-actions.ts)"]
     end
 
-    subgraph Broker["🧠 Redis (abd_stream)"]
+    subgraph Broker["🧠 Upstash Redis (abd_stream)"]
         Stream[Redis Stream: abd_stream]
     end
 
-    subgraph Bridge["🔗 EventBusBridge (Background Loop)"]
-        EBB["EventBusBridge.tsx (RSC/Client)"]
-        Cron["Llamada periódica /api/internal/eventbus/process"]
+    subgraph Bridges["🔗 EventBusBridge (Client Component)"]
+        LOGS_BRIDGE["ABDLogs<br/>EventBusBridge.tsx"]
+        FILES_BRIDGE["ABDFiles<br/>EventBusBridge.tsx"]
     end
 
-    subgraph Consumers["📥 Consumidores de Eventos"]
-        LOGS["ABDLogs<br/>(quiz-listener.ts)"]
-        FILES["ABDFiles<br/>(connector-listener.ts)"]
+    subgraph Consumers["📥 Consumidores"]
+        LOGS_C["ABDLogs<br/>quiz-listener.ts"]
+        FILES_C["ABDFiles<br/>connector-listener.ts"]
     end
 
-    Publishers -->|"XADD (eventPublisher)"| Stream
-    Stream -->|"processPending() / lastId"| Bridge
-    Bridge -->|"Despacho e invocación"| Consumers
+    Publishers -->|"xadd()"| Stream
+    Stream -->|"xread()"| Consumers
+
+    LOGS_BRIDGE -->|"fetch /api/cron/anomaly-scan"| LOGS_C
+    FILES_BRIDGE -->|"fetch /api/internal/eventbus/process"| FILES_C
 ```
 
-- **Mecánica Serverless**: Dado que las aplicaciones corren en entornos serverless (Vercel), los consumidores no pueden mantener listeners persistentes en segundo plano. Esto se resuelve inyectando el componente `<EventBusBridge>` en los layouts de los satélites. El cliente ejecuta un bucle de refresco (background loop) invisible que dispara la acción de procesamiento de eventos en segundo plano (`processPending()`), persistiendo el cursor de lectura `lastId` en Redis.
-- **Dashboard de Monitoreo**: Ubicado en `/admin/eventbus` en `ABDLogs` (puerto `5003`), permite visualizar métricas en tiempo real sobre la longitud de los streams de eventos, su estado operativo y la lista de mensajes recientes.
+- **Publisher**: `createPublisher()` del SDK construye un envelope validado contra el schema registry y lo publica vía `xadd()` en el stream Redis.
+- **Consumer**: `createConsumer()` del SDK crea un polling que lee con `xread()` y distribuye eventos a handlers registrados.
+- **Bridge**: Los componentes `<EventBusBridge>` (client component) en los layouts de ABDLogs y ABDFiles ejecutan triggers periódicos (cada 5 min + al recuperar foco) para procesar eventos pendientes. Esta arquitectura es necesaria porque Vercel no permite listeners persistentes.
+- **Schema Registry**: Registro en memoria de esquemas Zod versionados. Valida envelopes antes de publicar/consumir.
+- **Dashboard de monitoreo**: `/admin/eventbus` en ABDLogs, con métricas de longitud de streams y eventos recientes.
 
-### 5.2 Estrategia de Pruebas de Integración y E2E (Playwright)
+### 5.2 Estrategia de Pruebas de Integración (Playwright)
 
-El proyecto **`ABDE2E`** unifica las pruebas de integración y flujos transversales de la suite usando Playwright:
+El proyecto **`ABDE2E`** (`@ajabadia/e2e`) unifica las pruebas E2E cross-satélite con Playwright:
 
-1. **Unificación de SSO y MFA (`tests/federated-auth.spec.ts`)**: Valida que la sesión federada única (`abd_session`) sea asignada y compartida entre subdominios locales y que el estado de MFA verificado (`abd_session_verified` con ventana de inmunidad ampliada a 300s) se preserve durante la navegación del usuario.
-2. **Pipeline de EventBus (`tests/eventbus-pipeline.spec.ts`)**: Automatiza el flujo completo simulando un alumno que inicia y finaliza un examen en `ABDQuiz`, comprueba que el evento viaja a través del EventBus, y valida que la auditoría con el `attemptId` correcto aparece reflejada en `ABDLogs`.
+| Test | Archivo | Descripción |
+|------|---------|-------------|
+| SSO Federado + MFA | `tests/federated-auth.spec.ts` | Login, sesión compartida entre subdominios, ventana de inmunidad MFA (300s) |
+| Pipeline EventBus | `tests/eventbus-pipeline.spec.ts` | Alumno inicia/completa examen → evento via Redis → ABDLogs lo registra |
+| Seguridad Multi-Tenant | `tests/multitenant-security.spec.ts` | Creación de tenant, invitación de usuario, aislamiento de datos |
 
-Las pruebas se ejecutan localmente mapeando el archivo `hosts` del sistema a los dominios `abdia.es`, `auth.abdia.es` y `quiz.abdia.es` para permitir la compartición de cookies de subdominio.
+Las pruebas se ejecutan contra `localhost` mapeando dominios `*.abdia.es` en `hosts` para permitir cookies cross-subdominio.
 
-### 5.3 Monitoreo de Anomalías y Alertas Convergentes
+### 5.3 Monitoreo de Anomalías
 
-El ecosistema unifica la seguridad operacional a través de dos canales complementarios que convergen en el panel **Alert History** de `ABDLogs`:
+El ecosistema unifica seguridad operacional a través de dos canales que convergen en el panel **Alert History** de ABDLogs:
 
-```mermaid
-flowchart TD
-    subgraph Eventos["📥 Flujo de Logs Operativos"]
-        A["Acción del Usuario (ej. Login)"] --> B["Registro en central_audit_logs"]
-    end
-
-    subgraph TiempoReal["⚡ Evaluación Inmediata"]
-        B --> C["AlertService.evaluateLog()"]
-        C -->|Thresholds Excedidos| D["AlertEvent (Alerta Inmediata)"]
-    end
-
-    subgraph AnalisisEstadistico["📊 Análisis Estadístico y Heurístico"]
-        B -->|Cada 5 minutos / Foco| E["EventBusBridge.tsx (Trigger)"]
-        E --> F["GET /api/cron/anomaly-scan"]
-        F --> G["AnomalyEngine.runFullScan()"]
-        G -->|Severidad HIGH o CRITICAL| H["AlertEvent (Alerta por Anomalía)"]
-    end
-
-    subgraph Visualizacion["🖥️ Consola Unificada (ABDLogs)"]
-        D --> I["Alert History Dashboard"]
-        H --> I
-    end
-```
-
-1. **Evaluación de Logs en Tiempo Real**: Toda entrada enviada a `central_audit_logs` es interceptada y evaluada inmediatamente por `AlertService.evaluateLog()` contra políticas y umbrales (thresholds) definidos. Si se sobrepasan, se eleva al instante un evento `AlertEvent`.
-2. **Detección Predictiva de Anomalías (`AnomalyEngine`)**: Un motor heurístico estadístico analiza periódicamente el volumen e irregularidades de eventos por tenant. El pipeline de ejecución es orquestado de forma asíncrona:
-   - **Trigger Proactivo**: El puente `<EventBusBridge>` en los clientes Next.js ejecuta un trigger de escaneo al montarse, cada 5 minutos de forma recurrente, y de forma instantánea al recuperar el foco de la pestaña (`visibilitychange`).
-   - **Punto de Ingesta**: Llama al endpoint `/api/cron/anomaly-scan` (GET) que mapea todos los tenants activos y ejecuta `AnomalyEngine.runFullScan(tenantId, createAlerts=true)`.
-   - **Elevación de Severidad**: Las anomalías identificadas con nivel `HIGH` o `CRITICAL` se transforman automáticamente en alertas operativas, integrándose en el historial de alertas del panel.
+1. **Evaluación en tiempo real**: Toda entrada en `central_audit_logs` es evaluada por `AlertService.evaluateLog()` contra umbrales definidos.
+2. **Detección predictiva** (`AnomalyEngine`): Escaneo periódico (cada 5 min + `visibilitychange`) del volumen de eventos por tenant, activado por `<EventBusBridge>`. Anomalías `HIGH`/`CRITICAL` se elevan como alertas operativas.
 
 ---
 
 ## 6. Ciclo de Vida de una Petición
 
-Ejemplo completo: un usuario administrador accede al dashboard de `ABDtenantGovernance`.
+Ejemplo: un usuario administrador accede al dashboard de `ABDtenantGovernance`.
 
 ```mermaid
 sequenceDiagram
     participant User as 👤 Usuario
     participant DNS as 🌐 DNS / Vercel Edge
     participant MW as 🔒 Middleware (proxy.ts)
-    participant SDK as 🔌 @abd/satellite-sdk
+    participant SDK as 🔌 @ajabadia/satellite-sdk
     participant RSC as ⚛️ Server Component
     participant SA as 🎯 Server Action
     participant DB as 🗄️ MongoDB
 
-    User->>DNS: 1. GET gobernanza.abd.com/es/admin
+    User->>DNS: 1. GET gobernanza.abdia.es/es/admin
     DNS->>MW: 2. Enruta a ABDtenantGovernance
 
     MW->>MW: 3. withIndustrialAuth()
     MW->>SDK: 4. Verificar cookie abd_session
     alt No autenticado
         MW->>User: 5. Redirigir a ABDAuth (SSO)
-        Note over SDK: Flujo OAuth2 (ver diagrama 3)
         User->>MW: 6. Vuelve con JWT válido
     end
 
@@ -459,151 +474,72 @@ sequenceDiagram
 
 ---
 
-## 7. Pipeline de Calidad y Certificación
+## 7. Pipeline de Turborepo y Certificación
 
-Cada satélite ejecuta un pipeline de 6 fases (`abd-audit.ps1`) que debe pasar sin errores para obtener la certificación **Era 11 Compliant**.
+### Tasks definidas en `turbo.json`
 
-```mermaid
-flowchart LR
-    Start([🔄 Commit / PR]) --> F1
+| Task | Depende de | Outputs | Uso |
+|------|-----------|---------|-----|
+| `build` | `^build` (paquetes upstream) | `.next/`, `dist/` | Compila librerías y apps |
+| `dev` | — | — (no cache, persistente) | Desarrollo en paralelo |
+| `typecheck` | `^build` | — | `tsc --noEmit` en todos los paquetes |
+| `test` | `^build` | — | `vitest run` + `playwright test` |
+| `lint` | `^build` | — | ESLint + `tsc --noEmit` en librerías |
 
-    subgraph F1["Fase 1: Estructural"]
-        direction TB
-        A1["🔍 Límite de 150 líneas<br/>por archivo"]
-        A2["🔍 Sin imports rotos"]
-        A3["🔍 CSS unificado presente"]
-    end
+### Scripts de auditoría local
 
-    F1 --> F2
-
-    subgraph F2["Fase 2: i18n"]
-        direction TB
-        B1["🌐 Sin textos hardcodeados"]
-        B2["🌐 Claves traducidas en es/en"]
-    end
-
-    F2 --> F3
-
-    subgraph F3["Fase 3: Accesibilidad"]
-        direction TB
-        C1["♿ aria-label en botones"]
-        C2["♿ roles semánticos"]
-    end
-
-    F3 --> F4
-
-    subgraph F4["Fase 4: Pureza"]
-        direction TB
-        D1["🧹 Sin casteos 'any'"]
-        D2["🧹 Sin any genéricos"]
-    end
-
-    F4 --> F5
-
-    subgraph F5["Fase 5: TypeScript"]
-        direction TB
-        E1["📝 tsc --noEmit"]
-        E2["📝 0 errores / 0 warnings"]
-    end
-
-    F5 --> F6
-
-    subgraph F6["Fase 6: Build"]
-        direction TB
-        F["📦 next build exitoso"]
-    end
-
-    F6 --> Cert{"¿Todo OK?"}
-
-    Cert -->|"Sí ✅"| Certified["🏆 SYS CERTIFIED<br/>ERA 11 COMPLIANT"]
-    Cert -->|"No ❌"| Fix["🔧 Corregir y reintentar"]
-    Fix --> F1
-```
+Cada satélite dispone de un script `scripts/abd-audit.ps1` que ejecuta una batería de 6 fases: estructural, i18n, accesibilidad, pureza (sin `any`), TypeScript (`tsc --noEmit`), y build. Se invoca mediante `pnpm full-audit` (mapeado en `package.json` de cada app).
 
 ---
 
 ## 8. Despliegue en Vercel
 
-Cada satélite se despliega como un proyecto independiente en Vercel, con sus propias variables de entorno.
+Cada satélite se despliega como proyecto independiente en Vercel. El CI/CD está definido en `.github/workflows/deploy.yml`.
+
+### Flujo de despliegue
 
 ```mermaid
-graph TB
-    subgraph GitHub["🐙 GitHub"]
-        MONO["ABDSuite (monorepo)"]
-        STYLES_REPO["ABDStyles"]
-        SDK_REPO["ABDSatelliteSDK"]
-        WIDGETS_REPO["ABDEcosystemWidgets"]
+graph LR
+    subgraph PR["Pull Request"]
+        PREVIEW["Preview Deploy<br/>por satélite"]
+        COMMENT["URL preview en PR comment"]
     end
 
-    subgraph Packages["📦 GitHub Packages (NPM)"]
-        STYLES_PKG["@ajabadia/styles"]
-        SDK_PKG["@ajabadia/satellite-sdk"]
-        WIDGETS_PKG["@ajabadia/ecosystem-widgets"]
-        I18N_PKG["@abd/i18n"]
+    subgraph Main["Push a main"]
+        FOUNDATIONS["Build fundaciones<br/>ABDStyles, SDK, Widgets"]
+        DEPLOY["Deploy producción<br/>7 satélites en paralelo"]
     end
 
-    subgraph Vercel["▲ Vercel"]
-        AUTH_DEP["abd-auth.vercel.app"]
-        TENANT_DEP["abd-tenant-governance.vercel.app"]
-        QUIZ_DEP["abd-quiz.vercel.app"]
-        LOGS_DEP["abd-logs.vercel.app"]
-        ANALYTICS_DEP["abd-analytics.vercel.app"]
-        FILES_DEP["files.abdia.es"]
-        LANDING_DEP["abdia.es"]
-    end
-
-    subgraph Domains["🌐 Dominios"]
-        AUTH_DOM["auth.abdia.es<br/>(pendiente)"]
-        TENANT_DOM["gobernanza.abdia.es<br/>(pendiente)"]
-        QUIZ_DOM["quiz.abdia.es<br/>(pendiente)"]
-    end
-
-    MONO -.->|"pnpm publish"| STYLES_PKG
-    MONO -.->|"pnpm publish"| SDK_PKG
-    MONO -.->|"pnpm publish"| WIDGETS_PKG
-    MONO -.->|"pnpm publish"| I18N_PKG
-
-    STYLES_PKG -.->|"dependencia"| SDK_PKG
-    STYLES_PKG -.->|"dependencia"| WIDGETS_PKG
-    SDK_PKG -.->|"dependencia"| WIDGETS_PKG
-
-    MONO -->|"vercel deploy"| AUTH_DEP
-    MONO -->|"vercel deploy"| TENANT_DEP
-    MONO -->|"vercel deploy"| QUIZ_DEP
-    MONO -->|"vercel deploy"| LOGS_DEP
-    MONO -->|"vercel deploy"| ANALYTICS_DEP
-    MONO -->|"vercel deploy"| FILES_DEP
-    MONO -->|"vercel deploy"| LANDING_DEP
-
-    AUTH_DEP --> AUTH_DOM
-    TENANT_DEP --> TENANT_DOM
-    QUIZ_DEP --> QUIZ_DOM
-
-    style Vercel fill:#0a1a2a,stroke:#00f0ff,color:#fff
-    style GitHub fill:#1a1a1a,stroke:#fff,color:#fff
-    style Packages fill:#003366,stroke:#00ff88,color:#fff
+    PR --> FOUNDATIONS
+    Main --> FOUNDATIONS
+    FOUNDATIONS -->|"artefacto compartido"| PREVIEW
+    FOUNDATIONS -->|"artefacto compartido"| DEPLOY
 ```
+
+- **Foundation build**: Las 3 librerías base (ABDStyles, ABDSatelliteSDK, ABDEcosystemWidgets) se compilan primero y se pasan como artefacto entre jobs.
+- **Deploy**: Los 7 satélites se despliegan en paralelo vía `amondnet/vercel-action`.
+- **Preview**: En PR, cada satélite obtiene una URL preview efímera, publicada como comentario.
 
 ### Puertos de Desarrollo Local
 
 | Satélite | Puerto | Script de inicio |
-|----------|--------|-----------------|
-| ABDLanding | `5000` | `start.bat` |
-| ABDAuth | `5001` | `start.bat` |
-| ABDtenantGovernance | `5002` | `start.bat` |
-| ABDLogs | `5003` | `start.bat` |
-| ABDAnalytics | `5004` | `start.bat` |
-| ABDFiles | `5005` | `start.bat` |
-| ABDQuiz | `5020` | `start.bat` |
-| ABD___BASE | `3900` | `start.bat` |
+|----------|-------:|------------------|
+| ABDLanding | 5000 | `start.bat` |
+| ABDAuth | 5001 | `start.bat` |
+| ABDtenantGovernance | 5002 | `start.bat` |
+| ABDLogs | 5003 | `start.bat` |
+| ABDAnalytics | 5004 | `start.bat` |
+| ABDFiles | 5005 | `start.bat` |
+| ABDQuiz | 5020 | `start.bat` |
+| ABD___BASE | 3900 | `start.bat` |
 
-> Todos los satélites se inician simultáneamente mediante `start-all.bat` en la raíz.
+> Todos los satélites se inician simultáneamente mediante `start-all.bat` en la raíz. Los puertos están definidos en `package.json` de cada satélite (script `dev`).
 
 ---
 
 ## 🔗 Referencias
 
 - [Roadmap Estratégico de la Suite](./ABD-Suite-DOCS/01_active_specs/ROADMAP.md)
-- [Análisis de Arquitectura](./ABD-Suite-DOCS/02_architecture/ANALISIS_ARQUITECTURA.md)
 - [Guía de Estilo](./ABD-Suite-DOCS/01_active_specs/STYLE_GUIDE.md)
+- [Decisiones Arquitectónicas (ADR)](./DECISION_LOG.md)
 - [Diagrama de Interrelaciones](./ABD-Suite-DOCS/grafos/Mapa_Global_Suite.md)
