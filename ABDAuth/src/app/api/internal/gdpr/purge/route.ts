@@ -34,14 +34,14 @@ export async function POST(request: NextRequest) {
 
     // 1. Anonymize user in the `users` collection (Better Auth)
     const { ObjectId } = await import('mongodb');
-    let userFilter: any = body.userId;
+    let userFilter: unknown = body.userId;
     try {
       userFilter = new ObjectId(body.userId);
     } catch {
       // Keep as string if it isn't a valid ObjectId format
     }
     const userResult = await db.collection('users').updateOne(
-      { _id: userFilter },
+      { _id: userFilter as any },
       {
         $set: {
           email: `gdpr-erased-${body.userId}@redacted.local`,

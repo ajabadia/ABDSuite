@@ -24,13 +24,13 @@ export class GDPRService {
 
     // 1. User profile
     const { ObjectId } = await import('mongodb');
-    let userFilter: any = userId;
+    let userFilter: unknown = userId;
     try {
       userFilter = new ObjectId(userId);
     } catch {
       // Keep as string if it isn't a valid ObjectId format
     }
-    const user = await db.collection('users').findOne({ _id: userFilter });
+    const user = await db.collection('users').findOne({ _id: userFilter as any });
     if (user) {
       const { password, ...safeUser } = user as unknown as { password?: string; [key: string]: unknown };
       data.user = safeUser;
