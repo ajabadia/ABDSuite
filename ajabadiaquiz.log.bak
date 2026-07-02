@@ -1,0 +1,26 @@
+﻿ABD SYSTEM AUDIT REPORT (@ajabadia/quiz) - 07/02/2026 12:20:19
+
+[PHASE:FAILED] [1/6 Structural Audit]: Failed with exit code 1 (4 errors detected, 84 warnings).
+--- RAW ERROR DETAIL START ---
+--- RAW ERROR DETAIL END ---
+
+
+[PHASE:FAILED] [2/6 i18n Coverage   ]: Failed with exit code 1 (12 errors detected, 0 warnings).
+--- RAW ERROR DETAIL START ---
+--- RAW ERROR DETAIL END ---
+
+
+[PHASE:FAILED] [3/6 a11y Compliance ]: Failed with exit code 1 (6 errors detected, 0 warnings).
+--- RAW ERROR DETAIL START ---
+--- RAW ERROR DETAIL END ---
+
+
+[PHASE:SUCCESS] [4/6 Purity & Types  ]: Passed successfully with 0 errors and 0 warnings.
+
+[PHASE:FAILED] [5/6 Type Safety (TSC)]: Failed with exit code 2 (Technical errors detected, 0 warnings).
+--- RAW ERROR DETAIL START ---
+src/app/api/internal/quiz-roles/route.ts(172,10): error TS2571: Object is of type 'unknown'.
+--- RAW ERROR DETAIL END ---
+
+
+[PHASE:SUCCESS] [6/6 Code Quality    ]: Passed successfully with 0 errors and 0 warnings.

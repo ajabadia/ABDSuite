@@ -11,9 +11,11 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useLocale } from 'next-intl';
 import { HardDrive } from 'lucide-react';
 
 export function StorageProviderBadge() {
+  const locale = useLocale();
   const [provider, setProvider] = useState('CARGANDO...');
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export function StorageProviderBadge() {
     <div className="bg-card border p-4 rounded flex items-center justify-between">
       <div className="flex items-center gap-2">
         <HardDrive className="w-4 h-4 text-muted-foreground" />
-        <span className="text-[9px] font-mono font-black text-muted-foreground uppercase">ALMACENAMIENTO_ACTIVO</span>
+        <span className="text-[9px] font-mono font-black text-muted-foreground uppercase">{locale === 'es' ? 'ALMACENAMIENTO_ACTIVO' : 'ACTIVE_STORAGE'}</span>
       </div>
       <div className="text-lg font-mono font-black text-primary uppercase">{provider}</div>
     </div>

@@ -8,8 +8,10 @@
  * @lastUpdated 2026-06-28T08:33:49.419Z
  */
 
+import type { GenerateOptions } from 'kokoro-js';
+
 export interface TtsBrowserOptions {
-  voice?: string;
+  voice?: GenerateOptions['voice'];
   speed?: number;
 }
 
@@ -68,7 +70,7 @@ export async function synthesizeAudioLocally(
   });
 
   const rawAudio = await tts.generate(text, {
-    voice: (options.voice || 'af_heart') as any,
+    voice: options.voice || 'af_heart',
     speed: options.speed || 1,
   });
 

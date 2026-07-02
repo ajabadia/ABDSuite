@@ -44,23 +44,23 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
         {/* Generic Dashboard Panel */}
         <div className="z-10 w-full max-w-xl p-8 bg-card border border-border rounded-xl flex flex-col gap-6 font-mono text-xs mt-4">
           <div className="flex justify-between border-b border-border pb-4">
-            <span className="uppercase text-muted-foreground">App:</span>
-            <span className="font-bold text-foreground">ABD Satellite Base Panel</span>
+            <span className="uppercase text-muted-foreground">{locale === 'es' ? 'App:' : 'App:'}</span>
+            <span className="font-bold text-foreground">{locale === 'es' ? 'ABD Satellite Base Panel' : 'ABD Satellite Base Panel'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="uppercase text-muted-foreground">Status:</span>
+            <span className="uppercase text-muted-foreground">{locale === 'es' ? 'Estado:' : 'Status:'}</span>
             <span className="text-[#2dd4bf] font-black">[CONNECTED]</span>
           </div>
           <div className="flex justify-between">
-            <span className="uppercase text-muted-foreground">Tenant Active:</span>
+            <span className="uppercase text-muted-foreground">{locale === 'es' ? 'Inquilino Activo:' : 'Tenant Active:'}</span>
             <span className="font-bold text-foreground">{session?.user?.tenantId || 'N/A'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="uppercase text-muted-foreground">User:</span>
+            <span className="uppercase text-muted-foreground">{locale === 'es' ? 'Usuario:' : 'User:'}</span>
             <span className="font-bold text-foreground">{session?.user?.email || 'N/A'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="uppercase text-muted-foreground">Role:</span>
+            <span className="uppercase text-muted-foreground">{locale === 'es' ? 'Rol:' : 'Role:'}</span>
             <span className="font-bold text-foreground">{session?.user?.role || 'N/A'}</span>
           </div>
         </div>

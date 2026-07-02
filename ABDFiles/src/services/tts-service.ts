@@ -10,9 +10,10 @@
 
 import { KokoroTTS } from 'kokoro-js';
 import type { RawAudio } from '@huggingface/transformers';
+import type { GenerateOptions } from 'kokoro-js';
 
 export interface TtsOptions {
-  voice?: string;
+  voice?: GenerateOptions['voice'];
   speed?: number;
   model?: string;
 }
@@ -62,7 +63,7 @@ export async function synthesizeSpeech(
   const tts = await getTts(modelId);
 
   const rawAudio: RawAudio = await tts.generate(text, {
-    voice: (options.voice || 'af_heart') as any,
+    voice: options.voice || 'af_heart',
     speed: options.speed || 1,
   });
 

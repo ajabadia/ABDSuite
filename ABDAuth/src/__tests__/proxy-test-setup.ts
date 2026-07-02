@@ -10,6 +10,20 @@
 
 import { vi } from 'vitest';
 
+interface SessionUser {
+  id?: string;
+  email?: string;
+  name?: string;
+  surname?: string;
+  role?: string;
+  tenantId?: string;
+  permissions?: string[];
+  allowedApps?: string[];
+  mfaEnabled?: boolean;
+  mfaEnforced?: boolean;
+  mfa_verified?: boolean;
+}
+
 vi.mock('@ajabadia/satellite-sdk/core', async (importOriginal) => {
   const actual = await importOriginal() as Record<string, unknown>;
   return {
@@ -31,7 +45,7 @@ vi.mock('@ajabadia/satellite-sdk/core', async (importOriginal) => {
 export const mockIntlMiddlewareResult = { status: 200, intl: true };
 
 export function makeReq(mockGetSession: ReturnType<typeof vi.fn>) {
-  return (pathname: string, sessionData: Record<string, unknown> | null = null, queryParams = '') => {
+  return (pathname: string, sessionData: { user?: SessionUser } | null = null, queryParams = '') => {
     const baseUrl = 'http://localhost:5001';
     const urlStr = `${baseUrl}${pathname}${queryParams}`;
     const searchParams = new URLSearchParams(queryParams.replace(/^\?/, ''));

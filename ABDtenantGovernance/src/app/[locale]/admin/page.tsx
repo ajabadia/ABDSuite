@@ -86,7 +86,7 @@ export default async function AdminPortalPage({
         <div className="bg-card border p-4 rounded">
           <div className="flex items-center gap-2 mb-2">
             <HardDrive className="w-4 h-4 text-muted-foreground" />
-            <span className="text-[9px] font-mono font-black text-muted-foreground uppercase">ALMACENAMIENTO_ACTIVO</span>
+            <span className="text-[9px] font-mono font-black text-muted-foreground uppercase">{locale === 'es' ? 'ALMACENAMIENTO_ACTIVO' : 'ACTIVE_STORAGE'}</span>
           </div>
           <div className="text-xl font-mono font-black text-primary uppercase">{activeProvider}</div>
         </div>
