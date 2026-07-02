@@ -138,13 +138,14 @@ export async function DELETE(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  let body: z.infer<typeof BulkAssignSchema> | null = null;
+  let body: z.infer<typeof BulkAssignSchema>;
+  let raw: unknown = null;
   try {
     if (!authGuard(request)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const raw = await request.json();
+    raw = await request.json();
     body = BulkAssignSchema.parse(raw);
 
     await connectDB();
@@ -163,12 +164,16 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ data: { assigned: result.length, skipped: body.userIds.length - result.length } }, { status: 201 });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+      return NextResponse.json({ error: error.issues }, { status: 400 });
     }
-    const err = error as { writeErrors?: unknown[]; insertedCount?: number; rawPayload?: any };
+    const err = error as { writeErrors?: unknown[]; insertedCount?: number; rawPayload?: unknown };
+    // Safe extraction of total since ZodError would have triggered above if body was invalid
+    const total = (err.writeErrors !== undefined && typeof raw === 'object' && raw !== null && 'userIds' in raw && Array.isArray((raw as Record<string, unknown>).userIds)) 
+      ? ((raw as Record<string, unknown>).userIds.length as number)
+      : 0;
+
     if (err.writeErrors !== undefined || err.insertedCount !== undefined) {
       const assigned = err.insertedCount ?? 0;
-      const total = body?.userIds?.length ?? 0;
       return NextResponse.json({
         data: { assigned, skipped: total - assigned },
         error: `partial failure: ${total - assigned} duplicates`,
