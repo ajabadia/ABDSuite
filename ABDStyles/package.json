@@ -1,6 +1,6 @@
 {
   "name": "@ajabadia/styles",
-  "version": "1.0.103",
+  "version": "1.0.104",
   "type": "module",
   "description": "Industrial multi-tenant dynamic styling engine and common visual assets for ABD suite.",
   "main": "dist/index.js",
