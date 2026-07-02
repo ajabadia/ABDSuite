@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureIndustrialAccess } from '@ajabadia/satellite-sdk/auth-middleware';
 import { logger } from '@ajabadia/satellite-sdk/logger';
+import type { PipelineStage } from 'mongoose';
 import Document from '@/models/Document';
 import { assertAccess } from '@/lib/abac';
 
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Query parameter "q" is required' }, { status: 400 });
     }
 
-    const pipeline: any[] = [
+    const pipeline = [
       {
         $search: {
           index: 'documents_search',
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
         }
       }
     ];
-    const results = await Document.aggregate(pipeline);
+    const results = await Document.aggregate(pipeline as PipelineStage[]);
 
     await logger.audit({
       tenantId: user.tenantId,
