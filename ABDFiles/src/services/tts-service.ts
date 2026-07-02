@@ -62,7 +62,7 @@ export async function synthesizeSpeech(
   const tts = await getTts(modelId);
 
   const rawAudio: RawAudio = await tts.generate(text, {
-    voice: (options.voice || 'af_heart') as string,
+    voice: (options.voice || 'af_heart') as any,
     speed: options.speed || 1,
   });
 

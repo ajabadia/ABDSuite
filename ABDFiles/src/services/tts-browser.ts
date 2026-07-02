@@ -68,7 +68,7 @@ export async function synthesizeAudioLocally(
   });
 
   const rawAudio = await tts.generate(text, {
-    voice: (options.voice || 'af_heart') as string,
+    voice: (options.voice || 'af_heart') as any,
     speed: options.speed || 1,
   });
 
