@@ -41,21 +41,21 @@ export default async function EditExamPage({
 
   // ── Multi-tenant awareness ─────────────────────────────────────────────
   const explicitCtx = await resolveTargetTenantContext(resolvedTenantId);
-  let auditReport: ExamAuditReport | null = null;
-  let courses: { _id: string; name: string }[] = [];
-  const config = await withTenantContext(async () => {
+  const { config, auditReport, courses } = await withTenantContext(async () => {
     await connectDB();
     const cfg = await ExamConfig.findById(id).lean();
+    let reportData: ExamAuditReport | null = null;
+    let courseList: { _id: string; name: string }[] = [];
     if (cfg) {
       const report = await ExamAuditorService.auditExamCoverage(resolvedTenantId, id);
-      if (report) auditReport = JSON.parse(JSON.stringify(report)) as ExamAuditReport;
+      if (report) reportData = JSON.parse(JSON.stringify(report)) as ExamAuditReport;
       const courseDocs = await Course.find({ tenantId: resolvedTenantId, active: true })
         .select('name')
         .sort({ name: 1 })
         .lean();
-      courses = courseDocs.map((c: Record<string, unknown>) => ({ _id: (c._id as { toString(): string }).toString(), name: c.name as string }));
+      courseList = courseDocs.map((c) => ({ _id: (c._id as { toString(): string }).toString(), name: c.name as string }));
     }
-    return cfg;
+    return { config: cfg, auditReport: reportData, courses: courseList };
   }, explicitCtx);
 
   if (!config || (config.tenantId !== user.tenantId && !isSuperAdmin)) {

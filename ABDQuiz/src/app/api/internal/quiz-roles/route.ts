@@ -138,7 +138,7 @@ export async function DELETE(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  let body: Partial<z.infer<typeof BulkAssignSchema>> = {};
+  let body: z.infer<typeof BulkAssignSchema> | null = null;
   try {
     if (!authGuard(request)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -162,17 +162,17 @@ export async function PATCH(request: NextRequest) {
     const result = await QuizUserRole.insertMany(docs, { ordered: false });
     return NextResponse.json({ data: { assigned: result.length, skipped: body.userIds.length - result.length } }, { status: 201 });
   } catch (error: unknown) {
-    const err = error as { writeErrors?: unknown[]; insertedCount?: number };
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors }, { status: 400 });
+    }
+    const err = error as { writeErrors?: unknown[]; insertedCount?: number; rawPayload?: any };
     if (err.writeErrors !== undefined || err.insertedCount !== undefined) {
       const assigned = err.insertedCount ?? 0;
-      const total = (body?.userIds?.length ?? 0);
+      const total = body?.userIds?.length ?? 0;
       return NextResponse.json({
         data: { assigned, skipped: total - assigned },
         error: `partial failure: ${total - assigned} duplicates`,
       }, { status: 207 });
-    }
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.issues }, { status: 400 });
     }
     console.error('[QUIZ_ROLES_API] PATCH error:', error);
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal Server Error' }, { status: 500 });

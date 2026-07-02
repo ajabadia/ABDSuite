@@ -33,8 +33,15 @@ export async function POST(request: NextRequest) {
     const db = client.db(process.env.MONGODB_AUTH_DB || 'ABDElevators-Auth');
 
     // 1. Anonymize user in the `users` collection (Better Auth)
+    const { ObjectId } = await import('mongodb');
+    let userFilter: any = body.userId;
+    try {
+      userFilter = new ObjectId(body.userId);
+    } catch {
+      // Keep as string if it isn't a valid ObjectId format
+    }
     const userResult = await db.collection('users').updateOne(
-      { _id: body.userId },
+      { _id: userFilter },
       {
         $set: {
           email: `gdpr-erased-${body.userId}@redacted.local`,

@@ -47,13 +47,8 @@ function getStatusColor(status: string) {
 export function CourseProgressSection({ courses }: CourseProgressSectionProps) {
   const d = useTranslations('dashboard');
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
-  const [generatingCert, setGeneratingCert] = useState<Set<string>>(new Set());
   const [certStatus, setCertStatus] = useState<Record<string, 'idle' | 'loading' | 'ready' | 'error'>>({});
   const [certData, setCertData] = useState<Record<string, { certId: string }>>({});
-
-  if (courses.length === 0) {
-    return null;
-  }
 
   const toggleCourse = (courseId: string) => {
     setExpandedCourses(prev => {
@@ -95,6 +90,10 @@ export function CourseProgressSection({ courses }: CourseProgressSectionProps) {
       URL.revokeObjectURL(url);
     }
   }, [certData]);
+
+  if (courses.length === 0) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col gap-6">
