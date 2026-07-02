@@ -678,6 +678,27 @@
     "copyToken": "Copiar token",
     "copied": "Copiado",
     "generateToken": "Generar Token",
-    "applyIdentity": "Aplicar Identidad (Saltar a Rol)"
+    "applyIdentity": "Aplicar Identidad (Saltar a Rol)",
+    "configureTitle": "Configurar Identidad Simulada",
+    "configureDesc": "Define los claims que se inyectarán en la cookie de sesión cifrada.",
+    "quickPresets": "Preajustes Rápidos (Presets)",
+    "userId": "ID de Usuario (sub)",
+    "email": "Email",
+    "name": "Nombre",
+    "surname": "Apellido",
+    "role": "Rol",
+    "tenant": "Tenant",
+    "dbPrefix": "Prefijo BD",
+    "isolationStrategy": "Estrategia de Aislamiento",
+    "abacPermissions": "Permisos ABAC (separados por comas)",
+    "licensedApps": "Aplicaciones Contratadas (Licencias Activas)",
+    "licensedAppsDesc": "Desmarca aplicaciones para simular la desconexión de licencias (Sandbox QA).",
+    "tokenInjected": "¡Identidad inyectada con éxito! Redirigiendo...",
+    "tokenGenerated": "Token generado",
+    "jwtInspector": "JWT INSPECTOR",
+    "jwtEncryptedNote": "El token generado se cifra localmente usando la clave compartida de desarrollo.",
+    "jwtPlaceholder": "El JWT aparecerá aquí...",
+    "sandboxNotice": "Aviso del Sandbox",
+    "sandboxNoticeDesc": "El salto de rol reescribe tu cookie abd_session local. Esto cambiará tu identidad en todos los satélites locales bajo .abdia.es o localhost."
   }
 }

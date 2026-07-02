@@ -678,6 +678,27 @@
     "copyToken": "Copy token",
     "copied": "Copied",
     "generateToken": "Generate Token",
-    "applyIdentity": "Apply Identity (Instant Shift)"
+    "applyIdentity": "Apply Identity (Instant Shift)",
+    "configureTitle": "Configure Simulated Identity",
+    "configureDesc": "Define the claims that will be injected into the encrypted session cookie.",
+    "quickPresets": "Quick Presets",
+    "userId": "User ID (sub)",
+    "email": "Email",
+    "name": "Name",
+    "surname": "Surname",
+    "role": "Role",
+    "tenant": "Tenant",
+    "dbPrefix": "DB Prefix",
+    "isolationStrategy": "Isolation Strategy",
+    "abacPermissions": "ABAC Permissions (comma separated)",
+    "licensedApps": "Contracted Applications (Active Licenses)",
+    "licensedAppsDesc": "Uncheck applications to simulate license disconnection (QA Sandbox).",
+    "tokenInjected": "Identity injected successfully! Redirecting...",
+    "tokenGenerated": "Token generated",
+    "jwtInspector": "JWT INSPECTOR",
+    "jwtEncryptedNote": "The generated token is encrypted locally using the shared development key.",
+    "jwtPlaceholder": "JWT will appear here...",
+    "sandboxNotice": "Sandbox Notice",
+    "sandboxNoticeDesc": "Instant shifting rewrites your local abd_session cookie. This will switch your identity across all local satellites running under .abdia.es or localhost."
   }
 }
