@@ -11,6 +11,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Copy, Check } from 'lucide-react';
 
 interface FormData {
@@ -44,6 +45,7 @@ const DEFAULT_FORM: FormData = {
 };
 
 export function SandboxForm() {
+  const t = useTranslations('admin.sandbox');
   const [form, setForm] = useState<FormData>(DEFAULT_FORM);
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
@@ -138,22 +140,22 @@ export function SandboxForm() {
         <Field label="sessionId" value={form.sessionId} onChange={updateField('sessionId')} inputClass={inputClass} />
         <button
           type="submit"
-          aria-label="Generate JWT"
+          aria-label={t('generateJwt')}
           disabled={loading}
           className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider hover:opacity-90 transition-all disabled:opacity-50 rounded-none"
         >
-          {loading ? 'Generating...' : 'Generate JWT'}
+          {loading ? t('generating') : t('generateJwt')}
         </button>
         {error && <p className="text-red-500 text-xs">{error}</p>}
       </form>
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <label className="text-xs uppercase font-bold tracking-wider text-muted-foreground">Generated Token</label>
+          <label className="text-xs uppercase font-bold tracking-wider text-muted-foreground">{t('generatedToken')}</label>
           {token && (
-            <button onClick={handleCopy} aria-label={copied ? 'Copied' : 'Copy token'} className="flex items-center gap-1 text-xs text-primary hover:underline">
+            <button onClick={handleCopy} aria-label={copied ? t('copied') : t('copyToken')} className="flex items-center gap-1 text-xs text-primary hover:underline">
               {copied ? <Check size={12} /> : <Copy size={12} />}
-              {copied ? 'Copied!' : 'Copy'}
+              {copied ? t('copied') : t('copyToken')}
             </button>
           )}
         </div>

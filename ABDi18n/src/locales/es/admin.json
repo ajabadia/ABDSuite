@@ -653,5 +653,31 @@
     "assignToCount": "Asignar a {count} usuarios",
     "confirmRevoke": "¿Confirmas la revocación del rol para el usuario {userId}?",
     "selectUsers": "Seleccionados: {count} de {total}"
+  },
+  "gdpr": {
+    "userId": "ID de Usuario *",
+    "tenantId": "ID de Tenant *",
+    "email": "Email (opcional, para mejor coincidencia)",
+    "warning": "Esta acción es irreversible. Los datos personales serán anonimizados en todos los satélites.",
+    "results": "Resultados",
+    "purgeBtn": "Orquestar Purga GDPR",
+    "purging": "Purgando...",
+    "exportUserData": "Exportar datos de usuario",
+    "exporting": "Exportando...",
+    "exportZip": "Exportar ZIP",
+    "rightToForget": "Derecho al olvido",
+    "purgeGdpr": "Purgar datos (GDPR)",
+    "tenantIdCol": "ID de Tenant",
+    "userIdCol": "ID de Usuario",
+    "emailOptional": "Email (opcional)"
+  },
+  "sandbox": {
+    "generateJwt": "Generar JWT",
+    "generating": "Generando...",
+    "generatedToken": "Token Generado",
+    "copyToken": "Copiar token",
+    "copied": "Copiado",
+    "generateToken": "Generar Token",
+    "applyIdentity": "Aplicar Identidad (Saltar a Rol)"
   }
 }

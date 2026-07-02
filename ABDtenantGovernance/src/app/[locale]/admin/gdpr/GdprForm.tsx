@@ -11,6 +11,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { orchestrateGdprPurge } from '@/actions/gdpr-purge';
 
@@ -22,6 +23,7 @@ interface SatelliteResult {
 }
 
 export function GdprForm() {
+  const t = useTranslations('admin.gdpr');
   const [userId, setUserId] = useState('');
   const [tenantId, setTenantId] = useState('');
   const [email, setEmail] = useState('');
@@ -49,34 +51,34 @@ export function GdprForm() {
     <div className="flex flex-col gap-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-lg">
         <div>
-          <label className="block text-xs uppercase font-bold tracking-wider text-muted-foreground mb-1">User ID *</label>
+          <label className="block text-xs uppercase font-bold tracking-wider text-muted-foreground mb-1">{t('userId')}</label>
           <input type="text" value={userId} onChange={e => setUserId(e.target.value)} required className={inputClass} placeholder="user_abc123" />
         </div>
         <div>
-          <label className="block text-xs uppercase font-bold tracking-wider text-muted-foreground mb-1">Tenant ID *</label>
+          <label className="block text-xs uppercase font-bold tracking-wider text-muted-foreground mb-1">{t('tenantId')}</label>
           <input type="text" value={tenantId} onChange={e => setTenantId(e.target.value)} required className={inputClass} placeholder="tenant-1" />
         </div>
         <div>
-          <label className="block text-xs uppercase font-bold tracking-wider text-muted-foreground mb-1">Email (optional, for better matching)</label>
+          <label className="block text-xs uppercase font-bold tracking-wider text-muted-foreground mb-1">{t('email')}</label>
           <input type="email" value={email} onChange={e => setEmail(e.target.value)} className={inputClass} placeholder="user@example.com" />
         </div>
         <div className="flex items-center gap-2 p-3 border border-amber-500/30 bg-amber-500/5 text-amber-400 text-xs">
           <AlertTriangle size={14} className="shrink-0" />
-          <span>This action is irreversible. Personal data will be anonymized across all satellites.</span>
+          <span>{t('warning')}</span>
         </div>
         <button
           type="submit"
-          aria-label="Orchestrate GDPR Purge"
+          aria-label={t('purgeBtn')}
           disabled={loading}
           className="w-full px-4 py-3 bg-red-600 text-white font-bold text-sm uppercase tracking-wider hover:opacity-90 transition-all disabled:opacity-50 rounded-none"
         >
-          {loading ? 'Purging...' : 'Orchestrate GDPR Purge'}
+          {loading ? t('purging') : t('purgeBtn')}
         </button>
       </form>
 
       {results && (
         <div className="flex flex-col gap-2">
-          <h3 className="text-sm uppercase font-bold tracking-wider text-muted-foreground">Results</h3>
+          <h3 className="text-sm uppercase font-bold tracking-wider text-muted-foreground">{t('results')}</h3>
           <div className="grid gap-2">
             {results.map((r) => (
               <div key={r.satellite} className={`flex items-start gap-3 p-3 border text-sm ${r.success ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'}`}>

@@ -653,5 +653,31 @@
     "assignToCount": "ASSIGN TO {count} USER(S)",
     "confirmRevoke": "Are you sure you want to revoke the quiz role for user {userId}...?",
     "selectUsers": "SELECT USERS ({count} of {total})"
+  },
+  "gdpr": {
+    "userId": "User ID *",
+    "tenantId": "Tenant ID *",
+    "email": "Email (optional, for better matching)",
+    "warning": "This action is irreversible. Personal data will be anonymized across all satellites.",
+    "results": "Results",
+    "purgeBtn": "Orchestrate GDPR Purge",
+    "purging": "Purging...",
+    "exportUserData": "Export user data",
+    "exporting": "Exporting...",
+    "exportZip": "Export ZIP",
+    "rightToForget": "Right to forget",
+    "purgeGdpr": "Purge data (GDPR)",
+    "tenantIdCol": "Tenant ID",
+    "userIdCol": "User ID",
+    "emailOptional": "Email (optional)"
+  },
+  "sandbox": {
+    "generateJwt": "Generate JWT",
+    "generating": "Generating...",
+    "generatedToken": "Generated Token",
+    "copyToken": "Copy token",
+    "copied": "Copied",
+    "generateToken": "Generate Token",
+    "applyIdentity": "Apply Identity (Instant Shift)"
   }
 }

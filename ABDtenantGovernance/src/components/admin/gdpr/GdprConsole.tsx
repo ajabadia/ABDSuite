@@ -11,6 +11,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { 
   Download, Trash2, ShieldAlert, Check, 
   RefreshCw, AlertTriangle, FileArchive, ArrowRight 
@@ -36,6 +37,7 @@ interface GdprConsoleProps {
 }
 
 export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
+  const t = useTranslations('admin.gdpr');
   const router = useRouter();
   const [loadingTenantId, setLoadingTenantId] = useState<string | null>(null);
   
@@ -143,7 +145,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
         </h4>
         <form onSubmit={handleUserExport} className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Tenant ID</label>
+            <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{t('tenantIdCol')}</label>
             <input
               type="text"
               value={exportForm.tenantId}
@@ -154,7 +156,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">User ID</label>
+            <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{t('userIdCol')}</label>
             <input
               type="text"
               value={exportForm.userId}
@@ -165,7 +167,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Email (opcional)</label>
+            <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{t('emailOptional')}</label>
             <input
               type="email"
               value={exportForm.email}
@@ -176,7 +178,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
           </div>
           <button
             type="submit"
-            aria-label={locale === 'es' ? 'Exportar datos de usuario' : 'Export user data'}
+            aria-label={t('exportUserData')}
             disabled={exporting}
             className="inline-flex items-center gap-1.5 px-4 py-2 border border-border hover:border-foreground hover:bg-muted/10 text-[10px] font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer"
           >
@@ -185,10 +187,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
             ) : (
               <Download className="w-3.5 h-3.5 text-primary" />
             )}
-            <span>{exporting
-              ? (locale === 'es' ? 'Exportando...' : 'Exporting...')
-              : (locale === 'es' ? 'Exportar datos' : 'Export data')
-            }</span>
+            <span>{exporting ? t('exporting') : t('exportUserData')}</span>
           </button>
         </form>
       </div>
@@ -206,16 +205,16 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60 text-xs">
-            {tenants.map((t) => (
-              <tr key={t.tenantId} className="hover:bg-muted/5 transition-colors">
+            {tenants.map((tenant) => (
+              <tr key={tenant.tenantId} className="hover:bg-muted/5 transition-colors">
                 <td className="p-4">
-                  <span className="font-bold text-foreground block">{t.name}</span>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{t.industry}</span>
+                  <span className="font-bold text-foreground block">{tenant.name}</span>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{tenant.industry}</span>
                 </td>
-                <td className="p-4 font-mono text-primary font-semibold">{t.tenantId}</td>
-                <td className="p-4 font-mono text-muted-foreground">{t.dbPrefix}</td>
+                <td className="p-4 font-mono text-primary font-semibold">{tenant.tenantId}</td>
+                <td className="p-4 font-mono text-muted-foreground">{tenant.dbPrefix}</td>
                 <td className="p-4">
-                  {t.active ? (
+                  {tenant.active ? (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-[10px] uppercase font-mono">
                       {locale === 'es' ? 'Activo' : 'Active'}
                     </span>
@@ -228,33 +227,33 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
                 <td className="p-4 text-right flex justify-end gap-2">
                   {/* Export ZIP */}
                   <a
-                    href={`/api/admin/gdpr/export?tenantId=${t.tenantId}`}
+                    href={`/api/admin/gdpr/export?tenantId=${tenant.tenantId}`}
                     download
                     className="inline-flex items-center gap-1.5 px-3 py-2 border border-border hover:border-foreground hover:bg-muted/10 text-[10px] font-mono uppercase tracking-wider transition-all duration-200"
-                    title={locale === 'es' ? 'Descargar datos ZIP' : 'Download data ZIP'}
+                    title={t('exportZip')}
                   >
                     <Download className="w-3.5 h-3.5 text-primary" />
-                    <span>{locale === 'es' ? 'Exportar ZIP' : 'Export ZIP'}</span>
+                    <span>{t('exportZip')}</span>
                   </a>
 
                   {/* Purge Tenant */}
                   <button
-                    onClick={() => handlePurgeClick(t._id?.toString() || '', t.tenantId)}
-                    aria-label={locale === 'es' ? 'Purgar datos GDPR del tenant' : 'Purge GDPR data for tenant'}
+                    onClick={() => handlePurgeClick(tenant._id?.toString() || '', tenant.tenantId)}
+                    aria-label={t('purgeGdpr')}
                     disabled={loadingTenantId !== null}
                     className={`inline-flex items-center gap-1.5 px-3 py-2 border text-[10px] font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                       isSuperAdmin 
                         ? 'border-rose-500/30 hover:border-rose-500 hover:bg-rose-500/5 text-rose-400 hover:text-rose-500' 
                         : 'border-border text-muted-foreground/40 cursor-not-allowed opacity-50'
                     }`}
-                    title={locale === 'es' ? 'Purgar datos ( GDPR )' : 'Purge data ( GDPR )'}
+                    title={t('purgeGdpr')}
                   >
-                    {loadingTenantId === t._id?.toString() ? (
+                    {loadingTenantId === tenant._id?.toString() ? (
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                     ) : (
                       <Trash2 className="w-3.5 h-3.5" />
                     )}
-                    <span>{locale === 'es' ? 'Derecho al olvido' : 'Right to forget'}</span>
+                    <span>{t('rightToForget')}</span>
                   </button>
                 </td>
               </tr>
