@@ -138,6 +138,7 @@ export function SandboxForm() {
         <Field label="sessionId" value={form.sessionId} onChange={updateField('sessionId')} inputClass={inputClass} />
         <button
           type="submit"
+          aria-label="Generate JWT"
           disabled={loading}
           className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider hover:opacity-90 transition-all disabled:opacity-50 rounded-none"
         >
@@ -150,7 +151,7 @@ export function SandboxForm() {
         <div className="flex items-center justify-between">
           <label className="text-xs uppercase font-bold tracking-wider text-muted-foreground">Generated Token</label>
           {token && (
-            <button onClick={handleCopy} className="flex items-center gap-1 text-xs text-primary hover:underline">
+            <button onClick={handleCopy} aria-label={copied ? 'Copied' : 'Copy token'} className="flex items-center gap-1 text-xs text-primary hover:underline">
               {copied ? <Check size={12} /> : <Copy size={12} />}
               {copied ? 'Copied!' : 'Copy'}
             </button>

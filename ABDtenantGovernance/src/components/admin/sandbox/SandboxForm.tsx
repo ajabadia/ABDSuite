@@ -209,6 +209,7 @@ export function SandboxForm({ tenants, currentUserId, locale }: SandboxFormProps
               <button
                 key={preset.id}
                 type="button"
+                aria-label={preset.label}
                 onClick={() => applyPreset(preset.id)}
                 className={`px-3 py-1.5 border text-xs font-mono transition-all duration-200 cursor-pointer ${preset.color}`}
               >
@@ -358,6 +359,7 @@ export function SandboxForm({ tenants, currentUserId, locale }: SandboxFormProps
         <div className="flex flex-col sm:flex-row gap-4 mt-2">
           <button
             type="button"
+            aria-label={locale === 'es' ? 'Generar Token' : 'Generate Token'}
             disabled={loading}
             onClick={() => handleGenerate(false)}
             className="flex-1 py-3 px-4 bg-transparent border border-border hover:border-foreground hover:bg-muted/10 text-xs font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer text-center disabled:opacity-50"
@@ -367,6 +369,7 @@ export function SandboxForm({ tenants, currentUserId, locale }: SandboxFormProps
           
           <button
             type="button"
+            aria-label={locale === 'es' ? 'Aplicar Identidad' : 'Apply Identity'}
             disabled={loading}
             onClick={() => handleGenerate(true)}
             className="flex-1 py-3 px-4 bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer font-bold text-center disabled:opacity-50 flex items-center justify-center gap-2"
@@ -402,6 +405,7 @@ export function SandboxForm({ tenants, currentUserId, locale }: SandboxFormProps
           {generatedToken && (
             <button
               onClick={copyToClipboard}
+              aria-label={copied ? 'Copied' : 'Copy token'}
               className="inline-flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground hover:text-foreground border border-border/80 px-2 py-1 transition-all cursor-pointer"
             >
               {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}

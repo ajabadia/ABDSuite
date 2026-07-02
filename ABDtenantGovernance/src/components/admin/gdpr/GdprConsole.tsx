@@ -176,6 +176,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
           </div>
           <button
             type="submit"
+            aria-label={locale === 'es' ? 'Exportar datos de usuario' : 'Export user data'}
             disabled={exporting}
             className="inline-flex items-center gap-1.5 px-4 py-2 border border-border hover:border-foreground hover:bg-muted/10 text-[10px] font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer"
           >
@@ -239,6 +240,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
                   {/* Purge Tenant */}
                   <button
                     onClick={() => handlePurgeClick(t._id?.toString() || '', t.tenantId)}
+                    aria-label={locale === 'es' ? 'Purgar datos GDPR del tenant' : 'Purge GDPR data for tenant'}
                     disabled={loadingTenantId !== null}
                     className={`inline-flex items-center gap-1.5 px-3 py-2 border text-[10px] font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                       isSuperAdmin 

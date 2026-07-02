@@ -66,6 +66,7 @@ export function GdprForm() {
         </div>
         <button
           type="submit"
+          aria-label="Orchestrate GDPR Purge"
           disabled={loading}
           className="w-full px-4 py-3 bg-red-600 text-white font-bold text-sm uppercase tracking-wider hover:opacity-90 transition-all disabled:opacity-50 rounded-none"
         >
