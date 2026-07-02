@@ -202,7 +202,7 @@ if (-not $env:GITHUB_NPM_TOKEN) {
 }
 
 $SharedLibs = @("ABDi18n", "ABDStyles", "ABDSatelliteSDK", "ABDEcosystemWidgets")
-$Consumers = @("ABDtenantGobernance", "ABDAuth", "ABDQuiz", "ABDLogs", "ABDAnalytics", "ABDLanding", "ABDFiles", "ABD___BASE")
+$Consumers = @("ABDtenantGovernance", "ABDAuth", "ABDQuiz", "ABDLogs", "ABDAnalytics", "ABDLanding", "ABDFiles", "ABD___BASE")
 
 # ── FASE 1: LIBRERIAS COMPARTIDAS ────────────────────────────────────────────
 

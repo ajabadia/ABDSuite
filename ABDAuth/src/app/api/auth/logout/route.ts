@@ -1,11 +1,11 @@
 /**
- * @purpose Gestiona el proceso de logout para ABDAuth eliminando cookies de sesión y realizando Front-Channel SLO con aplicaciones satélite registradas.
+ * @purpose Gestiona el proceso de logout para ABDAuth eliminando cookies de sesión y realizando SLO Front-Channel con aplicaciones satélite registradas.
  * @purpose_en Handles the logout process for ABDAuth by wiping session cookies and performing Front-Channel SLO with registered satellite applications.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification Business Service
  * @complexity Medium
- * @fingerprint exports:1,imports:6,sig:cwvs2s
- * @lastUpdated 2026-06-25T10:15:54.669Z
+ * @fingerprint exports:1,imports:6,sig:a06wy8
+ * @lastUpdated 2026-07-01T21:27:42.675Z
  */
 
 import { NextResponse } from 'next/server';

@@ -9,7 +9,7 @@ packages:
   - ABDLanding
   - ABDLogs
   - ABDQuiz
-  - ABDtenantGobernance
+  - ABDtenantGovernance
   - ABD___BASE
   - ABDE2E
   - packages/*

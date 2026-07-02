@@ -46,7 +46,7 @@ popd
 echo.
 
 echo Limpiando caché de compilación (.next) para evitar errores de rutas...
-for %%D in (ABDAuth ABDtenantGobernance ABDQuiz ABDLogs ABDAnalytics ABDLanding ABDFiles) do (
+for %%D in (ABDAuth ABDtenantGovernance ABDQuiz ABDLogs ABDAnalytics ABDLanding ABDFiles) do (
     if exist "%%D\.next" (
         echo [OK] Limpiando %%D\.next...
         rmdir /s /q "%%D\.next"
@@ -57,8 +57,8 @@ echo.
 echo [1/7] Iniciando ABDAuth (Puerto 5001)...
 start "ABDAuth (5001)" cmd /k "cd ABDAuth & pnpm run dev"
 
-echo [2/7] Iniciando ABDtenantGobernance (Puerto 5002)...
-start "ABDtenantGobernance (5002)" cmd /k "cd ABDtenantGobernance & pnpm run dev"
+echo [2/7] Iniciando ABDtenantGovernance (Puerto 5002)...
+start "ABDtenantGovernance (5002)" cmd /k "cd ABDtenantGovernance & pnpm run dev"
 
 echo [3/7] Iniciando ABDQuiz (Puerto 5020)...
 start "ABDQuiz (5020)" cmd /k "cd ABDQuiz & pnpm run dev"

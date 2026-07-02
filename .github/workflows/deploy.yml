@@ -13,7 +13,7 @@
 #   VERCEL_PROJECT_ID_ABDLANDING     – Project ID for ABDLanding
 #   VERCEL_PROJECT_ID_ABDANALYTICS   – Project ID for ABDAnalytics
 #   VERCEL_PROJECT_ID_ABDAUTH        – Project ID for ABDAuth
-#   VERCEL_PROJECT_ID_ABDTENANTGOV   – Project ID for ABDtenantGobernance
+  #   VERCEL_PROJECT_ID_ABDTENANTGOV   – Project ID for ABDtenantGovernance
 #
 # To get a project ID:  vercel project ls  (or Vercel Dashboard > Project > Settings > Project ID)
 
@@ -101,7 +101,7 @@ jobs:
           - { name: ABDLanding,          dir: ABDLanding,          project: ABDLANDING }
           - { name: ABDAnalytics,        dir: ABDAnalytics,        project: ABDANALYTICS }
           - { name: ABDAuth,             dir: ABDAuth,             project: ABDAUTH }
-          - { name: ABDtenantGobernance, dir: ABDtenantGobernance, project: ABDTENANTGOV }
+          - { name: ABDtenantGovernance, dir: ABDtenantGovernance, project: ABDTENANTGOV }
 
     steps:
       - name: ⬇️ Checkout Repository
@@ -160,7 +160,7 @@ jobs:
           - { name: ABDLanding,          dir: ABDLanding,          project: ABDLANDING }
           - { name: ABDAnalytics,        dir: ABDAnalytics,        project: ABDANALYTICS }
           - { name: ABDAuth,             dir: ABDAuth,             project: ABDAUTH }
-          - { name: ABDtenantGobernance, dir: ABDtenantGobernance, project: ABDTENANTGOV }
+          - { name: ABDtenantGovernance, dir: ABDtenantGovernance, project: ABDTENANTGOV }
 
     steps:
       - name: ⬇️ Checkout Repository

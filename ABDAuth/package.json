@@ -49,6 +49,8 @@
                          "sonner":  "catalog:"
                      },
     "devDependencies":  {
+                            "@repo/eslint-config": "workspace:*",
+                            "@repo/typescript-config": "workspace:*",
                             "tailwindcss":  "catalog:",
                             "postcss":  "catalog:",
                             "typescript":  "catalog:",
