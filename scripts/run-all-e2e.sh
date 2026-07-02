@@ -4,7 +4,7 @@
 #
 # Ejecuta los tests E2E de Playwright para:
 #   ABDQuiz      (puerto 3300)
-#   ABDtenantGobernance (puerto 3500)
+#   ABDtenantGovernance (puerto 3500)
 #   ABDLogs      (puerto 3600)
 #   ABDAnalytics (puerto 3700)
 #
@@ -36,11 +36,11 @@ NC='\033[0m' # No Color
 declare -A PORTS
 PORTS[ABDQuiz]=3300
 PORTS[ABDAuth]=3400
-PORTS[ABDtenantGobernance]=3500
+PORTS[ABDtenantGovernance]=3500
 PORTS[ABDLogs]=3600
 PORTS[ABDAnalytics]=3700
 
-PROJECTS=(ABDQuiz ABDtenantGobernance ABDLogs ABDAnalytics)
+PROJECTS=(ABDQuiz ABDtenantGovernance ABDLogs ABDAnalytics)
 
 # ABDAuth se arranca aparte como dependencia de infraestructura (login previo a tests)
 # No se incluye en PROJECTS porque no corre tests propios dentro de este runner.
@@ -162,7 +162,7 @@ echo "  All ports cleaned."
 echo ""
 echo -e "${YELLOW}[2/4] Starting dev servers + dependencies...${NC}"
 
-# Start infra dependencies first (e.g., ABDAuth needed for Gobernance login)
+# Start infra dependencies first (e.g., ABDAuth needed for Governance login)
 for PROJECT in "${INFRA_PROJECTS[@]}"; do
   start_server "$PROJECT" "${PORTS[$PROJECT]}"
 done

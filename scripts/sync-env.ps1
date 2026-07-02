@@ -29,7 +29,7 @@ $Satellites = @(
     "ABDLanding",
     "ABDLogs",
     "ABDQuiz",
-    "ABDtenantGobernance",
+    "ABDtenantGovernance",
     "ABD___BASE"
 )
 

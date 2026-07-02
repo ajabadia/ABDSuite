@@ -26,7 +26,7 @@ const SATELLITES = [
   { name: 'ABDLanding',          dir: 'ABDLanding' },
   { name: 'ABDAnalytics',        dir: 'ABDAnalytics' },
   { name: 'ABDAuth',             dir: 'ABDAuth' },
-  { name: 'ABDtenantGobernance', dir: 'ABDtenantGobernance' },
+  { name: 'ABDtenantGovernance', dir: 'ABDtenantGovernance' },
   { name: 'ABDSatelliteSDK',     dir: 'ABDSatelliteSDK' },
 ];
 

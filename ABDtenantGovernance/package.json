@@ -46,7 +46,6 @@
                             "eslint":  "catalog:",
     "@eslint/compat":  "catalog:",
                             "jose":  "catalog:",
-                            "@types/jszip":  "^3.4.1",
                             "eslint-config-next":  "catalog:",
                             "@testing-library/jest-dom":  "^6.9.1",
                             "tailwindcss":  "catalog:",

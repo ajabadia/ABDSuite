@@ -140,7 +140,7 @@ jobs:
           | 4 | ABDLanding |
           | 5 | ABDAnalytics |
           | 6 | ABDAuth |
-          | 7 | ABDtenantGobernance |
+          | 7 | ABDtenantGovernance |
           | 8 | ABDSatelliteSDK |
 
           **Overall: $overallIcon $overallText**

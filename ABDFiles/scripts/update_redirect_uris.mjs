@@ -17,7 +17,7 @@ async function run() {
   const client = await collection.findOne({ clientId: 'abdquiz-industrial-client-id' });
   if (client) {
     console.log("Found client document. Writing full document to JSON debug file...");
-    fs.writeFileSync('d:/desarrollos/ABDtenantGobernance/abd-client-doc-debug.json', JSON.stringify(client, null, 2), 'utf8');
+    fs.writeFileSync('d:/desarrollos/ABDSuite/ABDtenantGovernance/abd-client-doc-debug.json', JSON.stringify(client, null, 2), 'utf8');
     console.log("JSON file written!");
   } else {
     console.log("Client not found!");

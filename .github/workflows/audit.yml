@@ -11,7 +11,7 @@
 #
 # Audited packages (8):
 #   - ABDFiles, ABDLogs, ABDQuiz, ABDLanding, ABDAnalytics, ABDAuth,
-#   - ABDtenantGobernance, ABDSatelliteSDK
+#   - ABDtenantGovernance, ABDSatelliteSDK
 
 name: 🔬 ABD Ecosystem — ERA 11 Global Audit
 
@@ -163,7 +163,7 @@ jobs:
           | 4 | ABDLanding | Structural → i18n → a11y → Purity → TypeScript → ESLint |
           | 5 | ABDAnalytics | Structural → i18n → a11y → Purity → TypeScript → ESLint |
           | 6 | ABDAuth | Structural → i18n → a11y → Purity → TypeScript → ESLint |
-          | 7 | ABDtenantGobernance | Structural → i18n → a11y → Purity → TypeScript → ESLint |
+          | 7 | ABDtenantGovernance | Structural → i18n → a11y → Purity → TypeScript → ESLint |
           | 8 | ABDSatelliteSDK | Structural → i18n → a11y → Purity → TypeScript → ESLint |
           
           **Overall: $overallIcon $overallText**

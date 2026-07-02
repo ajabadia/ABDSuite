@@ -17,7 +17,7 @@ const APP_ROOTS = [
   'ABDQuiz/src',
   'ABDSatelliteSDK/src',
   'ABDStyles/src',
-  'ABDtenantGobernance/src',
+  'ABDtenantGovernance/src',
 ].map(dir => path.join(PROJECT_ROOT, dir));
 
 const OUTPUT_DIR = path.join(PROJECT_ROOT, 'docs', 'grafos');

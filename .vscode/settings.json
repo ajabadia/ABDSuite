@@ -6,7 +6,7 @@
     "ABDLanding/messages",
     "ABDLogs/messages",
     "ABDQuiz/messages",
-    "ABDtenantGobernance/messages",
+    "ABDtenantGovernance/messages",
     "ABD___BASE/messages"
   ],
   "i18n-ally.keystyle": "nested",
