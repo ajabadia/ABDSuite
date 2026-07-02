@@ -39,7 +39,7 @@ function hasKey(obj, keyPath) {
 const WARN_LINES = 150;
 const MAX_LINES = 500;
 const roots = ['src'];
-const logFile = "abd-audit-results.log";
+const logFile = process.env.AUDIT_LOG_FILE || "abd-audit-results.log";
 const phase = process.argv[2] || 'all';
 
 // Determine if we are auditing the library itself or a client project

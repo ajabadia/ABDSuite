@@ -72,6 +72,8 @@ function Run-AuditStep {
     
     # Capture both stdout and stderr (2>&1)
     $global:LASTEXITCODE = 0
+    # Set the environment variable in the process scope
+    $env:AUDIT_LOG_FILE = $LogFile
     if ($ExecCmd -eq "node") {
         $out = & node $StepArgs 2>&1
     } elseif ($ExecCmd -eq "pnpm") {
