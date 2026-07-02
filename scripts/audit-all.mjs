@@ -28,6 +28,7 @@ const SATELLITES = [
   { name: 'ABDAuth',             dir: 'ABDAuth' },
   { name: 'ABDtenantGovernance', dir: 'ABDtenantGovernance' },
   { name: 'ABDSatelliteSDK',     dir: 'ABDSatelliteSDK' },
+  { name: 'ABD___BASE',          dir: 'ABD___BASE' },
 ];
 
 const PASS  = '✅';
