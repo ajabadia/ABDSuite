@@ -11,6 +11,7 @@
  */
 
 import { memo } from 'react';
+import { useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
 
 interface SmartNavbarSearchMenuProps {
@@ -23,6 +24,7 @@ interface SmartNavbarSearchMenuProps {
  * Renders the search/command mega menu with a trigger button.
  */
 export const SmartNavbarSearchMenu = memo(function SmartNavbarSearchMenu({ locale, onSearchTrigger, onClose }: SmartNavbarSearchMenuProps) {
+  const t = useTranslations('widgets');
   return (
     <div className="w-full flex justify-center py-2">
       <button
@@ -35,7 +37,7 @@ export const SmartNavbarSearchMenu = memo(function SmartNavbarSearchMenu({ local
       >
         <span className="flex items-center gap-2">
           <Search size={14} className="text-primary" />
-          {locale === 'es' ? 'ESCRIBE UN COMANDO O BUSCA...' : 'TYPE A COMMAND OR SEARCH...'}
+          {t('typeCommandOrSearch')}
         </span>
         <kbd className="px-1.5 py-0.5 text-[9px] font-mono border border-border/50 text-muted-foreground/50 bg-background/50">
           Ctrl+K

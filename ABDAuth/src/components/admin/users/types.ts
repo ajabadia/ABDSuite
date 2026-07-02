@@ -85,6 +85,9 @@ export interface UserManagementTranslations {
     membership_status: string;
     allowed_apps: string;
     no_apps_for_tenant: string;
+    inherited: string;
+    set_default: string;
+    remove_membership: string;
   };
   messages: {
     saveSuccess: string;

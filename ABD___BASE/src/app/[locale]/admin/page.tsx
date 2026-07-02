@@ -30,42 +30,42 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
           className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors w-fit"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          {locale === 'es' ? 'Volver a Inicio' : 'Back to Home'}
+          {t('backToHome')}
         </Link>
 
         {/* Header Navigation */}
         <AdminPageHeader
           icon={LayoutDashboard}
-          breadcrumb={<>{t('appTitle') || 'ABD Base'} • DASHBOARD</>}
-          title={<>{'ABD'} <span className="text-primary">{locale === 'es' ? 'Panel de Control' : 'Control Panel'}</span></>}
-          description={<>{locale === 'es' ? 'Consola de gobernanza y control operacional para ' : 'Governance and operational control console for '} <span className="text-primary font-bold">{session?.user?.tenantId || 'N/A'}</span>.</>}
+          breadcrumb={<>{t('appTitle') || 'ABD Base'} • {t('dashboardBreadcrumb')}</>}
+          title={<>{'ABD'} <span className="text-primary">{t('menuTitle')}</span></>}
+          description={<>{t('controlPanelDescription')} <span className="text-primary font-bold">{session?.user?.tenantId || 'N/A'}</span>.</>}
         />
 
         {/* Generic Dashboard Panel */}
         <div className="z-10 w-full max-w-xl p-8 bg-card border border-border rounded-xl flex flex-col gap-6 font-mono text-xs mt-4">
           <div className="flex justify-between border-b border-border pb-4">
-            <span className="uppercase text-muted-foreground">{locale === 'es' ? 'App:' : 'App:'}</span>
-            <span className="font-bold text-foreground">{locale === 'es' ? 'ABD Satellite Base Panel' : 'ABD Satellite Base Panel'}</span>
+            <span className="uppercase text-muted-foreground">{t('appLabel')}</span>
+            <span className="font-bold text-foreground">{t('appValue')}</span>
           </div>
           <div className="flex justify-between">
-            <span className="uppercase text-muted-foreground">{locale === 'es' ? 'Estado:' : 'Status:'}</span>
+            <span className="uppercase text-muted-foreground">{t('statusLabel')}</span>
             <span className="text-[#2dd4bf] font-black">[CONNECTED]</span>
           </div>
           <div className="flex justify-between">
-            <span className="uppercase text-muted-foreground">{locale === 'es' ? 'Inquilino Activo:' : 'Tenant Active:'}</span>
+            <span className="uppercase text-muted-foreground">{t('tenantActiveLabel')}</span>
             <span className="font-bold text-foreground">{session?.user?.tenantId || 'N/A'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="uppercase text-muted-foreground">{locale === 'es' ? 'Usuario:' : 'User:'}</span>
+            <span className="uppercase text-muted-foreground">{t('userLabel')}</span>
             <span className="font-bold text-foreground">{session?.user?.email || 'N/A'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="uppercase text-muted-foreground">{locale === 'es' ? 'Rol:' : 'Role:'}</span>
+            <span className="uppercase text-muted-foreground">{t('roleLabel')}</span>
             <span className="font-bold text-foreground">{session?.user?.role || 'N/A'}</span>
           </div>
         </div>
 
-        <GlobalFooter label={locale === 'es' ? 'Panel verificado' : 'Panel verified'} opacity={0.8} />
+        <GlobalFooter label={t('panelVerified')} opacity={0.8} />
 
       </div>
     </main>

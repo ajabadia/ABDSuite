@@ -15,7 +15,7 @@ interface LicensedAppsSectionProps {
   allowedApps: string[];
   role: string;
   onUpdate: (updates: { allowedApps: string[] }) => void;
-  t: { form: { allowed_apps: string; no_apps_for_tenant: string } };
+  t: { form: { allowed_apps: string; no_apps_for_tenant: string; inherited: string } };
 }
 
 export function LicensedAppsSection({ licensedApps, allowedApps, role, onUpdate, t }: LicensedAppsSectionProps) {
@@ -58,7 +58,7 @@ export function LicensedAppsSection({ licensedApps, allowedApps, role, onUpdate,
                   className="rounded-none border-border text-primary focus:ring-primary focus:ring-offset-background"
                 />
                 <span className="font-mono text-[9px] tracking-wide text-muted-foreground group-hover:text-foreground transition-colors uppercase">
-                  {app} {isInherited && <span className="text-[8px] text-primary/70 font-sans italic lowercase">(inherited)</span>}
+                  {app} {isInherited && <span className="text-[8px] text-primary/70 font-sans italic lowercase">{t.form.inherited}</span>}
                 </span>
               </label>
             );

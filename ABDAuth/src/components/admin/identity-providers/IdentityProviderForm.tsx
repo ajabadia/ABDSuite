@@ -92,6 +92,7 @@ export function IdentityProviderForm({ editingProvider, t, onSubmit, onCancel }:
               type="button"
               onClick={() => setProviderType(type)}
               disabled={isEditing}
+              aria-label={type === 'OIDC' ? t.oidc_label : t.saml_label}
               className={`flex-1 flex items-center justify-center gap-2 py-3 text-[10px] font-bold uppercase tracking-widest border transition-all duration-200 rounded-none cursor-pointer ${
                 providerType === type
                   ? type === 'OIDC'
@@ -133,7 +134,7 @@ export function IdentityProviderForm({ editingProvider, t, onSubmit, onCancel }:
       {/* OIDC Fields */}
       {providerType === 'OIDC' && (
         <div className="space-y-4 p-4 border border-sky-500/10 bg-sky-500/[0.02]">
-          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-sky-400/60">OPENID CONNECT</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-sky-400/60">{t.cards.oidc}</span>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{t.form.issuer_url}</label>
@@ -170,7 +171,7 @@ export function IdentityProviderForm({ editingProvider, t, onSubmit, onCancel }:
       {/* SAML Fields */}
       {providerType === 'SAML' && (
         <div className="space-y-4 p-4 border border-amber-500/10 bg-amber-500/[0.02]">
-          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-amber-400/60">SAML 2.0</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-amber-400/60">{t.cards.saml}</span>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{t.form.entity_id}</label>
@@ -228,6 +229,7 @@ export function IdentityProviderForm({ editingProvider, t, onSubmit, onCancel }:
           <button
             type="button"
             onClick={addDomain}
+            aria-label={t.form.allowed_domains}
             className="px-3 py-2 border border-border/40 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors cursor-pointer rounded-none"
           >
             <Plus size={14} />
@@ -242,6 +244,7 @@ export function IdentityProviderForm({ editingProvider, t, onSubmit, onCancel }:
                   type="button"
                   onClick={() => removeDomain(i)}
                   className="text-muted-foreground hover:text-red-400 transition-colors cursor-pointer"
+                  aria-label={t.form.allowed_domains}
                 >
                   <X size={10} />
                 </button>
@@ -282,6 +285,7 @@ export function IdentityProviderForm({ editingProvider, t, onSubmit, onCancel }:
         <button
           type="button"
           onClick={onCancel}
+          aria-label={t.form.cancel}
           className="px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest border border-border/40 text-muted-foreground hover:text-foreground hover:border-border transition-colors cursor-pointer rounded-none"
         >
           {t.form.cancel}
@@ -289,6 +293,7 @@ export function IdentityProviderForm({ editingProvider, t, onSubmit, onCancel }:
         <button
           type="submit"
           disabled={submitting}
+          aria-label={submitting ? '...' : t.form.save}
           className="px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50 cursor-pointer rounded-none"
         >
           {submitting ? '...' : t.form.save}

@@ -39,7 +39,7 @@ export default async function AdminPortalPage({ params }: { params: Promise<{ lo
           className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors w-fit"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          {locale === 'es' ? 'Volver a Inicio' : 'Back to Home'}
+          {t('backToHome')}
         </Link>
 
         {/* Header Navigation */}
@@ -62,10 +62,10 @@ export default async function AdminPortalPage({ params }: { params: Promise<{ lo
                 icon={Activity}
                 category="SOC2 COMPLIANCE"
                 title="Telemetry Console"
-                description="Monitorización visual de volumen operativo, seguridad y actividad SaaS en tiempo real."
+                description={t('telemetryCardDesc')}
                 footerLabel={t('prodReady')}
                 footerValue={ap('activo') || 'ONLINE'}
-                buttonText="Ver Métricas"
+                buttonText={t('telemetryCardBtn')}
                 href={`/${locale}/admin/dashboard`}
               />
 
@@ -84,24 +84,24 @@ export default async function AdminPortalPage({ params }: { params: Promise<{ lo
               {/* Card: GDPR Compliance */}
               <DashboardActionCard 
                 icon={ShieldAlert}
-                category="REGULATORIO GDPR"
-                title="Cumplimiento GDPR"
-                description="Portabilidad de datos (ZIP cifrado) y Derecho al Olvido mediante anonimización de logs."
+                category={t('complianceCardCategory')}
+                title={t('complianceCardTitle')}
+                description={t('complianceCardDesc')}
                 footerLabel={t('prodReady')}
                 footerValue={ap('activo') || 'ONLINE'}
-                buttonText="Ver Panel"
+                buttonText={t('complianceCardBtn')}
                 href={`/${locale}/admin/compliance`}
               />
 
               {/* Card: Threat Detection */}
               <DashboardActionCard
                 icon={BrainCircuit}
-                category="SOC2 · HEURÍSTICA IA"
-                title="Detección de Amenazas"
-                description="Motor predictivo de anomalías: fuerza bruta, borrados masivos, accesos nocturnos e IPs desconocidas."
+                category={t('threatCardCategory')}
+                title={t('threatCardTitle')}
+                description={t('threatCardDesc')}
                 footerLabel={t('prodReady')}
                 footerValue={ap('activo') || 'ONLINE'}
-                buttonText="Ver Amenazas"
+                buttonText={t('threatCardBtn')}
                 href={`/${locale}/admin/threats`}
               />
 

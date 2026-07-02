@@ -93,6 +93,9 @@ export default async function UsersPage() {
       membership_status: t("form.membership_status"),
       allowed_apps: t("form.allowed_apps"),
       no_apps_for_tenant: t("form.no_apps_for_tenant"),
+      inherited: t("form.inherited"),
+      set_default: t("form.set_default"),
+      remove_membership: t("form.remove_membership"),
     },
     messages: {
       saveSuccess: t("messages.save_success"),

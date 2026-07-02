@@ -40,9 +40,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <SubtleLoginButton
           href={`/${locale}/admin`}
           label={h('accessControlPlane')}
-          hint={locale === 'es'
-            ? 'Inicie sesión con sus credenciales federadas de ABDAuth'
-            : 'Sign in utilizing your federated credentials from ABDAuth'}
+          hint={h('loginHint')}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="region" aria-label="System Capabilities">
@@ -51,12 +49,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Palette className="w-5 h-5" />
             </div>
             <h3 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Marca Blanca en Caliente' : 'Hot White-Labeling'}
+              {h('hotWhitelabeling')}
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Generación dinámica de variables HSL y YIQ Contrast en el servidor de Next.js, logrando inyección directa instantánea.'
-                : 'Dynamic generation of HSL and YIQ Contrast custom tokens rendered during server-side SSR loops to secure zero visual flicker.'}
+              {h('hotWhitelabelingDesc')}
             </p>
           </div>
 
@@ -65,12 +61,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Layers className="w-5 h-5" />
             </div>
             <h3 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Jerarquías de Espacio' : 'Space Hierarchies'}
+              {h('spaceHierarchies')}
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Aislamiento lógico perimetral a nivel de repositorio y materialized paths recursivos para aulas y organizaciones.'
-                : 'Logic boundaries and role isolation calculated inside data repositories with recursive materialized subdivisions.'}
+              {h('spaceHierarchiesDesc')}
             </p>
           </div>
 
@@ -79,12 +73,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <ShieldCheck className="w-5 h-5" />
             </div>
             <h3 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Seguridad Criptográfica' : 'Cryptographic Security'}
+              {h('cryptographicSecurity')}
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Cifrado simétrico AES-256-CBC nativo de credenciales, tokens y configuraciones de cobro persistidos en base de datos.'
-                : 'Symmetric AES-256-CBC envelope encryption protecting customer configuration and sensitive billing fields in the database.'}
+              {h('cryptographicSecurityDesc')}
             </p>
           </div>
 

@@ -11,7 +11,7 @@
  */
 
 import React from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { AppSidebarNavigation, type AppSidebarLink } from '@ajabadia/ecosystem-widgets';
 import { Home, LayoutDashboard, Terminal } from 'lucide-react';
 
@@ -35,7 +35,6 @@ interface SidebarNavigationProps {
 
 export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settingsSlot }: SidebarNavigationProps) {
   const t = useTranslations('common');
-  const locale = useLocale();
   const [tenantId, setTenantId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -49,9 +48,9 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
   const user = session.user;
 
   const allLinks: AppSidebarLink[] = [
-    { href: '/', label: locale === 'es' ? 'Inicio' : 'Home', icon: <Home className="w-4 h-4" /> },
-    { href: '/dashboard', label: locale === 'es' ? 'Mi Panel' : 'My Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, requiresAuth: true },
-    { href: '/admin', label: locale === 'es' ? 'Administración' : 'Admin Portal', icon: <Terminal className="w-4 h-4" />, requiresAdmin: true },
+    { href: '/', label: t('home'), icon: <Home className="w-4 h-4" /> },
+    { href: '/dashboard', label: t('myDashboard'), icon: <LayoutDashboard className="w-4 h-4" />, requiresAuth: true },
+    { href: '/admin', label: t('adminPortal'), icon: <Terminal className="w-4 h-4" />, requiresAdmin: true },
   ];
 
   const transformHref = React.useCallback(

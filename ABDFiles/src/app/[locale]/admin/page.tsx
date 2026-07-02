@@ -46,7 +46,7 @@ export default async function AdminPortalPage({ params }: { params: Promise<{ lo
           className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors w-fit"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          {locale === 'es' ? 'Volver a Inicio' : 'Back to Home'}
+          {t('backToHome')}
         </Link>
 
         {/* Header Navigation */}

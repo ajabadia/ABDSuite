@@ -64,13 +64,13 @@ export default async function AdminPortalPage({
           className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors w-fit"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          {locale === 'es' ? 'Volver a Inicio' : 'Back to Home'}
+          {t('backToHome')}
         </Link>
 
         {/* Header */}
         <AdminPageHeader
           icon={LayoutDashboard}
-          breadcrumb={<>{t('controlConsole')} • DASHBOARD</>}
+          breadcrumb={<>{t('controlConsole')} • {t('dashboardBadge')}</>}
           title={<>{ap('abdTitle')} <span className="text-primary">{ap('gobernanza')}</span></>}
           description={<>{ap.rich('adminDescriptionFull', { tenantId: user.tenantId, tenant: (chunks) => <span className="text-primary font-bold">{chunks}</span> })}</>}
         />
@@ -86,7 +86,7 @@ export default async function AdminPortalPage({
         <div className="bg-card border p-4 rounded">
           <div className="flex items-center gap-2 mb-2">
             <HardDrive className="w-4 h-4 text-muted-foreground" />
-            <span className="text-[9px] font-mono font-black text-muted-foreground uppercase">{locale === 'es' ? 'ALMACENAMIENTO_ACTIVO' : 'ACTIVE_STORAGE'}</span>
+            <span className="text-[9px] font-mono font-black text-muted-foreground uppercase">{t('activeStorageLabel')}</span>
           </div>
           <div className="text-xl font-mono font-black text-primary uppercase">{activeProvider}</div>
         </div>

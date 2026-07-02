@@ -38,9 +38,9 @@ export function MembershipCard({ membership, tenants, defaultTenantId, isSuperAd
         <div className="flex items-center gap-3">
           <button type="button" disabled={!isSuperAdmin && !isDefault} onClick={() => onSetDefault(membership.tenantId)}
             className={`text-[9px] font-mono font-black uppercase px-2 py-1 transition-all rounded-none flex items-center gap-1.5 ${isDefault ? 'bg-primary/10 border border-primary/30 text-primary' : 'bg-transparent border border-border hover:border-border/80 text-muted-foreground'}`}
-            title={t.form.default_tenant}>
+            aria-label={t.form.default_tenant}>
             <CheckCircle2 size={10} className={isDefault ? 'animate-pulse' : ''} />
-            {isDefault ? t.form.default_tenant : 'Set Default'}
+            {isDefault ? t.form.default_tenant : t.form.set_default}
           </button>
           <div>
             <h4 className="text-xs font-black uppercase text-foreground tracking-tight">{tenantName}</h4>
@@ -53,20 +53,21 @@ export function MembershipCard({ membership, tenants, defaultTenantId, isSuperAd
             <Shield size={12} className="text-muted-foreground/50" />
             <select value={membership.role} onChange={(e) => onUpdate(membership.tenantId, { role: e.target.value as "owner" | "admin" | "student" })}
               className="bg-muted/10 border border-border/40 text-[10px] font-bold py-1 px-2 focus:outline-none rounded-none text-foreground uppercase tracking-wider">
-              <option value="student" className="bg-card text-foreground">Student</option>
-              <option value="admin" className="bg-card text-foreground">Admin</option>
-              <option value="owner" className="bg-card text-foreground">Owner</option>
+              <option value="student" className="bg-card text-foreground">{t.roles.student}</option>
+              <option value="admin" className="bg-card text-foreground">{t.roles.admin}</option>
+              <option value="owner" className="bg-card text-foreground">{t.roles.owner}</option>
             </select>
           </div>
 
           <button type="button" onClick={() => onUpdate(membership.tenantId, { status: membership.status === 'active' ? 'suspended' : 'active' })}
+            aria-label={membership.status === 'active' ? t.status.active : t.status.suspended}
             className={`text-[9px] font-mono font-black uppercase px-2 py-1 transition-all rounded-none border ${membership.status === 'active' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-destructive/10 border-destructive/20 text-destructive'}`}>
-            {membership.status === 'active' ? 'Active' : 'Suspended'}
+            {membership.status === 'active' ? t.status.active : t.status.suspended}
           </button>
 
           {isSuperAdmin && (
             <button type="button" onClick={() => onRemove(membership.tenantId)}
-              className="p-1.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors rounded-none border border-transparent hover:border-destructive/20" title="Remove Membership">
+              className="p-1.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors rounded-none border border-transparent hover:border-destructive/20" aria-label={t.form.remove_membership}
               <Trash2 size={12} />
             </button>
           )}

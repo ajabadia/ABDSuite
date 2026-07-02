@@ -24,5 +24,19 @@
   "launchConsole": "CONSOLA DE LANZAMIENTO",
   "simulationTemplates": "PLANTILLAS DE SIMULACIÓN",
   "examsDescription": "Selecciona una plantilla de simulación para iniciar la evaluación técnica. Las condiciones temporales y de puntuación se aplicarán automáticamente.",
-  "abdTitle": "ABD"
+  "abdTitle": "ABD",
+  "loginHint": "Inicie sesión con sus credenciales federadas de ABDAuth",
+  "ingestionApiTitle": "API de Ingesta",
+  "ingestionApiDesc": "Ingesta ultrarrápida y no bloqueante mediante REST API con validación de seguridad por Bearer tokens inter-servicio.",
+  "centralizedAuditTitle": "Trazabilidad Central",
+  "centralizedAuditDesc": "Consulta e inspección unificada de logs de actividad técnica y operacional del ecosistema ABD en tiempo real.",
+  "dynamicFilterTitle": "Filtro Dinámico",
+  "dynamicFilterDesc": "Filtrado interactivo por aplicación de origen (Auth, Quiz, Gobernanza) y organización con agregación automática.",
+  "microserviceLabel": "Microservicio",
+  "hotWhitelabeling": "Marca Blanca en Caliente",
+  "hotWhitelabelingDesc": "Generación dinámica de variables HSL y YIQ Contrast en el servidor de Next.js, logrando inyección directa instantánea.",
+  "spaceHierarchies": "Jerarquías de Espacio",
+  "spaceHierarchiesDesc": "Aislamiento lógico perimetral a nivel de repositorio y materialized paths recursivos para aulas y organizaciones.",
+  "cryptographicSecurity": "Seguridad Criptográfica",
+  "cryptographicSecurityDesc": "Cifrado simétrico AES-256-CBC nativo de credenciales, tokens y configuraciones de cobro persistidos en base de datos."
 }

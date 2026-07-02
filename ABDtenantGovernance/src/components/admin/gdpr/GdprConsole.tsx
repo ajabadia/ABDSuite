@@ -33,10 +33,9 @@ interface Tenant {
 interface GdprConsoleProps {
   tenants: Tenant[];
   userRole: string;
-  locale: string;
 }
 
-export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
+export function GdprConsole({ tenants, userRole }: GdprConsoleProps) {
   const t = useTranslations('admin.gdpr');
   const router = useRouter();
   const [loadingTenantId, setLoadingTenantId] = useState<string | null>(null);
@@ -57,11 +56,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
           throw new Error(data.error || 'Error during tenant purge');
         }
         
-        toast.success(
-          locale === 'es' 
-            ? `Organización ${payload.tenantId} purgada completamente en cascada.` 
-            : `Tenant ${payload.tenantId} completely purged in cascade.`
-        );
+        toast.success(t('toastPurgeSuccess', { tenantId: payload.tenantId }));
         router.refresh();
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Error purging tenant');
@@ -75,11 +70,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
 
   const handlePurgeClick = (id: string, tenantId: string) => {
     if (!isSuperAdmin) {
-      toast.error(
-        locale === 'es' 
-          ? 'Solo el rol SUPER_ADMIN está autorizado a purgar físicamente organizaciones.' 
-          : 'Only SUPER_ADMIN role is authorized to physically purge organizations.'
-      );
+      toast.error(t('toastSuperAdminOnly'));
       return;
     }
     purgeDialog.trigger({ id, tenantId });
@@ -91,7 +82,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
   const handleUserExport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!exportForm.tenantId || !exportForm.userId) {
-      toast.error(locale === 'es' ? 'Tenant ID y User ID son obligatorios' : 'Tenant ID and User ID are required');
+      toast.error(t('exportRequiredFields'));
       return;
     }
     setExporting(true);
@@ -112,7 +103,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
       a.download = `gdpr-export-${exportForm.tenantId}-${exportForm.userId}.zip`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success(locale === 'es' ? 'Exportación completada' : 'Export completed');
+      toast.success(t('exportCompleted'));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Export failed');
     } finally {
@@ -127,12 +118,10 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
         <ShieldAlert className="w-10 h-10 text-primary shrink-0" />
         <div className="flex flex-col gap-2">
           <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
-            {locale === 'es' ? 'Cumplimiento del Reglamento GDPR' : 'GDPR Compliance Portal'}
+            {t('gdprTitle')}
           </h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            {locale === 'es' 
-              ? 'Este panel proporciona herramientas centralizadas de soberanía de datos y portabilidad. Los administradores pueden descargar instantáneamente un volcado completo de datos en formato ZIP (Portabilidad), y los Super Administradores pueden purgar de forma definitiva e irreversible la información de un inquilino en toda la red de microservicios (Derecho al Olvido).'
-              : 'This panel provides centralized tools for data sovereignty and portability. Administrators can instantly download a complete dump of tenant data in ZIP format (Portability), and Super Administrators can definitively and irreversibly purge all tenant information across the microservices network (Right to be Forgotten).'}
+            {t('gdprDesc')}
           </p>
         </div>
       </div>
@@ -141,7 +130,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
       <div className="border border-border bg-card p-5">
         <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-3 flex items-center gap-2">
           <FileArchive className="w-4 h-4 text-primary" />
-          {locale === 'es' ? 'Exportar datos de usuario (GDPR Portabilidad)' : 'Export user data (GDPR Portability)'}
+          {t('exportUserDataExtended')}
         </h4>
         <form onSubmit={handleUserExport} className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
@@ -197,11 +186,11 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-border bg-muted/10 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
-              <th className="p-4">{locale === 'es' ? 'Organización' : 'Organization'}</th>
+              <th className="p-4">{t('organizationHeader')}</th>
               <th className="p-4">Tenant ID</th>
-              <th className="p-4">{locale === 'es' ? 'Prefijo BD' : 'DB Prefix'}</th>
-              <th className="p-4">{locale === 'es' ? 'Estado' : 'Status'}</th>
-              <th className="p-4 text-right">{locale === 'es' ? 'Acciones GDPR' : 'GDPR Actions'}</th>
+              <th className="p-4">{t('dbPrefixHeader')}</th>
+              <th className="p-4">{t('statusHeader')}</th>
+              <th className="p-4 text-right">{t('gdprActionsHeader')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60 text-xs">
@@ -216,11 +205,11 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
                 <td className="p-4">
                   {tenant.active ? (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-[10px] uppercase font-mono">
-                      {locale === 'es' ? 'Activo' : 'Active'}
+                      {t('activeLabel')}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 border border-rose-500/20 bg-rose-500/5 text-rose-400 text-[10px] uppercase font-mono">
-                      {locale === 'es' ? 'Inactivo' : 'Inactive'}
+                      {t('inactiveLabel')}
                     </span>
                   )}
                 </td>
@@ -261,7 +250,7 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
             {tenants.length === 0 && (
               <tr>
                 <td colSpan={5} className="p-8 text-center text-muted-foreground">
-                  {locale === 'es' ? 'No se encontraron organizaciones.' : 'No organizations found.'}
+                  {t('noOrganizations')}
                 </td>
               </tr>
             )}
@@ -272,14 +261,10 @@ export function GdprConsole({ tenants, userRole, locale }: GdprConsoleProps) {
       {/* Confirmation Dialog */}
       <ConfirmDialog
         open={purgeDialog.open}
-        title="⚠️ ELIMINACIÓN DEFINITIVA GDPR"
-        message={
-          locale === 'es'
-            ? `¿Estás seguro de que deseas purgar la organización '${purgeDialog.data?.tenantId}'? Esta acción es definitiva y eliminará físicamente las bases de datos de Quiz, Files, Logs y el registro central de Gobernanza. No se puede deshacer.`
-            : `Are you sure you want to purge the organization '${purgeDialog.data?.tenantId}'? This action is definitive and will physically delete all Quiz, Files, Logs databases and the central Governance registry. It cannot be undone.`
-        }
-        confirmLabel={locale === 'es' ? 'PURGAR AHORA' : 'PURGE NOW'}
-        cancelLabel={locale === 'es' ? 'CANCELAR' : 'CANCEL'}
+        title={t('purgeConfirmTitle')}
+        message={t('purgeConfirmMessage', { tenantId: purgeDialog.data?.tenantId || '' })}
+        confirmLabel={t('purgeNow')}
+        cancelLabel={t('cancelAction')}
         variant="danger"
         isLoading={purgeDialog.isLoading}
         onConfirm={purgeDialog.confirm}

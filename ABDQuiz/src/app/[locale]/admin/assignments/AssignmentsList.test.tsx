@@ -11,38 +11,81 @@ const mockTE = vi.fn();
 const mockCA = vi.fn();
 const mockUA = vi.fn();
 const mockGEC = vi.fn();
-const labels: Record<string, string> = {
-  assignmentsTitle: 'Asignaciones', noAssignments: 'No hay asignaciones',
-  newAssignment: 'Nueva Asignación', createAssignment: 'Crear Asignación',
-  btnCancel: 'Cancelar', btnCreate: 'Crear',
-  formExamConfig: 'Configuración de Examen', formSelectExamConfig: 'Seleccionar configuración...',
-  loadingConfigs: 'Cargando...', formAssignedToType: 'Tipo de Destinatario',
-  formAssignedToTypeSpace: 'Espacio', formAssignedToTypeGroup: 'Grupo',
-  formAssignedToTypeUser: 'Usuario', formAssignedToId: 'ID del Destinatario',
-  formStartDate: 'Fecha de Inicio', formEndDate: 'Fecha de Fin',
-  formMaxAttempts: 'Máximo de Intentos', optional: 'opcional',
-  validationRequired: 'Campo requerido', validationInvalidDates: 'La fecha de fin debe ser posterior a la de inicio',
-  assignmentCreated: 'Asignación creada', assignmentCreateError: 'Error al crear la asignación',
-  unnamedConfig: 'Sin nombre', assignmentMaxAttempts: 'Intentos máximos',
-  assignmentType: 'Tipo', assignmentActive: 'Activa',
-  publishAssignment: 'Publicar', archiveAssignment: 'Archivar', deleteAssignment: 'Eliminar',
-  publishConfirmTitle: '¿Publicar?', publishConfirmMessage: 'Estará disponible.',
-  archiveConfirmTitle: '¿Archivar?', archiveConfirmMessage: 'Dejará de estar disponible.',
-  deleteConfirmTitle: '¿Eliminar?', deleteConfirmMessage: 'Se ocultará la asignación.',
-  statusDraft: 'Borrador', statusPublished: 'Publicado', statusArchived: 'Archivado',
-  cancel: 'Cancelar', editAssignment: 'Editar', editAssignmentTitle: 'EDITAR ASIGNACIÓN',
-  btnSave: 'GUARDAR CAMBIOS', assignmentUpdated: 'Asignación actualizada',
-  assignmentUpdateError: 'Error al actualizar', assignmentPublished: 'Publicada',
-  assignmentArchived: 'Archivada', assignmentDeleted: 'Eliminada',
-  assignmentPublishError: 'Error publicar', assignmentArchiveError: 'Error archivar',
-  assignmentDeleteError: 'Error eliminar', auditLog: 'Historial', auditLogEmpty: 'Sin eventos',
-  auditLogAction_CREATE: 'Creada', auditLogAction_PUBLISHED: 'Publicada',
-  auditLogAction_ARCHIVED: 'Archivada', auditLogAction_DELETED: 'Eliminada',
-  auditLogAction_UPDATE: 'Actualizada', publishedFieldLocked: 'Campo bloqueado...',
-  assignmentFilterAll: 'Todas', assignmentFilteredCount: '{filtered} de {total}',
-  brandPart1: 'ABD', brandPart2: 'Suite',
+
+type Labels = Record<string, string>;
+const ALL_LABELS: Record<string, Labels> = {
+  es: {
+    assignmentsTitle: 'Asignaciones', noAssignments: 'No hay asignaciones',
+    newAssignment: 'Nueva Asignación', createAssignment: 'Crear Asignación',
+    btnCancel: 'Cancelar', btnCreate: 'Crear',
+    formExamConfig: 'Configuración de Examen', formSelectExamConfig: 'Seleccionar configuración...',
+    loadingConfigs: 'Cargando...', formAssignedToType: 'Tipo de Destinatario',
+    formAssignedToTypeSpace: 'Espacio', formAssignedToTypeGroup: 'Grupo',
+    formAssignedToTypeUser: 'Usuario', formAssignedToId: 'ID del Destinatario',
+    formStartDate: 'Fecha de Inicio', formEndDate: 'Fecha de Fin',
+    formMaxAttempts: 'Máximo de Intentos', optional: 'opcional',
+    validationRequired: 'Campo requerido', validationInvalidDates: 'La fecha de fin debe ser posterior a la de inicio',
+    assignmentCreated: 'Asignación creada', assignmentCreateError: 'Error al crear la asignación',
+    unnamedConfig: 'Sin nombre', assignmentMaxAttempts: 'Intentos máximos',
+    assignmentType: 'Tipo', assignmentActive: 'Activa',
+    publishAssignment: 'Publicar', archiveAssignment: 'Archivar', deleteAssignment: 'Eliminar',
+    publishConfirmTitle: '¿Publicar?', publishConfirmMessage: 'Estará disponible.',
+    archiveConfirmTitle: '¿Archivar?', archiveConfirmMessage: 'Dejará de estar disponible.',
+    deleteConfirmTitle: '¿Eliminar?', deleteConfirmMessage: 'Se ocultará la asignación.',
+    statusDraft: 'Borrador', statusPublished: 'Publicado', statusArchived: 'Archivado',
+    cancel: 'Cancelar', editAssignment: 'Editar', editAssignmentTitle: 'EDITAR ASIGNACIÓN',
+    btnSave: 'GUARDAR CAMBIOS', assignmentUpdated: 'Asignación actualizada',
+    assignmentUpdateError: 'Error al actualizar', assignmentPublished: 'Publicada',
+    assignmentArchived: 'Archivada', assignmentDeleted: 'Eliminada',
+    assignmentPublishError: 'Error publicar', assignmentArchiveError: 'Error archivar',
+    assignmentDeleteError: 'Error eliminar', auditLog: 'Historial', auditLogEmpty: 'Sin eventos',
+    auditLogAction_CREATE: 'Creada', auditLogAction_PUBLISHED: 'Publicada',
+    auditLogAction_ARCHIVED: 'Archivada', auditLogAction_DELETED: 'Eliminada',
+    auditLogAction_UPDATE: 'Actualizada', publishedFieldLocked: 'Campo bloqueado...',
+    assignmentFilterAll: 'Todas', assignmentFilteredCount: '{filtered} de {total}',
+    brandPart1: 'ABD', brandPart2: 'Suite',
+  },
+  en: {
+    assignmentsTitle: 'Assignments', noAssignments: 'No assignments',
+    newAssignment: 'New Assignment', createAssignment: 'Create Assignment',
+    btnCancel: 'Cancel', btnCreate: 'Create',
+    formExamConfig: 'Exam Configuration', formSelectExamConfig: 'Select configuration...',
+    loadingConfigs: 'Loading...', formAssignedToType: 'Assignee Type',
+    formAssignedToTypeSpace: 'Space', formAssignedToTypeGroup: 'Group',
+    formAssignedToTypeUser: 'User', formAssignedToId: 'Assignee ID',
+    formStartDate: 'Start Date', formEndDate: 'End Date',
+    formMaxAttempts: 'Max Attempts', optional: 'optional',
+    validationRequired: 'This field is required', validationInvalidDates: 'End date must be after start date',
+    assignmentCreated: 'Assignment created', assignmentCreateError: 'Error creating assignment',
+    unnamedConfig: 'Unnamed', assignmentMaxAttempts: 'Max attempts',
+    assignmentType: 'Type', assignmentActive: 'Active',
+    publishAssignment: 'Publish', archiveAssignment: 'Archive', deleteAssignment: 'Delete',
+    publishConfirmTitle: 'Publish?', publishConfirmMessage: 'Will be available.',
+    archiveConfirmTitle: 'Archive?', archiveConfirmMessage: 'Will no longer be available.',
+    deleteConfirmTitle: 'Delete?', deleteConfirmMessage: 'Assignment will be hidden.',
+    statusDraft: 'Draft', statusPublished: 'Published', statusArchived: 'Archived',
+    cancel: 'Cancel', editAssignment: 'Edit', editAssignmentTitle: 'EDIT ASSIGNMENT',
+    btnSave: 'SAVE CHANGES', assignmentUpdated: 'Assignment updated',
+    assignmentUpdateError: 'Error updating', assignmentPublished: 'Published',
+    assignmentArchived: 'Archived', assignmentDeleted: 'Deleted',
+    assignmentPublishError: 'Error publishing', assignmentArchiveError: 'Error archiving',
+    assignmentDeleteError: 'Error deleting', auditLog: 'History', auditLogEmpty: 'No events',
+    auditLogAction_CREATE: 'Created', auditLogAction_PUBLISHED: 'Published',
+    auditLogAction_ARCHIVED: 'Archived', auditLogAction_DELETED: 'Deleted',
+    auditLogAction_UPDATE: 'Updated', publishedFieldLocked: 'Field locked...',
+    assignmentFilterAll: 'All', assignmentFilteredCount: '{filtered} of {total}',
+    brandPart1: 'ABD', brandPart2: 'Suite',
+  },
 };
-const mockT = vi.fn((k: string) => labels[k] || k);
+
+const mockT = vi.fn();
+let currentLocale = 'es';
+function applyLocale(locale: string) {
+  currentLocale = locale;
+  const labels = ALL_LABELS[locale] || ALL_LABELS.es;
+  mockT.mockImplementation((k: string) => labels[k] || k);
+}
+applyLocale('es');
 
 vi.mock('@ajabadia/styles', () => ({
   LabeledField: ({ id, label, error, required, hint, children, className, labelClassName }: Record<string,unknown>) =>
@@ -235,5 +278,32 @@ describe('AssignmentsList — Edit Modal', () => {
     await waitFor(()=>expect(screen.getByText('EDITAR ASIGNACIÓN')).toBeDefined());
     expect(screen.getByDisplayValue('user-xyz')).toHaveProperty('disabled',true);
     expect(screen.getByDisplayValue('0')).toHaveProperty('disabled',false);
+  });
+});
+
+describe('AssignmentsList — English locale', () => {
+  beforeEach(() => { vi.clearAllMocks(); mockGEC.mockResolvedValue([{_id:'cfg1',name:'Exam A'},{_id:'cfg2',name:'Exam B'}]); applyLocale('en'); });
+
+  it('renders empty state in English', () => {
+    render(<AssignmentsList assignments={[]} locale="en" />);
+    expect(screen.getByText('No assignments')).toBeDefined();
+  });
+
+  it('renders list and create modal in English', async () => {
+    const u = userEvent.setup(); render(<AssignmentsList assignments={mockAssignments} locale="en" />);
+    expect(screen.getByRole('heading',{name:'Examen A'})).toBeDefined();
+    await u.click(screen.getByText('New Assignment'));
+    await waitFor(()=>expect(screen.getByText('Create Assignment')).toBeDefined());
+  });
+
+  it('creates assignment in English', async () => {
+    mockCA.mockResolvedValue({success:true,id:'n1'});
+    render(<AssignmentsList assignments={mockAssignments} locale="en" showCreateForm />);
+    await waitFor(()=>expect(screen.getByText('Create Assignment')).toBeDefined());
+    await fillForm();
+    await userEvent.setup().click(screen.getByText('Create'));
+    await waitFor(()=>expect(mockCA).toHaveBeenCalledWith(expect.objectContaining({examConfigId:'cfg1'})));
+    expect(mockTS).toHaveBeenCalledWith('Assignment created');
+    expect(mockRR).toHaveBeenCalled();
   });
 });

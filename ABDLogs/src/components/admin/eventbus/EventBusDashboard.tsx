@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface StreamInfo {
   eventType: string;
@@ -33,6 +34,7 @@ interface EventBusStats {
 }
 
 export function EventBusDashboard() {
+  const t = useTranslations('logs');
   const [stats, setStats] = useState<EventBusStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +64,7 @@ export function EventBusDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64 text-muted-foreground">
-        Cargando métricas del Event Bus...
+        {t('loadingMessage')}
       </div>
     );
   }
@@ -82,19 +84,19 @@ export function EventBusDashboard() {
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <MetricCard
-          label="Tipos de Evento"
+          label={t('eventTypes')}
           value={stats.eventTypes}
-          subtitle="Registrados en SystemEventType"
+          subtitle={t('eventTypesSub')}
         />
         <MetricCard
-          label="Streams Activos"
+          label={t('activeStreams')}
           value={stats.activeStreams}
-          subtitle="Con eventos pendientes"
+          subtitle={t('activeStreamsSub')}
         />
         <MetricCard
-          label="Total Eventos"
+          label={t('totalEvents')}
           value={stats.totalEvents}
-          subtitle="Acumulados en Redis"
+          subtitle={t('totalEventsSub')}
         />
       </div>
 
@@ -102,17 +104,17 @@ export function EventBusDashboard() {
       <div className="border border-border bg-card/40">
         <div className="p-4 border-b border-border">
           <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
-            Streams de Eventos
+            {t('eventStreamsTitle')}
           </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-muted-foreground text-xs uppercase tracking-wider">
-                <th className="text-left p-4 font-medium">Event Type</th>
-                <th className="text-left p-4 font-medium">Stream Key</th>
-                <th className="text-right p-4 font-medium">Longitud</th>
-                <th className="text-right p-4 font-medium">Estado</th>
+                <th className="text-left p-4 font-medium">{t('eventTypeHeader')}</th>
+                <th className="text-left p-4 font-medium">{t('streamKeyHeader')}</th>
+                <th className="text-right p-4 font-medium">{t('lengthHeader')}</th>
+                <th className="text-right p-4 font-medium">{t('statusHeader')}</th>
               </tr>
             </thead>
             <tbody>
@@ -140,22 +142,23 @@ export function EventBusDashboard() {
         <div className="border border-border bg-card/40">
           <div className="p-4 border-b border-border flex items-center justify-between">
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
-              Últimos Eventos: <span className="text-primary">{selectedStream}</span>
+              {t('recentEventsTitle')}: <span className="text-primary">{selectedStream}</span>
             </h3>
             <button
               onClick={() => setSelectedStream(null)}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={t('close')}
             >
-              Cerrar
+              {t('close')}
             </button>
           </div>
           <div className="overflow-x-auto max-h-96 overflow-y-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-muted-foreground text-xs uppercase tracking-wider sticky top-0 bg-card">
-                  <th className="text-left p-3 font-medium">ID</th>
-                  <th className="text-left p-3 font-medium">Timestamp</th>
-                  <th className="text-left p-3 font-medium">Payload</th>
+                  <th className="text-left p-3 font-medium">{t('idHeader')}</th>
+                  <th className="text-left p-3 font-medium">{t('timestampLabel')}</th>
+                  <th className="text-left p-3 font-medium">{t('payloadHeader')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -175,7 +178,7 @@ export function EventBusDashboard() {
                 {(!stats.streamDetails.find(s => s.eventType === selectedStream)?.events.length) && (
                   <tr>
                     <td colSpan={3} className="p-4 text-center text-muted-foreground text-xs">
-                      No hay eventos recientes
+                      {t('noRecentEvents')}
                     </td>
                   </tr>
                 )}

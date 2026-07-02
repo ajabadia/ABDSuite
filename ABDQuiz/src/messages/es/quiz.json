@@ -16,6 +16,8 @@
     "next": "Siguiente",
     "finish": "Finalizar"
   },
+  "questionLabel": "Pregunta",
+  "exitEditor": "Salir del Editor",
   "results": {
     "score": "Puntuación",
     "percentage": "Porcentaje",

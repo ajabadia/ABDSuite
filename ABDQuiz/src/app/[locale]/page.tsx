@@ -38,9 +38,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <SubtleLoginButton
           href={`/${locale}/examinar`}
           label={h('accessSimulator')}
-          hint={locale === 'es'
-            ? 'Inicie sesión con sus credenciales federadas de ABDAuth'
-            : 'Sign in utilizing your federated credentials from ABDAuth'}
+          hint={h('loginHint')}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="region" aria-label="System Capabilities">

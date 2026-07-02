@@ -116,5 +116,9 @@
   "btnNextQuestion": "SIGUIENTE PREGUNTA",
   "btnApplyBank": "APLICAR Y INGESTAR BANCO",
   "abdTitle": "ABD",
-  "adminDescriptionFull": "Consola de control federada y gobernanza en caliente del tenant <tenant>{tenantId}</tenant>."
+  "adminDescriptionFull": "Consola de control federada y gobernanza en caliente del tenant <tenant>{tenantId}</tenant>.",
+  "sandboxMode": "Modo Sandbox:",
+  "organizationToImpersonate": "Organización a suplantar:",
+  "impersonatedUser": "Usuario suplantado:",
+  "activateSandbox": "Activar Sandbox"
 }

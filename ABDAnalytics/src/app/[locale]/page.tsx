@@ -40,9 +40,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <SubtleLoginButton
           href={`/${locale}/admin`}
           label={h('accessControlPlane')}
-          hint={locale === 'es'
-            ? 'Inicie sesión con sus credenciales federadas de ABDAuth'
-            : 'Sign in utilizing your federated credentials from ABDAuth'}
+          hint={h('loginHint')}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="region" aria-label="System Capabilities">
@@ -51,12 +49,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Cpu className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Capacitación y Desempeño' : 'Training & Performance'}
+              {h('trainingPerformance')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Consolidación de curvas de aprendizaje, tasas de finalización, histogramas de Gauss y telemetría de distractores de ABDQuiz.'
-                : 'Consolidation of learning curves, completion rates, Gauss grade distributions, and distractor telemetry from ABDQuiz.'}
+              {h('trainingPerformanceDesc')}
             </p>
           </div>
 
@@ -65,12 +61,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Database className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Gobernanza y Recursos' : 'Governance & Resources'}
+              {h('governanceResources')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Monitoreo de la utilización espacial de almacenamiento y activos de Spaces, junto al control y vigencia de licencias.'
-                : 'Monitoring of spatial resource storage and assets usage in Spaces, alongside licensed application tracking.'}
+              {h('governanceResourcesDesc')}
             </p>
           </div>
 
@@ -79,12 +73,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Sliders className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Seguridad e Identidad' : 'Security & Identity'}
+              {h('securityIdentity')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Telemetría operacional de accesos en tiempo real, histórico de logins fallidos, y tasas de adopción de MFA/Passkeys en ABDAuth.'
-                : 'Real-time operational access telemetry, timeline of failed logins, and MFA/Passkeys adoption rates from ABDAuth.'}
+              {h('securityIdentityDesc')}
             </p>
           </div>
 
@@ -94,8 +86,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <GlobalFooter
         separatorWidth="short"
         telemetryItems={[
-          { label: locale === 'es' ? 'Aplicación' : 'Application', value: h('version') },
-          { label: locale === 'es' ? 'Estilo' : 'Style', value: h('style') }
+          { label: h('applicationLabel'), value: h('version') },
+          { label: h('styleLabel'), value: h('style') }
         ]}
       />
     </LandingPageLayout>

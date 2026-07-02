@@ -12,6 +12,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { AlertTriangle, HardDrive } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { DashboardMetrics } from '@/types/dashboard-metrics';
 import SuiteTab from './tabs/SuiteTab';
 import LmsTab from './tabs/LmsTab';
@@ -20,14 +21,14 @@ import GovernanceTab from './tabs/GovernanceTab';
 
 interface DashboardClientProps {
   metrics: DashboardMetrics;
-  locale: string;
 }
 
 type TabId = 'suite' | 'lms' | 'security' | 'governance';
 
 const TAB_IDS: TabId[] = ['suite', 'lms', 'security', 'governance'];
 
-export default function DashboardClient({ metrics, locale }: DashboardClientProps) {
+export default function DashboardClient({ metrics }: DashboardClientProps) {
+  const t = useTranslations('analytics');
   const [activeTab, setActiveTab] = useState<TabId>('suite');
 
   const tabRefs = React.useRef<Record<TabId, HTMLButtonElement | null>>({
@@ -66,10 +67,10 @@ export default function DashboardClient({ metrics, locale }: DashboardClientProp
 
   const tabLabel = (tab: TabId): string => {
     switch (tab) {
-      case 'suite': return locale === 'es' ? 'RESUMEN SUITE' : 'SUITE SUMMARY';
-      case 'lms': return 'LMS (ABDQUIZ)';
-      case 'security': return locale === 'es' ? 'SEGURIDAD (ABDAUTH)' : 'SECURITY (ABDAUTH)';
-      case 'governance': return locale === 'es' ? 'GOBERNANZA' : 'GOVERNANCE';
+      case 'suite': return t('tabSuite');
+      case 'lms': return t('tabLms');
+      case 'security': return t('tabSecurity');
+      case 'governance': return t('tabGovernance');
     }
   };
 
@@ -86,19 +87,15 @@ export default function DashboardClient({ metrics, locale }: DashboardClientProp
             <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0" />
             <div className="flex flex-col">
               <span className="font-mono text-xs font-black uppercase tracking-widest text-warning">
-                {locale === 'es' 
-                  ? '[ADVERTENCIA DE AUDITORÍA] SISTEMA EN MODO PREVIEW - DATOS SIMULADOS' 
-                  : '[AUDIT WARNING] SYSTEM IN PREVIEW MODE - SIMULATED DATA'}
+                {t('auditWarningTitle')}
               </span>
               <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-                {locale === 'es'
-                  ? 'La base de datos actual está vacía para este Tenant. Mostrando capa analítica simulada para propósitos de demostración técnica.'
-                  : 'The current database is empty for this Tenant. Showing simulated analytics layer for technical demonstration purposes.'}
+                {t('auditWarningDesc')}
               </span>
             </div>
           </div>
           <div className="px-3 py-1 border border-warning/40 text-[9px] font-mono text-warning uppercase font-bold tracking-widest bg-warning/10 select-none">
-            {locale === 'es' ? 'MODO_DEMO_ACTIVO' : 'DEMO_MODE_ACTIVE'}
+            {t('demoModeBadge')}
           </div>
         </div>
       )}
@@ -107,13 +104,13 @@ export default function DashboardClient({ metrics, locale }: DashboardClientProp
       <div className="bg-card border p-4 rounded flex items-center justify-between">
         <div className="flex items-center gap-2">
           <HardDrive className="w-4 h-4 text-muted-foreground" />
-          <span className="text-[9px] font-mono font-black text-muted-foreground uppercase">{locale === 'es' ? 'ALMACENAMIENTO_ACTIVO' : 'ACTIVE_STORAGE'}</span>
+          <span className="text-[9px] font-mono font-black text-muted-foreground uppercase">{t('activeStorageLabel')}</span>
         </div>
         <div className="text-lg font-mono font-black text-primary uppercase">{storageProvider}</div>
       </div>
 
       {/* Tabs navigation in compliance with industrial design */}
-      <div className="flex flex-wrap gap-2 border-b border-border/40 pb-px" role="tablist" aria-label={locale === 'es' ? 'Paneles de analíticas' : 'Analytics panels'}>
+      <div className="flex flex-wrap gap-2 border-b border-border/40 pb-px" role="tablist" aria-label={t('analyticsPanelsAria')}>
         {TAB_IDS.map((tab) => (
           <button
             key={tab}
@@ -137,10 +134,10 @@ export default function DashboardClient({ metrics, locale }: DashboardClientProp
 
       {/* Tab Panels */}
       <div className="min-h-[400px]" role="tabpanel" aria-label={tabLabel(activeTab)}>
-        {activeTab === 'suite' && <SuiteTab metrics={metrics} locale={locale} />}
-        {activeTab === 'lms' && <LmsTab metrics={metrics} locale={locale} />}
-        {activeTab === 'security' && <SecurityTab metrics={metrics} locale={locale} />}
-        {activeTab === 'governance' && <GovernanceTab metrics={metrics} locale={locale} />}
+        {activeTab === 'suite' && <SuiteTab metrics={metrics} />}
+        {activeTab === 'lms' && <LmsTab metrics={metrics} />}
+        {activeTab === 'security' && <SecurityTab metrics={metrics} />}
+        {activeTab === 'governance' && <GovernanceTab metrics={metrics} />}
       </div>
     </div>
   );

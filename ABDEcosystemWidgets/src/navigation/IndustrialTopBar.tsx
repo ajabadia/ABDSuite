@@ -11,6 +11,7 @@
  */
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { Search } from 'lucide-react';
 
 export interface IndustrialTopBarProps {
@@ -60,6 +61,7 @@ export function IndustrialTopBar({
   settings,
   className = '',
 }: IndustrialTopBarProps) {
+  const t = useTranslations('widgets');
   return (
     <div
       className={`fixed top-6 right-6 z-40 flex items-center gap-2 ${className}`}
@@ -70,12 +72,12 @@ export function IndustrialTopBar({
       {/* ── Global search trigger (opens CommandPalette by DOM id) ── */}
       <button
         id="command-palette-trigger"
-        aria-label={locale === 'es' ? 'Buscar comandos (Ctrl+K)' : 'Search commands (Ctrl+K)'}
+        aria-label={t('searchCommands')}
         className="p-2.5 rounded-none border border-border bg-background/80 backdrop-blur-md hover:bg-muted text-foreground transition-all active:scale-90 cursor-pointer shadow-lg flex items-center justify-center gap-2"
       >
         <Search size={18} className="text-foreground shrink-0" />
         <span className="hidden md:inline-flex items-center text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/80 font-sans">
-          {locale === 'es' ? 'BUSCADOR' : 'SEARCH'}
+          {t('searchLabel')}
         </span>
         <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono rounded bg-white/10 text-white/50 border border-white/5 uppercase">
           Ctrl+K

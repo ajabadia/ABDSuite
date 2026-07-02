@@ -123,6 +123,7 @@ export function MembershipsSection({
             type="button"
             onClick={handleAddMembership}
             disabled={!selectedNewTenant}
+            aria-label={t.form.add_membership}
             className="h-10 px-4 bg-primary hover:bg-primary/80 disabled:opacity-40 text-primary-foreground font-black text-[10px] uppercase tracking-widest transition-all rounded-none flex items-center gap-2"
           >
             <Plus size={14} />

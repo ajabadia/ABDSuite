@@ -42,19 +42,19 @@ export default async function AdminGdprPage({
       <div className="max-w-7xl mx-auto flex flex-col gap-10">
         <AdminPageHeader
           icon={ShieldX}
-          breadcrumb={<>{tAdmin('controlConsole')} • GDPR</>}
-          title="GDPR Data Purge"
+          breadcrumb={<>{tAdmin('controlConsole')} • {tAdmin('gdprPageBreadcrumb')}</>}
+          title={tAdmin('gdprDataPurge')}
           backButton={
             <Link
               href={`/${locale}/admin${querySuffix}`}
               className="inline-flex items-center justify-center p-2 bg-transparent text-muted-foreground hover:text-foreground border border-border hover:border-border/80 transition-all duration-200 cursor-pointer rounded-none active:scale-[0.95] shrink-0 focus:outline-none focus:ring-1 focus:ring-primary/50"
-              aria-label="Back to Admin Dashboard"
-              title="Back to Dashboard"
+              aria-label={tAdmin('backToAdminDashboard')}
+              title={tAdmin('backToDashboard')}
             >
               <ArrowLeft size={14} aria-hidden="true" />
             </Link>
           }
-          description="Orchestrate GDPR Right to be Forgotten across all satellites. This will anonymize or delete the user's personal data in every service."
+          description={tAdmin('gdprPageDesc')}
         />
         <GdprForm />
       </div>

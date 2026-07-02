@@ -24,5 +24,19 @@
   "launchConsole": "LAUNCH CONSOLE",
   "simulationTemplates": "SIMULATION TEMPLATES",
   "examsDescription": "Select a simulation template to begin your technical evaluation. All timing and scoring parameters will be enforced automatically.",
-  "abdTitle": "ABD"
+  "abdTitle": "ABD",
+  "loginHint": "Sign in utilizing your federated credentials from ABDAuth",
+  "ingestionApiTitle": "Ingestion API",
+  "ingestionApiDesc": "High-performance, non-blocking ingestion via REST API secured with inter-service Bearer tokens.",
+  "centralizedAuditTitle": "Centralized Audit Trail",
+  "centralizedAuditDesc": "Unified real-time query and inspection of technical and operational activity logs across the ABD ecosystem.",
+  "dynamicFilterTitle": "Dynamic App Filtering",
+  "dynamicFilterDesc": "Interactive filtering by source application (Auth, Quiz, Governance) and organization with automatic aggregation.",
+  "microserviceLabel": "Microservice",
+  "hotWhitelabeling": "Hot White-Labeling",
+  "hotWhitelabelingDesc": "Dynamic generation of HSL and YIQ Contrast custom tokens rendered during server-side SSR loops to secure zero visual flicker.",
+  "spaceHierarchies": "Space Hierarchies",
+  "spaceHierarchiesDesc": "Logic boundaries and role isolation calculated inside data repositories with recursive materialized subdivisions.",
+  "cryptographicSecurity": "Cryptographic Security",
+  "cryptographicSecurityDesc": "Symmetric AES-256-CBC envelope encryption protecting customer configuration and sensitive billing fields in the database."
 }

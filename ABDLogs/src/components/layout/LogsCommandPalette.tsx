@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { useRouter, usePathname } from '@/i18n/routing';
-import { useLocale } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { CommandPalette, type Command, buildCommonCommands } from '@ajabadia/ecosystem-widgets';
 import { ShieldCheck, Server } from 'lucide-react';
 
@@ -20,14 +20,15 @@ export function LogsCommandPalette() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
+  const l = useTranslations('logs');
 
   const commands: Command[] = [
     // Navigation Category
     {
       id: 'nav-audit',
-      title: locale === 'es' ? 'Visor Forense (Audit)' : 'Forensic Viewer',
-      description: locale === 'es' ? 'Explorar el registro de logs unificado' : 'Explore the unified log registry',
-      category: locale === 'es' ? 'Auditoría' : 'Audit',
+      title: l('forensicViewer'),
+      description: l('forensicViewerDesc'),
+      category: l('auditCategory'),
       shortcut: ['g', 'a'],
       icon: <ShieldCheck className="w-4 h-4" />,
       action: () => {
@@ -36,9 +37,9 @@ export function LogsCommandPalette() {
     },
     {
       id: 'nav-status',
-      title: locale === 'es' ? 'Estado del Servicio' : 'Service Status',
-      description: locale === 'es' ? 'Verificar ingestas y latencia' : 'Check ingestion and latency',
-      category: locale === 'es' ? 'Auditoría' : 'Audit',
+      title: l('serviceStatus'),
+      description: l('serviceStatusDesc'),
+      category: l('auditCategory'),
       shortcut: ['g', 's'],
       icon: <Server className="w-4 h-4" />,
       action: () => {
@@ -52,7 +53,7 @@ export function LogsCommandPalette() {
   return (
     <CommandPalette
       commands={commands}
-      placeholder={locale === 'es' ? 'Escribe un comando o busca trazas...' : 'Type a command or search traces...'}
+      placeholder={l('commandPlaceholder')}
     />
   );
 }

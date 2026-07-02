@@ -11,6 +11,7 @@
  */
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -28,7 +29,6 @@ import { CustomTooltip } from './CustomTooltip';
 
 interface LmsTabProps {
   metrics: DashboardMetrics;
-  locale: string;
 }
 
 const CHART_COLORS = [
@@ -39,12 +39,13 @@ const CHART_COLORS = [
   '#8b5cf6', // Violet
 ];
 
-export default function LmsTab({ metrics, locale }: LmsTabProps) {
+export default function LmsTab({ metrics }: LmsTabProps) {
+  const t = useTranslations('analytics');
   const gradeDistributionData = [
-    { name: locale === 'es' ? 'SUSPENSO (<50%)' : 'FAIL (<50%)', count: metrics.lms.gradeDistribution.fail },
-    { name: locale === 'es' ? 'APROBADO (50-70%)' : 'PASS (50-70%)', count: metrics.lms.gradeDistribution.pass },
-    { name: locale === 'es' ? 'NOTABLE (70-90%)' : 'REMARKABLE (70-90%)', count: metrics.lms.gradeDistribution.remarkable },
-    { name: locale === 'es' ? 'SOBRESALIENTE (>90%)' : 'OUTSTANDING (>90%)', count: metrics.lms.gradeDistribution.outstanding }
+    { name: t('fail'), count: metrics.lms.gradeDistribution.fail },
+    { name: t('pass'), count: metrics.lms.gradeDistribution.pass },
+    { name: t('remarkable'), count: metrics.lms.gradeDistribution.remarkable },
+    { name: t('outstanding'), count: metrics.lms.gradeDistribution.outstanding }
   ];
 
   return (
@@ -53,7 +54,7 @@ export default function LmsTab({ metrics, locale }: LmsTabProps) {
         {/* Gauss Grade Distribution Chart */}
         <div className="glass-panel p-6 rounded-none flex flex-col gap-4">
           <h4 className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-            {locale === 'es' ? 'DISTRIBUCIÓN DE CALIFICACIONES (GAUSS)' : 'GRADE DISTRIBUTION (GAUSS)'}
+            {t('gradeDistribution')}
           </h4>
           <div className="w-full h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -75,7 +76,7 @@ export default function LmsTab({ metrics, locale }: LmsTabProps) {
         {/* Learning curve progression */}
         <div className="glass-panel p-6 rounded-none flex flex-col gap-4">
           <h4 className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-            {locale === 'es' ? 'CURVA DE APRENDIZAJE (PROGRESO TEMPORAL)' : 'LEARNING CURVE (TEMPORAL PROGRESS)'}
+            {t('learningCurve')}
           </h4>
           <div className="w-full h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -94,7 +95,7 @@ export default function LmsTab({ metrics, locale }: LmsTabProps) {
       {/* Distractor Telemetry */}
       <div className="glass-panel p-6 rounded-none flex flex-col gap-6">
         <h4 className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-          {locale === 'es' ? 'TELEMETRÍA DE DISTRACTORES (PREGUNTAS COMPLICADAS)' : 'DISTRACTOR TELEMETRY (DIFFICULT QUESTIONS)'}
+          {t('distractorTelemetry')}
         </h4>
         <div className="flex flex-col gap-4">
           {metrics.lms.distractorTelemetry.map((q, idx) => (
@@ -102,7 +103,7 @@ export default function LmsTab({ metrics, locale }: LmsTabProps) {
               <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                 <span className="font-bold uppercase tracking-wide text-foreground">{q.questionText}</span>
                 <span className="px-2 py-0.5 border border-destructive/30 text-destructive text-[10px] uppercase font-bold w-fit">
-                  {locale === 'es' ? `FALLAS: ${q.incorrectRate}%` : `FAIL RATE: ${q.incorrectRate}%`}
+                  {t('failRate', { rate: q.incorrectRate })}
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2">

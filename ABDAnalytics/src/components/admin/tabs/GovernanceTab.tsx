@@ -11,6 +11,7 @@
  */
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -26,7 +27,6 @@ import { CustomTooltip } from './CustomTooltip';
 
 interface GovernanceTabProps {
   metrics: DashboardMetrics;
-  locale: string;
 }
 
 const CHART_COLORS = [
@@ -37,13 +37,14 @@ const CHART_COLORS = [
   '#8b5cf6', // Violet
 ];
 
-export default function GovernanceTab({ metrics, locale }: GovernanceTabProps) {
+export default function GovernanceTab({ metrics }: GovernanceTabProps) {
+  const t = useTranslations('analytics');
   return (
     <div className="flex flex-col gap-8 animate-in fade-in duration-200">
       {/* Space Storage Utilization Stacked Chart */}
       <div className="glass-panel p-6 rounded-none flex flex-col gap-4">
         <h4 className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-          {locale === 'es' ? 'UTILIZACIÓN DE ALMACENAMIENTO POR ESPACIO' : 'SPACE STORAGE UTILIZATION'}
+          {t('spaceStorageUtilization')}
         </h4>
         <div className="w-full h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -66,7 +67,7 @@ export default function GovernanceTab({ metrics, locale }: GovernanceTabProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 font-mono text-xs">
         <div className="glass-panel p-6 rounded-none flex flex-col gap-4">
           <h4 className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-            {locale === 'es' ? 'LICENCIAS DE APLICACIONES REGISTRADAS' : 'LICENSED APPLICATIONS REGISTRY'}
+            {t('licensedApplicationsRegistry')}
           </h4>
           <div className="flex flex-col gap-2">
             {metrics.governance.licensedApps.map((app, idx) => (
@@ -74,7 +75,7 @@ export default function GovernanceTab({ metrics, locale }: GovernanceTabProps) {
                 <span className="font-bold uppercase tracking-wider">{app.appId}</span>
                 <div className="flex items-center gap-3">
                   {app.expirationDate && (
-                    <span className="text-[10px] text-muted-foreground uppercase">{locale === 'es' ? 'EXPIRA: ' : 'EXPIRES: '}{new Date(app.expirationDate).toLocaleDateString()}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase">{t('expiresLabel')}{new Date(app.expirationDate).toLocaleDateString()}</span>
                   )}
                   <span className={`px-2 py-0.5 border text-[10px] uppercase font-bold ${
                     app.status === 'active' ? 'border-primary/30 text-primary' : 'border-destructive/30 text-destructive'
@@ -89,12 +90,12 @@ export default function GovernanceTab({ metrics, locale }: GovernanceTabProps) {
 
         <div className="glass-panel p-6 rounded-none flex flex-col gap-4">
           <h4 className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-            {locale === 'es' ? 'MÉTRICAS ESPACIALES ADICIONALES' : 'ADDITIONAL SPATIAL METRICS'}
+            {t('additionalSpatialMetrics')}
           </h4>
           <div className="grid grid-cols-2 gap-4">
             <div className="border border-border/30 p-4 bg-card/20 flex flex-col gap-1">
               <span className="text-muted-foreground text-[8px] uppercase">
-                {locale === 'es' ? 'TOTAL DE ESPACIOS CREADOS' : 'TOTAL SPACES CREATED'}
+                {t('totalSpacesCreated')}
               </span>
               <span className="text-xl font-bold">{metrics.governance.totalSpacesCreated}</span>
             </div>

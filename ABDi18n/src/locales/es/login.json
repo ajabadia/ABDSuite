@@ -31,6 +31,7 @@
   "footer_text": "Sistema de Identidad Certificado v1.0",
   "federated_login": "Acceso con SSO Corporativo",
   "federated": {
+    "pageTitle": "Federación",
     "subtitle": "PUERTA DE ENLACE DE IDENTIDAD FEDERADA",
     "back_to_login": "Volver al inicio de sesión",
     "welcome_back": "Bienvenido de nuevo",

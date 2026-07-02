@@ -123,6 +123,7 @@ export function CourseProgressSection({ courses }: CourseProgressSectionProps) {
                 onClick={() => toggleCourse(course.courseId)}
                 className="w-full flex items-center justify-between text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/50"
                 aria-expanded={isExpanded}
+                aria-label={course.courseName}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <BookOpen className="w-4 h-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -135,10 +136,10 @@ export function CourseProgressSection({ courses }: CourseProgressSectionProps) {
                     {d('objectivesCount', { covered: course.coveredObjectives, total: course.totalObjectives })}
                   </span>
                   <div className="w-16 h-1.5 bg-muted/30 rounded-none overflow-hidden">
-                    <div
-                      className="h-full bg-primary transition-all duration-500 rounded-none"
-                      style={{ width: `${overallPct}%` }}
-                    />
+            <style>{`.course-progress-fill { width: ${overallPct}% }`}</style>
+            <div
+              className="course-progress-fill h-full bg-primary transition-all duration-300"
+            />
                   </div>
                   <span className="text-[10px] font-mono font-bold text-primary w-8 text-right">
                     {overallPct}%

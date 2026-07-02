@@ -1,4 +1,11 @@
 {
+  "appLauncher": {
+    "title": "APLICACIONES AUTORIZADAS",
+    "subtitle": "TERMINAL DE LANZAMIENTO SSO DIRECTO",
+    "launchBtn": "INICIAR ACCESO SATÉLITE",
+    "noApps": "No hay aplicaciones licenciadas para este Tenant",
+    "licensedApps": "LICENCIA ACTIVA"
+  },
   "control_console": "Consola de Control",
   "back_to_dashboard": "Volver al panel",
   "welcome": "Bienvenido",
@@ -84,7 +91,44 @@
     "table_empty": "NO SE ENCONTRARON USUARIOS EN ESTE TENANT",
     "suspend_btn": "SUSPENDER",
     "reactivate_btn": "REACTIVAR",
-    "manage_groups_btn": "GESTIONAR GRUPOS"
+    "manage_groups_btn": "GESTIONAR GRUPOS",
+    "form": {
+      "email": "Email",
+      "password": "Contraseña",
+      "role": "Rol",
+      "tenant": "Inquilino",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "name": "Nombre",
+      "surname": "Apellido",
+      "core_identity": "Identidad Principal",
+      "governance_policy": "Política de Gobernanza",
+      "enforce_mfa": "Forzar MFA",
+      "mandatory_onboarding": "Onboarding Obligatorio",
+      "standard_security": "Seguridad Estándar",
+      "memberships": "Membresías",
+      "add_membership": "Añadir Membresía",
+      "default_tenant": "Inquilino por Defecto",
+      "set_default": "Establecer por Defecto",
+      "remove_membership": "Eliminar Membresía",
+      "no_memberships": "Sin membresías",
+      "select_tenant_placeholder": "Seleccionar inquilino",
+      "membership_role": "Rol de Membresía",
+      "membership_status": "Estado de Membresía",
+      "allowed_apps": "Apps Permitidas",
+      "no_apps_for_tenant": "Sin apps para este inquilino",
+      "inherited": "(heredado)"
+    },
+    "roles": {
+      "student": "Estudiante / Operario",
+      "admin": "Administrador (Tenant)",
+      "owner": "Propietario"
+    },
+    "status": {
+      "active": "Activo",
+      "suspended": "Suspendido",
+      "pending": "Pendiente"
+    }
   },
   "tenants": {
     "title": "Gobernanza de Organizaciones",

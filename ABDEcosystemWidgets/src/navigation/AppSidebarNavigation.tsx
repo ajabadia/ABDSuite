@@ -111,11 +111,11 @@ export function AppSidebarNavigation({
     },
     translations: {
       brandFallback: appTitle,
-      loginBtn: locale === 'es' ? 'INICIAR SESIÓN' : 'SIGN IN',
-      logoutBtn: locale === 'es' ? 'TERMINAR SESIÓN' : 'SIGN OUT',
-      identityProvider: locale === 'es' ? 'PROVEEDOR DE IDENTIDAD' : 'IDENTITY PROVIDER',
-      statusOnline: locale === 'es' ? 'EN LÍNEA' : 'ONLINE',
-      emailLabel: locale === 'es' ? 'CORREO' : 'EMAIL',
+      loginBtn: t('loginBtn') || 'SIGN IN',
+      logoutBtn: t('logoutBtn') || 'SIGN OUT',
+      identityProvider: t('identityProvider') || 'IDENTITY PROVIDER',
+      statusOnline: t('statusOnline') || 'ONLINE',
+      emailLabel: t('emailLabel') || 'EMAIL',
       ...translationsOverride,
     }
   };

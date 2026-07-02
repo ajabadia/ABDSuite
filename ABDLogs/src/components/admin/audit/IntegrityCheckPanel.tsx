@@ -11,7 +11,7 @@
  */
 
 import { useState, useTransition } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { ShieldCheck, ShieldAlert, Loader2, Link2, Search, CheckCircle2 } from 'lucide-react';
 import { verifyAuditChainAction } from '@/actions/verifyAuditChain';
@@ -22,7 +22,6 @@ interface IntegrityCheckPanelProps {
 
 export function IntegrityCheckPanel({ tenantId }: IntegrityCheckPanelProps) {
   const t = useTranslations('admin');
-  const locale = useLocale();
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{ isValid: boolean; invalidLogsCount: number; errorDetails: string[] } | null>(null);
 
@@ -37,12 +36,12 @@ export function IntegrityCheckPanel({ tenantId }: IntegrityCheckPanelProps) {
       });
 
       toast.promise(promise, {
-        loading: '🔍 Verificando cadena de bloques...',
+        loading: t('toast_integrity_loading'),
         success: (data) =>
           data.isValid
-            ? '✅ Cadena de bloques válida y sin alteraciones.'
-            : `⚠️ Se encontraron ${data.invalidLogsCount} bloques alterados.`,
-        error: (err: Error) => err.message || 'Error inesperado al verificar la cadena',
+            ? t('toast_integrity_valid')
+            : t('toast_integrity_invalid', { count: data.invalidLogsCount }),
+        error: (err: Error) => err.message || t('toast_integrity_error'),
       });
     });
   };
@@ -62,7 +61,7 @@ export function IntegrityCheckPanel({ tenantId }: IntegrityCheckPanelProps) {
               {t('integrity_title')}
             </h3>
             <p className="text-xs text-muted-foreground mt-1.5 max-w-lg leading-relaxed">
-              Verifica el encadenamiento criptográfico (SHA-256) de los logs de auditoría para garantizar que ninguna entrada ha sido modificada, eliminada o alterada desde su creación. Requisito SOC2.
+              {t('integrity_desc')}
             </p>
           </div>
         </div>
@@ -107,8 +106,8 @@ export function IntegrityCheckPanel({ tenantId }: IntegrityCheckPanelProps) {
               </h4>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {result.isValid 
-                  ? 'Todos los hashes y bloques enlazan correctamente. No se detectaron alteraciones.' 
-                  : `Se detectaron discrepancias en ${result.invalidLogsCount} bloques.`}
+                  ? t('chain_valid_desc')
+                  : t('chain_alert_desc', { count: result.invalidLogsCount })}
               </p>
             </div>
           </div>

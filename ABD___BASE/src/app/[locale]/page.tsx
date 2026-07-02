@@ -39,10 +39,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <main className="flex flex-col gap-16">
         <SubtleLoginButton
           href={`/${locale}/admin`}
-          label={locale === 'es' ? 'ACCEDER AL PANEL' : 'ACCESS CONTROL PLANE'}
-          hint={locale === 'es'
-            ? 'Inicie sesión con sus credenciales federadas de ABDAuth'
-            : 'Sign in utilizing your federated credentials from ABDAuth'}
+          label={h('accessPanel')}
+          hint={h('loginHint')}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="region" aria-label="System Capabilities">
@@ -51,12 +49,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Layers className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Modularidad' : 'Modularity'}
+              {h('modularity')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Arquitectura desacoplada basada en componentes web industriales y micro-servicios.'
-                : 'Decoupled architecture based on industrial web components and micro-services.'}
+              {h('modularityDesc')}
             </p>
           </div>
 
@@ -65,12 +61,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Cpu className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Rendimiento' : 'Performance'}
+              {h('performance')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Estructura optimizada sobre Next.js 16, React 19 y procesamiento asíncrono.'
-                : 'Optimized structure over Next.js 16, React 19 and asynchronous processing.'}
+              {h('performanceDesc')}
             </p>
           </div>
 
@@ -79,12 +73,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Shield className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Seguridad' : 'Security'}
+              {h('security')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Control de acceso federado mediante JWT y aislamiento estricto multi-tenant.'
-                : 'Federated access control utilizing JWT and strict multi-tenant isolation.'}
+              {h('securityDesc')}
             </p>
           </div>
         </div>
@@ -93,8 +85,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <GlobalFooter
         separatorWidth="short"
         telemetryItems={[
-          { label: locale === 'es' ? 'Aplicación' : 'Application', value: h('version') },
-          { label: locale === 'es' ? 'Estilo' : 'Style', value: h('style') }
+          { label: h('applicationLabel'), value: h('version') },
+          { label: h('styleLabel'), value: h('style') }
         ]}
       />
     </LandingPageLayout>

@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { Home, Terminal, ShieldCheck } from 'lucide-react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { AppSidebarNavigation, type AppSidebarLink } from '@ajabadia/ecosystem-widgets';
 
 interface UserSession {
@@ -38,7 +38,6 @@ interface SidebarNavigationProps {
 
 export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settingsSlot }: SidebarNavigationProps) {
   const t = useTranslations('common');
-  const locale = useLocale();
 
   const isLoggedIn = session.authenticated && !!session.user;
   const user = session.user;
@@ -46,18 +45,18 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
   const allLinks: AppSidebarLink[] = [
     {
       href: '/',
-      label: locale === 'es' ? 'Bienvenida' : 'Welcome',
+      label: t('welcomeMenu'),
       icon: <Home size={14} />
     },
     {
       href: '/admin/audit',
-      label: locale === 'es' ? 'Auditoría en Cadena' : 'Chain Auditing',
+      label: t('navAudit'),
       icon: <ShieldCheck size={14} />,
       requiresAdmin: true
     },
     {
       href: '/admin',
-      label: t('adminMenu') || (locale === 'es' ? 'Consola de Control' : 'Control Console'),
+      label: t('adminMenu'),
       icon: <Terminal size={14} />,
       requiresAdmin: true
     }
@@ -70,7 +69,7 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
       session={session}
       logoUrl={finalLogoUrl}
       links={allLinks}
-      brandName={t('appTitle') || 'ABD Suite'}
+      brandName={t('appTitle')}
       appBadge="LOGS"
       tenantSelectorSlot={tenantSelectorSlot}
       settingsSlot={settingsSlot}

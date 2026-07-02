@@ -135,7 +135,7 @@ export async function routeConversion(req: ConvertRequest): Promise<ConvertRespo
 
   // Text-to-Speech: text → audio
   if (isTtsMime(baseMime) && isTtsOutput(to)) {
-    const ttsOptions: TtsOptions = { voice, speed };
+    const ttsOptions: TtsOptions = { voice: voice as TtsOptions['voice'], speed };
     const result: TtsResult = await synthesizeSpeech(content, ttsOptions);
     return {
       output: Buffer.from(result.audio).toString('base64'),

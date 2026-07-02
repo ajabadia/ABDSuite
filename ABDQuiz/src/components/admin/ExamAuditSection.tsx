@@ -62,6 +62,8 @@ export default function ExamAuditSection({ report, examName, courseId, locale, t
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between bg-slate-900/50 border border-slate-800/50 rounded-xl p-4 hover:bg-slate-900/70 transition-colors"
+        aria-expanded={open}
+        aria-label={t('auditCoverageTitle') || 'Cobertura Curricular'}
       >
         <div className="flex items-center gap-3">
           <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0" />

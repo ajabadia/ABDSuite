@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { Home, Palette, Folder, Terminal, ShieldCheck, Building, GraduationCap, Cloud, Zap, ShieldX } from 'lucide-react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { AppSidebarNavigation, type AppSidebarLink } from '@ajabadia/ecosystem-widgets';
 
 interface UserSession {
@@ -38,7 +38,6 @@ interface SidebarNavigationProps {
 
 export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settingsSlot }: SidebarNavigationProps) {
   const t = useTranslations('common');
-  const locale = useLocale();
   const [tenantQuery, setTenantQuery] = React.useState('');
 
   React.useEffect(() => {
@@ -62,54 +61,54 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
   const allLinks: AppSidebarLink[] = [
     {
       href: `/${tenantQuery}`,
-      label: locale === 'es' ? 'Bienvenida' : 'Welcome',
+      label: t('navWelcome'),
       icon: <Home size={14} />
     },
     {
       href: `/admin/tenants${tenantQuery}`,
-      label: locale === 'es' ? 'Gestión de Organizaciones' : 'Tenants Management',
+      label: t('navTenantManagement'),
       icon: <Building size={14} />,
       requiresAdmin: true
     },
     {
       href: `/admin/branding${tenantQuery}`,
-      label: locale === 'es' ? 'Marca Blanca' : 'White-Labeling',
+      label: t('navBranding'),
       icon: <Palette size={14} />,
       requiresAdmin: true
     },
     {
       href: `/admin/spaces${tenantQuery}`,
-      label: locale === 'es' ? 'Jerarquía de Espacios' : 'Spaces Hierarchy',
+      label: t('navSpaces'),
       icon: <Folder size={14} />,
       requiresAdmin: true
     },
     {
       href: `/admin/audit${tenantQuery}`,
-      label: locale === 'es' ? 'Auditoría en Cadena' : 'Chain Auditing',
+      label: t('navAudit'),
       icon: <ShieldCheck size={14} />,
       requiresAdmin: true
     },
     {
       href: `/admin/quiz-roles${tenantQuery}`,
-      label: locale === 'es' ? 'Roles Contextuales' : 'Contextual Roles',
+      label: t('navContextualRoles'),
       icon: <GraduationCap size={14} />,
       requiresAdmin: true
     },
     {
       href: `/admin/connectors${tenantQuery}`,
-      label: locale === 'es' ? 'Proveedores de Almacenamiento' : 'Storage Providers',
+      label: t('navStorageProviders'),
       icon: <Cloud size={14} />,
       requiresAdmin: true
     },
     {
       href: `/admin/sandbox${tenantQuery}`,
-      label: locale === 'es' ? 'Sandbox JWT' : 'Sandbox JWT',
+      label: 'Sandbox JWT',
       icon: <Zap size={14} />,
       requiresSuperAdmin: true
     },
     {
       href: `/admin/gdpr${tenantQuery}`,
-      label: locale === 'es' ? 'GDPR Purge' : 'GDPR Purge',
+      label: 'GDPR Purge',
       icon: <ShieldX size={14} />,
       requiresSuperAdmin: true
     },
@@ -133,7 +132,7 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
       tenantSelectorSlot={tenantSelectorSlot}
       settingsSlot={settingsSlot}
       translations={{
-        logoutBtn: t('logout') || (locale === 'es' ? 'TERMINAR SESIÓN' : 'SIGN OUT'),
+        logoutBtn: t('signOut'),
       }}
     />
   );

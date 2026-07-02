@@ -7,9 +7,10 @@
  * @classification UI Component
  * @complexity Low
  * @fingerprint exports:1,imports:1,sig:1i71tx0
- * @lastUpdated 2026-06-23T22:39:33.211Z
+ * @lastUpdated 2026-07-02
  */
 
+import { useEffect, useState } from 'react';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
 
 /**
@@ -23,13 +24,24 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const title = 'Critical System Error';
-  const subtitle = 'Orchestration Failure · Breach Detected';
-  const unknownMsg = 'Unknown error in identity engine.';
-  const resetLabel = 'Restart Protocol';
+  const [lang, setLang] = useState('es');
+  useEffect(() => {
+    const match = document.cookie.match(/NEXT_LOCALE=([^;]+)/);
+    setLang(match?.[1] || navigator.language?.split('-')[0] || 'es');
+  }, []);
+
+  const t: Record<string, Record<string, string>> = {
+    es: { title: 'Error crítico del sistema', subtitle: 'Fallo de orquestación · Brecha detectada', unknownMsg: 'Error desconocido en el motor de identidad.', resetLabel: 'Reiniciar protocolo' },
+    en: { title: 'Critical System Error', subtitle: 'Orchestration Failure · Breach Detected', unknownMsg: 'Unknown error in identity engine.', resetLabel: 'Restart Protocol' },
+  };
+  const tr = t[lang] || t.en;
+  const title = tr.title;
+  const subtitle = tr.subtitle;
+  const unknownMsg = tr.unknownMsg;
+  const resetLabel = tr.resetLabel;
 
   return (
-    <html lang="es">
+    <html lang={lang}>
       <body className="min-h-screen bg-black text-white font-sans flex items-center justify-center p-6 selection:bg-red-500/30">
         <div className="max-w-md w-full bg-card border border-red-500/20 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 blur-3xl -mr-16 -mt-16" />
@@ -56,7 +68,7 @@ export default function GlobalError({
             </div>
 
             <button
-              aria-label="Restart protocol"
+              aria-label={resetLabel}
               onClick={() => reset()}
               className="flex items-center gap-2 px-6 py-2.5 bg-white text-black rounded-full text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
             >

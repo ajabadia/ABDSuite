@@ -11,15 +11,16 @@
  */
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { Users, Award, Database, ShieldCheck, Server, AppWindow, ShieldAlert } from 'lucide-react';
 import type { DashboardMetrics } from '@/types/dashboard-metrics';
 
 interface SuiteTabProps {
   metrics: DashboardMetrics;
-  locale: string;
 }
 
-export default function SuiteTab({ metrics, locale }: SuiteTabProps) {
+export default function SuiteTab({ metrics }: SuiteTabProps) {
+  const t = useTranslations('analytics');
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -38,7 +39,7 @@ export default function SuiteTab({ metrics, locale }: SuiteTabProps) {
             <span className="font-mono text-[8px] text-muted-foreground uppercase">{metrics.isDemoMode ? 'SIM' : 'LIVE'}</span>
           </div>
           <div className="text-muted-foreground"><Users className="w-5 h-5 text-primary" /></div>
-          <span className="console-breadcrumb">{locale === 'es' ? 'ESTUDIANTES ACTIVOS' : 'ACTIVE STUDENTS'}</span>
+          <span className="console-breadcrumb">{t('activeStudents')}</span>
           <span className="text-2xl font-mono font-bold tracking-tight">{metrics.suiteSummary.totalStudents}</span>
         </div>
 
@@ -48,7 +49,7 @@ export default function SuiteTab({ metrics, locale }: SuiteTabProps) {
             <span className="font-mono text-[8px] text-muted-foreground uppercase">{metrics.isDemoMode ? 'SIM' : 'LIVE'}</span>
           </div>
           <div className="text-muted-foreground"><Award className="w-5 h-5 text-primary" /></div>
-          <span className="console-breadcrumb">{locale === 'es' ? 'TASA FINALIZACIÓN' : 'COMPLETION RATE'}</span>
+          <span className="console-breadcrumb">{t('completionRate')}</span>
           <span className="text-2xl font-mono font-bold tracking-tight">{metrics.suiteSummary.completionRate}%</span>
         </div>
 
@@ -58,7 +59,7 @@ export default function SuiteTab({ metrics, locale }: SuiteTabProps) {
             <span className="font-mono text-[8px] text-muted-foreground uppercase">{metrics.isDemoMode ? 'SIM' : 'LIVE'}</span>
           </div>
           <div className="text-muted-foreground"><Database className="w-5 h-5 text-primary" /></div>
-          <span className="console-breadcrumb">{locale === 'es' ? 'ALMACENAMIENTO TOTAL' : 'TOTAL STORAGE'}</span>
+          <span className="console-breadcrumb">{t('totalStorage')}</span>
           <span className="text-2xl font-mono font-bold tracking-tight">{formatBytes(metrics.suiteSummary.storageUsedBytes)}</span>
         </div>
 
@@ -68,7 +69,7 @@ export default function SuiteTab({ metrics, locale }: SuiteTabProps) {
             <span className="font-mono text-[8px] text-muted-foreground uppercase">{metrics.suiteSummary.systemHealth}</span>
           </div>
           <div className="text-muted-foreground"><ShieldCheck className="w-5 h-5 text-primary" /></div>
-          <span className="console-breadcrumb">{locale === 'es' ? 'SALUD DE LA SUITE' : 'SUITE HEALTH'}</span>
+          <span className="console-breadcrumb">{t('suiteHealth')}</span>
           <span className="text-2xl font-mono font-bold tracking-tight text-foreground uppercase">{metrics.suiteSummary.systemHealth}</span>
         </div>
       </div>
@@ -76,12 +77,12 @@ export default function SuiteTab({ metrics, locale }: SuiteTabProps) {
       {/* Central System Status Details */}
       <div className="glass-panel p-6 rounded-none flex flex-col gap-6">
         <h3 className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-          {locale === 'es' ? 'ESTADO GENERAL DEL SERVICIO' : 'GENERAL SERVICE STATE'}
+          {t('generalServiceState')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-mono text-xs">
           <div className="border border-border/30 p-4 flex flex-col gap-1.5 bg-card/20">
             <span className="text-muted-foreground text-[9px] uppercase tracking-wider">
-              {locale === 'es' ? 'PUERTO DEL MICROSERVICIO' : 'MICROSERVICE PORT'}
+              {t('microservicePort')}
             </span>
             <span className="font-bold flex items-center gap-2">
               <Server className="w-4 h-4 text-primary" />
@@ -90,7 +91,7 @@ export default function SuiteTab({ metrics, locale }: SuiteTabProps) {
           </div>
           <div className="border border-border/30 p-4 flex flex-col gap-1.5 bg-card/20">
             <span className="text-muted-foreground text-[9px] uppercase tracking-wider">
-              {locale === 'es' ? 'APLICACIONES CON LICENCIA ACTIVA' : 'ACTIVE LICENSED APPS'}
+              {t('activeLicensedApps')}
             </span>
             <span className="font-bold flex items-center gap-2">
               <AppWindow className="w-4 h-4 text-primary" />
@@ -99,7 +100,7 @@ export default function SuiteTab({ metrics, locale }: SuiteTabProps) {
           </div>
           <div className="border border-border/30 p-4 flex flex-col gap-1.5 bg-card/20">
             <span className="text-muted-foreground text-[9px] uppercase tracking-wider">
-              {locale === 'es' ? 'ACCESOS FALLIDOS (24H)' : 'FAILED LOGINS (24H)'}
+              {t('failedLogins24h')}
             </span>
             <span className="font-bold flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-primary" />

@@ -23,7 +23,6 @@ import { TokenPreview } from "./components/TokenPreview";
 import { StatsPanel } from "./components/StatsPanel";
 import { SsoErrorAlert } from "./components/SsoErrorAlert";
 import { StorageProviderBadge } from "@/components/dashboard/storage-provider-badge";
-import { getAppLauncherTranslations } from "./components/translations";
 import type { TenantId } from "@/lib/schemas/common";
 import type { Application } from "@/lib/schemas/auth";
 import type { SafeFilter } from "@/lib/repositories/BaseRepository";
@@ -99,7 +98,13 @@ export default async function DashboardPage({
         <AppLauncherGrid 
           apps={allowedApps}
           activeTenantId={user.tenantId}
-          translations={getAppLauncherTranslations(locale)}
+          translations={{
+            launcher_title: t('appLauncher.title'),
+            launcher_subtitle: t('appLauncher.subtitle'),
+            launch_btn: t('appLauncher.launchBtn'),
+            no_apps: t('appLauncher.noApps'),
+            licensed_apps: t('appLauncher.licensedApps'),
+          }}
         />
       )}
 

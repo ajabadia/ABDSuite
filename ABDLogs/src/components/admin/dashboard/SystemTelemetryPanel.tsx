@@ -27,11 +27,11 @@ export function SystemTelemetryPanel({
 
   return (
     <div className="group relative p-8 flex flex-col min-h-[300px] overflow-hidden rounded-none bg-card backdrop-blur-sm border border-border transition-all duration-500 hover:border-primary/40">
-      {/* Marca de Agua Decorativa */}
+      {/* Decorative Watermark */}
       <ShieldCheck className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none text-foreground" size={96} aria-hidden="true" />
       
       <div className="z-10 flex flex-col h-full">
-        {/* Bloque Narrativo Superior */}
+        {/* Top Narrative Block */}
         <div className="flex flex-col gap-2 mb-6">
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold uppercase tracking-tight text-foreground leading-none truncate">
@@ -41,7 +41,7 @@ export function SystemTelemetryPanel({
           </div>
         </div>
         
-        {/* Bandeja de Metadatos (Telemetría de Sesión) */}
+        {/* Session Telemetry Metadata Tray */}
         <div className="flex-1 border-t border-border pt-6 flex flex-col gap-4 font-mono text-[9px] uppercase tracking-widest text-muted-foreground/80">
           <div className="flex justify-between items-center gap-2">
             <span className="opacity-70">{t('activeAuthority')}</span>

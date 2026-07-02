@@ -40,9 +40,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <SubtleLoginButton
           href={`/${locale}/admin`}
           label={h('accessControlPlane')}
-          hint={locale === 'es'
-            ? 'Inicie sesión con sus credenciales federadas de ABDAuth'
-            : 'Sign in utilizing your federated credentials from ABDAuth'}
+          hint={h('loginHint')}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="region" aria-label="System Capabilities">
@@ -51,12 +49,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Cpu className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'API de Ingesta' : 'Ingestion API'}
+              {h('ingestionApiTitle')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Ingesta ultrarrápida y no bloqueante mediante REST API con validación de seguridad por Bearer tokens inter-servicio.'
-                : 'High-performance, non-blocking ingestion via REST API secured with inter-service Bearer tokens.'}
+              {h('ingestionApiDesc')}
             </p>
           </div>
 
@@ -65,12 +61,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Database className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Trazabilidad Central' : 'Centralized Audit Trail'}
+              {h('centralizedAuditTitle')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Consulta e inspección unificada de logs de actividad técnica y operacional del ecosistema ABD en tiempo real.'
-                : 'Unified real-time query and inspection of technical and operational activity logs across the ABD ecosystem.'}
+              {h('centralizedAuditDesc')}
             </p>
           </div>
 
@@ -79,12 +73,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Sliders className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Filtro Dinámico' : 'Dynamic App Filtering'}
+              {h('dynamicFilterTitle')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Filtrado interactivo por aplicación de origen (Auth, Quiz, Gobernanza) y organización con agregación automática.'
-                : 'Interactive filtering by source application (Auth, Quiz, Governance) and organization with automatic aggregation.'}
+              {h('dynamicFilterDesc')}
             </p>
           </div>
 
@@ -94,8 +86,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <GlobalFooter
         separatorWidth="short"
         telemetryItems={[
-          { label: locale === 'es' ? 'Microservicio' : 'Microservice', value: h('version') },
-          { label: locale === 'es' ? 'Estilo' : 'Style', value: h('style') }
+          { label: h('microserviceLabel'), value: h('version') },
+          { label: h('styleLabel'), value: h('style') }
         ]}
       />
     </LandingPageLayout>

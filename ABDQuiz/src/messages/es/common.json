@@ -5,5 +5,7 @@
   "mockMode": "Simulacro",
   "footer": {
     "rights": "Todos los derechos reservados"
-  }
+  },
+  "examReview": "Revisión de Examen",
+  "question": "Pregunta"
 }

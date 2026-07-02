@@ -5,5 +5,7 @@
   "mockMode": "Mock Exam",
   "footer": {
     "rights": "All rights reserved"
-  }
+  },
+  "examReview": "Exam Review",
+  "question": "Question"
 }

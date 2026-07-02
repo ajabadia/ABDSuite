@@ -40,9 +40,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <SubtleLoginButton
           href={`/${locale}/admin`}
           label={h('accessControlPlane')}
-          hint={locale === 'es'
-            ? 'Inicie sesión con sus credenciales federadas de ABDAuth'
-            : 'Sign in utilizing your federated credentials from ABDAuth'}
+          hint={h('loginHint')}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="region" aria-label="System Capabilities">
@@ -51,12 +49,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <HardDrive className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Almacenamiento Seguro' : 'Secure Storage'}
+              {h('secureStorage')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Aislamiento físico multitenant y carga integrada con proveedores de almacenamiento como Cloudinary.'
-                : 'Physical multi-tenant isolation and integrated upload with storage providers such as Cloudinary.'}
+              {h('secureStorageDesc')}
             </p>
           </div>
 
@@ -65,12 +61,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <History className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Versionado Inmutable' : 'Immutable Versioning'}
+              {h('immutableVersioning')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Historial de versiones append-only protegido contra sobrescritura o destrucción accidental.'
-                : 'Append-only version history protected against accidental overwrites or destruction.'}
+              {h('immutableVersioningDesc')}
             </p>
           </div>
 
@@ -79,12 +73,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <FileText className="w-5 h-5" />
             </div>
             <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
-              {locale === 'es' ? 'Retención y Auditoría' : 'Retention & Audit'}
+              {h('retentionAudit')}
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {locale === 'es'
-                ? 'Trazabilidad bancaria de eventos a ABDLogs y ciclo de vida automatizado con purga controlada.'
-                : 'Bank-grade event traceability to ABDLogs and automated lifecycle with controlled purging.'}
+              {h('retentionAuditDesc')}
             </p>
           </div>
 
@@ -94,8 +86,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <GlobalFooter
         separatorWidth="short"
         telemetryItems={[
-          { label: locale === 'es' ? 'Aplicación' : 'Application', value: h('version') },
-          { label: locale === 'es' ? 'Estilo' : 'Style', value: h('style') }
+          { label: h('telemetryApp'), value: h('version') },
+          { label: h('telemetryStyle'), value: h('style') }
         ]}
       />
     </LandingPageLayout>

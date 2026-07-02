@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { Home, Cpu } from 'lucide-react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { AppSidebarNavigation, type AppSidebarLink } from '@ajabadia/ecosystem-widgets';
 
 interface UserSession {
@@ -38,7 +38,6 @@ interface SidebarNavigationProps {
 
 export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settingsSlot }: SidebarNavigationProps) {
   const t = useTranslations('common');
-  const locale = useLocale();
 
   const isLoggedIn = session.authenticated && !!session.user;
   const user = session.user;
@@ -46,12 +45,12 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
   const allLinks: AppSidebarLink[] = [
     {
       href: '/',
-      label: locale === 'es' ? 'Inicio' : 'Home',
+      label: t('homeMenu'),
       icon: <Home size={14} />
     },
     {
       href: '#servicios',
-      label: locale === 'es' ? 'Servicios' : 'Services',
+      label: t('featuresMenu'),
       icon: <Cpu size={14} />
     }
   ];

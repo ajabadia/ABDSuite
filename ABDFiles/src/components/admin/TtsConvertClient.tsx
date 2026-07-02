@@ -13,7 +13,7 @@
 import React, { useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Volume2, X, Download, Loader2, AlertTriangle, CheckCircle, Globe, Monitor, Play, Square } from 'lucide-react';
-import { speakWithWebSpeech, synthesizeAudioLocally, isBrowserTtsSupported } from '@/services/tts-browser';
+import { speakWithWebSpeech, synthesizeAudioLocally, isBrowserTtsSupported, type TtsBrowserOptions } from '@/services/tts-browser';
 
 const VOICE_GROUPS = [
   {
@@ -147,7 +147,7 @@ export default function TtsConvertClient() {
     setSuccess(false);
 
     try {
-      const result = await synthesizeAudioLocally(text, { voice, speed });
+      const result = await synthesizeAudioLocally(text, { voice: voice as TtsBrowserOptions['voice'], speed });
       const url = URL.createObjectURL(result.blob);
       setAudioUrl(url);
       setSuccess(true);
@@ -171,7 +171,7 @@ export default function TtsConvertClient() {
     if (!text.trim()) return;
     setIsPlaying(true);
     try {
-      await speakWithWebSpeech(text, { voice, speed });
+      await speakWithWebSpeech(text, { voice: voice as TtsBrowserOptions['voice'], speed });
     } catch {
       // Silently fail Web Speech preview
     } finally {

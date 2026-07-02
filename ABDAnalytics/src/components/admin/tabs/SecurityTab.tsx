@@ -11,6 +11,7 @@
  */
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -28,10 +29,10 @@ import { CustomTooltip } from './CustomTooltip';
 
 interface SecurityTabProps {
   metrics: DashboardMetrics;
-  locale: string;
 }
 
-export default function SecurityTab({ metrics, locale }: SecurityTabProps) {
+export default function SecurityTab({ metrics }: SecurityTabProps) {
+  const t = useTranslations('analytics');
   const mfaPieData = [
     { name: 'MFA ENROLLED', value: metrics.security.mfaEnrolledRate },
     { name: 'MFA BYPASS / INACTIVE', value: 100 - metrics.security.mfaEnrolledRate }
@@ -43,7 +44,7 @@ export default function SecurityTab({ metrics, locale }: SecurityTabProps) {
         {/* MFA Adoption Chart */}
         <div className="glass-panel p-6 rounded-none flex flex-col gap-4 lg:col-span-1">
           <h4 className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-            {locale === 'es' ? 'ADOPCIÓN DE MFA' : 'MFA ADOPTION'}
+            {t('mfaAdoption')}
           </h4>
           <div className="w-full h-64 flex flex-col items-center justify-center relative">
             <ResponsiveContainer width="100%" height="80%">
@@ -65,7 +66,7 @@ export default function SecurityTab({ metrics, locale }: SecurityTabProps) {
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-2xl font-mono font-black">{metrics.security.mfaEnrolledRate}%</span>
-              <span className="text-[9px] font-mono text-muted-foreground uppercase">{locale === 'es' ? 'PROTEGIDOS' : 'ENROLLED'}</span>
+              <span className="text-[9px] font-mono text-muted-foreground uppercase">{t('enrolled')}</span>
             </div>
           </div>
         </div>
@@ -73,7 +74,7 @@ export default function SecurityTab({ metrics, locale }: SecurityTabProps) {
         {/* Login failures timeline */}
         <div className="glass-panel p-6 rounded-none flex flex-col gap-4 lg:col-span-2">
           <h4 className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-            {locale === 'es' ? 'HISTORIAL DE ACCESOS FALLIDOS' : 'FAILED LOGINS TIMELINE'}
+            {t('failedLoginsTimeline')}
           </h4>
           <div className="w-full h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -92,27 +93,27 @@ export default function SecurityTab({ metrics, locale }: SecurityTabProps) {
       {/* SSO / Telemetry detail metrics */}
       <div className="glass-panel p-6 rounded-none flex flex-col gap-6 font-mono text-xs">
         <h4 className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-          {locale === 'es' ? 'MÉTRICAS OPERACIONALES DE SEGURIDAD (SSO)' : 'OPERATIONAL SECURITY METRICS (SSO)'}
+          {t('operationalSecurityMetrics')}
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="border border-border/30 p-4 bg-card/20 flex flex-col gap-1">
             <span className="text-muted-foreground text-[9px] uppercase">
-              {locale === 'es' ? 'LOGINS TOTALES (24H)' : 'TOTAL LOGINS (24H)'}
+              {t('totalLogins24h')}
             </span>
             <span className="text-lg font-bold">{metrics.security.totalLogins24h}</span>
           </div>
           <div className="border border-border/30 p-4 bg-card/20 flex flex-col gap-1">
             <span className="text-muted-foreground text-[9px] uppercase">
-              {locale === 'es' ? 'USUARIOS EN PERIODO DE GRACIA MFA' : 'MFA GRACE PERIOD BYPASS COUNT'}
+              {t('mfaGracePeriod')}
             </span>
             <span className="text-lg font-bold">{metrics.security.mfaBypassActiveCount}</span>
           </div>
           <div className="border border-border/30 p-4 bg-card/20 flex flex-col gap-1">
             <span className="text-muted-foreground text-[9px] uppercase">
-              {locale === 'es' ? 'TIEMPO DE MITIGACIÓN SSO' : 'SSO MITIGATION TIMEOUT'}
+              {t('ssoMitigationTimeout')}
             </span>
             <span className="text-lg font-bold">
-              {locale === 'es' ? '5000 ms' : '5000 ms'}
+              {'5000 ms'}
             </span>
           </div>
         </div>

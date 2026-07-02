@@ -2,6 +2,19 @@ import { test, expect, type Page, type BrowserContext } from '@playwright/test';
 
 const locale = process.env.E2E_LOCALE || 'es';
 
+function t(key: string): string {
+  const dict: Record<string, Record<string, string>> = {
+    save: { es: 'Guardar', en: 'Save' },
+    next: { es: 'Siguiente', en: 'Next' },
+    finish: { es: 'Finalizar', en: 'Finish' },
+    search: { es: 'buscar', en: 'search' },
+    startExam: { es: 'Empezar examen', en: 'Start exam' },
+    examCompleted: { es: 'Examen completado', en: 'Exam completed' },
+    integrityVerified: { es: 'Integridad verificada', en: 'Integrity verified' },
+  };
+  return dict[key]?.[locale] ?? dict[key]?.es ?? key;
+}
+
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || 'admin@test-tenant.com';
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || 'admin-test-password';
 const STUDENT_EMAIL = process.env.E2E_STUDENT_EMAIL || 'student@test-tenant.com';
@@ -36,11 +49,11 @@ test('Flujo completo multitenant E2E', async ({ browser }) => {
       await adminPage.goto(`/${locale}/gobernanza/users`);
       await expect(adminPage).toHaveURL(/\/gobernanza\/users/);
 
-      await adminPage.fill('input[placeholder*="buscar" i]', STUDENT_EMAIL);
+      await adminPage.fill(`input[placeholder*="${t('search')}" i]`, STUDENT_EMAIL);
       await adminPage.click(`text=${STUDENT_EMAIL}`);
 
       await adminPage.selectOption('select[name="role"]', 'ADMIN');
-      await adminPage.click('button:has-text("Guardar")');
+      await adminPage.click(`button:has-text("${t('save')}")`);
 
       await expect(adminPage.locator('text=Usuario actualizado')).toBeVisible({ timeout: 10000 });
     });
@@ -52,8 +65,8 @@ test('Flujo completo multitenant E2E', async ({ browser }) => {
       await login(studentPage, STUDENT_EMAIL, STUDENT_PASSWORD);
 
       await studentPage.goto(`/${locale}/quiz`);
-      await expect(studentPage.locator('text=Empezar examen')).toBeVisible({ timeout: 15000 });
-      await studentPage.click('text=Empezar examen');
+      await expect(studentPage.locator(`text=${t('startExam')}`)).toBeVisible({ timeout: 15000 });
+      await studentPage.click(`text=${t('startExam')}`);
 
       for (let i = 0; i < 5; i++) {
         const options = studentPage.locator('input[type="radio"]');
@@ -61,11 +74,11 @@ test('Flujo completo multitenant E2E', async ({ browser }) => {
         if (count > 0) {
           await options.nth(0).check();
         }
-        await studentPage.click('button:has-text("Siguiente")');
+        await studentPage.click(`button:has-text("${t('next')}")`);
       }
 
-      await studentPage.click('button:has-text("Finalizar")');
-      await expect(studentPage.locator('text=Examen completado')).toBeVisible({ timeout: 15000 });
+      await studentPage.click(`button:has-text("${t('finish')}")`);
+      await expect(studentPage.locator(`text=${t('examCompleted')}`)).toBeVisible({ timeout: 15000 });
       examCompleted = true;
     });
 
@@ -84,7 +97,7 @@ test('Flujo completo multitenant E2E', async ({ browser }) => {
       const integrityPanel = adminPage.locator('[data-testid="integrity-check-panel"]');
       if (await integrityPanel.isVisible()) {
         await integrityPanel.scrollIntoViewIfNeeded();
-        await expect(integrityPanel.locator('text=Integridad verificada')).toBeVisible({ timeout: 10000 });
+        await expect(integrityPanel.locator(`text=${t('integrityVerified')}`)).toBeVisible({ timeout: 10000 });
       }
     });
 

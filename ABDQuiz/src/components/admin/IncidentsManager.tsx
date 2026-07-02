@@ -151,6 +151,7 @@ export function IncidentsManager({ tenantId }: { tenantId: string }) {
             <button
               key={inc._id}
               onClick={() => loadMessages(inc._id)}
+              aria-label={`${inc.studentId.slice(0, 12)}...`}
               className={cn(
                 'flex flex-col gap-2 p-4 border text-left transition-all cursor-pointer',
                 selectedId === inc._id

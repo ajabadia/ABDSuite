@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog, useConfirmDialog } from '@ajabadia/ecosystem-widgets';
 import { fetchDelegationsAction, revokeDelegationAction } from './actions';
+import { useTranslations } from 'next-intl';
 
 export interface DelegationUI {
   _id: string;
@@ -29,6 +30,7 @@ export interface DelegationUI {
 export function DelegationTable({ tenantId }: { tenantId: string }) {
   const [delegations, setDelegations] = useState<DelegationUI[]>([]);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations('admin');
 
   const loadDelegations = async () => {
     setLoading(true);
@@ -50,7 +52,7 @@ export function DelegationTable({ tenantId }: { tenantId: string }) {
       if (res.success) {
         await loadDelegations();
       } else {
-        toast.error(res.error || 'Error al revocar');
+        toast.error(res.error || t('delegationsRevokeError'));
       }
     },
   });
@@ -62,30 +64,30 @@ export function DelegationTable({ tenantId }: { tenantId: string }) {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>{'Delegaciones de Roles (Activas / Históricas)'}</CardTitle>
+        <CardTitle>{t('delegationsTitle')}</CardTitle>
         <CardDescription>
-          {'Administra los permisos temporales delegados a usuarios del tenant.'}
+          {t('delegationsDesc')}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">{'Cargando delegaciones...'}</p>
+          <p className="text-sm text-muted-foreground">{t('delegationsLoading')}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left border-collapse">
               <thead>
                 <tr className="border-b">
-                  <th className="p-3">{'Delegado (ID)'}</th>
-                  <th className="p-3">{'Inicio'}</th>
-                  <th className="p-3">{'Fin'}</th>
-                  <th className="p-3">{'Estado'}</th>
-                  <th className="p-3 text-right">{'Acciones'}</th>
+                  <th className="p-3">{t('delegationsTableDelegate')}</th>
+                  <th className="p-3">{t('delegationsTableStart')}</th>
+                  <th className="p-3">{t('delegationsTableEnd')}</th>
+                  <th className="p-3">{t('delegationsTableStatus')}</th>
+                  <th className="p-3 text-right">{t('delegationsTableActions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {delegations.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-4 text-center text-muted-foreground">{'No hay delegaciones registradas.'}</td>
+                    <td colSpan={5} className="p-4 text-center text-muted-foreground">{t('delegationsEmpty')}</td>
                   </tr>
                 ) : (
                   delegations.map(del => {
@@ -102,19 +104,19 @@ export function DelegationTable({ tenantId }: { tenantId: string }) {
                         <td className="p-3">{end.toLocaleDateString()}</td>
                         <td className="p-3">
                           {isActive ? (
-                            <Badge className="bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30">{'Activa'}</Badge>
+                            <Badge className="bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/30">{t('delegationsBadgeActive')}</Badge>
                           ) : isExpired ? (
-                            <Badge variant="outline" className="text-muted-foreground">{'Expirada'}</Badge>
+                            <Badge variant="outline" className="text-muted-foreground">{t('delegationsBadgeExpired')}</Badge>
                           ) : !del.isActive ? (
-                            <Badge variant="destructive">{'Revocada'}</Badge>
+                            <Badge variant="destructive">{t('delegationsBadgeRevoked')}</Badge>
                           ) : (
-                            <Badge variant="secondary">{'Programada'}</Badge>
+                            <Badge variant="secondary">{t('delegationsBadgeScheduled')}</Badge>
                           )}
                         </td>
                         <td className="p-3 text-right">
                           {(del.isActive && !isExpired) && (
                             <Button size="sm" variant="destructive" onClick={() => handleRevoke(del._id)}>
-                              {'Revocar'}
+                              {t('delegationsRevokeBtn')}
                             </Button>
                           )}
                         </td>
@@ -129,10 +131,10 @@ export function DelegationTable({ tenantId }: { tenantId: string }) {
       </CardContent>
       <ConfirmDialog
         open={revokeDialog.open}
-        title="REVOCAR DELEGACIÓN"
-        message="¿Estás seguro de que deseas revocar esta delegación de forma anticipada?"
-        confirmLabel="REVOCAR"
-        cancelLabel="CANCELAR"
+        title={t('delegationsRevokeDialogTitle')}
+        message={t('delegationsRevokeDialogMessage')}
+        confirmLabel={t('delegationsRevokeDialogConfirm')}
+        cancelLabel={t('delegationsRevokeDialogCancel')}
         variant="danger"
         isLoading={revokeDialog.isLoading}
         onConfirm={revokeDialog.confirm}

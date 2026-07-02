@@ -172,7 +172,7 @@ export async function executePipeline(
       case 'tts': {
         const textContent = Buffer.from(currentContent, 'base64').toString('utf-8');
         const ttsOpts: TtsOptions = {
-          voice: step.options?.voice as string | undefined,
+          voice: step.options?.voice as TtsOptions['voice'],
           speed: step.options?.speed as number | undefined,
         };
         const ttsResult = await synthesizeSpeech(textContent, ttsOpts);

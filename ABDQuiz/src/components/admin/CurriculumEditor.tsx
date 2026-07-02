@@ -76,13 +76,13 @@ export default function CurriculumEditor({ courseId, initialObjectives }: Curric
       const cleaned = objectives.filter(o => o.module.trim() && o.block.trim());
       const res = await setCourseObjectivesAction(courseId, cleaned);
       if (res.success) {
-        toast.success(t('curriculumSaved') || 'Currículum guardado');
+        toast.success(t('curriculumSaved'));
         router.refresh();
       } else {
-        toast.error(res.error || 'Error al guardar');
+        toast.error(res.error || t('curriculumSaveError'));
       }
     } catch {
-      toast.error('Error al guardar el currículum');
+      toast.error(t('curriculumSaveErrorMessage'));
     } finally {
       setSaving(false);
     }
@@ -94,11 +94,11 @@ export default function CurriculumEditor({ courseId, initialObjectives }: Curric
         <div className="p-12 bg-card/10 border border-dashed border-white/5 flex flex-col items-center gap-4 text-center">
           <BookOpen className="w-12 h-12 text-muted-foreground/30" />
           <p className="text-muted-foreground font-mono text-xs uppercase tracking-widest">
-            {t('noObjectives') || 'No hay objetivos definidos'}
+            {t('noObjectives')}
           </p>
           <Button variant="outline" onClick={addModuleBlock} className="rounded-none font-mono text-[10px] uppercase h-9">
             <Plus className="w-3.5 h-3.5 mr-2" />
-            {t('addModule') || 'Añadir Módulo'}
+            {t('addModule')}
           </Button>
         </div>
       )}
@@ -109,18 +109,18 @@ export default function CurriculumEditor({ courseId, initialObjectives }: Curric
             <Input
               value={group.module}
               onChange={(e) => updateModuleBlock(gi, 'module', e.target.value)}
-              placeholder="Módulo (ej: M1)"
+              placeholder={t('curriculumModulePlaceholder')}
               className="w-24 rounded-none font-mono text-xs h-9"
             />
-            <span className="text-muted-foreground font-mono text-xs">Bloque</span>
+            <span className="text-muted-foreground font-mono text-xs">{t('block')}</span>
             <Input
               value={group.block}
               onChange={(e) => updateModuleBlock(gi, 'block', e.target.value)}
-              placeholder="(ej: 1)"
+              placeholder={t('curriculumBlockPlaceholder')}
               className="w-20 rounded-none font-mono text-xs h-9"
             />
             <span className="text-xs text-muted-foreground font-mono">
-              {group.objectives.length} objetivo(s)
+              {t('curriculumObjectiveCount', { count: group.objectives.length })}
             </span>
             <Button
               variant="ghost"
@@ -141,7 +141,7 @@ export default function CurriculumEditor({ courseId, initialObjectives }: Curric
                 <Input
                   value={obj}
                   onChange={(e) => updateObjective(gi, oi, e.target.value)}
-                  placeholder="Texto del objetivo de aprendizaje"
+                  placeholder={t('curriculumObjectivePlaceholder')}
                   className="flex-1 rounded-none font-mono text-xs h-8"
                 />
                 <Button
@@ -161,7 +161,7 @@ export default function CurriculumEditor({ courseId, initialObjectives }: Curric
               onClick={() => addObjective(gi)}
             >
               <Plus className="w-3 h-3 mr-1" />
-              {t('addObjective') || 'Añadir objetivo'}
+              {t('addObjective')}
             </Button>
           </div>
         </div>
@@ -170,11 +170,11 @@ export default function CurriculumEditor({ courseId, initialObjectives }: Curric
       <div className="flex items-center gap-3">
         <Button variant="outline" onClick={addModuleBlock} className="rounded-none font-mono text-[10px] uppercase h-10">
           <Plus className="w-3.5 h-3.5 mr-2" />
-          {t('addModuleBlock') || 'Añadir Módulo · Bloque'}
+          {t('addModuleBlock')}
         </Button>
         <Button onClick={handleSave} disabled={saving} className="rounded-none font-mono text-[10px] uppercase h-10 ml-auto">
           {saving ? <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-2" />}
-          {saving ? (t('btnSaving') || 'Guardando...') : (t('btnSaveChanges') || 'Guardar Currículum')}
+          {saving ? t('btnSaving') : t('btnSaveChanges')}
         </Button>
       </div>
     </div>

@@ -52,7 +52,7 @@ export default async function AdminSandboxPage({
         <AdminPageHeader
           icon={Terminal}
           breadcrumb={<>{tAdmin('controlConsole')} • SANDBOX</>}
-          title={locale === 'es' ? 'Simulador Sandbox QA' : 'QA Sandbox Simulator'}
+          title={tAdmin('sandboxTitle')}
           backButton={
             <Link 
               href={`/${locale}/admin${querySuffix}`}
@@ -63,11 +63,7 @@ export default async function AdminSandboxPage({
               <ArrowLeft size={14} aria-hidden="true" />
             </Link>
           }
-          description={
-            locale === 'es' 
-              ? 'Consola local para inyectar JWTs de prueba, simular desconexión de licencias y saltos de rol instantáneos para QA.'
-              : 'Local console to inject test JWTs, simulate license disconnection, and perform instant role shifts for QA.'
-          }
+          description={tAdmin('sandboxDesc')}
         />
 
         {/* Sandbox Form */}

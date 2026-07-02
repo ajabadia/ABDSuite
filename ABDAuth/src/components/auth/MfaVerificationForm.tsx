@@ -133,6 +133,7 @@ export function MfaVerificationForm() {
               setToken('');
               setError(null);
             }}
+            aria-label={usingBackupCode ? t('use_totp') || 'Use authenticator app' : t('use_backup') || 'Use backup code'}
             className="text-[10px] font-mono font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors py-1 underline underline-offset-4 decoration-dotted"
           >
             {usingBackupCode ? t('use_totp') || 'Use authenticator app' : t('use_backup') || 'Use backup code'}

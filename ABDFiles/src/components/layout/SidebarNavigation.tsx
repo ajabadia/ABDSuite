@@ -56,18 +56,18 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
   const allLinks: AppSidebarLink[] = [
     {
       href: '/',
-      label: locale === 'es' ? 'Bienvenida' : 'Welcome',
+      label: t('navWelcome'),
       icon: <Home size={14} />
     },
     {
       href: logsAuditUrl,
-      label: locale === 'es' ? 'Auditoría en Cadena' : 'Chain Auditing',
+      label: t('navAudit'),
       icon: <ShieldCheck size={14} />,
       requiresAdmin: true
     },
     {
       href: '/admin',
-      label: t('adminMenu') || (locale === 'es' ? 'Consola de Control' : 'Control Console'),
+      label: t('adminMenu'),
       icon: <Terminal size={14} />,
       requiresAdmin: true
     }

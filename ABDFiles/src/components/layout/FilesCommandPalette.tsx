@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { useRouter, usePathname } from '@/i18n/routing';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { CommandPalette, type Command, buildCommonCommands } from '@ajabadia/ecosystem-widgets';
 import { HardDrive, History, FileText, FolderOpen } from 'lucide-react';
 
@@ -20,13 +20,14 @@ export function FilesCommandPalette() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
+  const t = useTranslations('common');
 
   const commands: Command[] = [
     {
       id: 'nav-dashboard',
-      title: locale === 'es' ? 'Panel de Control' : 'Dashboard',
-      description: locale === 'es' ? 'Ir al panel de archivos central' : 'Go to the central files dashboard',
-      category: locale === 'es' ? 'Navegación' : 'Navigation',
+      title: t('commandPalette.filesDashboard'),
+      description: t('commandPalette.filesDashboardDesc'),
+      category: t('commandPalette.categoryNavigation'),
       shortcut: ['g', 'd'],
       icon: <HardDrive className="w-4 h-4" />,
       action: () => {
@@ -35,9 +36,9 @@ export function FilesCommandPalette() {
     },
     {
       id: 'nav-storage',
-      title: locale === 'es' ? 'Almacenamiento' : 'Storage',
-      description: locale === 'es' ? 'Gestionar archivos y almacenamiento' : 'Manage files and storage',
-      category: locale === 'es' ? 'Navegación' : 'Navigation',
+      title: t('commandPalette.filesStorage'),
+      description: t('commandPalette.filesStorageDesc'),
+      category: t('commandPalette.categoryNavigation'),
       shortcut: ['g', 's'],
       icon: <FolderOpen className="w-4 h-4" />,
       action: () => {
@@ -46,9 +47,9 @@ export function FilesCommandPalette() {
     },
     {
       id: 'nav-versions',
-      title: locale === 'es' ? 'Versiones' : 'Version History',
-      description: locale === 'es' ? 'Historial de versiones de archivos' : 'View file version history',
-      category: locale === 'es' ? 'Navegación' : 'Navigation',
+      title: t('commandPalette.filesVersions'),
+      description: t('commandPalette.filesVersionsDesc'),
+      category: t('commandPalette.categoryNavigation'),
       shortcut: ['g', 'v'],
       icon: <History className="w-4 h-4" />,
       action: () => {
@@ -57,9 +58,9 @@ export function FilesCommandPalette() {
     },
     {
       id: 'nav-audit',
-      title: locale === 'es' ? 'Auditoría' : 'Audit Trail',
-      description: locale === 'es' ? 'Trazabilidad de eventos de archivos' : 'File event traceability',
-      category: locale === 'es' ? 'Navegación' : 'Navigation',
+      title: t('commandPalette.filesAudit'),
+      description: t('commandPalette.filesAuditDesc'),
+      category: t('commandPalette.categoryNavigation'),
       shortcut: ['g', 'a'],
       icon: <FileText className="w-4 h-4" />,
       action: () => {
@@ -72,7 +73,7 @@ export function FilesCommandPalette() {
   return (
     <CommandPalette
       commands={commands}
-      placeholder={locale === 'es' ? 'Escribe un comando o navega...' : 'Type a command or navigate...'}
+      placeholder={t('commandPalette.filesPlaceholder')}
     />
   );
 }

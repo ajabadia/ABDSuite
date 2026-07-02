@@ -100,13 +100,13 @@ function Playground() {
             SmartNavbar — Visual Playground
           </h1>
           <p className="font-mono text-[10px] text-muted-foreground/60 mb-6">
-            Prueba los mega-menús hover, Click-to-Lock, selector de tema, menú de usuario y modo público/privado.
+            Test hover mega-menus, Click-to-Lock, theme selector, user menu, and public/private mode.
           </p>
 
           {/* Controls */}
           <div className="flex items-center gap-4 mb-8 p-4 border border-border/30 bg-background/50">
             <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-              Modo:
+              Mode:
             </span>
             {(["authenticated", "public"] as const).map((m) => (
               <button
@@ -118,7 +118,7 @@ function Playground() {
                     : "bg-background border-border text-muted-foreground hover:text-primary hover:border-primary/30"
                 }`}
               >
-                {m === "authenticated" ? "🔐 Privado" : "🌐 Público"}
+                {m === "authenticated" ? "🔐 Private" : "🌐 Public"}
               </button>
             ))}
           </div>
@@ -126,10 +126,10 @@ function Playground() {
           {/* Mega-menu target zones */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { title: "Enlaces", desc: "Pasa el ratón sobre los enlaces de navegación central", zone: "center" },
-              { title: "Tema", desc: "Pasa el ratón sobre el icono de sol/luna a la derecha", zone: "right" },
-              { title: "Usuario", desc: "Pasa el ratón sobre el avatar con iniciales", zone: "right" },
-              { title: "Buscador", desc: "Pulsa el botón de búsqueda o Ctrl+K (simulado)", zone: "right" },
+              { title: "Links", desc: "Hover over the center navigation links", zone: "center" },
+              { title: "Theme", desc: "Hover over the sun/moon icon on the right", zone: "right" },
+              { title: "User", desc: "Hover over the avatar with initials", zone: "right" },
+              { title: "Search", desc: "Click the search button or Ctrl+K (simulated)", zone: "right" },
             ].map((card) => (
               <div
                 key={card.title}

@@ -41,7 +41,7 @@ export default function ActivatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden");
+      setError(t('passwordMismatch'));
       return;
     }
     
@@ -60,8 +60,8 @@ export default function ActivatePage() {
         setError(result.error);
         toast.error(result.error);
       } else {
-        toast.success("Cuenta activada", {
-          description: "Redirigiendo al login..."
+        toast.success(t('accountActivated'), {
+          description: t('redirectingToLogin')
         });
         
         setTimeout(() => {
@@ -69,8 +69,8 @@ export default function ActivatePage() {
         }, 1500);
       }
     } catch (err: unknown) {
-      setError("Ocurrió un error inesperado");
-      toast.error("Error al activar");
+      setError(t('unexpectedError'));
+      toast.error(t('activationError'));
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +84,7 @@ export default function ActivatePage() {
       <div className="z-10 w-full max-w-md bg-card/80 backdrop-blur-md border border-border p-8 rounded-none shadow-2xl relative group">
         {/* Decorative corner */}
         <div className="absolute top-0 right-0 p-4">
-          <span className="font-mono text-xs opacity-20 group-hover:opacity-100 transition-opacity text-primary animate-pulse">SYS_ACTIVATION</span>
+          <span className="font-mono text-xs opacity-20 group-hover:opacity-100 transition-opacity text-primary animate-pulse">{t('sysActivation')}</span>
         </div>
 
         <div className="mb-8 mt-2">
@@ -141,8 +141,9 @@ export default function ActivatePage() {
             type="submit"
             disabled={isLoading || !token}
             className="mt-4 w-full inline-flex items-center justify-center gap-3 px-5 py-3 bg-primary text-primary-foreground border border-primary/30 font-mono text-[11px] font-black uppercase tracking-widest transition-all duration-300 rounded-sm hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+            aria-label={isLoading ? t('processing') : t('activateAccount')}
           >
-            {isLoading ? "Procesando..." : "ACTIVAR CUENTA"}
+            {isLoading ? t('processing') : t('activateAccount')}
             {!isLoading && <ArrowRight className="w-4 h-4 animate-pulse" />}
           </button>
         </form>

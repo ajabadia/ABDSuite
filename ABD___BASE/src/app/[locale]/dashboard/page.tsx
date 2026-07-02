@@ -54,13 +54,11 @@ export default async function DashboardPage({
           <div className="flex items-center gap-3">
             <Layout className="w-5 h-5 text-primary" />
             <h2 className="text-sm font-bold uppercase tracking-widest text-foreground">
-              {locale === 'es' ? 'Centro de Operaciones' : 'Operations Center'}
+              {t('operationsCenter')}
             </h2>
           </div>
           <p className="text-muted-foreground leading-relaxed">
-            {locale === 'es'
-              ? 'Has accedido de forma segura al panel de usuario del satélite base. El entorno está listo para añadir lógica de negocio.'
-              : 'You have securely accessed the user dashboard of the base satellite. The environment is ready for business logic.'}
+            {t('dashboardDesc')}
           </p>
         </div>
 

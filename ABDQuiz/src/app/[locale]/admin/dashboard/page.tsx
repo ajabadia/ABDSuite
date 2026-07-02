@@ -63,40 +63,40 @@ export default async function AdminDashboardPage({
           className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors w-fit"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          {locale === 'es' ? 'Volver a Admin' : 'Back to Admin'}
+          {t('backToAdmin')}
         </Link>
 
         <AdminPageHeader
           icon={TrendingUp}
-          breadcrumb={<>{t('appTitle')} • {locale === 'es' ? 'PANEL DE CONTROL' : 'BILLING'}</>}
-          title={<>{t('appTitle')} <span className="text-primary">{locale === 'es' ? 'Facturación' : 'Dashboard'}</span></>}
-          description={<>{locale === 'es' ? 'Cuadro de mando de KPIs académicos y facturación' : 'Academic KPIs & billing dashboard'}<span className="text-primary font-bold"> {resolvedTenantId}</span></>}
+          breadcrumb={<>{t('appTitle')} • {t('dashboardBreadcrumbBilling')}</>}
+          title={<>{t('appTitle')} <span className="text-primary">{t('dashboardTitle')}</span></>}
+          description={<>{t('dashboardDesc')}<span className="text-primary font-bold"> {resolvedTenantId}</span></>}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KpiCard
             icon={Users}
-            label={locale === 'es' ? 'Total Estudiantes' : 'Total Students'}
+            label={t('totalStudents')}
             value={kpis.totalStudents.toString()}
-            sublabel={locale === 'es' ? 'Usuarios activos' : 'Active users'}
+            sublabel={t('activeUsers')}
           />
           <KpiCard
             icon={BookOpen}
-            label={locale === 'es' ? 'Exámenes Realizados' : 'Exams Taken'}
+            label={t('examsTaken')}
             value={kpis.totalExams.toString()}
-            sublabel={locale === 'es' ? 'Histórico completo' : 'Full history'}
+            sublabel={t('fullHistory')}
           />
           <KpiCard
             icon={BarChart3}
-            label={locale === 'es' ? 'Cursos Activos' : 'Active Courses'}
+            label={t('activeCourses')}
             value={kpis.activeCourses.toString()}
-            sublabel={locale === 'es' ? 'En publicación' : 'Published'}
+            sublabel={t('published')}
           />
           <KpiCard
             icon={DollarSign}
-            label={locale === 'es' ? 'Última Factura' : 'Last Invoice'}
+            label={t('lastInvoice')}
             value={`${kpis.lastInvoiceAmount.toFixed(2)} €`}
-            sublabel={kpis.pendingInvoices > 0 ? `${kpis.pendingInvoices} ${locale === 'es' ? 'pendiente(s)' : 'pending'}` : locale === 'es' ? 'Al corriente' : 'Up to date'}
+            sublabel={kpis.pendingInvoices > 0 ? `${kpis.pendingInvoices} ${t('pendingInvoices')}` : t('upToDate')}
           />
         </div>
 
@@ -107,20 +107,18 @@ export default async function AdminDashboardPage({
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold uppercase tracking-widest font-mono text-foreground flex items-center gap-2">
                 <HardDrive className="w-4 h-4 text-primary" />
-                {locale === 'es' ? 'Almacenamiento' : 'Storage'}
+                {t('storage')}
               </h2>
               <span className="font-mono text-[10px] text-muted-foreground">
                 {kpis.storageUsedMB.toFixed(1)} MB / {kpis.storageQuotaMB} MB
               </span>
             </div>
             <div className="w-full h-3 bg-white/5 border border-border rounded-none overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all duration-500"
-                style={{ width: `${storagePercent}%` }}
-              />
+              <style>{`.storage-fill { width: ${storagePercent}% }`}</style>
+              <div className="storage-fill h-full bg-primary transition-all duration-500" />
             </div>
             <span className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
-              {storagePercent}% {locale === 'es' ? 'utilizado' : 'used'}
+              {storagePercent}% {t('storageUsed')}
             </span>
           </div>
         </Card>
@@ -129,12 +127,12 @@ export default async function AdminDashboardPage({
           <div className="flex flex-col gap-6">
             <h2 className="text-sm font-bold uppercase tracking-widest font-mono text-foreground flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-primary" />
-              {locale === 'es' ? 'Exámenes por Mes' : 'Exams per Month'}
+              {t('examsPerMonth')}
             </h2>
             <Separator className="bg-border" />
             {kpis.examsPerMonth.length === 0 ? (
               <p className="text-[10px] font-mono text-muted-foreground">
-                {locale === 'es' ? 'No hay datos de exámenes aún.' : 'No exam data yet.'}
+                {t('noExamData')}
               </p>
             ) : (
               <div className="flex items-end gap-3 h-32">
@@ -144,10 +142,10 @@ export default async function AdminDashboardPage({
                   return (
                     <div key={`${entry.year}-${entry.month}`} className="flex flex-col items-center gap-1 flex-1">
                       <span className="font-mono text-[8px] text-muted-foreground">{entry.count}</span>
-                      <div
-                        className="w-full bg-primary/60 hover:bg-primary transition-all rounded-none"
-                        style={{ height: `${height}%`, minHeight: '4px' }}
-                      />
+                  <style>{`.bar-fill { height: ${height}%; min-height: 4px }`}</style>
+                  <div
+                    className="bar-fill bg-primary"
+                  />
                       <span className="font-mono text-[7px] text-muted-foreground uppercase">
                         {new Date(entry.year, entry.month - 1).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', { month: 'short' })}
                       </span>
@@ -163,7 +161,7 @@ export default async function AdminDashboardPage({
           <div className="flex flex-col gap-6">
             <h2 className="text-sm font-bold uppercase tracking-widest font-mono text-foreground flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-primary" />
-              {locale === 'es' ? 'Estado de Facturación' : 'Billing Status'}
+              {t('billingStatus')}
             </h2>
             <Separator className="bg-border" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -171,7 +169,7 @@ export default async function AdminDashboardPage({
                 <DollarSign className="w-5 h-5 text-yellow-400" />
                 <div className="flex flex-col">
                   <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
-                    {locale === 'es' ? 'Pendientes' : 'Pending'}
+                    {t('pending')}
                   </span>
                   <span className="text-xl font-bold font-mono text-yellow-400">{kpis.pendingInvoices}</span>
                 </div>
@@ -180,7 +178,7 @@ export default async function AdminDashboardPage({
                 <AlertTriangle className="w-5 h-5 text-red-400" />
                 <div className="flex flex-col">
                   <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
-                    {locale === 'es' ? 'Vencidas' : 'Overdue'}
+                    {t('overdue')}
                   </span>
                   <span className="text-xl font-bold font-mono text-red-400">{kpis.overdueInvoices}</span>
                 </div>
@@ -189,7 +187,7 @@ export default async function AdminDashboardPage({
                 <CheckCircle2 className="w-5 h-5 text-green-400" />
                 <div className="flex flex-col">
                   <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
-                    {locale === 'es' ? 'Último Importe' : 'Last Amount'}
+                    {t('lastAmount')}
                   </span>
                   <span className="text-xl font-bold font-mono text-green-400">{kpis.lastInvoiceAmount.toFixed(2)} €</span>
                 </div>

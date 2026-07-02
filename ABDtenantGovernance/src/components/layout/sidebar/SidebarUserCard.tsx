@@ -25,14 +25,12 @@ interface UserSessionInfo {
 interface SidebarUserCardProps {
   isLoggedIn: boolean;
   user?: UserSessionInfo;
-  locale: string;
   toggleSidebar: () => void;
 }
 
 export function SidebarUserCard({
   isLoggedIn,
   user,
-  locale,
   toggleSidebar,
 }: SidebarUserCardProps) {
   const t = useTranslations('common');
@@ -75,7 +73,7 @@ export function SidebarUserCard({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
             </span>
             <span className="font-mono text-[9px] text-muted-foreground/80 uppercase tracking-widest">
-              {locale === 'es' ? 'Sesión Desconectada' : 'Session Disconnected'}
+              {t('disconnectedSession')}
             </span>
           </div>
           <Link

@@ -41,14 +41,14 @@ export default async function AdminIncidentsPage({
           className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors w-fit"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          {locale === 'es' ? 'Volver a Admin' : 'Back to Admin'}
+          {t('backToAdmin')}
         </Link>
 
         <AdminPageHeader
           icon={AlertCircle}
-          breadcrumb={<>{t('appTitle')} • {locale === 'es' ? 'INCIDENCIAS' : 'INCIDENTS'}</>}
-          title={<>{t('appTitle')} <span className="text-primary">{locale === 'es' ? 'Incidencias en Vivo' : 'Live Incidents'}</span></>}
-          description={<>{locale === 'es' ? 'Chat de incidencias durante exámenes' : 'Real-time incident chat during exams'}<span className="text-primary font-bold"> {resolvedTenantId}</span></>}
+          breadcrumb={<>{t('appTitle')} • {t('incidentsBreadcrumb')}</>}
+          title={<>{t('appTitle')} <span className="text-primary">{t('liveIncidentsTitle')}</span></>}
+          description={<>{t('liveIncidentsDesc')}<span className="text-primary font-bold"> {resolvedTenantId}</span></>}
         />
 
         <IncidentsManager tenantId={resolvedTenantId} />

@@ -17,14 +17,12 @@ import { Link } from '@/i18n/routing';
 
 interface SidebarLinksProps {
   toggleSidebar: () => void;
-  locale: string;
   isLoggedIn: boolean;
   isAdmin: boolean | "" | null | undefined;
 }
 
 export function SidebarLinks({
   toggleSidebar,
-  locale,
   isLoggedIn,
   isAdmin,
 }: SidebarLinksProps) {
@@ -32,17 +30,15 @@ export function SidebarLinks({
 
   return (
     <nav className="flex flex-col gap-2" role="navigation" aria-label="Sidebar Links">
-      {/* Link A.0: Public Welcome Page */}
       <Link
         href="/"
         onClick={toggleSidebar}
         className="flex items-center gap-4 px-4 py-3 bg-muted/10 border border-border hover:border-primary/20 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200 uppercase font-mono text-[10px] font-bold tracking-wider rounded-none"
       >
         <Home className="w-4 h-4 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
-        {locale === 'es' ? 'Bienvenida' : 'Welcome'}
+        {t('navWelcome')}
       </Link>
       
-      {/* Link A: Visual Branding (Marca Blanca) */}
       {isLoggedIn && isAdmin && (
         <Link
           href="/admin/branding"
@@ -50,11 +46,10 @@ export function SidebarLinks({
           className="flex items-center gap-4 px-4 py-3 bg-muted/10 border border-border hover:border-primary/20 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200 uppercase font-mono text-[10px] font-bold tracking-wider rounded-none"
         >
           <Palette className="w-4 h-4 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
-          {locale === 'es' ? 'Marca Blanca' : 'White-Labeling'}
+          {t('navBranding')}
         </Link>
       )}
 
-      {/* Link A.1: Spaces (Jerarquía de Espacios) */}
       {isLoggedIn && isAdmin && (
         <Link
           href="/admin/spaces"
@@ -62,11 +57,10 @@ export function SidebarLinks({
           className="flex items-center gap-4 px-4 py-3 bg-muted/10 border border-border hover:border-primary/20 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200 uppercase font-mono text-[10px] font-bold tracking-wider rounded-none"
         >
           <Folder className="w-4 h-4 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
-          {locale === 'es' ? 'Jerarquía de Espacios' : 'Spaces Hierarchy'}
+          {t('navSpaces')}
         </Link>
       )}
 
-      {/* Link A.2: Chain Auditing (Auditoría en Cadena) */}
       {isLoggedIn && isAdmin && (
         <Link
           href="/admin/audit"
@@ -74,11 +68,10 @@ export function SidebarLinks({
           className="flex items-center gap-4 px-4 py-3 bg-muted/10 border border-border hover:border-primary/20 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200 uppercase font-mono text-[10px] font-bold tracking-wider rounded-none"
         >
           <ShieldCheck className="w-4 h-4 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
-          {locale === 'es' ? 'Auditoría en Cadena' : 'Chain Auditing'}
+          {t('navAudit')}
         </Link>
       )}
 
-      {/* Link B: Administration (Only for admins) */}
       {isLoggedIn && isAdmin && (
         <Link
           href="/admin"
@@ -86,7 +79,7 @@ export function SidebarLinks({
           className="flex items-center gap-4 px-4 py-3 bg-muted/10 border border-border hover:border-primary/20 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-200 uppercase font-mono text-[10px] font-bold tracking-wider rounded-none"
         >
           <GraduationCap className="w-4 h-4 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
-          {locale === 'es' ? 'Roles Contextuales' : 'Contextual Roles'}
+          {t('navContextualRoles')}
         </Link>
       )}
 

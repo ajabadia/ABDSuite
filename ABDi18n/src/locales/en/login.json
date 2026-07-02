@@ -31,6 +31,7 @@
   "footer_text": "Certified Identity System v1.0",
   "federated_login": "Sign in with Corporate SSO",
   "federated": {
+    "pageTitle": "Federation",
     "subtitle": "FEDERATED IDENTITY GATEWAY",
     "back_to_login": "Back to login",
     "welcome_back": "Welcome back",

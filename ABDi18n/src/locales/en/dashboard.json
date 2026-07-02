@@ -1,4 +1,11 @@
 {
+  "appLauncher": {
+    "title": "AUTHORIZED APPLICATIONS",
+    "subtitle": "DIRECT SSO LAUNCH CONSOLE",
+    "launchBtn": "LAUNCH SATELLITE ACCESS",
+    "noApps": "No applications licensed for this tenant",
+    "licensedApps": "ACTIVE LICENSE"
+  },
   "control_console": "Control Console",
   "back_to_dashboard": "Back to dashboard",
   "welcome": "Welcome",
@@ -85,7 +92,44 @@
     "table_empty": "NO USERS FOUND IN THIS TENANT",
     "suspend_btn": "SUSPEND",
     "reactivate_btn": "REACTIVATE",
-    "manage_groups_btn": "MANAGE GROUPS"
+    "manage_groups_btn": "MANAGE GROUPS",
+    "form": {
+      "email": "Email",
+      "password": "Password",
+      "role": "Role",
+      "tenant": "Tenant",
+      "save": "Save",
+      "cancel": "Cancel",
+      "name": "Name",
+      "surname": "Surname",
+      "core_identity": "Core Identity",
+      "governance_policy": "Governance Policy",
+      "enforce_mfa": "Enforce MFA",
+      "mandatory_onboarding": "Mandatory Onboarding",
+      "standard_security": "Standard Security",
+      "memberships": "Memberships",
+      "add_membership": "Add Membership",
+      "default_tenant": "Default Tenant",
+      "set_default": "Set Default",
+      "remove_membership": "Remove Membership",
+      "no_memberships": "No Memberships",
+      "select_tenant_placeholder": "Select tenant",
+      "membership_role": "Membership Role",
+      "membership_status": "Membership Status",
+      "allowed_apps": "Allowed Apps",
+      "no_apps_for_tenant": "No apps for this tenant",
+      "inherited": "(inherited)"
+    },
+    "roles": {
+      "student": "Student / Operator",
+      "admin": "Tenant Administrator",
+      "owner": "Owner"
+    },
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "pending": "Pending"
+    }
   },
   "tenants": {
     "title": "Organization Governance",

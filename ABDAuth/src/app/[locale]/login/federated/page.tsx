@@ -82,7 +82,7 @@ export default async function FederatedLoginPage({
         </div>
 
         <h1 className="text-4xl md:text-5xl font-black tracking-tighter italic uppercase antialiased text-foreground leading-none">
-          ABD <span className="text-primary">Federation</span>
+          ABD <span className="text-primary">{t('pageTitle')}</span>
         </h1>
         <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-[0.3em] mt-1 opacity-60">
           {t('subtitle')}

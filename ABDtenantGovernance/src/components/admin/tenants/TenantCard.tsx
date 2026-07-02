@@ -15,6 +15,7 @@ import type { Tenant } from "@/lib/schemas/tenant"
 import type { TenantManagementTranslations } from "./types"
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 interface TenantCardProps {
   tenant: Tenant;
@@ -28,6 +29,7 @@ const actionBtnClass = "flex-1 h-full flex items-center justify-center border bo
 export function TenantCard({ tenant, translations: t, onEdit, onDelete }: TenantCardProps) {
   const params = useParams()
   const locale = params?.locale as string || 'en'
+  const adminT = useTranslations('admin')
 
   return (
     <div className="group relative p-8 flex flex-col justify-between min-h-[300px] overflow-hidden rounded-none bg-card backdrop-blur-sm border border-border transition-all duration-500 hover:border-primary/40">
@@ -70,72 +72,66 @@ export function TenantCard({ tenant, translations: t, onEdit, onDelete }: Tenant
       {/* Consola de Ejecución — Distribución Uniforme */}
       <div className="grid grid-cols-7 gap-1.5 h-12 z-10">
          {/* Branding */}
-         <Link 
-           href={`/${locale}/admin/branding?tenantId=${tenant.tenantId}`}
-           className={actionBtnClass}
-           aria-label="Configurar Branding visual"
-           title="Branding Visual"
-         >
-           <Palette size={14} aria-hidden="true" />
-         </Link>
+          <Link 
+            href={`/${locale}/admin/branding?tenantId=${tenant.tenantId}`}
+            className={actionBtnClass}
+            aria-label={adminT('tenantCardBrandingAria')}
+            title={adminT('tenantCardBranding')}
+          >
+            <Palette size={14} aria-hidden="true" />
+          </Link>
 
-         {/* Espacios */}
-         <Link 
-           href={`/${locale}/admin/spaces?tenantId=${tenant.tenantId}`}
-           className={actionBtnClass}
-           aria-label="Gestionar jerarquía de espacios"
-           title="Espacios"
-         >
-           <Layers size={14} aria-hidden="true" />
-         </Link>
+          <Link 
+            href={`/${locale}/admin/spaces?tenantId=${tenant.tenantId}`}
+            className={actionBtnClass}
+            aria-label={adminT('tenantCardSpacesAria')}
+            title={adminT('tenantCardSpaces')}
+          >
+            <Layers size={14} aria-hidden="true" />
+          </Link>
 
-         {/* Permisos y Grupos */}
-         <Link 
-           href={`/${locale}/admin/permissions?tenantId=${tenant.tenantId}`}
-           className={actionBtnClass}
-           aria-label="Gestionar grupos y políticas de permisos"
-           title="Grupos y Permisos ABAC"
-         >
-           <Shield size={14} aria-hidden="true" />
-         </Link>
+          <Link 
+            href={`/${locale}/admin/permissions?tenantId=${tenant.tenantId}`}
+            className={actionBtnClass}
+            aria-label={adminT('tenantCardPermissionsAria')}
+            title={adminT('tenantCardPermissions')}
+          >
+            <Shield size={14} aria-hidden="true" />
+          </Link>
 
-         {/* Usuarios */}
-         <Link 
-           href={`/${locale}/admin/users?tenantId=${tenant.tenantId}`}
-           className={actionBtnClass}
-           aria-label="Gestionar usuarios del tenant"
-           title="Usuarios"
-         >
-           <Users size={14} aria-hidden="true" />
-         </Link>
-         
-         {/* Auditoría */}
-         <Link 
-           href={`/${locale}/admin/audit?tenantId=${tenant.tenantId}`}
-           className={actionBtnClass}
-           aria-label="Ver logs de auditoría"
-           title="Auditoría y Telemetría"
-         >
-           <ShieldCheck size={14} aria-hidden="true" />
-         </Link>
-         
-         {/* Editar */}
-         <button 
-           aria-label={t.actions.edit}
-           onClick={() => onEdit(tenant)}
-           className={actionBtnClass}
-           title="Editar Tenant"
-         >
-           <Edit3 size={14} aria-hidden="true" />
-         </button>
-         
-         {/* Eliminar */}
-         <button 
-           aria-label={t.actions.delete}
-           onClick={() => onDelete(tenant._id?.toString() || '')}
-           className={`${actionBtnClass} hover:border-rose-500/50 hover:bg-rose-500/10 hover:text-rose-500`}
-           title="Eliminar Organización"
-         >
+          <Link 
+            href={`/${locale}/admin/users?tenantId=${tenant.tenantId}`}
+            className={actionBtnClass}
+            aria-label={adminT('tenantCardUsersAria')}
+            title={adminT('tenantCardUsers')}
+          >
+            <Users size={14} aria-hidden="true" />
+          </Link>
+          
+          <Link 
+            href={`/${locale}/admin/audit?tenantId=${tenant.tenantId}`}
+            className={actionBtnClass}
+            aria-label={adminT('tenantCardAuditAria')}
+            title={adminT('tenantCardAudit')}
+          >
+            <ShieldCheck size={14} aria-hidden="true" />
+          </Link>
+          
+          <button 
+            aria-label={t.actions.edit}
+            onClick={() => onEdit(tenant)}
+            className={actionBtnClass}
+            title={adminT('tenantCardEdit')}
+          >
+            <Edit3 size={14} aria-hidden="true" />
+          </button>
+          
+          <button 
+            aria-label={t.actions.delete}
+            onClick={() => onDelete(tenant._id?.toString() || '')}
+            className={`${actionBtnClass} hover:border-rose-500/50 hover:bg-rose-500/10 hover:text-rose-500`}
+            title={adminT('tenantCardDelete')}
+          >
            <Trash2 size={14} aria-hidden="true" />
          </button>
       </div>

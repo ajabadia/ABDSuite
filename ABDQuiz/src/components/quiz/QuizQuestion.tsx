@@ -194,6 +194,11 @@ export default function QuizQuestion({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isSubmitting || showFeedback || uploading}
+                aria-label={uploading
+                  ? (t('uploading') || 'Subiendo...')
+                  : uploadedUrl
+                    ? (t('changeFile') || 'Cambiar archivo')
+                    : (t('uploadFile') || 'Seleccionar archivo')}
                 className={cn(
                   "flex items-center gap-2 border border-dashed border-white/10 bg-card/50 px-4 py-3 text-sm text-muted-foreground transition-all",
                   "hover:border-primary/30 hover:text-foreground",

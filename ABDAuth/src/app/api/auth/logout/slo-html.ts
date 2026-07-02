@@ -5,25 +5,34 @@
  * @classification UI Component
  * @complexity Medium
  * @fingerprint exports:1,imports:0,sig:12vuezp
- * @lastUpdated 2026-06-23T22:38:58.527Z
+ * @lastUpdated 2026-07-02
  */
 
 /**
  * Generates the Front-Channel SLO HTML page with iframes for each satellite.
  */
-export function generateSloPage(logoutUrls: string[], redirectUri: string): string {
+export function generateSloPage(logoutUrls: string[], redirectUri: string, locale: string = 'es'): string {
   const iframeList = logoutUrls
     .map(url => `  <iframe src="${url}?silent=true" style="display:none;" onload="iframeLoaded()"></iframe>`)
     .join('\n');
 
+  const t: Record<string, Record<string, string>> = {
+    es: { pageTitle: 'Cerrando sesión...', logoText: 'ABD Suite &bull; Sistema Industrial', statusText: 'Cerrando sesión en el ecosistema&hellip;' },
+    en: { pageTitle: 'Signing out...', logoText: 'ABD Suite &bull; Industrial System', statusText: 'Signing out of the ecosystem&hellip;' },
+  };
+  const tr = t[locale] || t.en;
+  const pageTitle = tr.pageTitle;
+  const logoText = tr.logoText;
+  const statusText = tr.statusText;
+
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${locale}">
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="pragma" content="no-cache" />
   <meta http-equiv="expires" content="0" />
-  <title>Cerrando sesión...</title>
+  <title>${pageTitle}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -103,9 +112,9 @@ export function generateSloPage(logoutUrls: string[], redirectUri: string): stri
 </head>
 <body>
   <div class="container">
-    <div class="logo">ABD Suite &bull; Sistema Industrial</div>
+    <div class="logo">${logoText}</div>
     <div class="spinner-ring"></div>
-    <p class="status">Cerrando sesión en el ecosistema&hellip;</p>
+    <p class="status">${statusText}</p>
     <div class="progress"><div class="progress-bar"></div></div>
   </div>
 

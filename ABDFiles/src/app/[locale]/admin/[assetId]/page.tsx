@@ -56,7 +56,7 @@ export default async function DocumentDetailPage({
         <Suspense fallback={
           <div className="border border-border p-10 flex items-center justify-center bg-card/45 backdrop-blur-sm">
             <span className="font-mono text-xs uppercase tracking-widest text-primary animate-pulse">
-              {locale === 'es' ? 'CARGANDO PANEL INDUSTRIAL...' : 'LOADING TELEMETRY CONSOLE...'}
+              {d('loadingTelemetryConsole')}
             </span>
           </div>
         }>

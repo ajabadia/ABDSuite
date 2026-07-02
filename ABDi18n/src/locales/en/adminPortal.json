@@ -116,5 +116,9 @@
   "btnNextQuestion": "NEXT QUESTION",
   "btnApplyBank": "APPLY & INGEST BANK",
   "abdTitle": "ABD",
-  "adminDescriptionFull": "Federated control console and hot governance for tenant \\u003ctenant\\u003e{tenantId}\\u003c/tenant\\u003e."
+  "adminDescriptionFull": "Federated control console and hot governance for tenant \u003ctenant\u003e{tenantId}\u003c/tenant\u003e.",
+  "sandboxMode": "Sandbox Mode:",
+  "organizationToImpersonate": "Organization to impersonate:",
+  "impersonatedUser": "Impersonated user:",
+  "activateSandbox": "Activate Sandbox"
 }

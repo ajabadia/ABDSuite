@@ -93,7 +93,7 @@ export function AuditHistoryPanel({ tenantId }: AuditHistoryPanelProps) {
       setLastFetched(new Date());
     } catch (err) {
       console.error(err);
-      toast.error(t('audit_error_load', { defaultMessage: 'Error al conectar con el servidor.' }));
+      toast.error(t('audit_error_load'));
     } finally {
       setLoading(false);
     }
@@ -123,9 +123,9 @@ export function AuditHistoryPanel({ tenantId }: AuditHistoryPanelProps) {
         setAlerts(prev => prev.map(a =>
           a._id === alertId ? { ...a, status: 'ACKNOWLEDGED' } : a
         ));
-        toast.success(t('alert_acknowledged', { defaultMessage: 'Alerta reconocida' }));
+        toast.success(t('alert_acknowledge_success'));
       }
-    } catch { toast.error(t('alert_error', { defaultMessage: 'Error al reconocer alerta' })); }
+    } catch { toast.error(t('alert_acknowledge_error')); }
   };
 
   const handleResolveAlert = async (alertId: string) => {
@@ -137,9 +137,9 @@ export function AuditHistoryPanel({ tenantId }: AuditHistoryPanelProps) {
       });
       if (res.ok) {
         setAlerts(prev => prev.filter(a => a._id !== alertId));
-        toast.success(t('alert_resolved', { defaultMessage: 'Alerta resuelta' }));
+        toast.success(t('alert_resolve_success'));
       }
-    } catch { toast.error(t('alert_error', { defaultMessage: 'Error al resolver alerta' })); }
+    } catch { toast.error(t('alert_resolve_error')); }
   };
 
   const filteredLogs = logs.filter(log => filter === 'ALL' || log.appId?.toLowerCase() === filter.toLowerCase());
@@ -185,10 +185,10 @@ export function AuditHistoryPanel({ tenantId }: AuditHistoryPanelProps) {
 
       {/* Filter Chips */}
       <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
-        <FilterChip id="ALL" label={t('audit_filter_all', { defaultMessage: 'Todos los Logs' })} ariaLabel={t('filterAllLabel', { defaultMessage: 'Filtrar todos los logs' })} icon={Activity} activeFilter={filter} onSelect={setFilter} />
-        <FilterChip id="AUTH" label="ABDAuth" ariaLabel={t('filterAuthLabel', { defaultMessage: 'Filtrar por logs de autenticación' })} icon={ShieldAlert} activeFilter={filter} onSelect={setFilter} />
-        <FilterChip id="QUIZ" label="ABDQuiz" ariaLabel={t('filterQuizLabel', { defaultMessage: 'Filtrar por logs de evaluación' })} icon={FileText} activeFilter={filter} onSelect={setFilter} />
-        <FilterChip id="GOBERNANZA" label="Gobernanza" ariaLabel={t('filterGobernanzaLabel', { defaultMessage: 'Filtrar por logs de gobernanza' })} icon={Settings} activeFilter={filter} onSelect={setFilter} />
+        <FilterChip id="ALL" label={t('audit_filter_all')} ariaLabel={t('filterAllLabel')} icon={Activity} activeFilter={filter} onSelect={setFilter} />
+        <FilterChip id="AUTH" label="ABDAuth" ariaLabel={t('filterAuthLabel')} icon={ShieldAlert} activeFilter={filter} onSelect={setFilter} />
+        <FilterChip id="QUIZ" label="ABDQuiz" ariaLabel={t('filterQuizLabel')} icon={FileText} activeFilter={filter} onSelect={setFilter} />
+        <FilterChip id="GOBERNANZA" label="Gobernanza" ariaLabel={t('filterGobernanzaLabel')} icon={Settings} activeFilter={filter} onSelect={setFilter} />
       </div>
 
       {/* Logs List */}
@@ -199,8 +199,8 @@ export function AuditHistoryPanel({ tenantId }: AuditHistoryPanelProps) {
       ) : filteredLogs.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 rounded-xl border border-border bg-secondary/5 text-center">
           <Activity className="w-8 h-8 text-muted-foreground/60 mb-3 animate-pulse" />
-          <h4 className="text-xs font-bold text-foreground uppercase tracking-widest">{t('audit_no_activity', { defaultMessage: 'Sin Actividad Auditable' })}</h4>
-          <p className="text-[10px] text-muted-foreground mt-1">{t('audit_no_activity_desc', { defaultMessage: 'No hay logs registrados para este filtro.' })}</p>
+          <h4 className="text-xs font-bold text-foreground uppercase tracking-widest">{t('audit_no_activity')}</h4>
+          <p className="text-[10px] text-muted-foreground mt-1">{t('audit_no_activity_desc')}</p>
         </div>
       ) : (
         <div className="grid gap-3.5">
