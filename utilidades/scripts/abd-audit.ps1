@@ -28,8 +28,12 @@ $LogFile = Join-Path $RootDir "abd-audit-results-$safeAppName.log"
 $GlobalStatus = $true
 $ArchGuardPath = "$PSScriptRoot/arch-guard.mjs"
 
-# Clean log file initially
-if (Test-Path $LogFile) { Remove-Item $LogFile -Force -ErrorAction SilentlyContinue }
+# Clean and backup log file initially
+if (Test-Path $LogFile) { 
+    $BakFile = $LogFile + ".bak"
+    if (Test-Path $BakFile) { Remove-Item $BakFile -Force -ErrorAction SilentlyContinue }
+    Rename-Item -Path $LogFile -NewName ($safeAppName + ".log.bak") -Force -ErrorAction SilentlyContinue
+}
 "ABD SYSTEM AUDIT REPORT ($appName) - $(Get-Date)" | Out-File -FilePath $LogFile -Encoding utf8
 
 # Helper to append logs safely to disk with lock-resilience
