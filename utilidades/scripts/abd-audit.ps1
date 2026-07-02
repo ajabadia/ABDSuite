@@ -2,27 +2,9 @@
 # Sequential execution with clear status reporting and cache cleansing.
 
 CLS
-$LogFile = "abd-audit-results.log"
-$GlobalStatus = $true
-$ArchGuardPath = "$PSScriptRoot/arch-guard.mjs"
-
-# Clean log file initially
-if (Test-Path $LogFile) { Remove-Item $LogFile -Force -ErrorAction SilentlyContinue }
-"ABD SYSTEM AUDIT REPORT - $(Get-Date)" | Out-File -FilePath $LogFile -Encoding utf8
-
-# Helper to append logs safely to disk with lock-resilience
-function Write-AuditLog {
-    param([string]$Text)
-    try {
-        $Text | Out-File -FilePath $LogFile -Append -Encoding utf8 -ErrorAction Stop
-    } catch {
-        # Silent failover in case of file locks by IDEs/editors
-    }
-}
-
 # Read package.json to determine if we are in library mode or client mode
 $isLibrary = $false
-$appName = "Unknown"
+$appName = "satellite"
 if (Test-Path "package.json") {
     try {
         $pkg = Get-Content "package.json" -Raw | ConvertFrom-Json
@@ -35,6 +17,31 @@ if (Test-Path "package.json") {
         $isLibrary = $false
     }
 }
+
+# Clean app name for filename safety
+$safeAppName = $appName -replace '[\\/:*?"<>|@]', '' -replace ' ', '_'
+
+# Locate root directory relative to the shared script location (which resides in utilidades/scripts/)
+$RootDir = Resolve-Path "$PSScriptRoot\..\.."
+$LogFile = Join-Path $RootDir "abd-audit-results-$safeAppName.log"
+
+$GlobalStatus = $true
+$ArchGuardPath = "$PSScriptRoot/arch-guard.mjs"
+
+# Clean log file initially
+if (Test-Path $LogFile) { Remove-Item $LogFile -Force -ErrorAction SilentlyContinue }
+"ABD SYSTEM AUDIT REPORT ($appName) - $(Get-Date)" | Out-File -FilePath $LogFile -Encoding utf8
+
+# Helper to append logs safely to disk with lock-resilience
+function Write-AuditLog {
+    param([string]$Text)
+    try {
+        $Text | Out-File -FilePath $LogFile -Append -Encoding utf8 -ErrorAction Stop
+    } catch {
+        # Silent failover in case of file locks by IDEs/editors
+    }
+}
+
 
 # 🧹 Cache cleansing: Always remove .next folder to prevent false negatives in TS/ESLint cache
 if (-not $isLibrary) {
