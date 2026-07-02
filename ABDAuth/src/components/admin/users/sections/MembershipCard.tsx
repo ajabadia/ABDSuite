@@ -67,7 +67,7 @@ export function MembershipCard({ membership, tenants, defaultTenantId, isSuperAd
 
           {isSuperAdmin && (
             <button type="button" onClick={() => onRemove(membership.tenantId)}
-              className="p-1.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors rounded-none border border-transparent hover:border-destructive/20" aria-label={t.form.remove_membership}
+              className="p-1.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors rounded-none border border-transparent hover:border-destructive/20" aria-label={t.form.remove_membership}>
               <Trash2 size={12} />
             </button>
           )}
