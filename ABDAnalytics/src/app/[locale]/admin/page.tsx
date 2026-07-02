@@ -1,11 +1,11 @@
 /**
- * @purpose Gestiona el portal de análisis administrativo central con una vista de dashboard, maneja acceso de usuario y traducciones locales específicas.
+ * @purpose Renderiza la página de administración central de análisis con un dashboard, gestionando el acceso del usuario y las traducciones locales específicas.
  * @purpose_en Renders the central admin analytics portal page with a dashboard, handling user access and locale-specific translations.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:11,sig:1nln7im
- * @lastUpdated 2026-06-25T10:14:12.112Z
+ * @fingerprint exports:1,imports:11,sig:9jkype
+ * @lastUpdated 2026-07-02T18:43:36.906Z
  */
 
 import { Suspense } from 'react';
@@ -25,7 +25,7 @@ import Link from 'next/link';
  */
 async function DashboardDataWrapper({ locale }: { locale: string }) {
   const metrics = await getDashboardMetrics();
-  return <DashboardClient metrics={metrics} locale={locale} />;
+  return <DashboardClient metrics={metrics} />;
 }
 
 /**
