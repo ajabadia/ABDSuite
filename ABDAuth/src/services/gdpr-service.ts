@@ -23,9 +23,9 @@ export class GDPRService {
     };
 
     // 1. User profile
-    const user = await db.collection('users').findOne({ _id: userId as any });
+    const user = await db.collection('users').findOne({ _id: userId });
     if (user) {
-      const { password, ...safeUser } = user as any;
+      const { password, ...safeUser } = user as unknown as { password?: string; [key: string]: unknown };
       data.user = safeUser;
     }
 
@@ -40,21 +40,21 @@ export class GDPRService {
     // 4. Passkeys (metadata only)
     const passkeys = await db.collection('passkeys').find({ userId }).toArray();
     data.passkeys = passkeys.map((p: Record<string, unknown>) => {
-      const { credentialID, publicKey, ...meta } = p as any;
+      const { credentialID, publicKey, ...meta } = p as unknown as { credentialID: unknown; publicKey: unknown; [key: string]: unknown };
       return { ...meta, credentialID: '[REDACTED]', publicKey: '[REDACTED]' };
     });
 
     // 5. MFA config
     const mfaConfig = await db.collection('mfa_configs').findOne({ userId });
     if (mfaConfig) {
-      const { secret, backupCodes, ...safeMfa } = mfaConfig as any;
+      const { secret, backupCodes, ...safeMfa } = mfaConfig as unknown as { secret: unknown; backupCodes: unknown[] | undefined; [key: string]: unknown };
       data.mfaConfig = { ...safeMfa, secret: '[REDACTED]', backupCodes: backupCodes ? `[${backupCodes.length} codes redacted]` : undefined };
     }
 
     // 6. Reset tokens
     const resetTokens = await db.collection('reset_tokens').find({ userId }).toArray();
     data.resetTokens = resetTokens.map((t: Record<string, unknown>) => {
-      const { token, ...meta } = t as any;
+      const { token, ...meta } = t as unknown as { token: unknown; [key: string]: unknown };
       return { ...meta, token: '[REDACTED]' };
     });
 

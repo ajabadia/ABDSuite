@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Query parameter "q" is required' }, { status: 400 });
     }
 
-    const results = await Document.aggregate([
+    const pipeline: Record<string, unknown>[] = [
       {
         $search: {
           index: 'documents_search',
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
             }]
           }
         }
-      } as any,
+      },
       { $skip: offset },
       { $limit: limit },
       {
@@ -71,7 +71,8 @@ export async function GET(request: NextRequest) {
           score: { $meta: 'searchScore' }
         }
       }
-    ]);
+    ];
+    const results = await Document.aggregate(pipeline);
 
     await logger.audit({
       tenantId: user.tenantId,

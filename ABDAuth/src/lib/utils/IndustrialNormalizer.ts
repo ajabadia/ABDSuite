@@ -33,7 +33,7 @@ export class IndustrialNormalizer {
     if (!raw) return raw as unknown as Tenant;
 
     // Harmonize dynamic visual branding properties between control plane and IdP
-    let branding = raw.branding as Record<string, unknown> | undefined;
+    const branding = raw.branding as Record<string, unknown> | undefined;
     if (branding) {
       const colors = branding.colors as Record<string, string> | undefined;
       const logo = branding.logo as Record<string, string> | undefined;

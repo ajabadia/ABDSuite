@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     const zipBuffer = await GDPRService.exportUserData(body.userId, body.tenantId, body.email);
 
-    return new NextResponse(zipBuffer as any, {
+    return new NextResponse(zipBuffer as unknown as BodyInit, {
       status: 200,
       headers: {
         'Content-Type': 'application/zip',

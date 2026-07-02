@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     // 1. Anonymize user in the `users` collection (Better Auth)
     const userResult = await db.collection('users').updateOne(
-      { _id: body.userId as any },
+      { _id: body.userId },
       {
         $set: {
           email: `gdpr-erased-${body.userId}@redacted.local`,

@@ -28,7 +28,7 @@ export async function evaluateMfaGrace(user: {
   mfaGraceExpiresAt?: Date | string;
 }): Promise<MfaGraceState> {
   let mfaGracePeriodActive = !!user.mfaGracePeriodActive;
-  let mfaGraceLoginsRemaining = user.mfaGraceLoginsRemaining ?? 0;
+  const mfaGraceLoginsRemaining = user.mfaGraceLoginsRemaining ?? 0;
   const mfaGraceExpiresAt = user.mfaGraceExpiresAt;
 
   if (mfaGracePeriodActive) {

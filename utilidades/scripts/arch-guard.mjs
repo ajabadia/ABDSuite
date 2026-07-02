@@ -113,7 +113,7 @@ try {
     // --- CSS SPECIFIC AUDITS ---
     if (ext === '.css' && (phase === 'all' || phase === 'structural')) {
       lines.forEach((line, idx) => {
-        if (line.includes('industrial-core.css')) {
+        if (line.includes('industrial-core.css') || line.includes('@ajabadia/styles/dist/styles/base.css')) {
           hasIndustrialCoreImport = true;
         }
 
@@ -293,9 +293,9 @@ try {
     process.stdout.write(`PROGRESS:${index + 1}:${totalFiles}:${violationCount}:${warningCount}\n`);
   });
 
-  // Global Check: For client applications, verify they import @abd/styles CSS (only during structural phase)
+  // Global Check: For client applications, verify they import @ajabadia/styles CSS (only during structural phase)
   if (!isLibrary && !hasIndustrialCoreImport && (phase === 'all' || phase === 'structural')) {
-    addFinding('HIGH', 'FIRE:ABD_STYLES_MISSING', 'globals.css', 1, 'The project does not import "@abd/styles/dist/styles/industrial-core.css" in any CSS file.');
+    addFinding('HIGH', 'FIRE:ABD_STYLES_MISSING', 'globals.css', 1, 'The project does not import "@ajabadia/styles/dist/styles/base.css" (re-exports industrial-core.css) in any CSS file.');
   }
 
   if (highViolations > 0) process.exit(1);

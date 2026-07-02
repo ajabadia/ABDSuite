@@ -11,7 +11,7 @@
 import { vi } from 'vitest';
 
 vi.mock('@ajabadia/satellite-sdk/core', async (importOriginal) => {
-  const actual = await importOriginal() as any;
+  const actual = await importOriginal() as Record<string, unknown>;
   return {
     ...actual,
     verifyToken: vi.fn(async (token: string) => {
@@ -31,7 +31,7 @@ vi.mock('@ajabadia/satellite-sdk/core', async (importOriginal) => {
 export const mockIntlMiddlewareResult = { status: 200, intl: true };
 
 export function makeReq(mockGetSession: ReturnType<typeof vi.fn>) {
-  return (pathname: string, sessionData: any = null, queryParams = '') => {
+  return (pathname: string, sessionData: Record<string, unknown> | null = null, queryParams = '') => {
     const baseUrl = 'http://localhost:5001';
     const urlStr = `${baseUrl}${pathname}${queryParams}`;
     const searchParams = new URLSearchParams(queryParams.replace(/^\?/, ''));
@@ -66,7 +66,7 @@ export function makeReq(mockGetSession: ReturnType<typeof vi.fn>) {
         }),
       },
       headers: new Headers(),
-    } as unknown as any;
+    } as unknown as Record<string, unknown>;
   };
 }
 

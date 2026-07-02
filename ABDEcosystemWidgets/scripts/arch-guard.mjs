@@ -85,7 +85,7 @@ try {
     // --- CSS SPECIFIC AUDITS ---
     if (ext === '.css' && (phase === 'all' || phase === 'structural')) {
       lines.forEach((line, idx) => {
-        if (line.includes('industrial-core.css')) {
+        if (line.includes('industrial-core.css') || line.includes('@ajabadia/styles/dist/styles/base.css')) {
           hasIndustrialCoreImport = true;
         }
 
