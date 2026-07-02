@@ -1,5 +1,15 @@
 'use client';
 
+/**
+ * @purpose Renderiza una plantilla para editar y probar instrucciones de inteligencia artificial, incluyendo plantillas del sistema y del usuario, configuraciones de temperatura y funcionalidad de prueba.
+ * @purpose_en Renders a form for editing and testing AI prompts, including system and user templates, temperature settings, and test functionality.
+ * @refactorable true (contains too many state variables and UI parts)
+ * @classification UI Component
+ * @complexity Medium
+ * @fingerprint exports:2,imports:7,sig:qb4vrj
+ * @lastUpdated 2026-07-02T18:09:59.623Z
+ */
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

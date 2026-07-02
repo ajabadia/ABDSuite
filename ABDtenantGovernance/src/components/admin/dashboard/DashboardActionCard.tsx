@@ -1,10 +1,11 @@
 /**
- * @purpose Renders a customizable action card component for the admin dashboard, displaying an icon, category, title, description, footer metadata, and a button to navigate elsewhere.
+ * @purpose Renderiza un componente de tarjeta de acción personalizable para el panel administrativo, mostrando una icono, categoría, título, descripción, metadatos del pie de página y un botón para navegar a otro lugar.
+ * @purpose_en Renders a customizable action card component for the admin dashboard, displaying an icon, category, title, description, footer metadata, and a button to navigate elsewhere.
  * @refactorable false
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:3,sig:1xae5t2
- * @lastUpdated 2026-06-23T21:44:45.215Z
+ * @fingerprint exports:1,imports:3,sig:1152g4
+ * @lastUpdated 2026-07-02T18:10:01.339Z
  */
 
 import React from 'react';

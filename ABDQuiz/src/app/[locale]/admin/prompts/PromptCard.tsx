@@ -1,5 +1,15 @@
 'use client';
 
+/**
+ * @purpose Renderiza un componente de tarjeta para mostrar y gestionar plantillas de instrucciones, incluyendo su estado, versión y acciones como editar y archivar/reactivar.
+ * @purpose_en Renders a card component for displaying and managing prompt templates, including their status, version, and actions like edit and archive/reactivate.
+ * @refactorable true (contains too many state variables and UI parts)
+ * @classification UI Component
+ * @complexity Medium
+ * @fingerprint exports:1,imports:5,sig:u356pq
+ * @lastUpdated 2026-07-02T18:09:57.625Z
+ */
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
