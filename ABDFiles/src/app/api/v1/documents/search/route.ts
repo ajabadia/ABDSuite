@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Query parameter "q" is required' }, { status: 400 });
     }
 
-    const pipeline: Record<string, unknown>[] = [
+    const pipeline: any[] = [
       {
         $search: {
           index: 'documents_search',
