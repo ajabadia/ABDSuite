@@ -138,7 +138,7 @@ export async function DELETE(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  let body: z.infer<typeof BulkAssignSchema> = {} as any;
+  let body: Partial<z.infer<typeof BulkAssignSchema>> = {};
   try {
     if (!authGuard(request)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

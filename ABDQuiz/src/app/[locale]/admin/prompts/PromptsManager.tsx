@@ -57,7 +57,7 @@ export function PromptsManager({ tenantId, tenantSuffix }: PromptsManagerProps) 
   const [testLoading, setTestLoading] = useState(false);
   const [testError, setTestError] = useState<string | null>(null);
 
-  const loadPrompts = useCallback(async () => {
+  const refreshPrompts = useCallback(async () => {
     setLoading(true);
     const result = await getPromptTemplatesAction(tenantId);
     if (result.success && result.data) {
@@ -67,8 +67,9 @@ export function PromptsManager({ tenantId, tenantSuffix }: PromptsManagerProps) 
   }, [tenantId]);
 
   useEffect(() => {
-    loadPrompts();
-  }, [loadPrompts]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    refreshPrompts();
+  }, [refreshPrompts]);
 
   const handleEdit = (p: PromptTemplateData) => {
     setEditingId(p._id);
@@ -109,7 +110,7 @@ export function PromptsManager({ tenantId, tenantSuffix }: PromptsManagerProps) 
     if (result.success) {
       setEditingId(null);
       setForm(INITIAL_FORM);
-      await loadPrompts();
+      await refreshPrompts();
     } else {
       setError(result.error || 'Error saving prompt template');
     }
@@ -119,7 +120,7 @@ export function PromptsManager({ tenantId, tenantSuffix }: PromptsManagerProps) 
 
   const handleToggle = async (id: string) => {
     await togglePromptTemplateActiveAction(id, tenantId);
-    await loadPrompts();
+    await refreshPrompts();
   };
 
   const handleTest = async (systemPrompt: string, userTemplate: string) => {

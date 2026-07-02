@@ -64,7 +64,7 @@ export class ExamAuditorService {
     const course = await this.findCourseForExamConfig(tenantId, examConfigId);
     if (!course || !course.objectives || course.objectives.length === 0) return null;
 
-    const query: any = {
+    const query: Record<string, unknown> = {
       tenantId,
       active: true
     };

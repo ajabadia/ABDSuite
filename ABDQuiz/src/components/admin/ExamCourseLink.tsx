@@ -35,7 +35,7 @@ export default function ExamCourseLink({ examConfigId, currentCourseId, courses 
     try {
       const res = await updateExamConfigAction(examConfigId, {
         courseId: selectedCourseId || undefined,
-      } as any);
+      } as unknown as Parameters<typeof updateExamConfigAction>[1]);
       if (res.success) {
         toast.success(t('courseLinked') || 'Curso vinculado');
         router.refresh();

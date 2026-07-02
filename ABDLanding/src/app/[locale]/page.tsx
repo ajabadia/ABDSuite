@@ -44,7 +44,7 @@ const APP_URLS: Record<string, string> = {
   logs:      process.env.LOGS_URL || `https://logs.${ROOT_DOMAIN}`,
   files:     process.env.FILES_URL || `https://files.${ROOT_DOMAIN}`,
   quiz:      process.env.QUIZ_URL || `https://quiz.${ROOT_DOMAIN}`,
-  gobernanza: process.env.GOVERNANCE_URL || `https://tenantgobernance.${ROOT_DOMAIN}`,
+  gobernanza: process.env.GOVERNANCE_URL || `https://tenantgovernance.${ROOT_DOMAIN}`,
   cryptfile: `https://crypt.${ROOT_DOMAIN}`,
 };
 

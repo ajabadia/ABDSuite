@@ -28,7 +28,7 @@ export class AntiRepeatPromptBuilder {
     objective,
     limit = 50
   }: BuildAntiRepeatPromptParams): Promise<string> {
-    const query: any = {
+    const query: Record<string, unknown> = {
       tenantId,
       module,
       active: true

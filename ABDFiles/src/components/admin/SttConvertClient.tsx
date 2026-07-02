@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Mic, X, Download, Loader2, AlertTriangle, CheckCircle, Globe, Monitor, Copy } from 'lucide-react';
 import { transcribeAudioLocally, isBrowserSttSupported } from '@/services/stt-browser';
 
@@ -44,6 +45,7 @@ const OUTPUT_OPTIONS = [
 ];
 
 export default function SttConvertClient() {
+  const t = useTranslations('admin');
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [language, setLanguage] = useState('');
@@ -205,6 +207,7 @@ export default function SttConvertClient() {
       <button
         onClick={() => setOpen(true)}
         className="btn-secondary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center gap-2"
+        aria-label="Speech to text"
       >
         <Mic className="w-4 h-4" />
         SPEECH TO TEXT
@@ -219,7 +222,7 @@ export default function SttConvertClient() {
           <Mic className="w-4 h-4" />
           SPEECH-TO-TEXT
         </h3>
-        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground" aria-label="Close speech to text">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -248,7 +251,7 @@ export default function SttConvertClient() {
       {file && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
           <div className="flex flex-col gap-2">
-            <label className="text-muted-foreground text-[8px] tracking-wider uppercase">Language</label>
+            <label className="text-muted-foreground text-[8px] tracking-wider uppercase">{t('language')}</label>
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
@@ -261,7 +264,7 @@ export default function SttConvertClient() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-muted-foreground text-[8px] tracking-wider uppercase">Output Format</label>
+            <label className="text-muted-foreground text-[8px] tracking-wider uppercase">{t('outputFormat')}</label>
             <select
               value={outputFormat}
               onChange={(e) => setOutputFormat(e.target.value)}
@@ -296,6 +299,7 @@ export default function SttConvertClient() {
             onClick={handleServerConvert}
             disabled={loading || localLoading}
             className="btn-primary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+            aria-label="Transcribe on server"
           >
             {loading ? (
               <>
@@ -314,6 +318,7 @@ export default function SttConvertClient() {
               onClick={handleLocalConvert}
               disabled={loading || localLoading}
               className="btn-secondary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+              aria-label="Transcribe locally"
             >
               {localLoading ? (
                 <>
@@ -360,6 +365,7 @@ export default function SttConvertClient() {
               <button
                 onClick={handleCopy}
                 className="btn-secondary-console text-[9px] font-mono tracking-widest uppercase py-2 px-4 inline-flex items-center gap-2"
+                aria-label="Copy transcription"
               >
                 <Copy className="w-3.5 h-3.5" />
                 COPY
@@ -367,6 +373,7 @@ export default function SttConvertClient() {
               <button
                 onClick={handleDownload}
                 className="btn-secondary-console text-[9px] font-mono tracking-widest uppercase py-2 px-4 inline-flex items-center gap-2"
+                aria-label="Download transcription"
               >
                 <Download className="w-3.5 h-3.5" />
                 DOWNLOAD

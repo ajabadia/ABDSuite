@@ -17,7 +17,7 @@ const nextConfig = {
       },
       {
         source: '/:locale/gobernanza/:path*',
-        destination: `${process.env.GOVERNANCE_URL || 'https://tenantgobernance.abdia.es'}/:locale/:path*`,
+        destination: `${process.env.GOVERNANCE_URL || 'https://tenantgovernance.abdia.es'}/:locale/:path*`,
       },
       {
         source: '/:locale/files/:path*',
@@ -42,7 +42,7 @@ const nextConfig = {
       },
       {
         source: '/gobernanza/:path*',
-        destination: `${process.env.GOVERNANCE_URL || 'https://tenantgobernance.abdia.es'}/:path*`,
+        destination: `${process.env.GOVERNANCE_URL || 'https://tenantgovernance.abdia.es'}/:path*`,
       },
       {
         source: '/files/:path*',

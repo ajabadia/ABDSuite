@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect, useCallback, startTransition, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { AlertCircle, CheckCircle2, Send, MessageSquare, Clock, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { listOpenIncidentsAction, getIncidentMessagesAction, sendIncidentMessageAction, resolveIncidentAction } from '@/actions/incidents';
 import { cn } from '@/lib/utils';
@@ -33,6 +34,7 @@ interface ChatMessage {
 }
 
 export function IncidentsManager({ tenantId }: { tenantId: string }) {
+  const t = useTranslations('admin');
   const [incidents, setIncidents] = useState<IncidentSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -133,16 +135,17 @@ export function IncidentsManager({ tenantId }: { tenantId: string }) {
                 'px-3 py-1.5 font-mono text-[9px] uppercase tracking-wider border transition-all cursor-pointer',
                 filter === f ? 'bg-primary/20 border-primary/50 text-primary' : 'bg-transparent border-border text-muted-foreground hover:border-primary/30'
               )}
+              aria-label={f === 'open' ? t('incidentsFilterOpen') : f === 'resolved' ? t('incidentsFilterResolved') : t('incidentsFilterAll')}
             >
-              {f === 'open' ? 'Abiertas' : f === 'resolved' ? 'Resueltas' : 'Todas'}
+              {f === 'open' ? t('incidentsFilterOpen') : f === 'resolved' ? t('incidentsFilterResolved') : t('incidentsFilterAll')}
             </button>
           ))}
         </div>
 
         {loading ? (
-          <p className="font-mono text-[10px] text-muted-foreground">Cargando incidencias...</p>
+          <p className="font-mono text-[10px] text-muted-foreground">{t('incidentsLoading')}</p>
         ) : filteredIncidents.length === 0 ? (
-          <p className="font-mono text-[10px] text-muted-foreground">No hay incidencias.</p>
+          <p className="font-mono text-[10px] text-muted-foreground">{t('incidentsEmpty')}</p>
         ) : (
           filteredIncidents.map((inc) => (
             <button
@@ -167,7 +170,7 @@ export function IncidentsManager({ tenantId }: { tenantId: string }) {
                   </span>
                 </div>
                 <span className="font-mono text-[8px] text-muted-foreground">
-                  {inc.messageCount} msgs
+                  {t('incidentsMessageCount', { count: inc.messageCount })}
                 </span>
               </div>
               {inc.lastMessage && (
@@ -187,7 +190,7 @@ export function IncidentsManager({ tenantId }: { tenantId: string }) {
         {!selectedIncident ? (
           <div className="flex items-center justify-center h-64 border border-dashed border-border">
             <p className="font-mono text-[10px] text-muted-foreground">
-              Selecciona una incidencia para ver los mensajes
+              {t('incidentsSelectOne')}
             </p>
           </div>
         ) : (
@@ -200,7 +203,7 @@ export function IncidentsManager({ tenantId }: { tenantId: string }) {
                     Incidencia
                   </span>
                   <span className="font-mono text-[8px] text-muted-foreground">
-                    Estudiante: {selectedIncident.studentId}
+                    {t('incidentStudent')} {selectedIncident.studentId}
                   </span>
                 </div>
               </div>
@@ -209,19 +212,20 @@ export function IncidentsManager({ tenantId }: { tenantId: string }) {
                   onClick={() => handleResolve(selectedIncident._id)}
                   disabled={resolving === selectedIncident._id}
                   className="flex items-center gap-2 px-4 py-2 bg-green-900/20 border border-green-700/40 text-green-400 font-mono text-[9px] uppercase tracking-wider hover:bg-green-900/30 transition-all disabled:opacity-30 cursor-pointer"
+                  aria-label={t('incidentsResolve')}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  {resolving === selectedIncident._id ? 'Resolviendo...' : 'Resolver'}
+                  {resolving === selectedIncident._id ? t('incidentsResolving') : t('incidentsResolve')}
                 </button>
               )}
             </div>
 
             <div className="flex-1 overflow-y-auto max-h-96 p-4 flex flex-col gap-3 bg-black/10 border border-border">
               {messagesLoading ? (
-                <p className="font-mono text-[10px] text-muted-foreground text-center py-8">Cargando mensajes...</p>
+                <p className="font-mono text-[10px] text-muted-foreground text-center py-8">{t('incidentsLoadingMessages')}</p>
               ) : messages.length === 0 ? (
                 <p className="font-mono text-[10px] text-muted-foreground text-center py-8">
-                  No hay mensajes en esta incidencia.
+                  {t('incidentsNoMessages')}
                 </p>
               ) : (
                 messages.map((msg, i) => (
@@ -237,7 +241,7 @@ export function IncidentsManager({ tenantId }: { tenantId: string }) {
                     <div className="flex items-center gap-2 mb-1">
                       <User className="w-3 h-3 text-muted-foreground" />
                       <span className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
-                        {msg.sender === 'student' ? 'Alumno' : 'Profesor'}
+                        {msg.sender === 'student' ? t('incidentSenderStudent') : t('incidentSenderProfessor')}
                       </span>
                     </div>
                     <p className="text-sm text-foreground break-words">{msg.text}</p>
@@ -256,7 +260,7 @@ export function IncidentsManager({ tenantId }: { tenantId: string }) {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                  placeholder="Escribe tu respuesta..."
+                  placeholder={t('incidentsReplyPlaceholder')}
                   disabled={sending}
                   className="flex-1 bg-black/30 border border-border px-4 py-3 text-sm font-mono text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-colors"
                 />
@@ -264,6 +268,7 @@ export function IncidentsManager({ tenantId }: { tenantId: string }) {
                   onClick={handleSend}
                   disabled={sending || !input.trim()}
                   className="p-3 bg-primary/20 border border-primary/30 text-primary hover:bg-primary/30 transition-all disabled:opacity-30 cursor-pointer"
+                  aria-label={t('incidentChatSend')}
                 >
                   <Send className="w-4 h-4" />
                 </button>

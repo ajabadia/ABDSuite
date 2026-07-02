@@ -15,7 +15,7 @@ import { resolveTargetTenantContext } from '@ajabadia/satellite-sdk/utils';
 import { resolveTenantContext } from '@/lib/tenant-context';
 import ExamConfigForm from '@/components/admin/ExamConfigForm';
 import ExamConfig from '@/models/ExamConfig';
-import { ExamAuditorService } from '@/services/quiz/ExamAuditorService';
+import { ExamAuditorService, ExamAuditReport } from '@/services/quiz/ExamAuditorService';
 import { notFound } from 'next/navigation';
 import { connectDB } from '@ajabadia/satellite-sdk/db';
 import { ArrowLeft, FolderOpen } from 'lucide-react';
@@ -41,19 +41,19 @@ export default async function EditExamPage({
 
   // ── Multi-tenant awareness ─────────────────────────────────────────────
   const explicitCtx = await resolveTargetTenantContext(resolvedTenantId);
-  let auditReport: Record<string, unknown> | null = null;
+  let auditReport: ExamAuditReport | null = null;
   let courses: { _id: string; name: string }[] = [];
   const config = await withTenantContext(async () => {
     await connectDB();
     const cfg = await ExamConfig.findById(id).lean();
     if (cfg) {
       const report = await ExamAuditorService.auditExamCoverage(resolvedTenantId, id);
-      if (report) auditReport = JSON.parse(JSON.stringify(report));
+      if (report) auditReport = JSON.parse(JSON.stringify(report)) as ExamAuditReport;
       const courseDocs = await Course.find({ tenantId: resolvedTenantId, active: true })
         .select('name')
         .sort({ name: 1 })
         .lean();
-      courses = courseDocs.map((c: any) => ({ _id: c._id.toString(), name: c.name }));
+      courses = courseDocs.map((c: Record<string, unknown>) => ({ _id: (c._id as { toString(): string }).toString(), name: c.name as string }));
     }
     return cfg;
   }, explicitCtx);
@@ -95,7 +95,7 @@ export default async function EditExamPage({
         />
 
         <ExamAuditSection
-          report={auditReport as any}
+          report={auditReport}
           examName={config.name}
           courseId={courseId}
           locale={locale}

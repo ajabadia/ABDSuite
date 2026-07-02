@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, startTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { MessageSquare, X, Send, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { getIncidentMessagesAction, sendIncidentMessageAction } from '@/actions/incidents';
 import { cn } from '@/lib/utils';
@@ -28,39 +29,43 @@ interface IncidentChatDrawerProps {
 
 const POLL_INTERVAL_MS = 6000;
 
-export function IncidentChatDrawer({ attemptId, tenantId }: IncidentChatDrawerProps) {
+export function IncidentChatDrawer({ attemptId, tenantId: _tenantId }: IncidentChatDrawerProps) {
+  const t = useTranslations('admin');
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [incidentId, setIncidentId] = useState<string | null>(null);
+  const [_incidentId, setIncidentId] = useState<string | null>(null);
   const [unread, setUnread] = useState(0);
-  const [lastPolledAt, setLastPolledAt] = useState<string | null>(null);
+  const lastPolledAtRef = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const openRef = useRef(open);
+  useEffect(() => { openRef.current = open; }, [open]);
 
   const fetchMessages = useCallback(async () => {
     try {
-      const result = await getIncidentMessagesAction(attemptId, lastPolledAt ?? undefined);
+      const result = await getIncidentMessagesAction(attemptId, lastPolledAtRef.current ?? undefined);
       if (result.success && result.messages) {
         if (result.incidentId) {
           setIncidentId(result.incidentId);
         }
         if (result.messages.length > 0) {
           setMessages(result.messages as ChatMessage[]);
-          if (lastPolledAt && !open) {
+          if (lastPolledAtRef.current && !openRef.current) {
             setUnread(prev => prev + (result.messages as ChatMessage[]).filter(m => m.sender === 'professor').length);
           }
         }
       }
-      setLastPolledAt(new Date().toISOString());
+      lastPolledAtRef.current = new Date().toISOString();
     } catch {
       // silent
     } finally {
       setLoading(false);
     }
-  }, [attemptId, lastPolledAt, open, incidentId, messages.length]);
+  }, [attemptId]);
 
   useEffect(() => {
     startTransition(() => { fetchMessages(); });
@@ -72,7 +77,6 @@ export function IncidentChatDrawer({ attemptId, tenantId }: IncidentChatDrawerPr
 
   useEffect(() => {
     if (expanded) {
-      setUnread(0);
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [expanded, messages]);
@@ -84,7 +88,7 @@ export function IncidentChatDrawer({ attemptId, tenantId }: IncidentChatDrawerPr
       const result = await sendIncidentMessageAction(attemptId, input.trim());
       if (result.success) {
         setInput('');
-        setLastPolledAt(null);
+        lastPolledAtRef.current = null;
         await fetchMessages();
       }
     } catch {
@@ -99,7 +103,7 @@ export function IncidentChatDrawer({ attemptId, tenantId }: IncidentChatDrawerPr
       <button
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-50 p-3 bg-primary text-primary-foreground border border-primary/50 shadow-xl hover:bg-primary/90 transition-all cursor-pointer"
-        aria-label="Abrir chat de incidencias"
+        aria-label={t('incidentChatOpen')}
       >
         {unread > 0 && (
           <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-destructive text-destructive-foreground text-[9px] font-mono font-bold px-1 leading-none rounded-sm">
@@ -117,19 +121,21 @@ export function IncidentChatDrawer({ attemptId, tenantId }: IncidentChatDrawerPr
         <div className="flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-primary" />
           <span className="font-mono text-[10px] uppercase tracking-wider text-foreground font-bold">
-            Incidencia
+            {t('incidentChatTitle')}
           </span>
         </div>
         <div className="flex items-center gap-1">
           <button
-            onClick={() => setExpanded(!expanded)}
+            onClick={() => { setExpanded(!expanded); setUnread(0); }}
             className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            aria-label={t('incidentChatMinimize')}
           >
             {expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
           </button>
           <button
             onClick={() => setOpen(false)}
             className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            aria-label={t('incidentChatClose')}
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -140,10 +146,10 @@ export function IncidentChatDrawer({ attemptId, tenantId }: IncidentChatDrawerPr
         <>
           <div className="flex-1 overflow-y-auto max-h-60 p-3 flex flex-col gap-2 bg-black/10">
             {loading ? (
-              <p className="text-[9px] font-mono text-muted-foreground text-center py-4">Cargando...</p>
+              <p className="text-[9px] font-mono text-muted-foreground text-center py-4">{t('incidentChatLoading')}</p>
             ) : messages.length === 0 ? (
               <p className="text-[9px] font-mono text-muted-foreground text-center py-4">
-                Describe tu incidencia para que el profesor pueda ayudarte.
+                {t('incidentChatEmpty')}
               </p>
             ) : (
               messages.map((msg, i) => (
@@ -157,7 +163,7 @@ export function IncidentChatDrawer({ attemptId, tenantId }: IncidentChatDrawerPr
                   )}
                 >
                   <span className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground block mb-1">
-                    {msg.sender === 'student' ? 'Tú' : 'Profesor'}
+                    {msg.sender === 'student' ? t('incidentChatYou') : t('incidentChatProfessor')}
                   </span>
                   <p className="text-foreground break-words">{msg.text}</p>
                   <span className="font-mono text-[7px] text-muted-foreground block mt-1">
@@ -174,7 +180,7 @@ export function IncidentChatDrawer({ attemptId, tenantId }: IncidentChatDrawerPr
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Escribe tu mensaje..."
+              placeholder={t('incidentChatPlaceholder')}
               disabled={sending}
               className="flex-1 bg-black/20 border border-border px-3 py-2 text-[11px] font-mono text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-colors"
             />
@@ -182,6 +188,7 @@ export function IncidentChatDrawer({ attemptId, tenantId }: IncidentChatDrawerPr
               onClick={handleSend}
               disabled={sending || !input.trim()}
               className="p-2 bg-primary/20 border border-primary/30 text-primary hover:bg-primary/30 transition-all disabled:opacity-30 cursor-pointer"
+              aria-label={t('incidentChatSend')}
             >
               <Send className="w-3.5 h-3.5" />
             </button>

@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Volume2, X, Download, Loader2, AlertTriangle, CheckCircle, Globe, Monitor, Play, Square } from 'lucide-react';
 import { speakWithWebSpeech, synthesizeAudioLocally, isBrowserTtsSupported } from '@/services/tts-browser';
 
@@ -72,6 +73,7 @@ const OUTPUT_OPTIONS = [
 ];
 
 export default function TtsConvertClient() {
+  const t = useTranslations('admin');
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [voice, setVoice] = useState('af_heart');
@@ -205,6 +207,7 @@ export default function TtsConvertClient() {
       <button
         onClick={() => setOpen(true)}
         className="btn-secondary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center gap-2"
+        aria-label="Text to speech"
       >
         <Volume2 className="w-4 h-4" />
         TEXT TO SPEECH
@@ -219,7 +222,7 @@ export default function TtsConvertClient() {
           <Volume2 className="w-4 h-4" />
           TEXT-TO-SPEECH
         </h3>
-        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground" aria-label="Close text to speech">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -236,7 +239,7 @@ export default function TtsConvertClient() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
         <div className="flex flex-col gap-2">
-          <label className="text-muted-foreground text-[8px] tracking-wider uppercase">Voice</label>
+          <label className="text-muted-foreground text-[8px] tracking-wider uppercase">{t('voice')}</label>
           <select
             value={voice}
             onChange={(e) => setVoice(e.target.value)}
@@ -268,7 +271,7 @@ export default function TtsConvertClient() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-muted-foreground text-[8px] tracking-wider uppercase">Output Format</label>
+          <label className="text-muted-foreground text-[8px] tracking-wider uppercase">{t('outputFormat')}</label>
           <select
             value={outputFormat}
             onChange={(e) => setOutputFormat(e.target.value)}
@@ -287,6 +290,7 @@ export default function TtsConvertClient() {
             onClick={handlePlayPreview}
             disabled={!text.trim() || serverLoading || localLoading}
             className="btn-secondary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+            aria-label="Preview with browser speech"
           >
             {isPlaying ? (
               <>
@@ -305,6 +309,7 @@ export default function TtsConvertClient() {
           onClick={handleServerGenerate}
           disabled={!text.trim() || serverLoading || localLoading}
           className="btn-primary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+          aria-label="Generate on server"
         >
           {serverLoading ? (
             <>
@@ -323,6 +328,7 @@ export default function TtsConvertClient() {
             onClick={handleLocalGenerate}
             disabled={!text.trim() || serverLoading || localLoading}
             className="btn-secondary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+            aria-label="Generate locally"
           >
             {localLoading ? (
               <>
@@ -367,6 +373,7 @@ export default function TtsConvertClient() {
             <button
               onClick={handleDownload}
               className="btn-secondary-console text-[9px] font-mono tracking-widest uppercase py-2 px-4 inline-flex items-center gap-2"
+              aria-label="Download audio"
             >
               <Download className="w-3.5 h-3.5" />
               DOWNLOAD

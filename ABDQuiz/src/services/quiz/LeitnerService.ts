@@ -86,9 +86,9 @@ export class LeitnerService {
     });
 
     // 3. Clasificar preguntas en Cajas (1, 2, 3)
-    const box1: any[] = [];
-    const box2: any[] = [];
-    const box3: any[] = [];
+    const box1: IQuestion[] = [];
+    const box2: IQuestion[] = [];
+    const box3: IQuestion[] = [];
 
     activeQuestions.forEach(q => {
       const level = stateMap.get(q._id.toString()) || 1; // Por defecto Caja 1 si no hay registro
@@ -98,7 +98,7 @@ export class LeitnerService {
     });
 
     // Mezclar cada caja aleatoriamente
-    const shuffle = (array: any[]) => array.sort(() => Math.random() - 0.5);
+    const shuffle = (array: IQuestion[]) => array.sort(() => Math.random() - 0.5);
     shuffle(box1);
     shuffle(box2);
     shuffle(box3);

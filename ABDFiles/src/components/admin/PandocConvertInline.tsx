@@ -11,6 +11,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { FileOutput, X, Download, Loader2, AlertTriangle, CheckCircle, Globe, Monitor } from 'lucide-react';
 import { convertLocally, isBrowserPandocSupported } from '@/services/pandoc-browser';
 
@@ -40,6 +41,7 @@ const FORMAT_OPTIONS = [
 ];
 
 export default function PandocConvertInline({ content, mimeType, fileName, inputFormat }: PandocConvertInlineProps) {
+  const t = useTranslations('admin');
   const [open, setOpen] = useState(false);
   const [toFormat, setToFormat] = useState('html');
   const [toc, setToc] = useState(false);
@@ -129,6 +131,7 @@ export default function PandocConvertInline({ content, mimeType, fileName, input
       <button
         onClick={() => setOpen(true)}
         className="btn-secondary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center gap-2"
+        aria-label="Convert document"
       >
         <FileOutput className="w-4 h-4" />
         CONVERT DOCUMENT
@@ -143,14 +146,14 @@ export default function PandocConvertInline({ content, mimeType, fileName, input
           <FileOutput className="w-4 h-4" />
           PANDOC CONVERTER
         </h3>
-        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground" aria-label="Close document converter">
           <X className="w-4 h-4" />
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
         <div className="flex flex-col gap-2">
-          <label className="text-muted-foreground text-[8px] tracking-wider uppercase">Output Format</label>
+          <label className="text-muted-foreground text-[8px] tracking-wider uppercase">{t('outputFormat')}</label>
           <select
             value={toFormat}
             onChange={(e) => setToFormat(e.target.value)}
@@ -171,7 +174,7 @@ export default function PandocConvertInline({ content, mimeType, fileName, input
                 onChange={(e) => setToc(e.target.checked)}
                 className="accent-primary"
               />
-              <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Table of Contents</span>
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground">{t('tableOfContents')}</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -180,7 +183,7 @@ export default function PandocConvertInline({ content, mimeType, fileName, input
                 onChange={(e) => setStandalone(e.target.checked)}
                 className="accent-primary"
               />
-              <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Standalone</span>
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground">{t('standalone')}</span>
             </label>
           </div>
         </div>
@@ -191,6 +194,7 @@ export default function PandocConvertInline({ content, mimeType, fileName, input
           onClick={handleServerConvert}
           disabled={loading || localLoading}
           className="btn-primary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+          aria-label="Convert on server"
         >
           {loading ? (
             <>
@@ -209,6 +213,7 @@ export default function PandocConvertInline({ content, mimeType, fileName, input
             onClick={handleLocalConvert}
             disabled={loading || localLoading}
             className="btn-secondary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+            aria-label="Convert locally"
           >
             {localLoading ? (
               <>
@@ -250,6 +255,7 @@ export default function PandocConvertInline({ content, mimeType, fileName, input
             <button
               onClick={handleDownload}
               className="btn-secondary-console text-[9px] font-mono tracking-widest uppercase py-2 px-4 inline-flex items-center gap-2"
+              aria-label="Download converted document"
             >
               <Download className="w-3.5 h-3.5" />
               DOWNLOAD

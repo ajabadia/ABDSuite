@@ -13,7 +13,7 @@ import { ensureIndustrialAccess } from '@ajabadia/satellite-sdk/auth-middleware'
 import { withTenantContext } from '@ajabadia/satellite-sdk/db';
 import { resolveTargetTenantContext } from '@ajabadia/satellite-sdk/utils';
 import { resolveTenantContext } from '@/lib/tenant-context';
-import Course from '@/models/Course';
+import Course, { ICourseObjective } from '@/models/Course';
 import { notFound } from 'next/navigation';
 import { connectDB } from '@ajabadia/satellite-sdk/db';
 import { ArrowLeft, BookOpen } from 'lucide-react';
@@ -43,7 +43,7 @@ export default async function CourseCurriculumPage({
     await connectDB();
     const c = await Course.findById(id).lean();
     if (!c) return { course: null, objectives: [] };
-    return { course: c, objectives: (c.objectives as any[]) || [] };
+    return { course: c, objectives: (c.objectives as ICourseObjective[]) || [] };
   }, explicitCtx);
 
   if (!course || (course.tenantId !== user.tenantId && !isSuperAdmin)) {

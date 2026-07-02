@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Film, X, Download, Loader2, AlertTriangle, CheckCircle, Globe, Monitor } from 'lucide-react';
 import { convertMediaLocally, isBrowserMediaSupported } from '@/services/media-browser';
 
@@ -25,6 +26,7 @@ const OUTPUT_OPTIONS = [
 ];
 
 export default function MediaConvertClient() {
+  const t = useTranslations('admin');
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [toFormat, setToFormat] = useState('audio/mp3');
@@ -128,6 +130,7 @@ export default function MediaConvertClient() {
       <button
         onClick={() => setOpen(true)}
         className="btn-secondary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center gap-2"
+        aria-label="Convert media"
       >
         <Film className="w-4 h-4" />
         CONVERT MEDIA
@@ -142,7 +145,7 @@ export default function MediaConvertClient() {
           <Film className="w-4 h-4" />
           MEDIA CONVERTER
         </h3>
-        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground" aria-label="Close media converter">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -166,7 +169,7 @@ export default function MediaConvertClient() {
       {file && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
           <div className="flex flex-col gap-2">
-            <label className="text-muted-foreground text-[8px] tracking-wider uppercase">Output Format</label>
+            <label className="text-muted-foreground text-[8px] tracking-wider uppercase">{t('outputFormat')}</label>
             <select
               value={toFormat}
               onChange={(e) => setToFormat(e.target.value)}
@@ -193,6 +196,7 @@ export default function MediaConvertClient() {
             onClick={handleServerConvert}
             disabled={loading || localLoading}
             className="btn-primary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+            aria-label="Convert on server"
           >
             {loading ? (
               <>
@@ -211,6 +215,7 @@ export default function MediaConvertClient() {
               onClick={handleLocalConvert}
               disabled={loading || localLoading}
               className="btn-secondary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+              aria-label="Convert locally"
             >
               {localLoading ? (
                 <>
@@ -245,6 +250,7 @@ export default function MediaConvertClient() {
             <button
               onClick={handleDownload}
               className="btn-secondary-console text-[9px] font-mono tracking-widest uppercase py-2 px-4 inline-flex items-center gap-2"
+              aria-label="Download converted media"
             >
               <Download className="w-3.5 h-3.5" />
               DOWNLOAD

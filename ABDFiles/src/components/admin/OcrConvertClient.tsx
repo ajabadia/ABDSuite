@@ -11,6 +11,7 @@
  */
 
 import React, { useState, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { ScanText, X, Download, Loader2, AlertTriangle, CheckCircle, Globe, Monitor } from 'lucide-react';
 import { performOcrLocally, isBrowserOcrSupported } from '@/services/ocr-browser';
 
@@ -33,6 +34,7 @@ const LANGUAGE_OPTIONS = [
 ];
 
 export default function OcrConvertClient() {
+  const t = useTranslations('admin');
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -138,6 +140,7 @@ export default function OcrConvertClient() {
       <button
         onClick={() => setOpen(true)}
         className="btn-secondary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center gap-2"
+        aria-label="Extract text with OCR"
       >
         <ScanText className="w-4 h-4" />
         OCR (image to text)
@@ -152,7 +155,7 @@ export default function OcrConvertClient() {
           <ScanText className="w-4 h-4" />
           OCR TEXT EXTRACTION
         </h3>
-        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+        <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground" aria-label="Close OCR tool">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -176,7 +179,7 @@ export default function OcrConvertClient() {
 
       {file && (
         <div className="flex flex-col gap-2 font-mono text-xs">
-          <label className="text-muted-foreground text-[8px] tracking-wider uppercase">Language</label>
+          <label className="text-muted-foreground text-[8px] tracking-wider uppercase">{t('language')}</label>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
@@ -195,6 +198,7 @@ export default function OcrConvertClient() {
             onClick={handleServerOcr}
             disabled={loading || localLoading}
             className="btn-primary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+            aria-label="Run OCR on server"
           >
             {loading ? (
               <>
@@ -213,6 +217,7 @@ export default function OcrConvertClient() {
               onClick={handleLocalOcr}
               disabled={loading || localLoading}
               className="btn-secondary-console text-[10px] font-mono tracking-widest uppercase py-3 px-6 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+              aria-label="Run OCR locally"
             >
               {localLoading ? (
                 <>
@@ -253,6 +258,7 @@ export default function OcrConvertClient() {
             <button
               onClick={handleDownload}
               className="btn-secondary-console text-[9px] font-mono tracking-widest uppercase py-2 px-4 inline-flex items-center gap-2"
+              aria-label="Download extracted text"
             >
               <Download className="w-3.5 h-3.5" />
               DOWNLOAD TXT
