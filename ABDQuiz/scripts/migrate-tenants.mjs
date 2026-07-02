@@ -27,6 +27,10 @@ import mongoose from 'mongoose';
 const { MongoClient } = mongoose.mongo;
 
 if (!process.env.MONGODB_URI) {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || process.env.VERCEL) {
+    console.warn('WARNING: MONGODB_URI is not set during build phase. Skipping tenant migrations.');
+    process.exit(0);
+  }
   console.error('ERROR: MONGODB_URI es requerida');
   process.exit(1);
 }
