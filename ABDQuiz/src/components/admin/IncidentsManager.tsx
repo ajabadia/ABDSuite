@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Gestiona y muestra una lista de incidentes abiertos, permitiendo a los administradores ver mensajes, enviar respuestas y resolver incidentes.
+ * @purpose Gestiona y muestra una lista de incidentes abiertos, permitiendo a los administradores visualizar mensajes, enviar respuestas y resolver incidentes.
  * @purpose_en Manages and displays a list of open incidents, allowing administrators to view messages, send responses, and resolve incidents.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:4,sig:z1nxlv
- * @lastUpdated 2026-06-25T09:19:17.551Z
+ * @fingerprint exports:1,imports:5,sig:s11ovq
+ * @lastUpdated 2026-07-02T18:47:19.451Z
  */
 
 import { useState, useEffect, useCallback, startTransition, useRef } from 'react';

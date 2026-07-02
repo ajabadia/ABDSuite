@@ -4,8 +4,8 @@
  * @refactorable true (contains multiple distinct functionalities that could be separated into smaller services)
  * @classification Business Service
  * @complexity Medium
- * @fingerprint exports:5,imports:5,sig:rhctxj
- * @lastUpdated 2026-06-28T08:33:45.405Z
+ * @fingerprint exports:5,imports:5,sig:g0412w
+ * @lastUpdated 2026-07-02T18:45:54.868Z
  */
 
 import { convertMedia, isAudioMime, isVideoMime, type MediaOptions } from './media-service';

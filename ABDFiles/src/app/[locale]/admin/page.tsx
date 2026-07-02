@@ -1,11 +1,11 @@
 /**
- * @purpose Renderiza la página principal del panel administrativo de análisis con un dashboard, maneja traducciones, autenticación de usuarios y componentes de interfaz.
+ * @purpose Gestiona el portal de análisis administrativo central con una interfaz de dashboard, maneja traducciones, autenticación del usuario y componentes de UI.
  * @purpose_en Renders the central admin analytics portal page with a dashboard, handling translations, user authentication, and UI components.
  * @refactorable false
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:9,sig:mbqihe
- * @lastUpdated 2026-06-25T10:20:16.733Z
+ * @fingerprint exports:1,imports:9,sig:10mayyx
+ * @lastUpdated 2026-07-02T18:45:18.875Z
  */
 
 import { Suspense } from 'react';

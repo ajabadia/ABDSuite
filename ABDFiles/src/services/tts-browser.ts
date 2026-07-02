@@ -4,8 +4,8 @@
  * @refactorable false
  * @classification Business Service
  * @complexity Medium
- * @fingerprint exports:5,imports:0,sig:10l5zsw
- * @lastUpdated 2026-06-28T08:33:49.419Z
+ * @fingerprint exports:5,imports:1,sig:lkn6xg
+ * @lastUpdated 2026-07-02T18:45:58.097Z
  */
 
 import type { GenerateOptions } from 'kokoro-js';

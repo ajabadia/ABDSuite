@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza un panel interativo y visual para que los profesores puedan auditorizar la cobertura objetiva del currículum en una prueba.
+ * @purpose Renderiza un panel interactivo y visual para que los profesores puedan auditorizar la cobertura objetiva del currículum en una prueba.
  * @purpose_en Renders an interactive and visual panel for teachers to audit curriculum objective coverage in an exam.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:2,sig:19auwqv
- * @lastUpdated 2026-06-23T23:21:27.889Z
+ * @fingerprint exports:1,imports:3,sig:pa99ws
+ * @lastUpdated 2026-07-02T18:47:10.154Z
  */
 
 import React, { useState } from 'react';

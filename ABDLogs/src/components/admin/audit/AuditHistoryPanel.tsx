@@ -6,8 +6,8 @@
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:10,sig:qtfzof
- * @lastUpdated 2026-06-22T06:31:41.765Z
+ * @fingerprint exports:1,imports:10,sig:s8bc6g
+ * @lastUpdated 2026-07-02T18:46:23.843Z
  */
 
 import { useState, useEffect, useRef, useCallback, startTransition } from 'react';

@@ -1,11 +1,11 @@
 /**
- * @purpose Renderiza la página de dashboard para la aplicación de satélite base, incluyendo guardia de autenticación, navegación y componentes de interfaz de usuario.
+ * @purpose Renderiza la página de dashboard para la aplicación satelital base, incluyendo guardia de autenticación, navegación y componentes UI.
  * @purpose_en Renders the dashboard page for the base satellite application, including authentication guard, navigation, and UI components.
  * @refactorable false
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:6,sig:1xhotn3
- * @lastUpdated 2026-06-21T08:41:25.337Z
+ * @fingerprint exports:1,imports:6,sig:k6lful
+ * @lastUpdated 2026-07-02T18:43:29.746Z
  */
 
 import { getTranslations } from 'next-intl/server';

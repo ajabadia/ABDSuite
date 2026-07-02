@@ -1190,7 +1190,16 @@
       "navGovernanceSpaces": "Jerarquía de Espacios",
       "navGovernanceSpacesDesc": "Gestionar organigrama y áreas de visibilidad",
       "navGovernanceAudit": "Auditoría en Cadena",
-      "navGovernanceAuditDesc": "Explorar el registro de logs criptográficos"
+      "navGovernanceAuditDesc": "Explorar el registro de logs criptográficos",
+      "filesDashboard": "Panel de Archivos",
+      "filesDashboardDesc": "Gestionar y convertir archivos",
+      "filesStorage": "Almacenamiento Activo",
+      "filesStorageDesc": "Ver archivos subidos y conectores de almacenamiento",
+      "filesVersions": "Historial de Versiones",
+      "filesVersionsDesc": "Trazar modificaciones de documentos",
+      "filesAudit": "Cadena de Auditoría",
+      "filesAuditDesc": "Verificar la traza criptográfica de acciones sobre archivos",
+      "filesPlaceholder": "Escribe un comando de archivos..."
     },
     "billingMenu": "Facturación",
     "incidentsMenu": "Incidencias",

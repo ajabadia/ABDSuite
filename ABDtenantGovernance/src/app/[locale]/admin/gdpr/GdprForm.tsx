@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza una forma para operaciones de purga de datos GDPR, maneja el ingreso del usuario y muestra los resultados.
+ * @purpose Renderiza una forma para operaciones de purga de datos GDPR, maneja el entrada del usuario y muestra los resultados.
  * @purpose_en Renders a form for GDPR data purge operations, handling user input and displaying results.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:3,sig:ygc9p4
- * @lastUpdated 2026-06-25T09:23:27.316Z
+ * @fingerprint exports:1,imports:4,sig:1d8gvle
+ * @lastUpdated 2026-07-02T18:47:43.007Z
  */
 
 import React, { useState } from 'react';

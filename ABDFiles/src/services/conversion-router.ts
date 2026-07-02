@@ -4,8 +4,8 @@
  * @refactorable true (contains multiple service-specific functions)
  * @classification Business Service
  * @complexity Medium
- * @fingerprint exports:3,imports:7,sig:sgrunv
- * @lastUpdated 2026-06-28T08:33:32.087Z
+ * @fingerprint exports:3,imports:7,sig:ornp91
+ * @lastUpdated 2026-07-02T18:45:51.980Z
  */
 
 import { convertDocument, type ConvertOptions, type ConvertResult } from './pandoc-service';

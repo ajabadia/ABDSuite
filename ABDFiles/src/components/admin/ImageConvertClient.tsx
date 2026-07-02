@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Gestiona la conversión de imágenes a formatos diferentes utilizando un enfoque local y servidor, proporcionando una interfaz de usuario para seleccionar archivos, preview, conversión y descarga.
+ * @purpose Gestiona la conversión de imágenes a diferentes formatos utilizando un enfoque local y servidor, proporcionando una interfaz de usuario para seleccionar archivos, previsualizar, convertir y descargar.
  * @purpose_en Manages the conversion of images to different formats using a local and server-based approach, providing a user interface for file selection, preview, conversion, and download.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:3,sig:1k9svgb
- * @lastUpdated 2026-06-28T08:33:22.185Z
+ * @fingerprint exports:1,imports:4,sig:1xki8m5
+ * @lastUpdated 2026-07-02T18:45:27.932Z
  */
 
 import React, { useState, useRef } from 'react';

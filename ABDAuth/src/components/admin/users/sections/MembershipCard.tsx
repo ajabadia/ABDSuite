@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza una tarjeta que muestra detalles de membresía para un usuario en un inquilino, incluyendo opciones para establecer como default, actualizar y eliminar la membresía.
+ * @purpose Renderiza un card que muestra detalles de membresía para un usuario en una tenencia, incluyendo opciones para establecer como default, actualizar y eliminar la membresía.
  * @purpose_en Renders a card displaying membership details for a user in a tenant, including options to set as default, update, and remove the membership.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:4,sig:1jnx03c
- * @lastUpdated 2026-06-21T10:35:50.943Z
+ * @fingerprint exports:1,imports:4,sig:18pmj7i
+ * @lastUpdated 2026-07-02T18:44:37.125Z
  */
 
 import * as React from 'react';

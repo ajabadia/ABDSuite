@@ -1,11 +1,11 @@
 /**
- * @purpose Gestiona la página principal de la aplicación, maneja traducciones locales y autenticación del usuario.
+ * @purpose Gestiona la página de inicio del aplicativo, maneja traducciones locales y autenticación de usuario.
  * @purpose_en Renders the home page of the application, handling locale-specific translations and user authentication.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:6,sig:14vx8w3
- * @lastUpdated 2026-06-29T22:21:54.127Z
+ * @fingerprint exports:1,imports:6,sig:gjd3yp
+ * @lastUpdated 2026-07-02T18:43:32.047Z
  */
 
 import { getTranslations } from 'next-intl/server';

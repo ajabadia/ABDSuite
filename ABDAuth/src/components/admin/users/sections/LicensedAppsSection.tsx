@@ -1,11 +1,11 @@
 /**
- * @purpose Gestiona secciones para el manejo de aplicaciones licenciadas, permitiendo a los usuarios seleccionar las aplicaciones que están permitidas según su rol.
+ * @purpose Gestiona secciones para el manejo de aplicaciones licenciadas, permitiendo a los usuarios seleccionar las aplicaciones que están autorizadas según su rol.
  * @purpose_en Renders a section for managing licensed applications, allowing users to select which apps are allowed based on their role.
  * @refactorable false
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:1,sig:15s2w9s
- * @lastUpdated 2026-06-21T10:35:33.123Z
+ * @fingerprint exports:1,imports:1,sig:1r5zswj
+ * @lastUpdated 2026-07-02T18:44:34.121Z
  */
 
 import { HelpCircle, Settings } from 'lucide-react';

@@ -1,13 +1,13 @@
 "use client";
 
 /**
- * @purpose Renderiza un formulario para verificar la autenticación multifactor (MFA), permitiendo a los usuarios ingresar un código de tiempo basado en una contraseña única (TOTP) o un código de respaldo.
+ * @purpose Renderiza una forma para verificar la autenticación multifactor (MFA) permitiendo a los usuarios ingresar un código de tiempo basado en una contraseña única (TOTP) o un código de respaldo.
  * @purpose_en Renders a form for Multi-Factor Authentication (MFA) verification, allowing users to enter either a Time-Based One-Time Password (TOTP) or a backup code.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:9,sig:qb5gnv
- * @lastUpdated 2026-06-26T09:59:24.434Z
+ * @fingerprint exports:1,imports:9,sig:1fizdc0
+ * @lastUpdated 2026-07-02T18:44:45.004Z
  */
 
 import React, { useState } from 'react';

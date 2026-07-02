@@ -1,11 +1,11 @@
 /**
- * @purpose Renders a página para gestionar el currículum de un curso, incluyendo mostrar y editar objetivos.
- * @purpose_en Renders a page for managing the curriculum of a course, including displaying and editing objectives.
+ * @purpose Gestiona el currículum de un curso al renderizar una página para mostrar y editar objetivos.
+ * @purpose_en Manages the curriculum of a course by rendering a page to display and edit objectives.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:13,sig:13hmuyy
- * @lastUpdated 2026-06-26T10:02:06.266Z
+ * @fingerprint exports:1,imports:13,sig:l31nlc
+ * @lastUpdated 2026-07-02T18:46:47.463Z
  */
 
 import { getTranslations } from 'next-intl/server';

@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza un componente de dashboard del cliente con tablas para Suite, LMS, Seguridad y Gobernanza, maneja la navegación por teclado y muestra métricas según el tab que se activa.
+ * @purpose Renderiza un componente de dashboard del cliente con tablas para Suite, LMS, Seguridad y Gobernanza, maneja la navegación por teclado y muestra métricas según el tab activo.
  * @purpose_en Renders a dashboard client component with tabs for Suite, LMS, Security, and Governance, handling keyboard navigation and displaying metrics based on the active tab.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:7,sig:4v8t71
- * @lastUpdated 2026-06-26T09:59:09.185Z
+ * @fingerprint exports:1,imports:8,sig:1b0hqiy
+ * @lastUpdated 2026-07-02T18:43:43.350Z
  */
 
 import React, { useState, useCallback, useEffect } from 'react';

@@ -1,11 +1,11 @@
 /**
- * @purpose Gestiona el estado del período de gracia para la autenticación multifactor (MFA).
+ * @purpose Gestiona el estado del período de gracia de autenticación multifactor (MFA).
  * @purpose_en Manages the Multi-Factor Authentication (MFA) grace period state for users.
  * @refactorable false
  * @classification Business Service
  * @complexity Low
- * @fingerprint exports:2,imports:2,sig:16ui0he
- * @lastUpdated 2026-06-23T22:44:33.399Z
+ * @fingerprint exports:2,imports:2,sig:d7lrzo
+ * @lastUpdated 2026-07-02T18:44:54.019Z
  */
 
 import type { EntityId } from '@/lib/schemas/common';

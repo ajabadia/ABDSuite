@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza una notificacion emergente con el proveedor de almacenamiento activo.
+ * @purpose Renderiza una notificacion emergente que muestra el proveedor de almacenamiento activo.
  * @purpose_en Renders a badge displaying the active storage provider.
  * @refactorable false
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:2,sig:14z1m65
- * @lastUpdated 2026-06-30T13:00:47.982Z
+ * @fingerprint exports:1,imports:3,sig:dyyb2d
+ * @lastUpdated 2026-07-02T18:46:30.765Z
  */
 
 import { useState, useEffect } from 'react';

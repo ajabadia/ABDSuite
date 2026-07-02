@@ -4,8 +4,8 @@
  * @refactorable false
  * @classification Business Service
  * @complexity Low
- * @fingerprint exports:2,imports:2,sig:ata7kh
- * @lastUpdated 2026-06-21T08:41:08.102Z
+ * @fingerprint exports:2,imports:2,sig:1v4vm3j
+ * @lastUpdated 2026-07-02T18:43:24.832Z
  */
 
 import { createAuthRouteHandler } from '@ajabadia/satellite-sdk/auth-middleware';

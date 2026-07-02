@@ -1,8 +1,11 @@
 /**
- * @purpose DEPRECATED: Translations are now handled via next-intl dashboard namespace.
- * @purpose_en DEPRECATED: Translations are now handled via next-intl dashboard namespace.
+ * @purpose Gestiona las traducciones para el componente de lanzador de aplicaciones.
+ * @purpose_en Handles translations for the App Launcher component.
  * @refactorable false
- * @lastUpdated 2026-07-02
+ * @classification Helper Utility
+ * @complexity Low
+ * @fingerprint exports:1,imports:0,sig:1ybrmg8
+ * @lastUpdated 2026-07-02T18:44:17.248Z
  */
 
 export const getAppLauncherTranslations = () => {

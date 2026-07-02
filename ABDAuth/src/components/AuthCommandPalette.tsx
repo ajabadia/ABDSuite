@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza una pestaña de comandos con comandos relacionados a la autenticación.
+ * @purpose Renderiza una paleta de comandos con comandos relacionados a la autenticación.
  * @purpose_en Renders a command palette with authentication-related commands.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:6,sig:ewlgr1
- * @lastUpdated 2026-06-30T05:48:59.462Z
+ * @fingerprint exports:1,imports:6,sig:odlide
+ * @lastUpdated 2026-07-02T18:44:47.142Z
  */
 
 import React from 'react';

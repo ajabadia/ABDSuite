@@ -4,8 +4,8 @@
  * @refactorable false
  * @classification Business Service
  * @complexity Medium
- * @fingerprint exports:5,imports:2,sig:1n9jj0t
- * @lastUpdated 2026-06-28T08:33:50.732Z
+ * @fingerprint exports:5,imports:3,sig:1vxt7hd
+ * @lastUpdated 2026-07-02T18:46:01.174Z
  */
 
 import { KokoroTTS } from 'kokoro-js';

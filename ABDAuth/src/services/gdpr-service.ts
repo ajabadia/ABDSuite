@@ -1,11 +1,11 @@
 /**
- * @purpose Gestiona el exportación de datos del usuario de acuerdo con las regulaciones de GDPR, incluyendo perfil de usuario, sesiones, cuentas, claves de acceso, configuración de MFA y tokens de reinicio.
+ * @purpose Gestiona el exportación de datos del usuario de acuerdo con las regulaciones de GDPR, incluyendo perfil del usuario, sesiones, cuentas, claves de acceso, configuración de MFA y tokens de reinicio.
  * @purpose_en Manages the export of user data in accordance with GDPR regulations, including user profile, sessions, accounts, passkeys, MFA config, and reset tokens.
  * @refactorable false
  * @classification Business Service
  * @complexity Medium
- * @fingerprint exports:1,imports:2,sig:1q5lgax
- * @lastUpdated 2026-06-26T06:16:54.652Z
+ * @fingerprint exports:1,imports:2,sig:9rzfb4
+ * @lastUpdated 2026-07-02T18:44:57.670Z
  */
 
 import JSZip from 'jszip';

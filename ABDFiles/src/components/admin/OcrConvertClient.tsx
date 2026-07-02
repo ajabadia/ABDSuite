@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Gestiona el proceso de conversión de OCR para archivos subidos, permitiendo a los usuarios seleccionar un idioma y descargar el texto extraido.
+ * @purpose Gestiona el proceso de conversión OCR para archivos subidos, permitiendo a los usuarios seleccionar un idioma y descargar el texto extraido.
  * @purpose_en Manages the OCR conversion process for uploaded files, allowing users to select a language and download the extracted text.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:3,sig:kimose
- * @lastUpdated 2026-06-28T08:33:25.715Z
+ * @fingerprint exports:1,imports:4,sig:100786u
+ * @lastUpdated 2026-07-02T18:45:33.616Z
  */
 
 import React, { useState, useRef } from 'react';

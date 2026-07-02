@@ -1,11 +1,11 @@
 /**
- * @purpose Renderiza la página de administración central con registros, incluyendo una consola de dashboard, un encabezado de navegación y un panel de telemetry del sistema.
+ * @purpose Renderiza la página de portal de registros administrativos centrales con una consola de dashboard, encabezado de navegación y panel de telemetry del sistema.
  * @purpose_en Renders the central admin logs portal page with a dashboard, navigation header, and system telemetry panel.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:8,sig:l2flat
- * @lastUpdated 2026-06-23T23:06:09.265Z
+ * @fingerprint exports:1,imports:8,sig:1p8x5u6
+ * @lastUpdated 2026-07-02T18:46:15.377Z
  */
 
 import { getTranslations } from 'next-intl/server';

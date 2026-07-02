@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza un componente de navegación lateral con enlaces y maneja los datos de sesión del usuario.
+ * @purpose Renderiza un componente de navegación lateral con enlaces y maneja datos de sesión del usuario.
  * @purpose_en Renders a sidebar navigation component with links and handles user session data.
  * @refactorable false
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:4,sig:l5rnjd
- * @lastUpdated 2026-06-30T05:48:53.069Z
+ * @fingerprint exports:1,imports:4,sig:86ewuj
+ * @lastUpdated 2026-07-02T18:44:01.120Z
  */
 
 import React from 'react';

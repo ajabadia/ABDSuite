@@ -4,8 +4,8 @@
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:2,imports:7,sig:1a482mo
- * @lastUpdated 2026-06-25T10:16:51.619Z
+ * @fingerprint exports:2,imports:7,sig:1h0jdtv
+ * @lastUpdated 2026-07-02T18:44:28.264Z
  */
 
 import { Suspense } from 'react';

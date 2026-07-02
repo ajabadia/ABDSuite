@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza un componente de tabla que muestra indicadores clave de rendimiento (KPIs) para una interfaz de análisis ABDSuite, incluyendo el número de estudiantes, licencias activas y intentos fallidos de inicio de sesión.
+ * @purpose Renderiza un componente de tabla que muestra indicadores clave de desempeño (KPIs) para una interfaz de análisis ABDSuite, incluyendo el número de estudiantes, licencias activas y intentos fallidos de inicio de sesión.
  * @purpose_en Renders a tab component displaying key performance indicators (KPIs) for an ABDSuite analytics dashboard, including student count, active licenses, and failed logins.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:3,sig:1o0gabn
- * @lastUpdated 2026-06-21T09:15:50.506Z
+ * @fingerprint exports:1,imports:4,sig:20fjxx
+ * @lastUpdated 2026-07-02T18:43:56.533Z
  */
 
 import React from 'react';

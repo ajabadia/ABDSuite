@@ -6,8 +6,8 @@
  * @refactorable false
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:2,sig:14z1m65
- * @lastUpdated 2026-06-25T11:51:15.467Z
+ * @fingerprint exports:1,imports:3,sig:210yrk
+ * @lastUpdated 2026-07-02T18:47:20.952Z
  */
 
 import { useState, useEffect } from 'react';

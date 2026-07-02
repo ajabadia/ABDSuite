@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza una sección administrativa para auditorías de exámenes, mostrando cobertura y proporcionando un panel para visualizar información de auditoría detallada.
+ * @purpose Renderiza una sección administrativa para auditorías de informes de exámenes, mostrando cobertura y proporcionando un panel para visualizar información de auditoría detallada.
  * @purpose_en Renders an administrative section for auditing exam reports, displaying coverage and providing a panel to view detailed audit information.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:5,sig:wxjmu0
- * @lastUpdated 2026-06-24T10:32:44.243Z
+ * @fingerprint exports:1,imports:5,sig:1xoym70
+ * @lastUpdated 2026-07-02T18:47:13.254Z
  */
 
 import React, { useState } from 'react';

@@ -1,11 +1,11 @@
 /**
  * @purpose Gestiona búsquedas de documentos, asegurando acceso industrial y aplicando lógica empresarial para autorización.
  * @purpose_en Handles document search requests, ensuring industrial access and applying business logic for authorization.
- * @refactorable false
+ * @refactorable true (contains too many state variables and UI parts)
  * @classification Business Service
  * @complexity Medium
- * @fingerprint exports:2,imports:5,sig:1b0wcyk
- * @lastUpdated 2026-06-30T13:34:56.597Z
+ * @fingerprint exports:2,imports:6,sig:sw5y5i
+ * @lastUpdated 2026-07-02T18:45:15.964Z
  */
 
 import { NextRequest, NextResponse } from 'next/server';

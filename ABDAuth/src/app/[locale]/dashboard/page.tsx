@@ -4,8 +4,8 @@
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:19,sig:1wq9o98
- * @lastUpdated 2026-06-26T09:59:14.067Z
+ * @fingerprint exports:1,imports:18,sig:15bn20y
+ * @lastUpdated 2026-07-02T18:44:20.316Z
  */
 
 import { getServerSession } from "@/lib/get-session";

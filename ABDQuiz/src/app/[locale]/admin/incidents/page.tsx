@@ -1,11 +1,11 @@
 /**
- * @purpose Renderiza la página de incidentes administrativos con un encabezado, componente gerenciador de incidente y pie de página.
+ * @purpose Renderiza la página de incidentes administrativos con encabezado, componente gerente de incidente y pie de página.
  * @purpose_en Renders the admin incidents page with a header, incident manager component, and footer.
  * @refactorable false
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:9,sig:geadmv
- * @lastUpdated 2026-06-25T09:19:09.583Z
+ * @fingerprint exports:1,imports:9,sig:j190eb
+ * @lastUpdated 2026-07-02T18:46:54.681Z
  */
 
 import { getTranslations } from 'next-intl/server';

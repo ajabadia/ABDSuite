@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza una forma para crear o editar proveedores de identidad, incluyendo campos para el tipo de proveedor, nombre, descripción y otros detalles de configuración.
+ * @purpose Renderiza una forma para crear o editar proveedores de identidad, incluyendo campos para el tipo del proveedor, nombre, descripción y otros detalles de configuración.
  * @purpose_en Renders a form for creating or editing identity providers, including fields for provider type, name, description, and other configuration details.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:4,sig:exb3bu
- * @lastUpdated 2026-06-21T10:32:27.730Z
+ * @fingerprint exports:1,imports:4,sig:1xl0lmj
+ * @lastUpdated 2026-07-02T18:44:31.211Z
  */
 
 import * as React from 'react';

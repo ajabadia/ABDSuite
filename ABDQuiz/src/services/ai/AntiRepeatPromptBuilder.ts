@@ -1,11 +1,11 @@
 /**
- * @purpose Gestiona instrucciones del sistema para evitar respaldos duplicados en contenido generado por inteligencia artificial, utilizando plantillas configurables.
+ * @purpose Gestiona instrucciones del sistema para evitar respuestas repetidas en contenido generado por inteligencia artificial, utilizando plantillas configurables.
  * @purpose_en Manages system instructions to prevent duplicate prompts in AI-generated content, using configurable templates.
  * @refactorable false
  * @classification Business Service
  * @complexity Low
- * @fingerprint exports:1,imports:2,sig:1a480ws
- * @lastUpdated 2026-06-26T10:03:12.541Z
+ * @fingerprint exports:1,imports:2,sig:11ak1i8
+ * @lastUpdated 2026-07-02T18:47:36.146Z
  */
 
 import Question from '../../models/Question';

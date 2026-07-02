@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Gestiona la conversión de documentos utilizando Pandoc, maneja la entrada del usuario, muestra los resultados y proporciona funcionalidad de descarga.
+ * @purpose Gestiona la conversión de documentos utilizando Pandoc, maneja la entrada del usuario, muestra los resultados y proporciona una función de descarga.
  * @purpose_en Manages the conversion of documents using Pandoc, handling user input, displaying results, and providing download functionality.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:3,sig:1eem258
- * @lastUpdated 2026-06-30T05:49:13.523Z
+ * @fingerprint exports:1,imports:4,sig:1fbtadu
+ * @lastUpdated 2026-07-02T18:45:36.338Z
  */
 
 import React, { useState } from 'react';

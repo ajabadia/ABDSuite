@@ -1,11 +1,11 @@
 /**
- * @purpose Renderiza un panel que muestra información de sistema de telemetry para una consola administrativa, incluyendo ID del usuario, rol, ubicación y estado de seguridad.
+ * @purpose Renderiza un panel que muestra información de sistema de telemetría para una consola administrativa, incluyendo ID del usuario, rol, ubicación y estado de seguridad.
  * @purpose_en Renders a panel displaying system telemetry information for an admin dashboard, including user ID, role, locale, and security status.
  * @refactorable false
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:3,sig:1uh5oxe
- * @lastUpdated 2026-06-22T06:32:28.607Z
+ * @fingerprint exports:1,imports:3,sig:xeoefx
+ * @lastUpdated 2026-07-02T18:46:33.736Z
  */
 
 import React from 'react';

@@ -4,8 +4,8 @@
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:6,sig:ywc3gc
- * @lastUpdated 2026-06-30T11:18:11.906Z
+ * @fingerprint exports:1,imports:6,sig:fco3nj
+ * @lastUpdated 2026-07-02T18:43:39.932Z
  */
 
 import { getTranslations } from 'next-intl/server';

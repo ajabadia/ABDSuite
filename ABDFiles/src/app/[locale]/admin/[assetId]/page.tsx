@@ -4,8 +4,8 @@
  * @refactorable false
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:2,imports:8,sig:711j4g
- * @lastUpdated 2026-06-25T10:20:24.530Z
+ * @fingerprint exports:2,imports:8,sig:1gw97zr
+ * @lastUpdated 2026-07-02T18:45:21.564Z
  */
 
 import { Suspense } from 'react';

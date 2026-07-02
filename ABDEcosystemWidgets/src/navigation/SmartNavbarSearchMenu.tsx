@@ -6,8 +6,8 @@
  * @refactorable false
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:2,sig:1fz392e
- * @lastUpdated 2026-06-23T23:02:23.375Z
+ * @fingerprint exports:1,imports:3,sig:15a6gy7
+ * @lastUpdated 2026-07-02T18:45:09.857Z
  */
 
 import { memo } from 'react';

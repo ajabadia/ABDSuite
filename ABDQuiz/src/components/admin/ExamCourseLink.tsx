@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza un componente para establecer una configuración de examen con un curso, proporcionando un menú desplegable para selección y un botón para guardar los cambios.
+ * @purpose Rendra un componente para establecer una configuración de examen con un curso, proporcionando un menú desplegable para selección y un botón para guardar los cambios.
  * @purpose_en Renders a component to link an exam configuration with a course, providing a dropdown for selection and a button to save the changes.
- * @refactorable false
+ * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:7,sig:1pa186j
- * @lastUpdated 2026-06-24T08:18:25.940Z
+ * @fingerprint exports:1,imports:7,sig:1m2bxlj
+ * @lastUpdated 2026-07-02T18:47:16.376Z
  */
 
 import React, { useState } from 'react';

@@ -1190,7 +1190,16 @@
       "navGovernanceSpaces": "Spaces Hierarchy",
       "navGovernanceSpacesDesc": "Manage spaces and visibility areas",
       "navGovernanceAudit": "Chain Auditing",
-      "navGovernanceAuditDesc": "Explore the cryptographic audit logs"
+      "navGovernanceAuditDesc": "Explore the cryptographic audit logs",
+      "filesDashboard": "Files Dashboard",
+      "filesDashboardDesc": "Manage and convert files",
+      "filesStorage": "Active Storage",
+      "filesStorageDesc": "View uploaded files and storage connectors",
+      "filesVersions": "Version History",
+      "filesVersionsDesc": "Trace document modifications",
+      "filesAudit": "Audit Chain",
+      "filesAuditDesc": "Check cryptographic trace for file actions",
+      "filesPlaceholder": "Type a file command..."
     },
     "billingMenu": "Billing",
     "incidentsMenu": "Incidents",

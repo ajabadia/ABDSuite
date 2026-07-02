@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza un componente error global que muestra errores críticos del sistema y ofrece la opción de resetear el protocolo.
+ * @purpose Renderiza un componente de error global que muestra errores críticos del sistema y ofrece la opción de resetear el protocolo.
  * @purpose_en Renders a global error boundary component that displays critical system errors and provides an option to reset the protocol.
- * @refactorable false
+ * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:1,sig:1i71tx0
- * @lastUpdated 2026-07-02
+ * @fingerprint exports:1,imports:2,sig:1hzh3p
+ * @lastUpdated 2026-07-02T18:44:12.683Z
  */
 
 import { useEffect, useState } from 'react';

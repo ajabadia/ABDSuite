@@ -4,8 +4,8 @@
  * @refactorable false
  * @classification Type Definition
  * @complexity Low
- * @fingerprint exports:6,imports:1,sig:1sk59ir
- * @lastUpdated 2026-06-21T10:36:20.105Z
+ * @fingerprint exports:6,imports:1,sig:1qptm4c
+ * @lastUpdated 2026-07-02T18:44:41.543Z
  */
 
 import type { UserRole } from "@/lib/schemas/auth";

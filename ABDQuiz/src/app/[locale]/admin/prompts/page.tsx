@@ -4,8 +4,8 @@
  * @refactorable false
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:8,sig:4tzzv3
- * @lastUpdated 2026-06-24T10:54:57.042Z
+ * @fingerprint exports:1,imports:8,sig:1e2145x
+ * @lastUpdated 2026-07-02T18:46:59.784Z
  */
 
 import { getTranslations } from 'next-intl/server';
