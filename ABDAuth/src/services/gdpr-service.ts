@@ -30,7 +30,7 @@ export class GDPRService {
     } catch {
       // Keep as string if it isn't a valid ObjectId format
     }
-    const user = await db.collection('users').findOne({ _id: userFilter as string });
+    const user = await db.collection('users').findOne({ _id: userFilter as unknown as any });
     if (user) {
       const { password, ...safeUser } = user as unknown as { password?: string; [key: string]: unknown };
       data.user = safeUser;

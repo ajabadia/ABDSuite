@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       // Keep as string if it isn't a valid ObjectId format
     }
     const userResult = await db.collection('users').updateOne(
-      { _id: userFilter as string },
+      { _id: userFilter as unknown as any },
       {
         $set: {
           email: `gdpr-erased-${body.userId}@redacted.local`,
