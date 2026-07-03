@@ -9,7 +9,7 @@ Este es el índice y punto de entrada central para la exploración interactiva d
 Selecciona cualquiera de los componentes para ver el detalle de sus interrelaciones de archivos internos y dependencias de la suite:
 
 * **Control Plane & Seguridad**:
-	* [[ABDtenantGobernance.md|🛡️ ABDtenantGobernance (Control Plane centralizado)]]
+	* [[ABDtenantGovernance.md|🛡️ ABDtenantGovernance (Control Plane centralizado)]]
 	* [[ABDAuth.md|🔐 ABDAuth (Proveedor de Identidad, SSO y SAML)]]
 	* [[ABDLogs.md|📊 ABDLogs (Microservicio de Logs Forenses y Alertas)]]
 * **Satélites de Aplicación**:

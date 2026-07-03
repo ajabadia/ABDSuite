@@ -1,4 +1,4 @@
-# 🚀 PROMPT 2: Integración Gráfica de Satélites (`ABDAuth`, `ABDQuiz`, `ABDtenantGobernance`)
+# 🚀 PROMPT 2: Integración Gráfica de Satélites (`ABDAuth`, `ABDQuiz`, `ABDtenantGovernance`)
 
 **Objetivo**: Sincronizar y limpiar los estilos locales en cada aplicación satélite consumiendo el core centralizado de la librería.
 

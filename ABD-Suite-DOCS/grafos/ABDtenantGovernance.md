@@ -1,6 +1,6 @@
-# 🛡️ Grafo de Interrelaciones: ABDtenantGobernance (Control Plane)
+# 🛡️ Grafo de Interrelaciones: ABDtenantGovernance (Control Plane)
 
-Este documento representa el mapa de interrelaciones, dependencias y gobernanza del Control Plane centralizado del ecosistema, **ABDtenantGobernance**, formateado con enlaces bidireccionales (`[[WikiLinks]]`) para su exploración interactiva en **Obsidian**.
+Este documento representa el mapa de interrelaciones, dependencias y gobernanza del Control Plane centralizado del ecosistema, **ABDtenantGovernance**, formateado con enlaces bidireccionales (`[[WikiLinks]]`) para su exploración interactiva en **Obsidian**.
 
 ---
 

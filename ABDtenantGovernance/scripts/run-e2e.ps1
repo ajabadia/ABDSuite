@@ -1,6 +1,6 @@
-# run-e2e.ps1 — Run E2E tests for ABDtenantGobernance on Windows
+# run-e2e.ps1 — Run E2E tests for ABDtenantGovernance on Windows
 #
-# Cleans up ports 3400 (ABDAuth) and 3500 (Gobernance), launches both dev servers,
+# Cleans up ports 3400 (ABDAuth) and 3500 (Governance), launches both dev servers,
 # waits for them to respond, runs the Playwright tests, and cleans up both servers on exit.
 
 $ErrorActionPreference = "Stop"
@@ -11,7 +11,7 @@ $ProjectRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $ParentDir = (Resolve-Path "$ProjectRoot/..").Path
 $AuthDir = (Resolve-Path "$ParentDir/ABDAuth").Path
 
-Write-Host "=== Step 1: Cleanup ports $AuthPort (ABDAuth) and $GovPort (Gobernance) ==="
+Write-Host "=== Step 1: Cleanup ports $AuthPort (ABDAuth) and $GovPort (Governance) ==="
 node "$ParentDir/ABDLogs/scripts/cleanup-port.mjs" $AuthPort
 node "$ParentDir/ABDLogs/scripts/cleanup-port.mjs" $GovPort
 
@@ -23,8 +23,8 @@ $AuthErrLogFile = "$LogDir/abdauth-server-err.log"
 if (Test-Path $AuthLogFile) { Remove-Item $AuthLogFile -Force -ErrorAction SilentlyContinue }
 if (Test-Path $AuthErrLogFile) { Remove-Item $AuthErrLogFile -Force -ErrorAction SilentlyContinue }
 
-$GovLogFile = "$LogDir/gobernance-server.log"
-$GovErrLogFile = "$LogDir/gobernance-server-err.log"
+$GovLogFile = "$LogDir/governance-server.log"
+$GovErrLogFile = "$LogDir/governance-server-err.log"
 if (Test-Path $GovLogFile) { Remove-Item $GovLogFile -Force -ErrorAction SilentlyContinue }
 if (Test-Path $GovErrLogFile) { Remove-Item $GovErrLogFile -Force -ErrorAction SilentlyContinue }
 
@@ -66,17 +66,17 @@ try {
         throw "ABDAuth startup timed out."
     }
 
-    Write-Host "=== Step 4: Start Gobernance dev server on port $GovPort ==="
+    Write-Host "=== Step 4: Start Governance dev server on port $GovPort ==="
     $GovProcess = Start-Process node -ArgumentList "node_modules/next/dist/bin/next dev -p $GovPort --webpack" -WorkingDirectory $ProjectRoot -NoNewWindow -PassThru -RedirectStandardOutput $GovLogFile -RedirectStandardError $GovErrLogFile
-    Write-Host "Gobernance started with PID: $($GovProcess.Id)"
+    Write-Host "Governance started with PID: $($GovProcess.Id)"
 
-    Write-Host "=== Step 5: Wait for Gobernance to be ready ==="
+    Write-Host "=== Step 5: Wait for Governance to be ready ==="
     $GovReady = $false
     for ($i = 1; $i -le 30; $i++) {
         try {
             $Response = Invoke-WebRequest -Uri "http://localhost:$GovPort" -UseBasicParsing -TimeoutSec 2 -ErrorAction SilentlyContinue
             if ($Response -and $Response.StatusCode -ge 200 -and $Response.StatusCode -lt 500) {
-                Write-Host "Gobernance is ready after $($i * 2) seconds (HTTP $($Response.StatusCode))."
+                Write-Host "Governance is ready after $($i * 2) seconds (HTTP $($Response.StatusCode))."
                 $GovReady = $true
                 break
             }
@@ -84,7 +84,7 @@ try {
             if ($_.Exception -and $_.Exception.Response) {
                 $status = [int]$_.Exception.Response.StatusCode
                 if ($status -ge 200 -and $status -lt 500) {
-                    Write-Host "Gobernance is ready after $($i * 2) seconds (HTTP $status)."
+                    Write-Host "Governance is ready after $($i * 2) seconds (HTTP $status)."
                     $GovReady = $true
                     break
                 }
@@ -94,9 +94,9 @@ try {
     }
 
     if (-not $GovReady) {
-        Write-Host "Timeout waiting for Gobernance to respond on port $GovPort" -ForegroundColor Red
+        Write-Host "Timeout waiting for Governance to respond on port $GovPort" -ForegroundColor Red
         if (Test-Path $GovLogFile) { Get-Content $GovLogFile -Tail 20 }
-        throw "Gobernance startup timed out."
+        throw "Governance startup timed out."
     }
 
     Write-Host "=== Step 6: Run Playwright E2E tests ==="
@@ -107,7 +107,7 @@ try {
 } finally {
     Write-Host "=== Step 7: Cleanup servers ==="
     if ($GovProcess -and -not $GovProcess.HasExited) {
-        Write-Host "Stopping Gobernance dev server process PID $($GovProcess.Id)..."
+        Write-Host "Stopping Governance dev server process PID $($GovProcess.Id)..."
         Stop-Process -Id $GovProcess.Id -Force -ErrorAction SilentlyContinue
     }
     if ($AuthProcess -and -not $AuthProcess.HasExited) {

@@ -1,6 +1,6 @@
 # 📐 PLAN DE DESARROLLO: Gobernanza de Accesos (Usuarios, Tenants y Aplicaciones)
 
-Este documento especifica los cambios de código, bases de datos y diseño visual que deben implementar de manera coordinada los equipos de **ABDAuth**, **ABDtenantGobernance** y las **Aplicaciones Satélite** para dar soporte al modelo de licenciamiento y control de accesos cruzados.
+Este documento especifica los cambios de código, bases de datos y diseño visual que deben implementar de manera coordinada los equipos de **ABDAuth**, **ABDtenantGovernance** y las **Aplicaciones Satélite** para dar soporte al modelo de licenciamiento y control de accesos cruzados.
 
 ---
 
@@ -17,10 +17,10 @@ El objetivo es gobernar qué aplicaciones están disponibles en cada Tenant (Lic
 
 ## 💾 2. Especificación de Base de Datos (Modelos Mongoose)
 
-### A. Modificaciones en `ABDtenantGobernance` (Colección: `tenants`)
+### A. Modificaciones en `ABDtenantGovernance` (Colección: `tenants`)
 Se añade la propiedad `allowedApps` para registrar las aplicaciones licenciadas:
 ```typescript
-// En el modelo Tenant de ABDtenantGobernance
+// En el modelo Tenant de ABDtenantGovernance
 const TenantSchema = new Schema({
   slug: { type: String, required: true, unique: true, index: true },
   name: { type: String, required: true },
@@ -64,7 +64,7 @@ const UserSchema = new Schema({
 
 ## 💻 3. Requerimientos de Desarrollo por Aplicación
 
-### 🏢 3.1. En `ABDtenantGobernance` (Control Plane)
+### 🏢 3.1. En `ABDtenantGovernance` (Control Plane)
 El equipo de gobernanza debe desarrollar la consola para configurar las licencias de las organizaciones.
 
 #### Tareas a Programar:

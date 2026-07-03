@@ -19,7 +19,7 @@
 
 ## 🗓️ 2026-05-19 (Tenant Governance Delegation & Federation Documentation)
 - [x] **Tenant Governance Delegation**: Decoupled tenant and space management from ABDAuth. Central identity logic modified to support `tenantIds` arrays and dynamic active tenant resolution via multi-tenant selectors.
-- [x] **Satellite Integration Documentation**: Created `SATELLITE_INTEGRATION.md` detailing the Federated SSO Handshake, proxy interception, and `abd_session` cookie bridge architecture for ecosystem apps (e.g., `ABDtenantGobernance`, `ABDQuiz`).
+- [x] **Satellite Integration Documentation**: Created `SATELLITE_INTEGRATION.md` detailing the Federated SSO Handshake, proxy interception, and `abd_session` cookie bridge architecture for ecosystem apps (e.g., `ABDtenantGovernance`, `ABDQuiz`).
 - [x] **Superuser Ecosystem Scope**: Implemented `GLOBAL` scope for `SUPER_ADMIN` roles across the federated identity pipeline.
 
 ## 🗓️ 2026-05-17 (Session Hardening & SLO unifications)

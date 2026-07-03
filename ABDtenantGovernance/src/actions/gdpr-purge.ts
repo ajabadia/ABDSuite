@@ -47,7 +47,7 @@ export async function orchestrateGdprPurge(
   const user = await ensureIndustrialAccess('SUPER_ADMIN');
   const results: SatelliteResult[] = [];
 
-  // 1. ABDtenantGobernance (self - in-process)
+  // 1. ABDtenantGovernance (self - in-process)
   try {
     await connectDB();
     const conn = getTenantConnection('gobernanza', 'COLLECTION_PREFIX');

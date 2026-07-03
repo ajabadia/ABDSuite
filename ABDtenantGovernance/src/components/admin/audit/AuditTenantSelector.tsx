@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * @purpose Renderiza un selector de dropdown para seleccionar un inquilino en el área de auditoría del aplicativo ABDtenantGobernance.
- * @purpose_en Renders a dropdown selector for choosing a tenant in the audit section of the ABDtenantGobernance application.
+ * @purpose Renderiza un selector de dropdown para seleccionar un inquilino en el área de auditoría del aplicativo ABDtenantGovernance.
+ * @purpose_en Renders a dropdown selector for choosing a tenant in the audit section of the ABDtenantGovernance application.
  * @refactorable false
  * @classification UI Component
  * @complexity Low

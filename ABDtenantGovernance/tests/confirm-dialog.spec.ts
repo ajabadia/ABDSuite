@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { getSessionCookies } from './helpers/session-cookie';
 
 /**
- * 🎭 ConfirmDialog Industrial E2E Tests — ABDtenantGobernance
+ * 🎭 ConfirmDialog Industrial E2E Tests — ABDtenantGovernance
  *
  * Strategy:
  *   1. AUTH: Inject a valid `abd_session` JWT cookie (bypasses ABDAuth OAuth flow)
@@ -90,7 +90,7 @@ const MOCK_SPACES = [
 // ── Setup ─────────────────────────────────────────────────────────────────
 
 async function setupPage(page: Page) {
-  // 1. Inject session cookies for Gobernance (port 3500)
+  // 1. Inject session cookies for Governance (port 3500)
   const cookies = await getSessionCookies({
     domain: 'localhost',
     path: '/',
@@ -135,7 +135,7 @@ async function setupPage(page: Page) {
 
 // ── Tests ─────────────────────────────────────────────────────────────────
 
-test.describe('ConfirmDialog — Gobernance Consumption', () => {
+test.describe('ConfirmDialog — Governance Consumption', () => {
   test.beforeEach(async ({ page }) => {
     await setupPage(page);
   });

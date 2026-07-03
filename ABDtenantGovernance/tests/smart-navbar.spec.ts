@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * 🎭 SmartNavbar Industrial E2E Tests — ABDtenantGobernance (Public Mode)
+ * 🎭 SmartNavbar Industrial E2E Tests — ABDtenantGovernance (Public Mode)
  *
  * Coverage:
  *   ✓ SmartNavbar renders in public mode (landing page)
@@ -10,13 +10,13 @@ import { test, expect } from '@playwright/test';
  *   ✓ Settings slot visible
  *   ✓ Escape key closes mega-menu
  *
- * ABDtenantGobernance runs on port 3500.
+ * ABDtenantGovernance runs on port 3500.
  * localePrefix: 'always' → all routes include the locale (e.g. /es/...).
  */
 
 const PUBLIC_PAGE = '/es';
 
-test.describe('SmartNavbar — Public Mode (ABDtenantGobernance)', () => {
+test.describe('SmartNavbar — Public Mode (ABDtenantGovernance)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(PUBLIC_PAGE, { waitUntil: 'networkidle' });
     // Wait for SmartNavbar to hydrate client-side
@@ -101,7 +101,7 @@ test.describe('SmartNavbar — Public Mode (ABDtenantGobernance)', () => {
 //  Mobile Drawer Tests
 // ──────────────────────────────────────────
 
-test.describe('SmartNavbar — Mobile Drawer (ABDtenantGobernance)', () => {
+test.describe('SmartNavbar — Mobile Drawer (ABDtenantGovernance)', () => {
   test.use({ viewport: { width: 375, height: 667 } });
 
   test.beforeEach(async ({ page }) => {

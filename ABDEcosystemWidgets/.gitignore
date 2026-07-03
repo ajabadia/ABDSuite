@@ -19,7 +19,7 @@ abd-audit-results.log
 dist/api/
 
 # Leftover files
-ABDtenantGobernance
+ABDtenantGovernance
 auditoria.md
 auditoria_v01.md
 

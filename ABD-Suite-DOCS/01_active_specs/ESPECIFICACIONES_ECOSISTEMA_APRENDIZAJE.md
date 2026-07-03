@@ -20,12 +20,12 @@ El equipo externo debe respetar las directrices estéticas y técnicas estableci
 
 ## 🏗️ 1. Re-arquitectura del Modelo de Datos (Jerarquía)
 
-Para soportar la estructura organizativa sin duplicar la lógica de jerarquías y permisos, se integra la infraestructura de **Espacios (Spaces)** de `ABDtenantGobernance` en la jerarquía formativa de `ABDQuiz`:
+Para soportar la estructura organizativa sin duplicar la lógica de jerarquías y permisos, se integra la infraestructura de **Espacios (Spaces)** de `ABDtenantGovernance` en la jerarquía formativa de `ABDQuiz`:
 
 $$\text{Tenant} \rightarrow \text{Space (Tipo TEAM)} \rightarrow \text{Course} \rightarrow \text{ExamConfig} \leftarrow \text{ExamAssignment} \leftarrow \text{ExamAttempt}$$
 
 ### A. Mapeo de AcademicUnit a Space (Espacios Existentes)
-*   **Decisión Arquitectural**: **No se creará una colección nueva `AcademicUnit`**. En su lugar, se reutilizará directamente el modelo **`Space`** de `ABDtenantGobernance` (filtrando por tipo `TEAM` o equivalente).
+*   **Decisión Arquitectural**: **No se creará una colección nueva `AcademicUnit`**. En su lugar, se reutilizará directamente el modelo **`Space`** de `ABDtenantGovernance` (filtrando por tipo `TEAM` o equivalente).
 *   **Motivación**: Reutilizar el modelo `Space` evita duplicar lógica de path materializado (`materializedPath`), herencia jerárquica de permisos y asignación de colaboradores (`collaborators`), los cuales ya están completamente funcionales en el Control Plane.
 *   En los modelos de `ABDQuiz` (`Course`, `ExamAssignment`), las referencias a la estructura organizativa se harán mediante el campo **`spaceId`** (almacenando el identificador del espacio correspondiente).
 *   **Acceso a Spaces desde ABDQuiz**: Para validar pertenencia y mostrar metadatos de los espacios sin duplicar lógica de creación, `ABDQuiz` definirá un modelo de Mongoose ligero de solo lectura (`getTenantModel<ISpace>('Space', SchemaLigero)`) apuntando a la misma base de datos compartida del tenant.
@@ -42,7 +42,7 @@ import { getTenantModel } from '@/lib/database/tenant-model';
 
 export interface ICourse extends Document {
   tenantId: string;
-  spaceId: string; // ID de Space (proveniente de ABDtenantGobernance)
+  spaceId: string; // ID de Space (proveniente de ABDtenantGovernance)
   name: string;
   description?: string;
   tags: string[];
@@ -95,10 +95,10 @@ Para asegurar que el software sea white-label y se adapte tanto a universidades 
 *   `AUDITOR`: Permiso de lectura. Puede auditar intentos, ver estadísticas y exportar reportes, sin poder modificar nada.
 
 ### B. Configuración de Literales por Tenant
-Cada Tenant puede configurar en su portal de administración de **`ABDtenantGobernance`** cómo quiere mapear y nombrar estos roles. Esta configuración se almacenará directamente en el modelo de inquilino **`ITenant`** de `ABDtenantGobernance` como un nuevo campo opcional `roleCustomization` (siguiendo el patrón existente de los campos `branding` y `billing`):
+Cada Tenant puede configurar en su portal de administración de **`ABDtenantGovernance`** cómo quiere mapear y nombrar estos roles. Esta configuración se almacenará directamente en el modelo de inquilino **`ITenant`** de `ABDtenantGovernance` como un nuevo campo opcional `roleCustomization` (siguiendo el patrón existente de los campos `branding` y `billing`):
 
 ```typescript
-// Almacenado como campo 'roleCustomization' dentro de ITenant en ABDtenantGobernance
+// Almacenado como campo 'roleCustomization' dentro de ITenant en ABDtenantGovernance
 export interface ITenantRoleCustomization {
   roleLiterals: {
     CREATOR: { es: string; en: string };   // Ej: { es: "Profesor", en: "Teacher" } o { es: "Facilitador", en: "Facilitator" }
@@ -120,7 +120,7 @@ export interface IQuizUserRole extends Document {
   tenantId: string;
   userId: string;
   scopeType: 'space' | 'course';
-  scopeId: string; // ID de Space (ABDtenantGobernance) o ID de Course (local)
+  scopeId: string; // ID de Space (ABDtenantGovernance) o ID de Course (local)
   roleType: 'CREATOR' | 'RECIPIENT' | 'AUDITOR';
 }
 
@@ -147,8 +147,8 @@ Para evitar brechas de seguridad (escalada de privilegios) y sobrecargar al Supe
 1.  **Exclusión de ABDAuth**:
     *   `ABDAuth` se reserva exclusivamente para la gestión de la identidad central del usuario, inicio de sesión federado, MFA y credenciales.
     *   **Ningún rol** (alumno, profesor, auditor) ni asignación académica se administra desde el portal de `ABDAuth`. Tampoco los usuarios pueden alterarse o asignarse roles a sí mismos para evitar auto-concesiones malintencionadas.
-2.  **Propiedad Administrativa en `ABDtenantGobernance`**:
-    *   La consola del administrador del Tenant se ubica exclusivamente en **`ABDtenantGobernance`**.
+2.  **Propiedad Administrativa en `ABDtenantGovernance`**:
+    *   La consola del administrador del Tenant se ubica exclusivamente en **`ABDtenantGovernance`**.
     *   Es el **Administrador del Tenant** (TenantAdmin) el encargado de entrar a este panel y mapear qué usuarios de su organización actúan como `CREATOR` (profesor), `RECIPIENT` (alumno) o `AUDITOR` en cada Curso o Unidad Académica.
     *   El Superusuario global (`SUPER_ADMIN`) tiene visibilidad de auditoría técnica general para resolver anomalías extremas de base de datos o fallos del sistema, pero el volumen operativo recae en los administradores locales del Tenant.
 
@@ -215,7 +215,7 @@ export interface IExamAssignment extends Document {
   tenantId: string;
   examConfigId: mongoose.Types.ObjectId;
   assignedToType: 'group' | 'user' | 'space';
-  assignedToId: string; // ID de Space (referencia a ABDtenantGobernance) o ID de PermissionGroup o ID de Usuario
+  assignedToId: string; // ID de Space (referencia a ABDtenantGovernance) o ID de PermissionGroup o ID de Usuario
   startDate: Date;
   endDate: Date;
   status: 'draft' | 'published' | 'archived';
@@ -245,7 +245,7 @@ export default getTenantModel<IExamAssignment>('ExamAssignment', ExamAssignmentS
 
 ### Reglas de Negocio en la Asignación:
 *   **Mapeo de Destinatarios**:
-    *   `assignedToType === 'space'`: Hace referencia directa al ID de `Space` en `ABDtenantGobernance`. Todos los miembros/colaboradores del espacio tienen acceso al examen.
+    *   `assignedToType === 'space'`: Hace referencia directa al ID de `Space` en `ABDtenantGovernance`. Todos los miembros/colaboradores del espacio tienen acceso al examen.
     *   `assignedToType === 'group'`: Hace referencia directa al ID de un `PermissionGroup` o grupo de usuarios dentro del tenant.
 *   **Fechas y Horas por Rango (Timeframes Exactos)**: `startDate` y `endDate` se almacenan como objetos `Date` de Mongoose (que incluyen fecha, hora, minutos y segundos). Esto permite configurar rangos estrechos y exactos de ejecución (ej: "Solo el 1 de mayo de 2026 de 18:00 a 19:00") o rangos muy amplios (ej: "Desde el 1 de enero hasta el 31 de diciembre de 2026").
 *   Un usuario final (`RECIPIENT`) solo verá y podrá iniciar exámenes si existe un `ExamAssignment` activo (`status === 'published'`), y la fecha/hora del servidor actual se encuentra estrictamente dentro del rango `[startDate, endDate]`.
@@ -545,7 +545,7 @@ Se clasifican los eventos en tres categorías principales:
 
 ### A. Eventos de Configuración e Ingesta (Acción de Administradores/Creators)
 Cada vez que se modifica la estructura formativa, se debe registrar el cambio indicando el usuario responsable, el tenant y los metadatos de la entidad:
-*   `QUIZ_SPACE_LINK_CREATE` / `QUIZ_SPACE_LINK_UPDATE`: Registro del enlace o vinculación de un Space (desde `ABDtenantGobernance`) como entorno activo dentro del ecosistema de aprendizaje de `ABDQuiz`.
+*   `QUIZ_SPACE_LINK_CREATE` / `QUIZ_SPACE_LINK_UPDATE`: Registro del enlace o vinculación de un Space (desde `ABDtenantGovernance`) como entorno activo dentro del ecosistema de aprendizaje de `ABDQuiz`.
 *   `QUIZ_COURSE_CREATE` / `QUIZ_COURSE_UPDATE` / `QUIZ_COURSE_DELETE`: Cambios en la malla formativa, definición del `learningPath` y prerrequisitos.
 *   `QUIZ_EXAM_CONFIG_CREATE` / `QUIZ_EXAM_CONFIG_UPDATE`: Configuración de las plantillas de examen, incluyendo los parámetros de aleatoriedad, pools de preguntas y exclusión de respuestas correctas previas.
 *   `QUIZ_ASSIGNMENT_CREATE` / `QUIZ_ASSIGNMENT_PUBLISHED`: Creación o publicación de convocatorias de examen con sus ventanas temporales y grupos asignados.
@@ -594,7 +594,7 @@ El equipo debe crear o extender las páginas en los siguientes directorios de ca
     *   *Ruta*: `/src/app/[locale]/admin/grading/page.tsx`
     *   *Función*: Tabla con intentos pendientes (`gradingStatus === 'pending_manual_review'`) y acceso a la vista de corrección.
 
-#### 2. En `ABDtenantGobernance` (Consola del Administrador del Tenant):
+#### 2. En `ABDtenantGovernance` (Consola del Administrador del Tenant):
 *   **Mapeo de Literales de Rol por Tenant**:
     *   *Ruta*: `/src/app/[locale]/admin/branding/page.tsx` (o extender en la vista de configuración).
     *   *Función*: Formulario de texto para guardar las equivalencias idiomáticas de `ITenantRoleCustomization`.
@@ -614,7 +614,7 @@ Para implementar la lógica de conciliación y prompts interactivos, se deben es
 7.  `'interactive_steps'`: Carrusel interactivo paso a paso para corregir manualmente una a una las preguntas erróneas.
 
 ### C. Nota sobre Mongoose y Multi-DB (Cómo funciona el modelo Space)
-Dado que `Space` se origina en `ABDtenantGobernance` y se lee en `ABDQuiz`, los desarrolladores junior deben tener claro:
+Dado que `Space` se origina en `ABDtenantGovernance` y se lee en `ABDQuiz`, los desarrolladores junior deben tener claro:
 *   Ambas aplicaciones se ejecutan bajo el mismo motor multi-base de datos `getTenantModel` y usan la misma URI de conexión de MongoDB del Tenant activo en la sesión.
 *   Por lo tanto, registrar el modelo en `ABDQuiz` usando `getTenantModel('Space', SpaceLiteSchema)` conectará **automáticamente** a la misma base de datos del Tenant y leerá de la colección física `spaces`. No es necesario configurar llamadas HTTP adicionales entre backend.
 
@@ -625,7 +625,7 @@ Dado que `Space` se origina en `ABDtenantGobernance` y se lee en `ABDQuiz`, los 
 El equipo de desarrollo externo debe seguir estrictamente este plan secuencial para no comprometer el estado del sistema en producción:
 
 ### Fase 1: Capa de Datos y Migración Estructural
-*   Creación del esquema `Course` (integrando `Space` de `ABDtenantGobernance` como estructura organizativa en lugar de crear un modelo local `AcademicUnit`).
+*   Creación del esquema `Course` (integrando `Space` de `ABDtenantGovernance` como estructura organizativa en lugar de crear un modelo local `AcademicUnit`).
 *   Modificación de `ExamConfig` para soportar `courseId`.
 *   Script de migración para indexar de forma segura las configuraciones existentes bajo cursos por defecto de cada Tenant.
 
@@ -853,8 +853,8 @@ Para facilitar la ejecución por parte de perfiles junior y asegurar que no se c
 | **1.B** | Course — modelo completo con learningPath | `ABDQuiz/src/models/Course.ts` |
 | **1.C** | ExamConfig — campo `courseId` agregado | `ABDQuiz/src/models/ExamConfig.ts` |
 | **2.A** | Roles funcionales CREATOR / RECIPIENT / AUDITOR | `ABDQuiz/src/models/QuizUserRole.ts` |
-| **2.C** | QuizUserRole — modelo + índices únicos | `ABDQuiz/src/models/QuizUserRole.ts`, `ABDtenantGobernance/src/models/QuizUserRole.ts` |
-| **2.D** | UI de asignación de roles en ABDtenantGobernance (`/admin/quiz-roles`) | `ABDtenantGobernance/src/app/[locale]/admin/quiz-roles/page.tsx`, `actions.ts` |
+| **2.C** | QuizUserRole — modelo + índices únicos | `ABDQuiz/src/models/QuizUserRole.ts`, `ABDtenantGovernance/src/models/QuizUserRole.ts` |
+| **2.D** | UI de asignación de roles en ABDtenantGovernance (`/admin/quiz-roles`) | `ABDtenantGovernance/src/app/[locale]/admin/quiz-roles/page.tsx`, `actions.ts` |
 | **2.B** | `roleCustomization` en ITenant — interfaz, Mongoose schema, Zod validation | `Tenant.ts`, `tenant.ts` |
 | **2.B** | UI de literales de roles contextuales (CREATOR/RECIPIENT/AUDITOR × ES/EN) en branding | `TenantBrandingForm.tsx`, `branding/page.tsx`, `branding.ts` |
 | **2.B** | Traducciones `roleLiteralsTitle` / `roleLiteralsDesc` | `en.json`, `es.json` |
@@ -905,12 +905,12 @@ Para facilitar la ejecución por parte de perfiles junior y asegurar que no se c
 |---|---|
 
 | **5.A (temporal)** | `loadedAt`/`generatedAt`/`importVersion` — Parseados por Zod schema (`IngestQuestionSchema`) y extraídos del input por `IngestDialog.tsx`, pero **NO persistidos** en el modelo Question (`CorpusImporter.ts` los ignora). Desviación del spec. |
-| **2.A** — RECIPIENT en Gobernance | El spec define `CREATOR \| RECIPIENT \| AUDITOR`. El modelo de `ABDtenantGobernance` solo tiene `CREATOR \| AUDITOR` (sin RECIPIENT). En `ABDQuiz` sí está completo. |
+| **2.A** — RECIPIENT en Governance | El spec define `CREATOR \| RECIPIENT \| AUDITOR`. El modelo de `ABDtenantGovernance` solo tiene `CREATOR \| AUDITOR` (sin RECIPIENT). En `ABDQuiz` sí está completo. |
 | **5.D** — Tres niveles de colisión | ⚠️ **Implementado pero con desviaciones del spec.** `conflictDetector.ts` detecta N2 (mismo texto normalizado) y N3 (Dice ≥ 0.75), pero no verifica `opciones`/`respuesta_correcta`. El spec define N2 como "misma pregunta+opciones, answer diferente" y N3 como "mismas pregunta, opciones diferentes". La implementación no discrimina estos casos correctamente. |
 | **5.F** — Sanitización XSS/NoSQL | El spec pide sanitización de textos importados. No se ha implementado capa de sanitización explícita. |
 | **6.D** — Indexación en ExamAttempt | El spec pide índices `{ tenantId, courseId, groupId, createdAt }` y `{ tenantId, userId, examAssignmentId, createdAt }`. El modelo real tiene índices similares pero con variaciones en los campos exactos. |
 | **8.A** — Eventos QUIZ_SPACE_LINK / QUIZ_COURSE | El spec lista `QUIZ_SPACE_LINK_CREATE/UPDATE` y `QUIZ_COURSE_CREATE/UPDATE/DELETE`. No se emiten estos eventos (no hay lógica de vinculación de Spaces ni acciones CRUD de Courses implementadas aún). |
-| **9.A** — Rutas faltantes | `/admin/grading` ✅, `/admin/courses` ❌, `/admin/branding` (roleCustomization) ✅, `/admin/quiz-roles` ✅ en Gobernance. |
+| **9.A** — Rutas faltantes | `/admin/grading` ✅, `/admin/courses` ❌, `/admin/branding` (roleCustomization) ✅, `/admin/quiz-roles` ✅ en Governance. |
 | **9.B** — Estados Wizard de ingesta | ✅ **7/7 completados**: `upload`, `select_context`, `remediation_ids`, `remediation_conflicts`, `remediation_choice`, `bulk_form`, `interactive_steps`. |
 | **12.E** — Soft-delete cascade | No hay hooks/middlewares Mongoose que propaguen `active: false` de Space/Course a ExamAssignments asociados. |
 
@@ -944,7 +944,7 @@ Para facilitar la ejecución por parte de perfiles junior y asegurar que no se c
 | **Filtro por configuración de examen** | `AssignmentsList.tsx`, `messages/*.json` | Select en header de asignaciones para filtrar por `examConfigId`, derivado vía `useMemo`. |
 | **Bloqueo de campos en asignaciones publicadas** | `AssignmentsList.tsx`, `examAssignment.ts`, `messages/*.json` | Al editar asignación publicada, `examConfigId`, `assignedToType`, `assignedToId` aparecen deshabilitados con candado y tooltip. Validación server-side. |
 | **AssignmentsList.test.tsx (14 tests)** | `AssignmentsList.test.tsx` | Tests para listado vacío, renderizado, creación, edición, validación, filtro, bloqueo de campos publicados, y audit trail. |
-| **Modelo QuizUserRole en ABDtenantGobernance** | `ABDtenantGobernance/src/models/QuizUserRole.ts` | Modelo duplicado en Gobernance con scope extendido (`exam_config` adicional). Server Actions con `getExplicitContext` + `withTenantContext`. |
+| **Modelo QuizUserRole en ABDtenantGovernance** | `ABDtenantGovernance/src/models/QuizUserRole.ts` | Modelo duplicado en Governance con scope extendido (`exam_config` adicional). Server Actions con `getExplicitContext` + `withTenantContext`. |
 | **Normalización de texto para hash** | `normalize.ts` | Funciones `normalizeString` y `normalizeOptions` para estandarizar contenido semántico (trim, lowercase, unificación espacios, normalización Unicode NFC). |
 | **LogsClient multi-evento** | `quiz.ts`, `examConfig.ts`, `examAssignment.ts` | Logs estructurados con `changedFields` y `previousState` en create, update, publish, archive, delete, start quiz, submit answer, finish quiz, invalidate. |
 | **Cleanup script `cleanup-all.mjs`** | `ABDQuiz/scripts/cleanup-all.mjs` | Script Node.js que limpia todas las colecciones de ABDQuiz del tenant activo. Soporta flags `--tenant`, `--all`, `--drop-collections`. Ejecutado con éxito (78 docs eliminados). |

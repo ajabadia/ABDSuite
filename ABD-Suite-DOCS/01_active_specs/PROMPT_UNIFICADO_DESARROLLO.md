@@ -7,7 +7,7 @@ Este prompt debe copiarse y pegarse al inicio del contexto de cualquier desarrol
 ```markdown
 # ESPECIFICACIÓN TÉCNICA Y DE ESTILO GLOBAL: SUITE ABD
 
-Estás trabajando en la suite de aplicaciones industriales de **ABD** (ej. ABDAuth, ABDQuiz, ABDtenantGobernance). Tu código debe cumplir estrictamente con el lenguaje estético de **consola técnica de alta precisión (Tech-Noir)**, las leyes de modularidad del ecosistema y los pipelines de validación automática.
+Estás trabajando en la suite de aplicaciones industriales de **ABD** (ej. ABDAuth, ABDQuiz, ABDtenantGovernance). Tu código debe cumplir estrictamente con el lenguaje estético de **consola técnica de alta precisión (Tech-Noir)**, las leyes de modularidad del ecosistema y los pipelines de validación automática.
 
 ---
 
@@ -279,7 +279,7 @@ Si el pipeline no devuelve `SYSTEM CERTIFIED [OK]`, debes corregir de forma inme
 
 ## 7. INTEGRACIÓN Y SEGURIDAD DE SESIÓN SSO (SATELLITE SPECS)
 
-Todas las aplicaciones satélite del ecosistema ABD (ej. `ABDQuiz`, `ABDtenantGobernance`) deben utilizar de forma obligatoria el SDK centralizado **`@ajabadia/satellite-sdk`** en lugar de duplicar lógica de desencriptado JWT o comprobación de dominios.
+Todas las aplicaciones satélite del ecosistema ABD (ej. `ABDQuiz`, `ABDtenantGovernance`) deben utilizar de forma obligatoria el SDK centralizado **`@ajabadia/satellite-sdk`** en lugar de duplicar lógica de desencriptado JWT o comprobación de dominios.
 
 1. **Instalación y Variables**:
    * Agrega la dependencia en `package.json`: `"@ajabadia/satellite-sdk": "github:ajabadia/ABDSatelliteSDK#main"`.

@@ -572,7 +572,7 @@ Para agilizar el desarrollo y evitar la duplicación de código redundante e inc
 ### Plan de Integración en el Ecosistema
 1.  **Registro en SSO/ABDAuth**: Registrar los `clientId`, `clientSecret` y `redirectUris` de `documents`, `docs` y `templates`.
 2.  **Vinculación en ABDLanding**: Añadir las aplicaciones en `getSuiteApps` en `ABDLanding/src/app/[locale]/page.tsx`.
-3.  **Permisos en ABDtenantGobernance**: Habilitar scopes de acción `documents:*`, `docs:*` y `templates:*` en el panel de control.
+3.  **Permisos en ABDtenantGovernance**: Habilitar scopes de acción `documents:*`, `docs:*` y `templates:*` en el panel de control.
 4.  **ABDAnalytics**: Conectar vistas materializadas de consumo y auditorías cruzadas.
 5.  **DNS & Wildcards CNAME**: Wildcards en GoDaddy y Vercel apuntando a `cname.vercel-dns.com` habilitando `SSO Domain Guard` en middleware.
 6.  **Scripts de Automatización**:

@@ -6,7 +6,7 @@
 ---
 
 ## 🎯 Objetivo General
-Definir la arquitectura, modelos de datos de solo lectura, rutas frontend, componentes visuales e integración con servicios transversales para **`ABDAnalytics`** (o **`ABDBoard`**), concebido como el "Cuarto de Guerra" (War Room) y cuadro de mando consolidado para **todas** las aplicaciones de la suite. Consolidará la telemetría operativa de accesos e identidad (**`ABDAuth`**), la gobernanza espacial y licenciamiento (**`ABDtenantGobernance`**), el progreso académico (**`ABDQuiz`**), y futuras aplicaciones del ecosistema.
+Definir la arquitectura, modelos de datos de solo lectura, rutas frontend, componentes visuales e integración con servicios transversales para **`ABDAnalytics`** (o **`ABDBoard`**), concebido como el "Cuarto de Guerra" (War Room) y cuadro de mando consolidado para **todas** las aplicaciones de la suite. Consolidará la telemetría operativa de accesos e identidad (**`ABDAuth`**), la gobernanza espacial y licenciamiento (**`ABDtenantGovernance`**), el progreso académico (**`ABDQuiz`**), y futuras aplicaciones del ecosistema.
 
 ---
 
@@ -28,7 +28,7 @@ De acuerdo con el enfoque evolutivo acordado (Transición A $\rightarrow$ C), `A
 * **Acceso de Solo Lectura**: Consumirá colecciones pre-agregadas y optimizadas (materializadas) de cada base de datos satélite:
   * **Desde `ABDQuiz`**: Progreso y rendimiento académico.
   * **Desde `ABDAuth`**: Estadísticas de sesiones y seguridad.
-  * **Desde `ABDtenantGobernance`**: Utilización de espacios, recursos y estado de licencias.
+  * **Desde `ABDtenantGovernance`**: Utilización de espacios, recursos y estado de licencias.
 
 
 ### B. Esquema de Datos de Solo Lectura (`UserCourseSummary`)
@@ -194,7 +194,7 @@ const AuthAnalyticsSchema = new Schema<IAuthAnalytics>(
 export default getTenantModel<IAuthAnalytics>('AuthAnalytics', AuthAnalyticsSchema);
 ```
 
-### E. Esquema de Métricas de Gobernanza y Recursos (`GovernanceAnalytics` — de `ABDtenantGobernance`)
+### E. Esquema de Métricas de Gobernanza y Recursos (`GovernanceAnalytics` — de `ABDtenantGovernance`)
 Consolida el uso de espacios, cuotas y licenciamiento del tenant:
 
 ```typescript
@@ -251,7 +251,7 @@ export default getTenantModel<IGovernanceAnalytics>('GovernanceAnalytics', Gover
 Para garantizar que los datos mostrados en `ABDAnalytics` reflejen con precisión el estado real y evitar la desincronización (datos "sucios"), se establece un modelo de sincronización híbrido:
 
 1. **Sincronización Basada en Eventos Transaccionales (Event-Driven Hooks)**:
-   * Las aplicaciones origen (`ABDQuiz`, `ABDAuth`, `ABDtenantGobernance`) son responsables de ejecutar las funciones de sincronización en su propia capa de servicio inmediatamente después de persistir cambios en las entidades fuente.
+   * Las aplicaciones origen (`ABDQuiz`, `ABDAuth`, `ABDtenantGovernance`) son responsables de ejecutar las funciones de sincronización en su propia capa de servicio inmediatamente después de persistir cambios en las entidades fuente.
    * **Flujo de Evento en Caliente (Sincronización Inmediata)**: Cuando un evento crítico ocurre (ej. entrega de examen o actualización de licencias), se emite un trigger que actualiza de inmediato las vistas materializadas.
    * **Manejo de Correcciones Manuales Tardías**: Si un profesor califica manualmente una pregunta abierta a posteriori a través de `submitManualGradingAction`, el backend de `ABDQuiz` recalcula el score y actualiza el estado de `ExamAttempt` a `manually_graded`. Inmediatamente después de persistir este cambio, se ejecuta un trigger asíncrono tipo *Fire-and-Forget* que actualiza las colecciones `UserCourseSummary` y `CourseAnalytics` en la base de datos compartida del tenant, asegurando que el dashboard de analíticas refleje la nota y el feedback actualizados en tiempo real sin requerir un recálculo masivo.
    * **Flujo en ABDQuiz**:
@@ -259,7 +259,7 @@ Para garantizar que los datos mostrados en `ABDAnalytics` reflejen con precisió
      * *Corrección Manual*: `saveManualGrading` (Profesor modifica nota o añade puntos en pregunta abierta) $\rightarrow$ Actualiza `ExamAttempt` $\rightarrow$ Invoca `recalculateUserCourseSummary(userId, courseId)` y `recalculateCourseAnalytics(courseId)` de forma síncrona/asíncrona inmediata.
    * **Flujo en ABDAuth**:
      * *Eventos de Acceso / Bloqueo*: Al fallar un login o activar MFA $\rightarrow$ Se incrementan los contadores y se invoca la actualización incremental en `AuthAnalytics`.
-   * **Flujo en ABDtenantGobernance**:
+   * **Flujo en ABDtenantGovernance**:
      * *Cambio de Licencias o Espacios*: Al modificar la vigencia de una app o añadir activos a un Space $\rightarrow$ Se recalculan y actualizan las filas correspondientes en `GovernanceAnalytics`.
 
 2. **Mecanismo de Reconciliación (Fail-Safe Cron Job)**:
@@ -376,7 +376,7 @@ Ofrece una vista general del estado operacional del tenant:
   * *Usuarios Activos*: Total de usuarios únicos concurrentes o con login en las últimas 24 horas.
   * *Licencias de Aplicaciones*: Número de satélites activos frente a suspendidos.
   * *Progreso Académico General*: Promedio consolidado de notas e itinerarios completados.
-* **Alertas Globales**: Avisos del sistema (ej. 3 bloqueos de cuenta recurrentes en `ABDAuth`, o espacio de almacenamiento al 90% en `ABDtenantGobernance`).
+* **Alertas Globales**: Avisos del sistema (ej. 3 bloqueos de cuenta recurrentes en `ABDAuth`, o espacio de almacenamiento al 90% en `ABDtenantGovernance`).
 
 ### Pestaña B: Capacitación y Desempeño (Módulo de `ABDQuiz`)
 Métricas del ecosistema de aprendizaje (antiguo dashboard operativo):
@@ -392,7 +392,7 @@ Monitoriza los accesos e integridad de la seguridad del tenant:
   * *Bypass Activos*: Alumnos en período de gracia de configuración de doble factor.
 * **Gráfico de Línea Temporal (Fuerza Bruta)**: Muestra el histórico horario de logins fallidos (`failedLoginsTimeline`), facilitando la detección visual de ataques de diccionario o accesos no autorizados.
 
-### Pestaña D: Espacios y Recursos (Módulo de `ABDtenantGobernance`)
+### Pestaña D: Espacios y Recursos (Módulo de `ABDtenantGovernance`)
 Audita el uso de la estructura organizativa y las cuotas de almacenamiento:
 * **Tabla de Espacios**: Listado de unidades (Spaces) mostrando el total de colaboradores y volumen de activos/documentos enlazados.
 * **Uso de Almacenamiento (Barra de Progreso)**: Mapeo de `spaceUtilization` de cada Espacio para visualizar qué departamentos consumen más recursos.

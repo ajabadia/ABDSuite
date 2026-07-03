@@ -79,8 +79,8 @@
 **Contexto:** El usuario pidió revisar toda la documentación del repo para detectar archivos desactualizados.
 
 **Hallazgos:**
-- 2 críticos: ABDLogs/PROGRESS.md y ROADMAP.md eran copias literales de ABDtenantGobernance
-- 6 parciales: ROADMAPs de Auth, Styles, Analytics, tenantGobernance, SECURITY_AUDIT.md, navbar_brainstorming.md
+- 2 críticos: ABDLogs/PROGRESS.md y ROADMAP.md eran copias literales de ABDtenantGovernance
+- 6 parciales: ROADMAPs de Auth, Styles, Analytics, tenantGovernance, SECURITY_AUDIT.md, navbar_brainstorming.md
 - 9 correctos: PROGRESS.md de varios módulos, handoffs, etc.
 
 **Cambios realizados (8 archivos):**
@@ -89,7 +89,7 @@
 - `ABDAuth/ROADMAP.md` → MFA WebAuthn y Grace Period marcados completados, fecha actualizada
 - `ABDStyles/ROADMAP.md` → Sprints 2-3 movidos a completados
 - `ABDAnalytics/ROADMAP.md` → Fases 2-3 marcadas completadas
-- `ABDtenantGobernance/ROADMAP.md` → Fases 11-12 añadidas
+- `ABDtenantGovernance/ROADMAP.md` → Fases 11-12 añadidas
 - `SECURITY_AUDIT.md` → Referencias a Better Auth actualizadas
 - `navbar_brainstorming.md` → Nota aclaratoria de que la spec ya está implementada
 - `ABD-Suite-DOCS/01_active_specs/ROADMAP.md` → Añadida Sesión 24
@@ -118,12 +118,12 @@
 **Contexto:** Tras la migración del ecosistema para soportar despliegues en Vercel, el usuario reportó dos errores en cascada. Primero, fallaron las traducciones (missing keys) en producción; luego, al acceder a `ABDQuiz` desde el dashboard de `ABDAuth`, se obtenía un error `TENANT_INACTIVE` o bien un error de ejecución (`Runtime Error: No hay una asignación activa y vigente para esta configuración de examen`).
 
 **Hallazgos:**
-- **Traducciones faltantes:** Faltaban `audit_view_telemetry_title` y `audit_metrics_label` en los archivos `en.json` y `es.json` de `ABDtenantGobernance` y `ABDLogs`.
+- **Traducciones faltantes:** Faltaban `audit_view_telemetry_title` y `audit_metrics_label` en los archivos `en.json` y `es.json` de `ABDtenantGovernance` y `ABDLogs`.
 - **Error TENANT_INACTIVE (SSO Handshake):** En un commit reciente de seguridad en `SsoService.ts`, se exigía estrictamente que cada tenant tuviera el campo `dbPrefix`. Como las colecciones en la DB local carecían de él, `ABDAuth` denegaba el handshake SSO silenciosamente.
 - **Error en ABDQuiz:** Al fallar el handshake SSO, el comportamiento en cascada impedía recuperar el prefijo correcto de base de datos (`banco-parque`). El prefijo es necesario para el esquema Multi-Cluster de aislamiento de datos, resultando en que la app buscaba la "Asignación de Examen" en colecciones inexistentes.
 
 **Cambios realizados:**
-- `messages/en.json` y `messages/es.json` (en `ABDtenantGobernance` y `ABDLogs`) -> Añadidas las traducciones faltantes.
+- `messages/en.json` y `messages/es.json` (en `ABDtenantGovernance` y `ABDLogs`) -> Añadidas las traducciones faltantes.
 - `ABDAuth/src/lib/utils/IndustrialNormalizer.ts` -> Añadido un fallback dinámico (`dbPrefix: raw.dbPrefix || raw.tenantId`) para asegurar que todo Tenant devuelva un `dbPrefix` válido y se supere el control de seguridad de `SsoService`, evitando el bloqueo `TENANT_INACTIVE`.
 
 **Próximos pasos:**
@@ -136,7 +136,7 @@
 
 **Hallazgos:**
 - **Eliminación Exitosa:** Se confirmó que todos los archivos locales redundantes de base de datos, cifrado y utilidades de color en las aplicaciones satélite han sido removidos.
-- **Implementaciones Específicas Justificadas:** Se detectaron estructuras similares como `TenantAwareRepository` en `ABDAuth` y `ABDtenantGobernance`. Sin embargo, están justificadas debido a diferencias tecnológicas fundamentales: `ABDAuth` utiliza el driver nativo de MongoDB (requerido por better-auth) mientras que `ABDtenantGobernance` utiliza Mongoose. No requieren mayor centralización.
+- **Implementaciones Específicas Justificadas:** Se detectaron estructuras similares como `TenantAwareRepository` en `ABDAuth` y `ABDtenantGovernance`. Sin embargo, están justificadas debido a diferencias tecnológicas fundamentales: `ABDAuth` utiliza el driver nativo de MongoDB (requerido por better-auth) mientras que `ABDtenantGovernance` utiliza Mongoose. No requieren mayor centralización.
 - **SDK Compilado:** La compilación y generación de tipos (`dts`) en `ABDSatelliteSDK` se verificaron de forma exitosa.
 
 **Cambios realizados:**
@@ -148,27 +148,27 @@
 
 ## 2026-05-28 - Resolucion de Advertencias y Errores de Tipado en Gobernanza
 
-**Contexto:** Se detectaron fallos en la compilacion TSC y la auditoria local de calidad en `ABDtenantGobernance` relacionados con la integracion con el SDK y problemas de tipos heredados tras la actualizacion de NextRequest.
+**Contexto:** Se detectaron fallos en la compilacion TSC y la auditoria local de calidad en `ABDtenantGovernance` relacionados con la integracion con el SDK y problemas de tipos heredados tras la actualizacion de NextRequest.
 
 **Cambios realizados:**
 - **Proxy Type-Safety:** Solucionado el error de NextRequest incompatible en `src/proxy.ts` mediante la asercion de tipos segura `{ ... } as unknown as Parameters<typeof withIndustrialAuth>[0]`, eliminando las advertencias y el uso de `any` prohibido por las directrices de pureza.
 - **Resolucion de Colision de Nombres en Emails:** Renombrado el import redundante del SDK en `src/services/email/resend-email-service.ts` como `SDKResendEmailService` y tipado el metodo de envio `sendEmail` para evitar la colision con la constante local del servicio y el error TS7023.
-- **Limpieza de ESLint en Tests:** Eliminados los `require('mongoose')` y tipos `any` en `guardian-engine.test.ts` y `asset-link-service.test.ts` de `ABDtenantGobernance`.
+- **Limpieza de ESLint en Tests:** Eliminados los `require('mongoose')` y tipos `any` en `guardian-engine.test.ts` y `asset-link-service.test.ts` de `ABDtenantGovernance`.
 - **Mocks de Test en ABDQuiz:** Resueltos los timeouts en la suite de pruebas de `ABDQuiz` mockeando correctamente el servicio de `logger` exportado por `@ajabadia/satellite-sdk`.
 
-**Estado:** 100% de la suite de pruebas en `ABDQuiz` pasa con exito (170/170). La auditoria de 6 fases (`abd-audit.ps1`) en `ABDtenantGobernance` pasa con exito total sin warnings ni errores de compilacion (`SYSTEM CERTIFIED - ERA 11 COMPLIANT`).
+**Estado:** 100% de la suite de pruebas en `ABDQuiz` pasa con exito (170/170). La auditoria de 6 fases (`abd-audit.ps1`) en `ABDtenantGovernance` pasa con exito total sin warnings ni errores de compilacion (`SYSTEM CERTIFIED - ERA 11 COMPLIANT`).
 
 ## 2026-05-28 - Promocion de IndustrialSelectSearch a ABDEcosystemWidgets
 
-**Contexto:** Se ha promovido el componente IndustrialSelectSearch (que era local de ABDtenantGobernance) al paquete central ABDEcosystemWidgets para permitir su uso compartido en el resto del ecosistema y cumplir con la política DRY.
+**Contexto:** Se ha promovido el componente IndustrialSelectSearch (que era local de ABDtenantGovernance) al paquete central ABDEcosystemWidgets para permitir su uso compartido en el resto del ecosistema y cumplir con la política DRY.
 
 **Cambios realizados:**
 - **Shared Widget:** Creado ABDEcosystemWidgets/src/ui/SelectSearch.tsx con el componente IndustrialSelectSearch.
 - **Package Index:** Exportado en ABDEcosystemWidgets/src/index.ts.
-- **Reemplazo en Gobernanza:** Modificado AssignRoleModal.tsx en ABDtenantGobernance para importar el componente desde @ajabadia/ecosystem-widgets.
-- **tsconfig Config:** Añadidos path mappings para @ajabadia/ecosystem-widgets y @ajabadia/ecosystem-widgets/* en el 	sconfig.json de ABDtenantGobernance para asegurar la resolución de tipos fluida desde el código fuente durante desarrollo.
+- **Reemplazo en Gobernanza:** Modificado AssignRoleModal.tsx en ABDtenantGovernance para importar el componente desde @ajabadia/ecosystem-widgets.
+- **tsconfig Config:** Añadidos path mappings para @ajabadia/ecosystem-widgets y @ajabadia/ecosystem-widgets/* en el 	sconfig.json de ABDtenantGovernance para asegurar la resolución de tipos fluida desde el código fuente durante desarrollo.
 
-**Estado:** El paquete ABDEcosystemWidgets compila sin errores. La auditoría de 6 fases (bd-audit.ps1) en ABDtenantGobernance vuelve a pasar con éxito total (100% verificado y certificado).
+**Estado:** El paquete ABDEcosystemWidgets compila sin errores. La auditoría de 6 fases (bd-audit.ps1) en ABDtenantGovernance vuelve a pasar con éxito total (100% verificado y certificado).
 
 ---
 
@@ -181,7 +181,7 @@
 - Archivos nul en directorios del proyecto causaban crash de Turbopack en Windows → Eliminados, switch a webpack
 - Múltiples componentes de ecosystem-widgets sin "use client" rompían build con transpilePackages → Agregado a 7 archivos + hooks
 - Star-export conflict de ANIM_DURATION en ConfirmDialog → Removido re-export, actualizado test import
-- en.json corrupto en ABDtenantGobernance (11 root-closes en vez de 1) → Reconstruido usando es.json como template
+- en.json corrupto en ABDtenantGovernance (11 root-closes en vez de 1) → Reconstruido usando es.json como template
 - Re-export desde archivo "use server" en quiz-roles/actions.ts → Convertido a import directo
 - superbuild.ps1 fallaba por sintaxis PowerShell con corchetes [] → Reescribito con echo statements limpios
 
@@ -196,9 +196,9 @@
 - ABDEcosystemWidgets/src/{settings,SystemSettings,audit/AuditHistoryModal,audit/LiveLogViewer,hooks/*}.tsx - +use client
 - ABDQuiz/tests/tenant-selector.spec.ts - E2E test consolidado con JWT directo (jose)
 - ABDQuiz/scripts/seed-bancogalicia.mjs (NUEVO) - Seed data para tenant bancogalicia
-- ABDtenantGobernance/next.config.mjs - extensionAlias webpack para .js/.tsx
-- ABDtenantGobernance/messages/en.json - Reconstruido (JSON corrupto)
-- ABDtenantGobernance/src/app/.../quiz-roles/actions.ts - Removido re-export de use server
+- ABDtenantGovernance/next.config.mjs - extensionAlias webpack para .js/.tsx
+- ABDtenantGovernance/messages/en.json - Reconstruido (JSON corrupto)
+- ABDtenantGovernance/src/app/.../quiz-roles/actions.ts - Removido re-export de use server
 - superbuild.ps1 - Reescribito (PowerShell syntax fix)
 
 **Estado actual:**
@@ -206,11 +206,11 @@
 - ABDSatelliteSDK: Build OK
 - ABDEcosystemWidgets: Build OK + tests OK (23/23)
 - ABDQuiz: Sirviendo HTTP 200 (webpack) + E2E TenantSelector pasa
-- ABDtenantGobernance: Build FAIL (NextRequest type mismatch pre-existente en [...auth]/route.ts, no relacionado)
+- ABDtenantGovernance: Build FAIL (NextRequest type mismatch pre-existente en [...auth]/route.ts, no relacionado)
 - Seed bancogalicia: Ejecutado exitosamente
 
 **Próximos pasos:**
-- [x] Diagnosticar y arreglar NextRequest type mismatch en ABDtenantGobernance para desbloquear superbuild
+- [x] Diagnosticar y arreglar NextRequest type mismatch en ABDtenantGovernance para desbloquear superbuild
 - [ ] Verificar valores de en.json reconstruido (keys anidadas con nombres duplicados)
 - [ ] Retomar implementaciones pendientes de sesiones anteriores
 
@@ -218,17 +218,17 @@
 
 ## 2026-05-30 — Resolución de NextRequest type mismatch y Desbloqueo de Build en Gobernanza
 
-**Contexto:** Se diagnosticó y resolvió el error de tipos de `NextRequest` en `ABDtenantGobernance` que impedía realizar el build exitoso de la aplicación de Gobernanza y bloqueaba la ejecución correcta de `superbuild.ps1`.
+**Contexto:** Se diagnosticó y resolvió el error de tipos de `NextRequest` en `ABDtenantGovernance` que impedía realizar el build exitoso de la aplicación de Gobernanza y bloqueaba la ejecución correcta de `superbuild.ps1`.
 
 **Cambios realizados:**
-- `ABDtenantGobernance/src/app/api/auth/[...auth]/route.ts` -> Casteado el handler devuelto por `createAuthRouteHandler` a `any` para omitir las sutiles divergencias estructurales en las propiedades internas de `NextRequest` generadas por las dependencias compiladas de Next.js entre paquetes de pnpm.
+- `ABDtenantGovernance/src/app/api/auth/[...auth]/route.ts` -> Casteado el handler devuelto por `createAuthRouteHandler` a `any` para omitir las sutiles divergencias estructurales en las propiedades internas de `NextRequest` generadas por las dependencias compiladas de Next.js entre paquetes de pnpm.
 
 **Estado actual:**
 - ABDStyles: Build OK
 - ABDSatelliteSDK: Build OK
 - ABDEcosystemWidgets: Build OK
 - ABDQuiz: Build OK + E2E Tests OK
-- ABDtenantGobernance: Build OK (Compilado sin errores tras aplicar la aserción de tipos)
+- ABDtenantGovernance: Build OK (Compilado sin errores tras aplicar la aserción de tipos)
 - Superbuild: Totalmente desbloqueado y funcional.
 
 **Próximos pasos:**
@@ -334,14 +334,14 @@
 **Cambios realizados:**
 - `ABDAuth/.env.local` → URIs cloud (Auth cluster + Logs cluster)
 - `ABDQuiz/.env.local` → URIs cloud (Pruebas cluster + Auth + Logs)
-- `ABDtenantGobernance/.env.local` → URIs cloud (Auth cluster + Logs + Config)
+- `ABDtenantGovernance/.env.local` → URIs cloud (Auth cluster + Logs + Config)
 - `ABDAnalytics/.env.local` → URIs cloud (Pruebas cluster + Auth + Logs)
 - `ABDLogs/.env.local` → URIs cloud (Logs cluster + Auth)
 - `ABDQuiz/tests/global-setup.ts` → Lee MONGODB_URI + conexión real mongoose.connect
-- `ABDtenantGobernance/tests/global-setup.ts` → Idem
+- `ABDtenantGovernance/tests/global-setup.ts` → Idem
 - `ABDAnalytics/tests/global-setup.ts` → Idem
 - `ABDLogs/tests/global-setup.ts` → Idem
-- `ABDtenantGobernance/playwright.config.ts` → Agregado webServer (puesto 3500)
+- `ABDtenantGovernance/playwright.config.ts` → Agregado webServer (puesto 3500)
 - `ABDAnalytics/playwright.config.ts` → Corregido copy-paste bug: header "ABDLogs"→"ABDAnalytics", puerto 3600→3700
 - `ABDAnalytics/src/app/layout.tsx` → Corregido title "ABDLogs"→"ABDAnalytics"
 - `ABDAnalytics/src/proxy.ts` → Corregido comentario "ABDLogs Proxy Guard"→"ABDAnalytics Proxy Guard"
@@ -352,8 +352,8 @@
 - ✅ Typecheck de los 4 global-setup.ts sin errores
 
 **Próximos pasos:**
-- [ ] Agregar webServer a ABDAnalytics/playwright.config.ts (como ABDQuiz y tenantGobernance)
-- [ ] Ejecutar suite completa de tests en tenantGobernance
+- [ ] Agregar webServer a ABDAnalytics/playwright.config.ts (como ABDQuiz y tenantGovernance)
+- [ ] Ejecutar suite completa de tests en tenantGovernance
 - [ ] Retomar implementaciones pendientes de sesiones anteriores
 
 ---
@@ -440,7 +440,7 @@ useQuizTimerOrchestrator({...})  ← recibe callbacks del hook anterior
 
 #### 1. globalSetup — Pre-flight Checks (4 paquetes)
 - **ABDQuiz** (puerto 3300) — archivo creado primero como referencia
-- **ABDtenantGobernance** (puerto 3500) — copiado y adaptado
+- **ABDtenantGovernance** (puerto 3500) — copiado y adaptado
 - **ABDAnalytics** (puerto 3700) — copiado y adaptado
 - **ABDLogs** (puerto 3600) — copiado y adaptado
 
@@ -452,8 +452,8 @@ Cada globalSetup verifica:
 5. Puerto propio libre (zombie detection) — warn no bloqueante
 6. node_modules existe — bloqueante
 
-#### 2. webServer en ABDtenantGobernance
-- Agregado `webServer` a `playwright.config.ts` de ABDtenantGobernance: auto-arranca `pnpm dev` en puerto 3500
+#### 2. webServer en ABDtenantGovernance
+- Agregado `webServer` a `playwright.config.ts` de ABDtenantGovernance: auto-arranca `pnpm dev` en puerto 3500
 - Sigue el mismo patrón que ABDQuiz: `reuseExistingServer`, `timeout: 180000`, `stderr: 'pipe'`
 
 #### 3. Migración a MongoDB Atlas Cloud
@@ -469,7 +469,7 @@ Se actualizaron los `.env.local` de los 5 paquetes con las URIs cloud reales (4 
 Cada paquete recibió solo las URIs que necesita:
 - **ABDAuth**: MONGODB_URI → Auth, MONGODB_LOGS_URI → Logs
 - **ABDQuiz**: MONGODB_URI → Pruebas, MONGODB_AUTH_URI → Auth, MONGODB_LOGS_URI → Logs
-- **ABDtenantGobernance**: MONGODB_URI → Auth, MONGODB_LOGS_URI → Logs, MONGODB_CONFIG_URI → Config
+- **ABDtenantGovernance**: MONGODB_URI → Auth, MONGODB_LOGS_URI → Logs, MONGODB_CONFIG_URI → Config
 - **ABDAnalytics**: MONGODB_URI → Pruebas, MONGODB_AUTH_URI → Auth, MONGODB_LOGS_URI → Logs
 - **ABDLogs**: MONGODB_URI → Logs, MONGODB_AUTH_URI → Auth
 
@@ -487,22 +487,22 @@ Cada paquete recibió solo las URIs que necesita:
 
 **Nuevos (4):**
 - `ABDQuiz/tests/global-setup.ts` — Pre-flight checks (referencia original)
-- `ABDtenantGobernance/tests/global-setup.ts` — Copiado y adaptado a puerto 3500
+- `ABDtenantGovernance/tests/global-setup.ts` — Copiado y adaptado a puerto 3500
 - `ABDAnalytics/tests/global-setup.ts` — Copiado y adaptado a puerto 3700
 - `ABDLogs/tests/global-setup.ts` — Copiado y adaptado a puerto 3600
 
 **Modificados (12):**
 - `ABDQuiz/playwright.config.ts` — +globalSetup
 - `ABDQuiz/tests/global-setup.ts` — +Node.js version check, +MONGODB_URI dinámica
-- `ABDtenantGobernance/playwright.config.ts` — +globalSetup, +webServer, comentario actualizado
-- `ABDtenantGobernance/tests/global-setup.ts` — +Node.js version check, +MONGODB_URI dinámica
+- `ABDtenantGovernance/playwright.config.ts` — +globalSetup, +webServer, comentario actualizado
+- `ABDtenantGovernance/tests/global-setup.ts` — +Node.js version check, +MONGODB_URI dinámica
 - `ABDAnalytics/playwright.config.ts` — +globalSetup
 - `ABDAnalytics/tests/global-setup.ts` — +Node.js version check, +MONGODB_URI dinámica
 - `ABDLogs/playwright.config.ts` — +globalSetup
 - `ABDLogs/tests/global-setup.ts` — +Node.js version check, +MONGODB_URI dinámica
 - `ABDAuth/.env.local` — URIs cloud (Auth + Logs clusters)
 - `ABDQuiz/.env.local` — URIs cloud (Pruebas + Auth + Logs clusters)
-- `ABDtenantGobernance/.env.local` — URIs cloud (Auth + Logs + Config clusters)
+- `ABDtenantGovernance/.env.local` — URIs cloud (Auth + Logs + Config clusters)
 - `ABDAnalytics/.env.local` — URIs cloud (Pruebas + Auth + Logs clusters)
 - `ABDLogs/.env.local` — URIs cloud (Logs + Auth clusters)
 
@@ -514,7 +514,7 @@ MONGODB_CONFIG_URI=mongodb+srv://ajabadia05_db_user:***@config.q2wc92h.mongodb.n
 MONGODB_LOGS_URI=mongodb+srv://ajabadia04_db_user:***@logs.epv9qr8.mongodb.net/       # Logs
 ```
 
-**Estado:** ✅ Typecheck limpio en los 4 global-setup.ts | ✅ webServer funcional en tenantGobernance
+**Estado:** ✅ Typecheck limpio en los 4 global-setup.ts | ✅ webServer funcional en tenantGovernance
 
 **Próximos pasos:**
 - [ ] Ejecutar tests de Playwright en ABDQuiz para validar globalSetup con cloud URIs
@@ -542,7 +542,7 @@ Este resumen detalla en lenguaje sencillo y a alto nivel los cambios estructural
 * **Configuración Unificada**: Se ajustó `ABDSatelliteSDK` y las variables de entorno de los 5 paquetes para consumir estas URIs seguras y centralizadas de forma transparente.
 
 ### 4. 🛡️ Pre-flight Checks Automatizados (Playwright globalSetup)
-* **¿Qué hace?**: Se creó un script de verificación previo a los tests (`globalSetup`) que se replica en todos los paquetes (`ABDQuiz`, `ABDtenantGobernance`, `ABDAnalytics`, `ABDLogs`).
+* **¿Qué hace?**: Se creó un script de verificación previo a los tests (`globalSetup`) que se replica en todos los paquetes (`ABDQuiz`, `ABDtenantGovernance`, `ABDAnalytics`, `ABDLogs`).
 * **Verificaciones estrictas**: Al iniciar los tests, el entorno valida de forma bloqueante:
   1. Que la versión del runtime de Node.js sea la adecuada (≥ 18.18).
   2. Que los secretos y claves JWT del `.env.local` estén creados.
@@ -584,7 +584,7 @@ El `checkTcpPort()` en globalSetup hace un TCP probe al puerto de la app (3300/3
 | Paquete | Resultado | Notas |
 |---|---|---|
 | **ABDQuiz** | 16 ✅ / 14 ❌ | 13 ERR_CONNECTION_REFUSED (TIME_WAIT) + 1 tenant-selector timeout |
-| **ABDtenantGobernance** | 12 ✅ / 7 ❌ | 4 confirm-dialog (ABDAuth caído) + 3 smart-navbar (pre-existentes) |
+| **ABDtenantGovernance** | 12 ✅ / 7 ❌ | 4 confirm-dialog (ABDAuth caído) + 3 smart-navbar (pre-existentes) |
 | **ABDLogs** | 1 ❌ (a11y) | Solo 1 fallo a11y pre-existente |
 | **ABDAnalytics** | 3 ❌ (a11y) | Sin webServer (ya corregido); globalSetup OK |
 
@@ -608,13 +608,13 @@ El `checkTcpPort()` en globalSetup hace un TCP probe al puerto de la app (3300/3
 | Paquete | Puerto | Constante removida |
 |---|---|---|
 | ABDQuiz | 3300 | `QUIZ_PORT` eliminado |
-| ABDtenantGobernance | 3500 | `APP_PORT` eliminado |
+| ABDtenantGovernance | 3500 | `APP_PORT` eliminado |
 | ABDAnalytics | 3700 | `APP_PORT` eliminado |
 | ABDLogs | 3600 | `APP_PORT` eliminado |
 
 **Archivos modificados:** `tests/global-setup.ts` en los 4 paquetes
 
-### Fix smart-navbar.spec.ts — 3 fallos corregidos (ABDtenantGobernance)
+### Fix smart-navbar.spec.ts — 3 fallos corregidos (ABDtenantGovernance)
 
 | Test | Antes | Después |
 |---|---|---|
@@ -622,7 +622,7 @@ El `checkTcpPort()` en globalSetup hace un TCP probe al puerto de la app (3300/3
 | `theme: clicking outside closes menu` | `force:true` no disparaba `mousedown` del handler React | `page.evaluate()` → `MouseEvent('mousedown')` directo en `document` |
 | `clicking backdrop closes mobile drawer` | `page.mouse.click()` no activaba React onClick | `page.evaluate()` → `backdrop.click()` nativo |
 
-**Archivo modificado:** `ABDtenantGobernance/tests/smart-navbar.spec.ts`
+**Archivo modificado:** `ABDtenantGovernance/tests/smart-navbar.spec.ts`
 
 ### Auth Helper — ABDQuiz Admin Tests (tests/helpers/auth.ts)
 
@@ -653,7 +653,7 @@ El `checkTcpPort()` en globalSetup hace un TCP probe al puerto de la app (3300/3
 
 10 fallos restantes son issues pre-existentes (a11y violations, form submission persistence, tenant selector seed data)
 
-#### ABDtenantGobernance — 15 ✅ / 4 ❌ (4.4 min)
+#### ABDtenantGovernance — 15 ✅ / 4 ❌ (4.4 min)
 | Archivo | Resultado |
 |---|---|
 | `smart-navbar.spec.ts` | ✅ **14/14** (3 fixes persisten) |
@@ -664,7 +664,7 @@ El `checkTcpPort()` en globalSetup hace un TCP probe al puerto de la app (3300/3
 | Archivo | Fallos |
 |---|---|
 | `a11y-audit.spec.ts` | 2 ❌ — violaciones WCAG reales |
-| `smart-navbar.spec.ts` | **6 ❌** — mismos 3 bugs que ABDtenantGobernance (aún no corregidos aquí) |
+| `smart-navbar.spec.ts` | **6 ❌** — mismos 3 bugs que ABDtenantGovernance (aún no corregidos aquí) |
 
 #### ABDLogs — 0 ✅ / 17 ❌ (~5 min)
 | Problema | Detalle |
@@ -708,7 +708,7 @@ El `checkTcpPort()` en globalSetup hace un TCP probe al puerto de la app (3300/3
 **Contexto:** Los scripts `run-e2e.sh` basados en Bash fallaban en Windows porque el entorno de desarrollo carece de un binario `bash` directo accesible por node en WSL/Windows, y la opción `webServer` de Playwright está deshabilitada ya que `cmd.exe` está roto en este sistema. Esto impedía lanzar automáticamente los servidores locales y ejecutar los tests E2E.
 
 **Decisiones:**
-- Crear scripts equivalentes en PowerShell (`run-e2e.ps1`) para `ABDQuiz`, `ABDLogs`, `ABDAnalytics` y `ABDtenantGobernance`.
+- Crear scripts equivalentes en PowerShell (`run-e2e.ps1`) para `ABDQuiz`, `ABDLogs`, `ABDAnalytics` y `ABDtenantGovernance`.
 - Configurar cada script para detener procesos fantasmas en sus respectivos puertos, arrancar el dev server en segundo plano capturando la salida en `test-results/dev-server.log`, esperar a que el servidor responda (HTTP 200-499) y ejecutar Playwright.
 - Registrar el script en el pipeline de `package.json` mediante `"test:e2e": "powershell -ExecutionPolicy Bypass -File scripts/run-e2e.ps1"` para cada satélite.
 
@@ -716,8 +716,8 @@ El `checkTcpPort()` en globalSetup hace un TCP probe al puerto de la app (3300/3
 - `ABDQuiz/scripts/run-e2e.ps1` (NUEVO) → Automatización de tests en puerto 3300.
 - `ABDLogs/scripts/run-e2e.ps1` (NUEVO) → Automatización de tests en puerto 3600.
 - `ABDAnalytics/scripts/run-e2e.ps1` (NUEVO) → Automatización de tests en puerto 3700.
-- `ABDtenantGobernance/scripts/run-e2e.ps1` (NUEVO) → Automatización de tests en puerto 3500 (lanza y orquesta también la dependencia `ABDAuth` en puerto 3400).
-- `package.json` en `ABDQuiz`, `ABDLogs`, `ABDAnalytics` y `ABDtenantGobernance` → Añadido el script `"test:e2e"` mapeado al archivo `.ps1` correspondiente.
+- `ABDtenantGovernance/scripts/run-e2e.ps1` (NUEVO) → Automatización de tests en puerto 3500 (lanza y orquesta también la dependencia `ABDAuth` en puerto 3400).
+- `package.json` en `ABDQuiz`, `ABDLogs`, `ABDAnalytics` y `ABDtenantGovernance` → Añadido el script `"test:e2e"` mapeado al archivo `.ps1` correspondiente.
 
 **Próximos pasos:**
 - [ ] Ejecutar `pnpm run test:e2e` en los satélites para validar que todo el flujo de testeo automatizado de Playwright se ejecute correctamente en local.
@@ -899,7 +899,7 @@ El `checkTcpPort()` en globalSetup hace un TCP probe al puerto de la app (3300/3
 
 ## 2026-06-06 08:30 — Configuración de Proveedores de Almacenamiento Multitenant
 
-**Contexto:** Implementación de la consola técnica de administración de proveedores de almacenamiento (`StorageConnector`) en `ABDtenantGobernance`, integrando con el test de conexiones en caliente de `ABDFiles`.
+**Contexto:** Implementación de la consola técnica de administración de proveedores de almacenamiento (`StorageConnector`) en `ABDtenantGovernance`, integrando con el test de conexiones en caliente de `ABDFiles`.
 
 **Decisiones:**
 - Usar el aislamiento multi-tenant nativo del SDK (`getTenantModel`) para almacenar los conectores de cada tenant en su base de datos.
@@ -907,13 +907,13 @@ El `checkTcpPort()` en globalSetup hace un TCP probe al puerto de la app (3300/3
 - Estructurar el panel visual interactivo con el estándar Era 11 y soporte completo i18n.
 
 **Cambios realizados:**
-- `ABDtenantGobernance/src/models/StorageConnector.ts` (NUEVO) → Definición del modelo Mongoose para conectores.
-- `ABDtenantGobernance/src/actions/connector-actions.ts` (NUEVO) → Server Actions para CRUD y pruebas de conexión delegadas.
-- `ABDtenantGobernance/src/app/[locale]/admin/connectors/page.tsx` (NUEVO) → Página contenedora protegida con control de acceso.
-- `ABDtenantGobernance/src/components/admin/connectors/ConnectorsClient.tsx` (NUEVO) → Dashboard interactivo y formulario de configuración de credenciales.
-- `ABDtenantGobernance/src/components/layout/SidebarNavigation.tsx` (Modificado) → Integración de la opción en el menú lateral.
-- `ABDtenantGobernance/src/components/admin/dashboard/DashboardCardsGrid.tsx` (Modificado) → Integración de tarjeta en el Dashboard.
-- `ABDtenantGobernance/messages/es.json` y `en.json` (Modificado) → Incorporación de claves para i18n.
+- `ABDtenantGovernance/src/models/StorageConnector.ts` (NUEVO) → Definición del modelo Mongoose para conectores.
+- `ABDtenantGovernance/src/actions/connector-actions.ts` (NUEVO) → Server Actions para CRUD y pruebas de conexión delegadas.
+- `ABDtenantGovernance/src/app/[locale]/admin/connectors/page.tsx` (NUEVO) → Página contenedora protegida con control de acceso.
+- `ABDtenantGovernance/src/components/admin/connectors/ConnectorsClient.tsx` (NUEVO) → Dashboard interactivo y formulario de configuración de credenciales.
+- `ABDtenantGovernance/src/components/layout/SidebarNavigation.tsx` (Modificado) → Integración de la opción en el menú lateral.
+- `ABDtenantGovernance/src/components/admin/dashboard/DashboardCardsGrid.tsx` (Modificado) → Integración de tarjeta en el Dashboard.
+- `ABDtenantGovernance/messages/es.json` y `en.json` (Modificado) → Incorporación de claves para i18n.
 
 **Próximos pasos:**
 - [ ] Validar las pruebas de integración E2E del flujo completo de almacenamiento y subida de archivos en entornos de desarrollo y producción.
@@ -922,7 +922,7 @@ El `checkTcpPort()` en globalSetup hace un TCP probe al puerto de la app (3300/3
 
 ## 2026-06-06 08:35 — Corrección de Desalineación de Client IDs y Puertos en SSO
 
-**Contexto:** Se detectó un error `"Invalid or inactive client"` al intentar realizar la autenticación federada en `ABDtenantGobernance` y la Landing Page.
+**Contexto:** Se detectó un error `"Invalid or inactive client"` al intentar realizar la autenticación federada en `ABDtenantGovernance` y la Landing Page.
 
 **Causa Raíz:**
 - Tras migrar las bases de datos a MongoDB Atlas Cloud, las aplicaciones estaban registradas con Client IDs antiguos (ej: `abdgov-industrial-client-id` en vez de `gobernanza`) y con redirecciones apuntando a puertos obsoletos (ej: `3500` en vez de `5002`).

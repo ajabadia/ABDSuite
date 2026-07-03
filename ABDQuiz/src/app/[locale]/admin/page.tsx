@@ -53,7 +53,7 @@ export default async function AdminPortalPage({
   const resolvedTenantId = await resolveTenantContext(searchParams);
   const isSuperAdmin = user.role === 'SUPER_ADMIN';
   const tenantSuffix = isSuperAdmin ? `?tenantId=${resolvedTenantId}` : '';
-  const governanceUrl = process.env.NEXT_PUBLIC_GOVERNANCE_URL || 'https://abd-tenant-gobernance.vercel.app';
+  const governanceUrl = process.env.NEXT_PUBLIC_GOVERNANCE_URL || 'https://abd-tenant-governance.vercel.app';
 
   return (
     <main className="min-h-screen bg-background text-foreground p-6 md:p-12 selection:bg-primary/30" role="main">

@@ -100,4 +100,4 @@ pnpm typecheck            # TypeScript check
 | **NEXT_PUBLIC_APP_URL** | `http://localhost:5005` | `https://files.abdia.es` |
 | **AUTH_URL** | `http://localhost:5005` | `https://files.abdia.es` |
 
-El proveedor de almacenamiento activo se configura por Tenant desde `ABDtenantGobernance`.
+El proveedor de almacenamiento activo se configura por Tenant desde `ABDtenantGovernance`.

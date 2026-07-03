@@ -42,16 +42,16 @@ pnpm build
 ---
 
 ## 📜 Manifestos del Proyecto
-*   **[PROGRESS.md](file:///d:/desarrollos/ABDtenantGobernance/PROGRESS.md)**: Tablero de hitos técnicos y fases completadas.
-*   **[ROADMAP.md](file:///d:/desarrollos/ABDtenantGobernance/ROADMAP.md)**: Planificación estratégica y próximos hitos.
-*   **[LESSONS_LEARNED.md](file:///d:/desarrollos/ABDtenantGobernance/docs/LESSONS_LEARNED.md)**: Santuario de descubrimientos de ingeniería y blindaje de código.
+*   **[PROGRESS.md](file:///d:/desarrollos/ABDtenantGovernance/PROGRESS.md)**: Tablero de hitos técnicos y fases completadas.
+*   **[ROADMAP.md](file:///d:/desarrollos/ABDtenantGovernance/ROADMAP.md)**: Planificación estratégica y próximos hitos.
+*   **[LESSONS_LEARNED.md](file:///d:/desarrollos/ABDtenantGovernance/docs/LESSONS_LEARNED.md)**: Santuario de descubrimientos de ingeniería y blindaje de código.
 
 ---
 
 ## ☁️ Despliegue en Producción (Vercel)
 
 La plataforma está oficialmente desplegada en producción en Vercel:
-*   **URL de Producción**: [https://abd-tenant-gobernance.vercel.app/](https://abd-tenant-gobernance.vercel.app/)
+*   **URL de Producción**: [https://abd-tenant-governance.vercel.app/](https://abd-tenant-governance.vercel.app/)
 
 ### 🛠️ Configuración de Variables de Entorno en Vercel
 
@@ -59,10 +59,10 @@ Para que la aplicación funcione perfectamente en el entorno productivo de Verce
 
 | Variable de Entorno | Valor en Local (`.env.local`) | Valor en Producción (Vercel) | Razón / Propósito |
 | :--- | :--- | :--- | :--- |
-| **`NEXTAUTH_URL`** | `http://localhost:5002` | `https://abd-tenant-gobernance.vercel.app` | URL base para la autenticación de NextAuth. |
-| **`AUTH_URL`** | `http://localhost:5002` | `https://abd-tenant-gobernance.vercel.app` | URL de callback e inicio del flujo de Auth.js. |
-| **`APP_DOMAIN`** | `localhost:5002` | `abd-tenant-gobernance.vercel.app` | Dominio base para resolución de subdominios. |
-| **`NEXT_PUBLIC_APP_URL`** | `http://localhost:5002` | `https://abd-tenant-gobernance.vercel.app` | URL pública de la aplicación para APIs y recursos. |
+| **`NEXTAUTH_URL`** | `http://localhost:5002` | `https://abd-tenant-governance.vercel.app` | URL base para la autenticación de NextAuth. |
+| **`AUTH_URL`** | `http://localhost:5002` | `https://abd-tenant-governance.vercel.app` | URL de callback e inicio del flujo de Auth.js. |
+| **`APP_DOMAIN`** | `localhost:5002` | `abd-tenant-governance.vercel.app` | Dominio base para resolución de subdominios. |
+| **`NEXT_PUBLIC_APP_URL`** | `http://localhost:5002` | `https://abd-tenant-governance.vercel.app` | URL pública de la aplicación para APIs y recursos. |
 | **`FEATURE_GRAPH_RELATIONS`**| `true` | `false` (o `true` con AuraDB en la nube) | Desactivar si no cuentas con un servidor de Neo4j accesible públicamente en la nube. |
 | **`REDIS_URL`** | `"redis://localhost:6379"` | (Usar Endpoint TLS de Upstash en la nube) | Configurar con la URL TLS de Redis remota si utilizas cacheo de sesiones productivo. |
 

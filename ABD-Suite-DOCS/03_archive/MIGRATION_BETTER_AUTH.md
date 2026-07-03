@@ -100,7 +100,7 @@ export default async function proxy(request: NextRequest) {
 
 ### Arquitectura federada (satélites)
 
-Las apps satélite (tenantGobernance, ABDQuiz, ABDLogs, ABDAnalytics) **no usan better-auth directamente**. Usan `ABDSatelliteSDK` con:
+Las apps satélite (tenantGovernance, ABDQuiz, ABDLogs, ABDAnalytics) **no usan better-auth directamente**. Usan `ABDSatelliteSDK` con:
 
 - `withIndustrialAuth(options)` — middleware que redirige a ABDAuth para login federado
 - `getIndustrialSession()` — obtiene la sesión desde el JWT

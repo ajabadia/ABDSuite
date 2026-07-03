@@ -18,8 +18,8 @@ import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
  *   3. Full trigger → dialog open → confirm → fetch → close lifecycle
  *
  * This covers the Auth TenantManagementContainer route that is
- * not accessible via E2E (it redirects to Gobernance).
- * The Gobernance TenantManagementContainer uses the identical pattern.
+ * not accessible via E2E (it redirects to Governance).
+ * The Governance TenantManagementContainer uses the identical pattern.
  */
 
 // Mock global fetch

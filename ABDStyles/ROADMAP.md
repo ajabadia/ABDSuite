@@ -26,10 +26,10 @@ Roadmap detailing the completed visual engineering achievements and the upcoming
 
 ## ✅ Completed Sprints
 
-### Sprint 2: Satellite Integration (ABDQuiz & ABDAuth, ABDLogs, ABDtenantGobernance)
+### Sprint 2: Satellite Integration (ABDQuiz & ABDAuth, ABDLogs, ABDtenantGovernance)
 - **Objective**: Connect all core platforms to `@ajabadia/styles`.
 - **Results**:
-  - ✅ All 4 apps (ABDAuth, ABDQuiz, ABDLogs, ABDtenantGobernance) import `@ajabadia/styles/dist/styles/industrial-core.css`.
+  - ✅ All 4 apps (ABDAuth, ABDQuiz, ABDLogs, ABDtenantGovernance) import `@ajabadia/styles/dist/styles/industrial-core.css`.
   - ✅ All apps use `generateTenantCss` server-side for dynamic branding.
   - ✅ Local symlinks via `file:../ABDStyles` for development.
 

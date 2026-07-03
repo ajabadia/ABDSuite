@@ -13,21 +13,21 @@ Auditar el ecosistema `ABDEcosystemWidgets` para identificar componentes reutili
   - Fase 5: Type Safety (TSC) → PASSED (0 errors, 0 warnings) *(requirió limpieza de `.next/`)*
   - Fase 6: Code Quality → PASSED (0 errors, 0 warnings)
 - **`ABDEcosystemWidgets`**: Librería revisada; `IndustrialSelectSearch` promovida y exportada correctamente. El resto de aplicaciones del ecosistema verificadas como consumidoras correctas de los widgets.
-- **`tsconfig.json` de ABDtenantGobernance**: Actualizado con path mappings para resolver `@ajabadia/ecosystem-widgets` desde el fuente local, eliminando dependencia de symlinks de pnpm durante el desarrollo.
+- **`tsconfig.json` de ABDtenantGovernance**: Actualizado con path mappings para resolver `@ajabadia/ecosystem-widgets` desde el fuente local, eliminando dependencia de symlinks de pnpm durante el desarrollo.
 
 ## Files in Flight
 Ninguno. Todos los archivos han sido modificados, validados y certificados.
 
 ## Changed Files
 
-### ABDtenantGobernance
-- **[MODIFY]** [tsconfig.json](file:///d:/desarrollos/ABDSuite/ABDtenantGobernance/tsconfig.json) — Añadidos path mappings para `@ajabadia/ecosystem-widgets` apuntando a `../ABDEcosystemWidgets/src`.
-- **[MODIFY]** [AssignRoleModal.tsx](file:///d:/desarrollos/ABDSuite/ABDtenantGobernance/src/app/[locale]/admin/quiz-roles/AssignRoleModal.tsx) — Migrado el import de `SelectSearch` del componente local `src/components/ui/industrial/SelectSearch.tsx` al paquete compartido `@ajabadia/ecosystem-widgets`.
-- **[MODIFY]** [proxy.ts](file:///d:/desarrollos/ABDSuite/ABDtenantGobernance/src/proxy.ts) — Corregido casting de tipo `any` para alinear con las interfaces estrictas de `withIndustrialAuth`.
-- **[MODIFY]** [resend-email-service.ts](file:///d:/desarrollos/ABDSuite/ABDtenantGobernance/src/services/email/resend-email-service.ts) — Corregida colisión de imports y añadidos tipos de retorno explícitos.
+### ABDtenantGovernance
+- **[MODIFY]** [tsconfig.json](file:///d:/desarrollos/ABDSuite/ABDtenantGovernance/tsconfig.json) — Añadidos path mappings para `@ajabadia/ecosystem-widgets` apuntando a `../ABDEcosystemWidgets/src`.
+- **[MODIFY]** [AssignRoleModal.tsx](file:///d:/desarrollos/ABDSuite/ABDtenantGovernance/src/app/[locale]/admin/quiz-roles/AssignRoleModal.tsx) — Migrado el import de `SelectSearch` del componente local `src/components/ui/industrial/SelectSearch.tsx` al paquete compartido `@ajabadia/ecosystem-widgets`.
+- **[MODIFY]** [proxy.ts](file:///d:/desarrollos/ABDSuite/ABDtenantGovernance/src/proxy.ts) — Corregido casting de tipo `any` para alinear con las interfaces estrictas de `withIndustrialAuth`.
+- **[MODIFY]** [resend-email-service.ts](file:///d:/desarrollos/ABDSuite/ABDtenantGovernance/src/services/email/resend-email-service.ts) — Corregida colisión de imports y añadidos tipos de retorno explícitos.
 
 ### ABDEcosystemWidgets
-- **[NEW]** [SelectSearch.tsx](file:///d:/desarrollos/ABDSuite/ABDEcosystemWidgets/src/ui/SelectSearch.tsx) — Componente promovido desde `ABDtenantGobernance`. Selector con búsqueda, filtrado client-side, chevron animado y estilos premium Tailwind.
+- **[NEW]** [SelectSearch.tsx](file:///d:/desarrollos/ABDSuite/ABDEcosystemWidgets/src/ui/SelectSearch.tsx) — Componente promovido desde `ABDtenantGovernance`. Selector con búsqueda, filtrado client-side, chevron animado y estilos premium Tailwind.
 - **[MODIFY]** [index.ts](file:///d:/desarrollos/ABDSuite/ABDEcosystemWidgets/src/index.ts) — Añadida exportación pública de `SelectSearch` (alias: `IndustrialSelectSearch`).
 
 ## Failed Attempts

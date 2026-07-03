@@ -52,4 +52,4 @@ Este documento detalla la planificación estratégica, las fases del ecosistema 
 ## 🔗 Enlaces Clave a Módulos Activos
 *   **Consola de Marca**: `/[locale]/admin/branding`
 *   **Gobernanza de Organizaciones**: `/[locale]/admin/tenants`
-*   **Documentación de Lecciones Aprendidas**: [LESSONS_LEARNED.md](file:///d:/desarrollos/ABDtenantGobernance/docs/LESSONS_LEARNED.md)
+*   **Documentación de Lecciones Aprendidas**: [LESSONS_LEARNED.md](file:///d:/desarrollos/ABDtenantGovernance/docs/LESSONS_LEARNED.md)

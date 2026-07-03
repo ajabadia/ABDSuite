@@ -49,7 +49,7 @@ All 4 apps import via: `@abd/styles/dist/styles/industrial-core.css`
 | ABDAuth | @import "tailwindcss" |
 | ABDLogs | @import "tailwindcss" + tw-animate-css |
 | ABDQuiz | @import "tailwindcss" + tw-animate-css + @custom-variant dark |
-| ABDtenantGobernance | @import "tailwindcss" |
+| ABDtenantGovernance | @import "tailwindcss" |
 
 ---
 

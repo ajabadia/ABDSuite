@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * @purpose Gestiona los manejadores y estado para la página de espacios en ABDtenantGobernance.
- * @purpose_en Manages the handlers and state for spaces page in ABDtenantGobernance.
+ * @purpose Gestiona los manejadores y estado para la página de espacios en ABDtenantGovernance.
+ * @purpose_en Manages the handlers and state for spaces page in ABDtenantGovernance.
  * @refactorable false
  * @classification Custom Hook
  * @complexity Medium

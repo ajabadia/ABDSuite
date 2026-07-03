@@ -79,7 +79,7 @@ const GROUPS = [
     name: 'Administradores',
     slug: 'administradores',
     description: 'Grupo con permisos administrativos totales',
-    allowedApps: ['abdquiz', 'abdlogs', 'abdtenantgobernance'],
+    allowedApps: ['abdquiz', 'abdlogs', 'abdtenantgovernance'],
   },
   {
     name: 'Supervisores',
@@ -128,7 +128,7 @@ async function seed() {
         createdAt: new Date(),
         updatedAt: new Date(),
         name: 'Banco Galicia',
-        allowedApps: ['abdquiz', 'abdlogs', 'abdtenantgobernance', 'abdauth'],
+        allowedApps: ['abdquiz', 'abdlogs', 'abdtenantgovernance', 'abdauth'],
       });
       console.log(`  ✅ Tenant '${TENANT_ID}' registered in ${AUTH_DB}.tenants`);
     }

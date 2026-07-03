@@ -78,7 +78,7 @@
     "filterAllLabel": "Filter all applications",
     "filterAuthLabel": "Filter ABDAuth logs",
     "filterQuizLabel": "Filter ABDQuiz logs",
-    "filterGobernanzaLabel": "Filter ABDGobernance logs",
+    "filterGobernanzaLabel": "Filter ABDGovernance logs",
     "audit_live_pause": "Pause Stream",
     "audit_live_resume": "Resume Stream",
     "audit_live_on": "Live ON",
@@ -1201,6 +1201,16 @@
       "filesAuditDesc": "Check cryptographic trace for file actions",
       "filesPlaceholder": "Type a file command..."
     },
+    "welcome": "Welcome",
+    "chainAudit": "Chain Auditing",
+    "dashboard": "Student Dashboard",
+    "goToDashboard": "Go to Dashboard",
+    "suiteSummary": "Suite Summary",
+    "viewEcosystemMetrics": "View Ecosystem Metrics",
+    "securityPanel": "Security Panel",
+    "mfaStatus": "MFA Status",
+    "navigation": "Navigation",
+    "commandPlaceholder": "Type a command or search...",
     "billingMenu": "Billing",
     "incidentsMenu": "Incidents",
     "backToAdmin": "Back to Admin",
@@ -1313,10 +1323,10 @@
         "placeholder_uri": "https://myapp.com/api/auth/callback",
         "add_uri_btn": "Add URI",
         "save": "Persist Satellite",
+        "create": "Create Application",
         "cancel": "Abort",
         "placeholder_client_id": "e.g., sat-xyz-12345",
-        "placeholder_client_secret": "****************************",
-        "create": "Crear Aplicación"
+        "placeholder_client_secret": "****************************"
       },
       "cards": {
         "active": "CONNECTED",

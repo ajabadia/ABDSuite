@@ -38,7 +38,7 @@ export interface TenantSelectorConnectorProps {
     role?: string;
     tenantId?: string;
   };
-  /** Enable spaces/groups context support (needed by tenantGobernance) */
+  /** Enable spaces/groups context support (needed by tenantGovernance) */
   enableContexts?: boolean;
   /** Optional server action to fire after setting cookie (e.g. switchTenantAction) */
   onTenantSwitch?: (tenantId: string) => Promise<unknown>;

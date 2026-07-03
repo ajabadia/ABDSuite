@@ -11,7 +11,7 @@ Consumo: Se importa en los satélites referenciándolo en el package.json direct
 ABDAuth:
 Estado: Proveedor de Identidad Centralizado (IdP) (SYS_CERTIFIED_PROD).
 Función: Gestiona credenciales de usuario, flujos de segundo factor (MFA), bloqueo progresivo de cuentas, rate limiting y el protocolo de inicio de sesión único federado (SSO/SLO) para los satélites a través de un intercambio de códigos tipo OAuth2.
-ABDtenantGobernance:
+ABDtenantGovernance:
 Estado: Consola de Control de Tenants (SYS_CERTIFIED).
 Función: Centraliza la gobernanza de organizaciones, personalización visual (marca blanca), gestión de espacios jerárquicos (campuses, edificios, salas) e ingestión asíncrona de auditoría (Fail-Safe) utilizando una conexión secundaria desacoplada a una base de datos remota de logs.
 ABDQuiz:
@@ -25,7 +25,7 @@ Seguridad y CSP: Intentar ocultar Vercel tras un proxy inverso casero o iframes 
 Transparencia de Vercel: Al asociar tus subdominios en Vercel, la barra de navegación del usuario mostrará https://auth.tudominio.com o https://quiz.tudominio.com. Vercel gestiona las peticiones de forma transparente con certificados SSL automáticos de Let's Encrypt. A nivel visual, no hay rastro de la URL .vercel.app.
 Configuración DNS recomendada en GoDaddy:
 Proveedor de Identidad: auth.tudominio.com apuntando al proyecto ABDAuth en Vercel.
-Consola de Administración: gobernanza.tudominio.com apuntando al proyecto ABDtenantGobernance en Vercel.
+Consola de Administración: gobernanza.tudominio.com apuntando al proyecto ABDtenantGovernance en Vercel.
 Simulador: quiz.tudominio.com apuntando al proyecto ABDQuiz en Vercel.
 Gestión de Multi-Tenancy mediante subdominios dinámicos (*.quiz.tudominio.com):
 Si en el futuro deseas que cada cliente acceda mediante su propia URL corporativa (ej. academia1.quiz.tudominio.com), puedes configurar un dominio wildcard en Vercel:
@@ -55,7 +55,7 @@ graph TD
         B[Credenciales y MFA]
         C[Sesión Global]
     end
-    subgraph ABDtenantGobernance [Control Plane]
+    subgraph ABDtenantGovernance [Control Plane]
         D[CRUD de Tenants]
         E[Estructura de Espacios]
         F[Branding y Estilos]
@@ -64,12 +64,12 @@ graph TD
         G[Ingesta Asíncrona API]
         H[Auditoría de Actividad]
     end
-    ABDtenantGobernance -->|Consulta| ABDAuth
+    ABDtenantGovernance -->|Consulta| ABDAuth
     ABDLogs -->|Persiste| I[(MongoDB Logs)]
 Gestión de Usuarios (en ABDAuth): La base de datos de identidades, contraseñas, políticas de MFA y estados de activación debe seguir centralizada en ABDAuth. Es el único proveedor de confianza.
-Gestión de Organizaciones y Espacios (en ABDtenantGobernance): Crear y editar tenants, definir sus esquemas de color, cargar logotipos en el CDN y estructurar sus campuses/edificios es responsabilidad exclusiva de esta consola. ABDAuth lee la configuración del tenant desde la base de datos compartida únicamente para inyectar los claims básicos del token.
+Gestión de Organizaciones y Espacios (en ABDtenantGovernance): Crear y editar tenants, definir sus esquemas de color, cargar logotipos en el CDN y estructurar sus campuses/edificios es responsabilidad exclusiva de esta consola. ABDAuth lee la configuración del tenant desde la base de datos compartida únicamente para inyectar los claims básicos del token.
 Gestión de Logs (ABDLogs):
-Actualmente, ABDtenantGobernance escribe directamente en una base de datos remota de logs mediante un pool de conexión secundario de Mongoose.
+Actualmente, ABDtenantGovernance escribe directamente en una base de datos remota de logs mediante un pool de conexión secundario de Mongoose.
 Recomendación: Cuando integres más aplicaciones a la suite, implementa el plan detallado en tu documento SaaS_LOGGING_ARCHITECTURE.md. Crear un microservicio API REST ligero (ABDLogs) permitirá a cualquier satélite registrar eventos mediante peticiones fetch asíncronas seguras, eliminando la necesidad de que cada aplicación satélite mantenga conexiones persistentes directas a la base de datos de logs (lo cual es crítico en entornos Serverless como Vercel para evitar el agotamiento de conexiones).
 5. Siguientes Pasos y Estandarización
 Tus proyectos actuales ya cuentan con un excelente validador estático (abd-audit.ps1) que fuerza los estándares de calidad "Era 11/19" (cero any implícitos, tipado estricto, modularización de menos de 150 líneas y localización con i18n al 100%).

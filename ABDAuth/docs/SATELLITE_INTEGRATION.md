@@ -1,6 +1,6 @@
 # 🛰️ Guía de Integración de Satélites (SSO Federated Auth)
 
-Este documento contiene las especificaciones técnicas completas para que aplicaciones satélite (como `ABDQuiz`, `ABDtenantGobernance`, o futuros proyectos) puedan conectarse al proveedor de identidades centralizado **ABDAuth**.
+Este documento contiene las especificaciones técnicas completas para que aplicaciones satélite (como `ABDQuiz`, `ABDtenantGovernance`, o futuros proyectos) puedan conectarse al proveedor de identidades centralizado **ABDAuth**.
 
 ---
 

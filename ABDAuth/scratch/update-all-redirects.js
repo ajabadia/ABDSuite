@@ -20,7 +20,7 @@ const satellites = [
     active: true
   },
   {
-    name: 'ABDTenantGobernance Federated',
+    name: 'ABDTenantGovernance Federated',
     description: 'Official tenant governance console.',
     clientId: 'abdgov-industrial-client-id',
     clientSecret: 'abdgov-industrial-super-secret-key-2026',
@@ -28,8 +28,8 @@ const satellites = [
     redirectUris: [
       'http://localhost:5002/api/auth/federated/callback',
       'http://localhost:5002',
-      'https://abd-tenant-gobernance.vercel.app/api/auth/federated/callback',
-      'https://abd-tenant-gobernance.vercel.app'
+      'https://abd-tenant-governance.vercel.app/api/auth/federated/callback',
+      'https://abd-tenant-governance.vercel.app'
     ],
     active: true
   },

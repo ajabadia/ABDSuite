@@ -60,6 +60,8 @@
       "hover_reveal": "Pase el ratón para revelar secreto",
       "save": "Persistir Satélite",
       "create": "Crear Aplicación",
+      "placeholder_client_id": "p.ej., sat-xyz-12345",
+      "placeholder_client_secret": "****************************",
       "cancel": "Abortar"
     },
     "cards": {

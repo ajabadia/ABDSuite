@@ -9,7 +9,7 @@ $Projects = @(
   "abd-logs",
   "abd-quiz",
   "abd-auth",
-  "abd-tenant-gobernance",
+  "abd-tenant-governance",
   "abd-files"
 )
 

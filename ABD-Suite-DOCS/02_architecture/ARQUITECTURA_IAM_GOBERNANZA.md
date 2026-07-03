@@ -1,5 +1,5 @@
 # 🏛️ ARQUITECTURA IAM: Gobernanza de Usuarios y Accesos ABDSuite
-## Modelo "Enfoque B" — ABDtenantGobernance como Consola Única de Negocio
+## Modelo "Enfoque B" — ABDtenantGovernance como Consola Única de Negocio
 
 > **Fecha:** 20 de mayo de 2026  
 > **Estado:** BORRADOR PARA REVISIÓN  
@@ -24,7 +24,7 @@
                                │ API interna (server-to-server)
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  ABDtenantGobernance (Control Plane / Consola de Negocio)       │
+│  ABDtenantGovernance (Control Plane / Consola de Negocio)       │
 │  • UI de gestión de usuarios, grupos, departamentos             │
 │  • Asignación de aplicaciones por usuario                       │
 │  • Motor ABAC (Guardian) — políticas, roles delegados           │
@@ -42,7 +42,7 @@
 ```
 
 ### Principio fundamental
-> El **Administrador de Tenant** de Metalúrgica S.A. gestiona a sus empleados desde **ABDtenantGobernance**. ABDAuth es invisible para él; es infraestructura técnica del SuperAdmin. Cuando da de baja a un empleado, **pierde acceso a todas las aplicaciones de golpe** porque el JWT ya no se puede generar para él.
+> El **Administrador de Tenant** de Metalúrgica S.A. gestiona a sus empleados desde **ABDtenantGovernance**. ABDAuth es invisible para él; es infraestructura técnica del SuperAdmin. Cuando da de baja a un empleado, **pierde acceso a todas las aplicaciones de golpe** porque el JWT ya no se puede generar para él.
 
 ---
 
@@ -78,11 +78,11 @@ interface UserTenantMembership {
   allowedApps: string[];                 // Apps explícitas (si role=student)
   appPermissions: string[];              // Permisos finos: 'quiz:write'
   // ↓ FUTURO: referencia a grupos en Gobernanza
-  groupIds?: string[];                   // IDs de PermissionGroup en ABDtenantGobernance
+  groupIds?: string[];                   // IDs de PermissionGroup en ABDtenantGovernance
 }
 ```
 
-### B. Entidad `PermissionGroup` (en ABDtenantGobernance — NUEVA)
+### B. Entidad `PermissionGroup` (en ABDtenantGovernance — NUEVA)
 
 Inspirada directamente en el sistema `permission_groups` + `Guardian` de ABDAgRAG.
 
@@ -110,7 +110,7 @@ interface IPermissionGroup {
 }
 ```
 
-### C. Entidad `PermissionPolicy` (en ABDtenantGobernance — NUEVA)
+### C. Entidad `PermissionPolicy` (en ABDtenantGovernance — NUEVA)
 
 ```typescript
 // Colección: `permission_policies`
@@ -137,7 +137,7 @@ interface IPermissionPolicy {
 }
 ```
 
-### D. Entidad `DelegatedRole` (en ABDtenantGobernance — NUEVA)
+### D. Entidad `DelegatedRole` (en ABDtenantGovernance — NUEVA)
 
 ```typescript
 // Colección: `delegated_roles`
@@ -163,7 +163,7 @@ interface IDelegatedRole {
 }
 ```
 
-### E. Entidad `Space` y Gobernanza Jerárquica (en ABDtenantGobernance — NUEVA)
+### E. Entidad `Space` y Gobernanza Jerárquica (en ABDtenantGovernance — NUEVA)
 
 Los espacios modelan la estructura física o departamental del tenant (aulas, sedes, áreas). 
 
@@ -258,9 +258,9 @@ Dado que los archivos `.env.local` están en el `.gitignore` y no se suben al co
 
 ### Alta (Provisioning)
 ```
-Admin de Tenant entra a ABDtenantGobernance
+Admin de Tenant entra a ABDtenantGovernance
   → Rellena formulario: email, nombre, apps, grupos
-  → ABDtenantGobernance llama ABDAuth API (POST /api/internal/users)
+  → ABDtenantGovernance llama ABDAuth API (POST /api/internal/users)
   → ABDAuth crea la identidad técnica y envía email de activación
   → El usuario activa su cuenta y establece contraseña/MFA
   → Listo: puede hacer SSO en las apps asignadas
@@ -268,9 +268,9 @@ Admin de Tenant entra a ABDtenantGobernance
 
 ### Baja por Tenant (Deprovisioning parcial)
 ```
-Admin suspende usuario en ABDtenantGobernance
+Admin suspende usuario en ABDtenantGovernance
   → Status = 'suspended' en UserTenantMembership
-  → ABDtenantGobernance llama ABDAuth API (PATCH /api/internal/users/:id)
+  → ABDtenantGovernance llama ABDAuth API (PATCH /api/internal/users/:id)
   → ABDAuth actualiza el estado de esa membresía
   → Efecto inmediato: /authorize bloquea y redirige al dashboard con error
   → Sesiones JWT existentes expiran según su TTL (máx. 2h)
@@ -330,7 +330,7 @@ El JWT siempre se emite para **un tenant concreto** (el del contexto de la petic
 El modelo está diseñado para ser **compatible con SCIM** (System for Cross-domain Identity Management):
 
 - Los usuarios de AD se sincronizan como `IUser` en ABDAuth
-- Sus grupos de AD se mapean a `PermissionGroups` en ABDtenantGobernance
+- Sus grupos de AD se mapean a `PermissionGroups` en ABDtenantGovernance
 - El proveedor SAML/OIDC externo sustituye el `/login` de ABDAuth pero el resto del flujo SSO es idéntico
 
 ---
@@ -347,7 +347,7 @@ El modelo está diseñado para ser **compatible con SCIM** (System for Cross-dom
 
 ### Fase 2 — Gestión de Usuarios desde ABDtenantGobernanza (YA IMPLEMENTADO ✅)
 - [x] API interna en ABDAuth: `POST/PATCH/GET /api/internal/users` (server-to-server con API Key)
-- [x] UI en ABDtenantGobernance: Panel de Usuarios del Tenant (alta, baja, cambio de rol y apps)
+- [x] UI en ABDtenantGovernance: Panel de Usuarios del Tenant (alta, baja, cambio de rol y apps)
 - [x] Flujo de invitación por email con activación de cuenta
 
 ### Fase 3 — Grupos y Departamentos en ABDtenantGobernanza (YA IMPLEMENTADO ✅)
@@ -370,7 +370,7 @@ El modelo está diseñado para ser **compatible con SCIM** (System for Cross-dom
 ### Fase 6 — Licenciamiento por Cuota y Uso
 - [ ] Evolucionar `Tenant.allowedApps: string[]` → `TenantAppLicense[]`
 - [ ] Contador de usuarios activos por app (para respetar `maxUsers`)
-- [ ] Dashboard de licencias en ABDtenantGobernance para el SuperAdmin
+- [ ] Dashboard de licencias en ABDtenantGovernance para el SuperAdmin
 
 ### Fase 7 — Integración SAML/OIDC / Active Directory
 - [ ] Endpoint `/api/auth/saml/callback` en ABDAuth
@@ -406,7 +406,7 @@ En ABDSuite, el acceso a las aplicaciones está estructurado en tres niveles com
 ## 🛠️ Decisiones de Arquitectura Consolidadas
 
 ### 1. Ubicación y Aislamiento de Grupos y Políticas
-- **Decisión**: Los `PermissionGroups` y `PermissionPolicies` vivirán en la base de datos operativa de **ABDtenantGobernance**, aislados por tenant (Opción A).
+- **Decisión**: Los `PermissionGroups` y `PermissionPolicies` vivirán en la base de datos operativa de **ABDtenantGovernance**, aislados por tenant (Opción A).
 - **Razón**: Máxima segregación y autonomía del tenant (cumple exigencias de privacidad/GDPR y multi-tenant estricto). ABDAuth emite la identidad base (JWT) y Gobernanza evalúa la autorización granular (ABAC) reduciendo el acoplamiento técnico en el IdP.
 
 ### 2. Delegación de Funciones
@@ -464,5 +464,5 @@ const result = await engine.evaluate({
 	* [[02_architecture/DISENO_SSO_TENANTS.md]]
 
 * **Grafos de Interrelaciones**:
-	* [[grafos/ABDtenantGobernance.md]]
+	* [[grafos/ABDtenantGovernance.md]]
 	* [[grafos/ABDAuth.md]]

@@ -1,6 +1,6 @@
 /**
- * @purpose Gestiona autenticación y middleware internacional para la aplicación ABDtenantGobernance.
- * @purpose_en Manages authentication and internationalization middleware for the ABDtenantGobernance application.
+ * @purpose Gestiona autenticación y middleware internacional para la aplicación ABDtenantGovernance.
+ * @purpose_en Manages authentication and internationalization middleware for the ABDtenantGovernance application.
  * @refactorable false
  * @classification Business Service
  * @complexity Medium

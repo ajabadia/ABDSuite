@@ -19,7 +19,7 @@ Este documento detalla la planificación estratégica, las fases del ecosistema 
   - ✅ 21/21 tests de modelos pasando.
 
 - **Fase 3: Visualización del Dashboard del Administrador**
-  - ✅ Vista de 4 pestañas: Resumen de la Suite, LMS (ABDQuiz), Seguridad (ABDAuth) y Gobernanza (ABDtenantGobernance).
+  - ✅ Vista de 4 pestañas: Resumen de la Suite, LMS (ABDQuiz), Seguridad (ABDAuth) y Gobernanza (ABDtenantGovernance).
   - ✅ Integración de gráficos `recharts` (histogramas Gauss, curvas de aprendizaje, accesos fallidos, consumo espacial).
   - ✅ DashboardClient con tabs modulares (`SuiteTab`, `LmsTab`, `SecurityTab`, `GovernanceTab`).
   - ✅ Certificación ERA 11 COMPLIANT.

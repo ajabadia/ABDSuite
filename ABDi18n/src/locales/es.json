@@ -1201,6 +1201,16 @@
       "filesAuditDesc": "Verificar la traza criptográfica de acciones sobre archivos",
       "filesPlaceholder": "Escribe un comando de archivos..."
     },
+    "welcome": "Bienvenida",
+    "chainAudit": "Auditoría en Cadena",
+    "dashboard": "Panel del Estudiante",
+    "goToDashboard": "Ir al Panel",
+    "suiteSummary": "Resumen de la Suite",
+    "viewEcosystemMetrics": "Ver Métricas del Ecosistema",
+    "securityPanel": "Panel de Seguridad",
+    "mfaStatus": "Estado MFA",
+    "navigation": "Navegación",
+    "commandPlaceholder": "Escribe un comando o busca...",
     "billingMenu": "Facturación",
     "incidentsMenu": "Incidencias",
     "backToAdmin": "Volver a Admin",
@@ -1314,9 +1324,9 @@
         "hover_reveal": "Pase el ratón para revelar secreto",
         "save": "Persistir Satélite",
         "create": "Crear Aplicación",
-        "cancel": "Abortar",
-        "placeholder_client_id": "e.g., sat-xyz-12345",
-        "placeholder_client_secret": "****************************"
+        "placeholder_client_id": "p.ej., sat-xyz-12345",
+        "placeholder_client_secret": "****************************",
+        "cancel": "Abortar"
       },
       "cards": {
         "active": "CONECTADO",

@@ -136,7 +136,7 @@ async function main() {
       createdAt: new Date(),
       updatedAt: new Date(),
       name: 'Banco Parque',
-      allowedApps: ['abdquiz', 'abdlogs', 'abdtenantgobernance', 'abdauth', 'quiz', 'gobernanza', 'logs', 'analytics'],
+      allowedApps: ['abdquiz', 'abdlogs', 'abdtenantgovernance', 'abdauth', 'quiz', 'gobernanza', 'logs', 'analytics'],
     });
     console.log(`Registered tenant '${TENANT_ID}' in tenants collection.`);
   } else {

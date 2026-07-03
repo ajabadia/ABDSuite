@@ -58,7 +58,7 @@ Este documento es el manifiesto de estado de gobernanza y sincronización de hit
 - [X] **Hito 10.5**: Desacoplamiento total del timeline de logs a una página de auditoría técnica dedicada (`/admin/audit`), implementando aislamiento perimetral estricto de multitenancy SaaS y un Selector de Tenants en caliente reactivo controlado para administradores globales (`SUPER_ADMIN`).
 - [X] **Hito 10.6**: Integración de accesos directos e iconos de navegación interactivos en el grid principal de administración de `/admin` y en el sidebar lateral de telemetría de sistemas.
 - [X] **Hito 10.7**: Refactorización de la infraestructura de scripts del pipeline de auditoría (`abd-audit.ps1`) erradicando las excepciones de ejecución de PowerShell mediante llamadas nativas, aislamiento de stderr (`2>$null`) y adaptación nativa de `npx` en entornos locales Windows corporativos.
-- [X] **Hito 10.8**: Despliegue oficial en producción en Vercel (`https://abd-tenant-gobernance.vercel.app/`), federación SSO activa con el IdP (`https://abd-auth.vercel.app`) y mapeo de variables de entorno asépticas.
+- [X] **Hito 10.8**: Despliegue oficial en producción en Vercel (`https://abd-tenant-governance.vercel.app/`), federación SSO activa con el IdP (`https://abd-auth.vercel.app`) y mapeo de variables de entorno asépticas.
 - [X] **Hito 10.9**: Optimización arquitectónica del Control Plane resolviendo las advertencias de tamaño de archivo (Remediación de límites de más de 200 líneas) mediante la extracción canónica de subcomponentes modulares autocontenidos (`ActionBadge.tsx`, `AuditDeltaViewer.tsx`, `ParentSpaceSelector.tsx` y `BorderRadiusSelector.tsx`), logrando un 100% de cumplimiento en higiene estática de archivos.
 
 ### Fase 11: Linkado Polimórfico de Assets a Espacios (Fase 8.4)
@@ -70,8 +70,8 @@ Este documento es el manifiesto de estado de gobernanza y sincronización de hit
 
 ### Fase 12: Auditoría de Ecosistema de Widgets & Promoción de Componentes — 2026-05-28
 - [X] **Hito 12.1**: Auditoría completa del consumo de `ABDEcosystemWidgets` en todas las aplicaciones del ecosistema. Verificado que `SmartNavbar` y `ConfirmDialog` son usados correctamente como fuente única de verdad; identificadas oportunidades de promoción.
-- [X] **Hito 12.2**: Promoción del componente `IndustrialSelectSearch` (ex `SelectSearch.tsx` de `ABDtenantGobernance`) a `ABDEcosystemWidgets/src/ui/SelectSearch.tsx`. Exportado públicamente desde `index.ts` del paquete compartido.
-- [X] **Hito 12.3**: Actualización de `tsconfig.json` en `ABDtenantGobernance` con path aliases robustos apuntando al fuente de `ABDEcosystemWidgets`, eliminando dependencia frágil de symlinks pnpm.
+- [X] **Hito 12.2**: Promoción del componente `IndustrialSelectSearch` (ex `SelectSearch.tsx` de `ABDtenantGovernance`) a `ABDEcosystemWidgets/src/ui/SelectSearch.tsx`. Exportado públicamente desde `index.ts` del paquete compartido.
+- [X] **Hito 12.3**: Actualización de `tsconfig.json` en `ABDtenantGovernance` con path aliases robustos apuntando al fuente de `ABDEcosystemWidgets`, eliminando dependencia frágil de symlinks pnpm.
 - [X] **Hito 12.4**: Corrección de errores de tipo TSC en `proxy.ts` y `resend-email-service.ts` (castings `any`, colisiones de imports, tipos de retorno ausentes).
 - [X] **Hito 12.5**: Re-certificación industrial completa. Pipeline de 6 fases superado: **ERA 11 COMPLIANT [OK]**.
 

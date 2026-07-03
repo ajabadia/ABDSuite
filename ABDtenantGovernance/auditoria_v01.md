@@ -1,4 +1,4 @@
-# 🔍 Auditoría Técnica — ABDtenantGobernance
+# 🔍 Auditoría Técnica — ABDtenantGovernance
 
 **Fecha:** 2026-05-21  
 **Módulo:** Plano de Control Multi-Tenant (Hub Central)  

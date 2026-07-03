@@ -32,7 +32,7 @@ Las plantillas PDF y las plantillas de email sí deben convivir en la misma apli
 
 ## Encaje con la arquitectura actual
 
-ABDSuite ya define una separación clara de responsabilidades: ABDAuth como proveedor de identidad, ABDtenantGobernance como consola de negocio y permisos, ABDSatelliteSDK como contrato de seguridad compartido, ABDStyles como chasis visual común, y ABDLogs como servicio central de auditoría y telemetría.[file:268][file:269][file:267]
+ABDSuite ya define una separación clara de responsabilidades: ABDAuth como proveedor de identidad, ABDtenantGovernance como consola de negocio y permisos, ABDSatelliteSDK como contrato de seguridad compartido, ABDStyles como chasis visual común, y ABDLogs como servicio central de auditoría y telemetría.[file:268][file:269][file:267]
 
 Las nuevas apps deben entrar en ese ecosistema como satélites normales. No deben reimplementar autenticación, branding dinámico, control de tenant, ni lógica local de auditoría por su cuenta. Deben integrarse con el SDK, el sistema SSO y el esquema de permisos ya definidos para la suite.[file:269][file:267]
 
@@ -91,7 +91,7 @@ Gobernar plantillas reutilizables y sus variantes por tenant, grupo, departament
 
 ## Modelo de permisos recomendado
 
-El sistema de permisos no debe resolverse solo con roles globales simples. La documentación existente de ABDtenantGobernance ya define un modelo con grupos, políticas ABAC, espacios, roles delegados y evaluación jerárquica de permisos, por lo que las nuevas aplicaciones deben apoyarse en ese motor y no inventar otro sistema paralelo.[file:267]
+El sistema de permisos no debe resolverse solo con roles globales simples. La documentación existente de ABDtenantGovernance ya define un modelo con grupos, políticas ABAC, espacios, roles delegados y evaluación jerárquica de permisos, por lo que las nuevas aplicaciones deben apoyarse en ese motor y no inventar otro sistema paralelo.[file:267]
 
 ### Principios obligatorios
 
@@ -122,7 +122,7 @@ Cada plantilla debe tener como mínimo estos campos conceptuales:
 - `publisher`
 - `admin`
 
-Estos roles no deben codificarse como una lista global rígida en Auth. Deben mapearse a grupos y políticas del tenant, siguiendo el enfoque ya establecido en ABDtenantGobernance.[file:267]
+Estos roles no deben codificarse como una lista global rígida en Auth. Deben mapearse a grupos y políticas del tenant, siguiendo el enfoque ya establecido en ABDtenantGovernance.[file:267]
 
 ## Integración con Auth, Gobernanza y Logs
 
@@ -355,7 +355,7 @@ Los eventos clave deben terminar también en ABDLogs. Guardar únicamente en la 
 
 ### Equipo E: Gobernanza y seguridad
 
-- Diseñar adaptadores de permisos desde ABDtenantGobernance.
+- Diseñar adaptadores de permisos desde ABDtenantGovernance.
 - Asegurar filtros por tenant, grupo, departamento y usuario.
 - Auditar accesos y denegaciones.
 

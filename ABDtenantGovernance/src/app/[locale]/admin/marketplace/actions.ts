@@ -1,6 +1,6 @@
 /**
- * @purpose Gestiona acciones relacionadas con el mercado en la aplicación ABDtenantGobernance, incluyendo la recuperación de datos y la solicitud de licencias.
- * @purpose_en Manages actions related to the marketplace in the ABDtenantGobernance application, including fetching data and creating license requests.
+ * @purpose Gestiona acciones relacionadas con el mercado en la aplicación ABDtenantGovernance, incluyendo la recuperación de datos y la solicitud de licencias.
+ * @purpose_en Manages actions related to the marketplace in the ABDtenantGovernance application, including fetching data and creating license requests.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification Business Service
  * @complexity Medium

@@ -4,7 +4,7 @@ This guide provides **ready-to-use, copy-pasteable prompts** designed to instruc
 
 ---
 
-## 🛰️ Prompt 1: Satelite UI Theme & Components Integration (e.g. for `ABDQuiz`, `ABDAuth`, `ABDtenantGobernance`, etc.)
+## 🛰️ Prompt 1: Satelite UI Theme & Components Integration (e.g. for `ABDQuiz`, `ABDAuth`, `ABDtenantGovernance`, etc.)
 
 Copy and paste this prompt when instructing an agent working on a satellite application to connect its layout and visual chassis to the central `@ajabadia/styles` library:
 

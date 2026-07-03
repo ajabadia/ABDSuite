@@ -1,6 +1,6 @@
 # 🎨 Auditoría de Apariencia Gráfica y Gobernanza de Estilos
 
-Este documento detalla el análisis del desfase visual entre las aplicaciones principales de la suite (**ABDAuth**, **ABDQuiz** y **ABDtenantGobernance**), evalúa si la guía `STYLE_GUIDE.md` actual es suficiente y propone un plan definitivo para lograr una uniformidad del 100% a través de la centralización y la automatización.
+Este documento detalla el análisis del desfase visual entre las aplicaciones principales de la suite (**ABDAuth**, **ABDQuiz** y **ABDtenantGovernance**), evalúa si la guía `STYLE_GUIDE.md` actual es suficiente y propone un plan definitivo para lograr una uniformidad del 100% a través de la centralización y la automatización.
 
 ---
 
@@ -10,13 +10,13 @@ Al revisar los archivos de configuración de estilos y los componentes raíz, se
 
 ### A. Tipografía y Fuentes Base
 *   **Drift**: 
-    *   `ABDQuiz` y `ABDtenantGobernance` utilizan la tipografía **Geist** (`--font-sans`) y **Geist Mono** (`--font-mono`).
+    *   `ABDQuiz` y `ABDtenantGovernance` utilizan la tipografía **Geist** (`--font-sans`) y **Geist Mono** (`--font-mono`).
     *   `ABDAuth` utiliza **Inter** (`'Inter', system-ui, sans-serif`) para el cuerpo y no tiene configurada una fuente monospace para elementos técnicos en la configuración inline de Tailwind.
 *   **Impacto**: Sensación visual distinta en el renderizado de textos y números. La fuente Geist evoca una consola técnica de forma mucho más lograda que Inter, que es una tipografía SaaS comercial común.
 
 ### B. Mapeo de Variables HSL Base (Valores por Defecto)
 *   **Discrepancia en Fondos**:
-    *   `ABDQuiz` y `ABDtenantGobernance` definen el fondo abisal oscuro como `--background: 0 0% 4%` y las tarjetas como `--card: 0 0% 8%`.
+    *   `ABDQuiz` y `ABDtenantGovernance` definen el fondo abisal oscuro como `--background: 0 0% 4%` y las tarjetas como `--card: 0 0% 8%`.
     *   `ABDAuth` define el fondo como `--background: 0 0% 3%` y las tarjetas como `--card: 0 0% 4%`.
 *   **Patrones de Rejilla (`bg-industrial-grid`)**:
     *   En `ABDQuiz`/`Gobernanza`, se utiliza `oklch(var(--border) / 0.1)` dentro de un archivo `patterns.css`.

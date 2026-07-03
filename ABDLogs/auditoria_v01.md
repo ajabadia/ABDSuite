@@ -193,7 +193,7 @@ Mismo patrón frágil identificado en ABDSatelliteSDK. Ahora está correctamente
 ### 15. ✅ **CORREGIDO: `cloudinary.ts` tiene folder path hardcodeado de Gobernanza**
 **Ubicación:** `src/lib/cloudinary.ts:33`
 
-Parece copiado de ABDtenantGobernance. Ahora usa de forma dinámica `abd-logs`.
+Parece copiado de ABDtenantGovernance. Ahora usa de forma dinámica `abd-logs`.
 
 ### 16. ✅ **CORREGIDO: Console.log con hashes y datos operacionales**
 **Ubicación:** Múltiples archivos

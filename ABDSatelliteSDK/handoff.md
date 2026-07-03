@@ -4,7 +4,7 @@
 El propósito de la sesión fue:
 1. Completar la centralización de lógica redundante en las aplicaciones satélite dentro de `@ajabadia/satellite-sdk`.
 2. Refactorizar las API routes redundantes de inquilinos (`api/admin/tenants/route.ts`) para consumir `getGlobalModel('Tenant', ..., 'AUTH')` en lugar de instanciar pools de conexiones duplicados.
-3. Centralizar el servicio de correos electrónico **Resend** (`ResendEmailService`) dentro de `ABDSatelliteSDK` de forma nativa/liviana sin agregar dependencias externas pesadas, y refactorizar a los consumidores (`ABDAuth` y `ABDtenantGobernance`) para emplearlo.
+3. Centralizar el servicio de correos electrónico **Resend** (`ResendEmailService`) dentro de `ABDSatelliteSDK` de forma nativa/liviana sin agregar dependencias externas pesadas, y refactorizar a los consumidores (`ABDAuth` y `ABDtenantGovernance`) para emplearlo.
 4. Actualizar la documentación técnica global del SDK para incluir todos los 12 módulos exportados.
 
 ## Current State
@@ -31,8 +31,8 @@ Ningún archivo en vuelo. Todas las modificaciones se han consolidado y verifica
 ### ABDAnalytics
 - **[src/app/api/admin/tenants/route.ts](file:///d:/desarrollos/ABDSuite/ABDAnalytics/src/app/api/admin/tenants/route.ts)**: Adaptado para usar `getGlobalModel`.
 
-### ABDtenantGobernance
-- **[src/services/email/resend-email-service.ts](file:///d:/desarrollos/ABDSuite/ABDtenantGobernance/src/services/email/resend-email-service.ts)**: Modificado para delegar los envíos a `ResendEmailService` del SDK.
+### ABDtenantGovernance
+- **[src/services/email/resend-email-service.ts](file:///d:/desarrollos/ABDSuite/ABDtenantGovernance/src/services/email/resend-email-service.ts)**: Modificado para delegar los envíos a `ResendEmailService` del SDK.
 
 ### ABDAuth
 - **[src/services/email/EmailService.ts](file:///d:/desarrollos/ABDSuite/ABDAuth/src/services/email/EmailService.ts)**: Actualizado para usar la clase del SDK.

@@ -21,7 +21,7 @@ const MONGODB_AUTH_DB = env.MONGODB_AUTH_DB || 'ABD-Auth';
 // Slug mapping based on app names
 const SLUG_MAP = {
   'ABDQuiz Federated': 'quiz',
-  'ABDTenantGobernance Federated': 'gobernanza',
+  'ABDTenantGovernance Federated': 'gobernanza',
   'ABDLogs Federated': 'logs',
   'ABDAnalytics Federated': 'analytics',
 };

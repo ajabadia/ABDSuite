@@ -1,6 +1,6 @@
-# 🛠️ PLAN DE DESARROLLO: Seguridad Satélite y Aislamiento Multi-Tenant (ABDQuiz / ABDtenantGobernance)
+# 🛠️ PLAN DE DESARROLLO: Seguridad Satélite y Aislamiento Multi-Tenant (ABDQuiz / ABDtenantGovernance)
 
-Este documento contiene las especificaciones técnicas y los pasos detallados de desarrollo que deben seguir las aplicaciones satélite del ecosistema ABD (por ejemplo, **`ABDQuiz`** y **`ABDtenantGobernance`**) para implementar la verificación criptográfica del token de sesión (`abd_session`) y la protección de dominio cruzado (Cross-Tenant Guard).
+Este documento contiene las especificaciones técnicas y los pasos detallados de desarrollo que deben seguir las aplicaciones satélite del ecosistema ABD (por ejemplo, **`ABDQuiz`** y **`ABDtenantGovernance`**) para implementar la verificación criptográfica del token de sesión (`abd_session`) y la protección de dominio cruzado (Cross-Tenant Guard).
 
 > [!IMPORTANT]
 > **Normativa de Integración**:
@@ -11,7 +11,7 @@ Este documento contiene las especificaciones técnicas y los pasos detallados de
 > [!CAUTION]
 > **Recordatorio de Configuración Crítica**:
 > 1. **Clave Secreta Compartida (`AUTH_JWT_SECRET`)**: Ambos proyectos (ABDAuth y el satélite) deben tener configurada exactamente la misma clave. Si las claves no coinciden, el satélite rechazará todas las sesiones.
-> 2. **Variables de Entorno del Ecosistema**: En el `.env.local` de desarrollo local, `AUTH_PROVIDER_URL` debe apuntar a `http://localhost:3400` y `NEXT_PUBLIC_APP_URL` al puerto local del satélite (ej: `http://localhost:3300` para ABDQuiz, `http://localhost:3500` para ABDtenantGobernance).
+> 2. **Variables de Entorno del Ecosistema**: En el `.env.local` de desarrollo local, `AUTH_PROVIDER_URL` debe apuntar a `http://localhost:3400` y `NEXT_PUBLIC_APP_URL` al puerto local del satélite (ej: `http://localhost:3300` para ABDQuiz, `http://localhost:3500` para ABDtenantGovernance).
 > 3. **Normas de Desarrollo Globales**: Respetar `FIRE:MAX_LINES` (150 líneas), usar `next-intl` para i18n (`FIRE:I18N_VIOLATION`), y ejecutar `pnpm run full-audit` antes de dar la tarea por finalizada.
 
 ---

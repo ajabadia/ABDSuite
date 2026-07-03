@@ -7,7 +7,7 @@ Este documento representa el mapa de interrelaciones del paquete de componentes 
 ## 🏗️ Puntos de Entrada y Configuración
 
 * [[src/index.ts]]
-	* Exporta todos los widgets reutilizables del ecosistema para su consumo por parte de los satélites (ej. `[[ABDFiles]]`, `[[ABDtenantGobernance]]`).
+	* Exporta todos los widgets reutilizables del ecosistema para su consumo por parte de los satélites (ej. `[[ABDFiles]]`, `[[ABDtenantGovernance]]`).
 * [[src/constants.ts]]
 	* Define las constantes y rutas base compartidas por los componentes.
 * [[src/types.ts]]
@@ -21,7 +21,7 @@ Este documento representa el mapa de interrelaciones del paquete de componentes 
 	* Selector multitenant premium que lee los Tenants autorizados por el usuario y permite cambiar el dominio/espacio de trabajo activo.
 	* Realiza llamadas de API locales o federadas para refrescar el contexto.
 * [[src/identity/LogoutSuccessView.tsx]]
-	* Pantalla premium unificada de cierre de sesión, ahora integrada en todos los satélites (`[[ABDLanding]]`, `[[ABDFiles]]`, `[[ABDQuiz]]`, `[[ABDLogs]]`, `[[ABDAnalytics]]`, `[[ABDtenantGobernance]]`).
+	* Pantalla premium unificada de cierre de sesión, ahora integrada en todos los satélites (`[[ABDLanding]]`, `[[ABDFiles]]`, `[[ABDQuiz]]`, `[[ABDLogs]]`, `[[ABDAnalytics]]`, `[[ABDtenantGovernance]]`).
 	* Detecta parámetros de error en la URL (`error=tenant_not_found`, etc.).
 	* Invoca de manera dinámica al SDK `[[@ajabadia/satellite-sdk]]` para auditar accesos fallidos y registrar alertas en `[[ABDLogs]]`.
 * [[src/identity/UserIdentity.tsx]]

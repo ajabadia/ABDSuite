@@ -101,7 +101,7 @@ La salida PDF también puede ser accesible en ciertos flujos. Esto no depende de
 
 ## Encaje con la arquitectura actual
 
-ABDSuite ya separa responsabilidades de forma nítida: ABDAuth como IdP, ABDtenantGobernance como plano de negocio y permisos, ABDLogs como auditoría central, ABDStyles como sistema visual y ABDSatelliteSDK como contrato de seguridad y branding para satélites.[file:268][file:269][file:267]
+ABDSuite ya separa responsabilidades de forma nítida: ABDAuth como IdP, ABDtenantGovernance como plano de negocio y permisos, ABDLogs como auditoría central, ABDStyles como sistema visual y ABDSatelliteSDK como contrato de seguridad y branding para satélites.[file:268][file:269][file:267]
 
 Las nuevas aplicaciones deben entrar en ese ecosistema como satélites normales. No deben reinventar autenticación, permisos, branding dinámico, layouts base ni sistemas locales de seguridad.[file:264][file:269]
 
@@ -156,7 +156,7 @@ Gobernar plantillas reutilizables y orquestar la generación de documentos y cor
 
 ## Modelo de permisos recomendado
 
-El control de acceso no debe resolverse con roles simples hardcodeados. La documentación de ABDtenantGobernance ya define grupos, políticas ABAC, roles delegados, espacios y evaluación jerárquica, y las nuevas aplicaciones deben integrarse con ese modelo.[file:267]
+El control de acceso no debe resolverse con roles simples hardcodeados. La documentación de ABDtenantGovernance ya define grupos, políticas ABAC, roles delegados, espacios y evaluación jerárquica, y las nuevas aplicaciones deben integrarse con ese modelo.[file:267]
 
 ### Principios obligatorios
 
@@ -243,7 +243,7 @@ Las nuevas apps deben usar SSO federado con ABDAuth y validación de sesión a t
 
 ### Gobernanza
 
-Los permisos, grupos, departamentos y políticas deben seguir residiendo en ABDtenantGobernance. `docs.abdia.es` y `templates.abdia.es` solo consumen ese plano de gobernanza.[file:267]
+Los permisos, grupos, departamentos y políticas deben seguir residiendo en ABDtenantGovernance. `docs.abdia.es` y `templates.abdia.es` solo consumen ese plano de gobernanza.[file:267]
 
 ### Logs y trazabilidad
 
@@ -478,7 +478,7 @@ Todas las acciones relevantes deben enviarse también a ABDLogs. La suite ya def
 
 ### Equipo F: Gobernanza y seguridad
 
-- Diseñar adaptadores de permisos desde ABDtenantGobernance.
+- Diseñar adaptadores de permisos desde ABDtenantGovernance.
 - Asegurar filtros por tenant, grupo, departamento y usuario.
 - Auditar accesos, denegaciones y cambios de publicación.[file:267]
 

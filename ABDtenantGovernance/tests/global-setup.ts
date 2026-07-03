@@ -126,7 +126,7 @@ async function globalSetup() {
   console.log('');
   console.log('═══════════════════════════════════════════════');
   console.log('🎭  Playwright — Pre-flight Checks');
-  console.log('    ABDtenantGobernance (localhost:5002)');
+  console.log('    ABDtenantGovernance (localhost:5002)');
   console.log('═══════════════════════════════════════════════');
   console.log('');
 
@@ -159,7 +159,7 @@ async function globalSetup() {
   if (fs.existsSync(ENV_PATH)) {
     checkPassed('.env.local encontrado');
   } else {
-    checkFailed('.env.local', 'Crea ABDtenantGobernance/.env.local');
+    checkFailed('.env.local', 'Crea ABDtenantGovernance/.env.local');
     allCriticalPassed = false;
   }
 
@@ -169,7 +169,7 @@ async function globalSetup() {
   } else {
     checkFailed(
       `Faltan: ${missing.join(', ')}`,
-      `Agrégalas a ABDtenantGobernance/.env.local (sin comillas, sin espacios alrededor de =)`
+      `Agrégalas a ABDtenantGovernance/.env.local (sin comillas, sin espacios alrededor de =)`
     );
     allCriticalPassed = false;
   }
@@ -239,7 +239,7 @@ async function globalSetup() {
   if (nodeModulesExist) {
     checkPassed('node_modules encontrado');
   } else {
-    checkFailed('node_modules no encontrado', 'Ejecuta pnpm install en ABDtenantGobernance/');
+    checkFailed('node_modules no encontrado', 'Ejecuta pnpm install en ABDtenantGovernance/');
     allCriticalPassed = false;
   }
 

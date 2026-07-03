@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
  *
  * Note: Case 3 (Auth TenantManagementContainer) has no active route
  *       in ABDAuth (the /dashboard/tenants page redirects to the
- *       Gobernance control plane). The Gobernance TenantManagementContainer
+ *       Governance control plane). The Governance TenantManagementContainer
  *       test (Case 2) covers the identical component pattern.
  */
 

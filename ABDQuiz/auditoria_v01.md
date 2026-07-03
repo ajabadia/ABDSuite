@@ -256,7 +256,7 @@ Si los callbacks `onGlobalTimeout`/`onQuestionTimeout` son funciones inline del 
 ## 🟢 Problemas Menores
 
 ### 16. `LOGS_SECRET_TOKEN` en Múltiples Lugares sin Centralizar
-El fallback `'shared-system-token-2026'` aparece en `logs-client.ts` de ABDQuiz, ABDLogs, ABDtenantGobernance, etc. Debería estar en una variable de entorno compartida o en el SDK.
+El fallback `'shared-system-token-2026'` aparece en `logs-client.ts` de ABDQuiz, ABDLogs, ABDtenantGovernance, etc. Debería estar en una variable de entorno compartida o en el SDK.
 
 ### 17. `src/app/styles/patterns.css` sin Referencia Clara
 Hay un archivo `patterns.css` en `src/app/styles/` que no he leído pero podría ser dead code si los estilos se manejan vía `@ajabadia/styles`.

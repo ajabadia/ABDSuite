@@ -35,7 +35,7 @@
   - [x] **Global Revocation Sync**: Real-time session invalidation across the suite upon security events.
 
 ## 🔗 Phase 5: Federation & Pure IdP Strategy [COMPLETED]
-- [x] **Decoupling Governance**: Tenant membership moved to dedicated "Governance App" (`ABDtenantGobernance`). ABDAuth remains a **Pure IdP** (Identity Source of Truth).
+- [x] **Decoupling Governance**: Tenant membership moved to dedicated "Governance App" (`ABDtenantGovernance`). ABDAuth remains a **Pure IdP** (Identity Source of Truth).
 - [x] **OIDC/OAuth2 Compliance**: Standardized `/api/auth/session` and `authorize` flows for satellite apps, documented in `SATELLITE_INTEGRATION.md`.
 - [x] **Unified SSO Experience**: Seamless cross-domain login and session state sharing across the entire ABD Industrial Suite.
 

@@ -22,7 +22,7 @@
 - **Motivación**: La mera referencia en `tsconfig.json` o `eslint.config.mjs` no crea el symlink en `node_modules`. pnpm necesita la entrada en `dependencies`/`devDependencies` para enlazar el paquete local.
 - **Consecuencia**: Siempre que se añada un nuevo consumer de `@repo/*`, hay que agregar la dependencia y ejecutar `pnpm install`.
 
-### 5. Renombrado ABDtenantGobernance → ABDtenantGovernance
+### 5. Renombrado ABDtenantGovernance → ABDtenantGovernance
 - **Decisión**: Renombrar el directorio y actualizar todas las referencias cruzadas (pnpm-workspace.yaml, start-all.bat, superbuild.ps1, deploy.yml, imports internos).
 - **Método**: `git mv` (via `move` en Windows) para preservar historial.
 - **Motivación**: Corrección de typo en el nombre del paquete/satélite.

@@ -9,8 +9,8 @@ const mongoose = require('mongoose');
 const MONGODB_URI = "mongodb+srv://ajabadia03_db_user:Ajabafan1974@cluster0.xarmew0.mongodb.net/ABDElevators-Auth?retryWrites=true&w=majority";
 const CLIENT_ID = "abdquiz-industrial-client-id";
 const NEW_REDIRECTS = [
-  "https://abd-tenant-gobernance.vercel.app/api/auth/federated/callback",
-  "https://abd-tenant-gobernance.vercel.app"
+  "https://abd-tenant-governance.vercel.app/api/auth/federated/callback",
+  "https://abd-tenant-governance.vercel.app"
 ];
 
 async function main() {

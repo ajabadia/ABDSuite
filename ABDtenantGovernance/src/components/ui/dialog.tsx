@@ -1,6 +1,6 @@
 /**
- * @purpose Proporciona componentes UI desde la biblioteca "@ajabadia/ecosystem-widgets" para su uso en la aplicación ABDtenantGobernance.
- * @purpose_en Exports UI components from the "@ajabadia/ecosystem-widgets" library for use in the ABDtenantGobernance application.
+ * @purpose Proporciona componentes UI desde la biblioteca "@ajabadia/ecosystem-widgets" para su uso en la aplicación ABDtenantGovernance.
+ * @purpose_en Exports UI components from the "@ajabadia/ecosystem-widgets" library for use in the ABDtenantGovernance application.
  * @refactorable false
  * @classification UI Component
  * @complexity Low

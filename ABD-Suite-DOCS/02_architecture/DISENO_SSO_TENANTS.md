@@ -99,7 +99,7 @@ Una vez que un usuario inicia sesión directamente en `ABDAuth` sin un callback 
 
 ## 📊 4. Registro de Auditoría y Logs (Alineación con ABDLogs)
 
-Para asegurar que todos los eventos de autenticación, SSO y gestión de Tenants puedan ser migrados y consumidos de forma transparente por la futura aplicación centralizada de logs (`ABDLogs`), los desarrolladores de `ABDAuth` deben implementar el registro de auditoría siguiendo estrictamente la misma estructura de esquema (`IAuditLog`) empleada en `ABDtenantGobernance`:
+Para asegurar que todos los eventos de autenticación, SSO y gestión de Tenants puedan ser migrados y consumidos de forma transparente por la futura aplicación centralizada de logs (`ABDLogs`), los desarrolladores de `ABDAuth` deben implementar el registro de auditoría siguiendo estrictamente la misma estructura de esquema (`IAuditLog`) empleada en `ABDtenantGovernance`:
 
 ### Acciones a Auditar
 *   `USER_LOGIN`: Inicio de sesión exitoso.
@@ -150,7 +150,7 @@ Para garantizar la inmunidad y la protección ante accesos cruzados entre Tenant
 *   **Implementación en Satélite**: El middleware perimetral del satélite (`src/proxy.ts`) se decora usando `withIndustrialAuth(options)` del SDK, el cual intercepta el flujo de peticiones, analiza el subdominio y ejecuta el Cross-Tenant Guard de forma transparente.
 
 ### C. Aislamiento Físico en Consultas de Base de Datos
-*   **Especificación**: Todas las consultas a colecciones multi-tenant (ej. exámenes en `ABDQuiz`, espacios en `ABDtenantGobernance`) deben incluir siempre de forma explícita el filtro del Tenant activo resuelto a partir del token de la sesión validada:
+*   **Especificación**: Todas las consultas a colecciones multi-tenant (ej. exámenes en `ABDQuiz`, espacios en `ABDtenantGovernance`) deben incluir siempre de forma explícita el filtro del Tenant activo resuelto a partir del token de la sesión validada:
     ```typescript
     const tenantId = session.user.tenantId;
     const exams = await Exam.find({ tenantId });

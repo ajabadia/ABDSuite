@@ -1,6 +1,6 @@
 # 🏛️ Análisis de Arquitectura y Propuesta de Estandarización — ABD Suite
 
-Este documento contiene el análisis técnico y las propuestas arquitectónicas iniciales para la suite de aplicaciones **ABD** (`ABDAuth`, `ABDQuiz`, `ABDtenantGobernance`, `ABDStyles`). El objetivo es unificar y estandarizar la suite bajo una infraestructura multi-tenant, federada y escalable.
+Este documento contiene el análisis técnico y las propuestas arquitectónicas iniciales para la suite de aplicaciones **ABD** (`ABDAuth`, `ABDQuiz`, `ABDtenantGovernance`, `ABDStyles`). El objetivo es unificar y estandarizar la suite bajo una infraestructura multi-tenant, federada y escalable.
 
 ---
 
@@ -17,7 +17,7 @@ Este documento contiene el análisis técnico y las propuestas arquitectónicas 
 *   **`ABDAuth`**:
     *   **Estado**: Proveedor de Identidad Centralizado (IdP) (`SYS_CERTIFIED_PROD`).
     *   **Propósito**: Puerta de enlace de identidad global. Gestiona credenciales de usuario, políticas de segundo factor (MFA), bloqueo progresivo de cuentas, rate limiting y el protocolo de inicio de sesión único federado (SSO/SLO) mediante intercambio de códigos temporales.
-*   **`ABDtenantGobernance`**:
+*   **`ABDtenantGovernance`**:
     *   **Estado**: Consola de Control de Tenants y Espacios (`SYS_CERTIFIED`).
     *   **Propósito**: Permite administrar organizaciones (Tenants), su branding personalizado, la estructura jerárquica de espacios físicos (sedes, edificios, salas) y almacena logs de auditoría asíncronos (*Fail-Safe*) en una base de datos remota dedicada.
 *   **`ABDQuiz`**:
@@ -32,7 +32,7 @@ Para unificar la suite bajo el dominio propio en GoDaddy y mantener los desplieg
 
 ### Configuración Recomendada de Subdominios:
 1.  **Proveedor de Identidad**: `auth.tudominio.com` apuntando al proyecto `ABDAuth` en Vercel.
-2.  **Consola de Administración**: `gobernanza.tudominio.com` apuntando al proyecto `ABDtenantGobernance` en Vercel.
+2.  **Consola de Administración**: `gobernanza.tudominio.com` apuntando al proyecto `ABDtenantGovernance` en Vercel.
 3.  **Simulador**: `quiz.tudominio.com` apuntando al proyecto `ABDQuiz` en Vercel.
 
 ### Ventajas Técnicas:
@@ -57,7 +57,7 @@ El lanzador central de la suite debe ubicarse dentro de **`ABDAuth`** (en la rut
 ### Razón de ser:
 *   Es la puerta de entrada obligatoria del usuario.
 *   Conoce el rol del usuario, el tenant actual al que está conectado y los privilegios de su cuenta.
-*   Permite renderizar una cuadrícula (grid) técnica con los logos de las aplicaciones a las que tiene acceso (ej. ABDQuiz, ABDtenantGobernance). Al pulsar en una tarjeta, se le redirige al subdominio del satélite y se activa la sesión mediante el SSO silencioso.
+*   Permite renderizar una cuadrícula (grid) técnica con los logos de las aplicaciones a las que tiene acceso (ej. ABDQuiz, ABDtenantGovernance). Al pulsar en una tarjeta, se le redirige al subdominio del satélite y se activa la sesión mediante el SSO silencioso.
 
 ---
 
@@ -66,10 +66,10 @@ El lanzador central de la suite debe ubicarse dentro de **`ABDAuth`** (en la rut
 Para que el ecosistema escale de forma limpia, mantendremos la separación estricta de responsabilidades:
 
 1.  **Identidades y Autenticación (`ABDAuth`)**: Centraliza los registros de usuarios, contraseñas, políticas de MFA, intentos de acceso y sesiones activas globales.
-2.  **Organizaciones y Espacios (`ABDtenantGobernance`)**: Centraliza la parametrización de Tenants (su branding, dbPrefix, estrategias de aislamiento) y la jerarquía física de espacios. `ABDAuth` solo lee esta base de datos en modo lectura para inyectar claims al autenticar.
+2.  **Organizaciones y Espacios (`ABDtenantGovernance`)**: Centraliza la parametrización de Tenants (su branding, dbPrefix, estrategias de aislamiento) y la jerarquía física de espacios. `ABDAuth` solo lee esta base de datos en modo lectura para inyectar claims al autenticar.
 3.  **Auditoría y Telemetría (`ABDLogs`)**:
     *   **Estado**: Desarrollado e integrado como microservicio centralizado.
-    *   **Funcionamiento**: Expone un servicio REST con endpoints protegidos vía tokens secretos (`LOGS_SECRET_TOKEN`). Tanto `ABDAuth`, `ABDtenantGobernance` como el resto de satélites disparan eventos de auditoría y telemetría de forma asíncrona vía HTTP POST a este servicio, evitando la fatiga de conexiones concurrentes en base de datos bajo entornos Serverless (Vercel).
+    *   **Funcionamiento**: Expone un servicio REST con endpoints protegidos vía tokens secretos (`LOGS_SECRET_TOKEN`). Tanto `ABDAuth`, `ABDtenantGovernance` como el resto de satélites disparan eventos de auditoría y telemetría de forma asíncrona vía HTTP POST a este servicio, evitando la fatiga de conexiones concurrentes en base de datos bajo entornos Serverless (Vercel).
 
 ---
 
@@ -84,7 +84,7 @@ Estos puertos alojan portales públicos, proveedores de identidad o consolas adm
 | :--- | :--- | :--- |
 | **`ABDLanding`** | **`5000`** | Portal público de entrada e landing page informativa. |
 | **`ABDAuth`** | **`5001`** | Proveedor de identidad centralizado (IdP), SSO y SLO. |
-| **`ABDtenantGobernance`** | **`5002`** | Consola de administración de Tenants, Espacios y Configuración. |
+| **`ABDtenantGovernance`** | **`5002`** | Consola de administración de Tenants, Espacios y Configuración. |
 | **`ABDLogs`** | **`5003`** | Ingestión y consulta de logs de auditoría forense y telemetría. |
 | **`ABDAnalytics`** | **`5004`** | Panel unificado de métricas e inteligencia de negocio de la suite. |
 | **`ABDFiles`** | **`5005`** | Gestor documental y almacenamiento polimórfico. |
@@ -110,7 +110,7 @@ Este rango se reserva para las aplicaciones de negocio dirigidas al usuario fina
 
 * **Grafos de Interrelaciones**:
 	* [[grafos/Mapa_Global_Suite.md]]
-	* [[grafos/ABDtenantGobernance.md]]
+	* [[grafos/ABDtenantGovernance.md]]
 	* [[grafos/ABDAuth.md]]
 	* [[grafos/ABDLogs.md]]
 	* [[grafos/ABDFiles.md]]

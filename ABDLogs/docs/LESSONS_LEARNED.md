@@ -14,7 +14,7 @@ Al intentar loguearse o navegar por las páginas protegidas de `https://abd-logs
 * **Desconexión en Vercel**: En el Dashboard de Vercel no se había alineado `AUTH_JWT_SECRET` en ambos proyectos. Esto provocaba que `ABDAuth` firmase con su propia variable `AUTH_SECRET` autogenerada de NextAuth, y `ABDLogs` intentase descifrar el token usando el fallback local. El token era catalogado como inválido, el usuario se consideraba desautenticado, y el proxy le redirigía de nuevo a autenticarse al IdP, reiniciando el ciclo.
 
 ### 3. La Solución Industrial
-* **Unificación de Secretos en el Panel de Control**: Es mandatorio definir la variable de entorno `AUTH_JWT_SECRET` en todos los proyectos satélites (`abd-logs`, `abd-quiz`, `abd-tenant-gobernance`) y en el IdP central (`abd-auth`) del panel de control de Vercel usando la misma clave simétrica compartida (ej: `abd-suite-shared-industrial-secret-2026-prod`).
+* **Unificación de Secretos en el Panel de Control**: Es mandatorio definir la variable de entorno `AUTH_JWT_SECRET` en todos los proyectos satélites (`abd-logs`, `abd-quiz`, `abd-tenant-governance`) y en el IdP central (`abd-auth`) del panel de control de Vercel usando la misma clave simétrica compartida (ej: `abd-suite-shared-industrial-secret-2026-prod`).
 * **Robustez ante Fallos de Sesión**: Implementar un bloque de resiliencia en el callback del satélite para capturar fallos de intercambio y, si ya existe una cookie de sesión local válida, resolver gracefully redirigiendo al estado original en lugar de relanzar el flujo JSON de error.
 
 ---

@@ -78,7 +78,7 @@ Cada satélite corre en su propio puerto:
 |----------|--------|
 | ABDLanding | 5000 |
 | ABDAuth | 5001 |
-| ABDtenantGobernance | 5002 |
+| ABDtenantGovernance | 5002 |
 | ABDLogs | 5003 |
 | ABDAnalytics | 5004 |
 | ABDFiles | 5005 |
@@ -101,7 +101,7 @@ Todos los paquetes han superado el pipeline de auditoría **ERA 11** (6 fases: S
 | ABDLogs | ✅ ERA 11 COMPLIANT |
 | ABDQuiz | ✅ ERA 11 COMPLIANT |
 | ABDSatelliteSDK | ✅ ERA 11 COMPLIANT |
-| ABDtenantGobernance | ✅ ERA 11 COMPLIANT |
+| ABDtenantGovernance | ✅ ERA 11 COMPLIANT |
 
 > **8/8 paquetes certificados.** El pipeline de auditoría se ejecuta via `pnpm run full-audit` y está integrado en el flujo CI/CD.
 
@@ -158,7 +158,7 @@ flowchart LR
 - **ABDLanding** — Landing page institucional
 - **ABDLogs** — Logs forenses multi-tenant
 - **ABDQuiz** — Módulo LMS de cuestionarios
-- **ABDtenantGobernance** — Panel de gobernanza multi-tenant
+- **ABDtenantGovernance** — Panel de gobernanza multi-tenant
 
 ### Librerías Compartidas
 - **ABDStyles** — Tokens CSS, temas HSL y utilidades visuales Tech-Noir (`industrial-core.css`)

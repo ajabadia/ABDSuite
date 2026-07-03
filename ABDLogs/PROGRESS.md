@@ -14,7 +14,7 @@
 - [x] **Model & Schema**: Created `AuditLog` Mongoose model with `tenantId`, `action`, `entityType`, `changedFields`, `ipAddress`, `userAgent` and composite indexes.
 - [x] **REST API**: Implemented `POST /api/logs` for ingestion and `GET /api/logs` for querying, protected with inter-service auth tokens.
 - [x] **Federated Auth Proxy**: Integrated `withIndustrialAuth` from `@ajabadia/satellite-sdk` for SSO verification.
-- [x] **Migration Ingestors**: Updated `ABDtenantGobernance` and `ABDQuiz` to send async logs via HTTP fetch to ABDLogs instead of direct DB connections.
+- [x] **Migration Ingestors**: Updated `ABDtenantGovernance` and `ABDQuiz` to send async logs via HTTP fetch to ABDLogs instead of direct DB connections.
 
 ### Phase 2: Audit History UI (`2026-05-21`)
 - [x] **AuditHistoryPanel**: Created interactive timeline component with delta comparison chips.

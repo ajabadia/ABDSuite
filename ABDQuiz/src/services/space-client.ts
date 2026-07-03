@@ -1,6 +1,6 @@
 /**
- * @purpose Gestiona el arrastre y soltar de Espacios desde ABDtenantGobernance a través de S2S.
- * @purpose_en Manages fetching and caching of Spaces from ABDtenantGobernance via S2S.
+ * @purpose Gestiona el arrastre y soltar de Espacios desde ABDtenantGovernance a través de S2S.
+ * @purpose_en Manages fetching and caching of Spaces from ABDtenantGovernance via S2S.
  * @refactorable false
  * @classification Business Service
  * @complexity Low
@@ -9,7 +9,7 @@
  */
 
 /**
- * HTTP client for fetching Spaces from ABDtenantGobernance via S2S.
+ * HTTP client for fetching Spaces from ABDtenantGovernance via S2S.
  * Replaces direct MongoDB access to the shared Space collection.
  */
 
@@ -63,7 +63,7 @@ export const SpaceServiceClient = {
         },
       );
 
-      if (!res.ok) throw new Error(`Gobernance API returned ${res.status}`);
+      if (!res.ok) throw new Error(`Governance API returned ${res.status}`);
 
       const data = await res.json() as { spaces: SpaceOption[] };
       const activeSpaces = data.spaces.filter((s) => s.isActive);
@@ -94,7 +94,7 @@ export const SpaceServiceClient = {
         },
       );
 
-      if (!res.ok) throw new Error(`Gobernance API returned ${res.status}`);
+      if (!res.ok) throw new Error(`Governance API returned ${res.status}`);
 
       const data = await res.json() as { space: SpaceOption | null };
 

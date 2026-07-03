@@ -77,7 +77,7 @@
   "filterAllLabel": "Filter all applications",
   "filterAuthLabel": "Filter ABDAuth logs",
   "filterQuizLabel": "Filter ABDQuiz logs",
-  "filterGobernanzaLabel": "Filter ABDGobernance logs",
+  "filterGobernanzaLabel": "Filter ABDGovernance logs",
   "audit_live_pause": "Pause Stream",
   "audit_live_resume": "Resume Stream",
   "audit_live_on": "Live ON",

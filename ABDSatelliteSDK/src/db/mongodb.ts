@@ -9,8 +9,14 @@
  */
 
 import mongoose, { Connection } from 'mongoose';
+import dns from 'dns';
 import { tenantStorage } from './tenant-context';
 import { getTenantConnection, ensureConnectionReady } from './tenant-connection';
+
+// Override DNS servers to use Google Public DNS, because some corporate networks
+// block or fail to resolve SRV records (_mongodb._tcp.…) via Node.js's c-ares resolver,
+// which prevents mongodb+srv:// connections to MongoDB Atlas from working.
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 interface MongooseCache {
   conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null;

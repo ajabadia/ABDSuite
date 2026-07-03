@@ -6,10 +6,10 @@ Este documento especifica la estructura, el proceso de creación y las rutas de 
 
 ## 🏗️ 1. Estrategia de Creación (Clonación de Carcasa)
 
-Para mantener la consistencia estética y de linters de la suite Next.js 16 / Tailwind v4 / TypeScript / next-intl, **`ABDLogs`** se inicializará duplicando el repositorio de **`ABDtenantGobernance`**.
+Para mantener la consistencia estética y de linters de la suite Next.js 16 / Tailwind v4 / TypeScript / next-intl, **`ABDLogs`** se inicializará duplicando el repositorio de **`ABDtenantGovernance`**.
 
 ### 📋 Pasos de Preparación Inicial
-1. Duplicar la carpeta completa `ABDtenantGobernance` y nombrarla `ABDLogs`.
+1. Duplicar la carpeta completa `ABDtenantGovernance` y nombrarla `ABDLogs`.
 2. En la raíz de `ABDLogs`, modificar `package.json` para renombrar el proyecto:
    ```json
    "name": "abd-logs"
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
 
 ## 📟 5. Cliente Ingestor de Logs (`LogsClient`)
 
-Para simplificar el envío de logs desde las otras aplicaciones de la suite, se creará una clase cliente reutilizable. **Este archivo se copiará en cada proyecto (`ABDAuth`, `ABDQuiz`, `ABDtenantGobernance`)**:
+Para simplificar el envío de logs desde las otras aplicaciones de la suite, se creará una clase cliente reutilizable. **Este archivo se copiará en cada proyecto (`ABDAuth`, `ABDQuiz`, `ABDtenantGovernance`)**:
 
 ### 📂 Crear `src/lib/logs-client.ts` (En todos los proyectos)
 ```typescript

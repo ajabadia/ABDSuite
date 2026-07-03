@@ -1,11 +1,11 @@
 /**
  * 🔐 Session Cookie Helper — Generates a valid `abd_session` JWT cookie
  *
- * Gobernance's proxy middleware checks for the `abd_session` cookie (a JWT
+ * Governance's proxy middleware checks for the `abd_session` cookie (a JWT
  * signed with AUTH_JWT_SECRET). This helper creates a valid token so E2E tests
  * can bypass the OAuth federated login flow and navigate directly to admin pages.
  *
- * The shared secret between ABDAuth and Gobernance is read from
+ * The shared secret between ABDAuth and Governance is read from
  * process.env.AUTH_JWT_SECRET, with fallback `abd-auth-industrial-fallback-secret-2026`.
  *
  * If the IDP (ABDAuth) is unreachable for session expiry verification, the SDK

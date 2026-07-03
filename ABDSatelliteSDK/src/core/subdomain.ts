@@ -16,11 +16,11 @@ export function getTenantSubdomain(host: string | null, rootDomain?: string): st
   if (!host) return null;
   const hostname = host.split(':')[0].toLowerCase();
   
-  const systemApps = ['auth', 'logs', 'quiz', 'analytics', 'tenantgobernance', 'tenant-governance', 'tenantgovernance', 'suite', 'landing', 'www', 'files'];
+  const systemApps = ['auth', 'logs', 'quiz', 'analytics', 'tenantgovernance', 'tenant-governance', 'tenantgovernance', 'suite', 'landing', 'www', 'files'];
 
   // Prevent extracting subdomain if accessing base Control Plane domains
   if (
-    hostname === 'abd-tenant-gobernance.vercel.app' || 
+    hostname === 'abd-tenant-governance.vercel.app' || 
     hostname === 'localhost' || 
     hostname === '127.0.0.1'
   ) {

@@ -82,7 +82,7 @@ Para habilitar el inicio de sesión federado y evitar el error de `"Redirect URI
 
 ## 🔌 8. Integración en el Ecosistema
 1. **Vinculación en la Landing**: Añade los enlaces de la nueva aplicación en `getSuiteApps` en [ABDLanding](file:///d:/desarrollos/ABDSuite/ABDLanding) (`src/app/[locale]/page.tsx`) para que aparezca en el menú de aplicaciones de la suite.
-2. **Permisos en Gobernanza**: Habilita los scopes de acción correspondientes (ej. `documents:*`) en el panel de control de administración de [ABDtenantGobernance](file:///d:/desarrollos/ABDSuite/ABDtenantGobernance).
+2. **Permisos en Gobernanza**: Habilita los scopes de acción correspondientes (ej. `documents:*`) en el panel de control de administración de [ABDtenantGovernance](file:///d:/desarrollos/ABDSuite/ABDtenantGovernance).
 3. **Métricas en Analíticas**: Conecta las vistas de consumo y auditorías cruzadas en [ABDAnalytics](file:///d:/desarrollos/ABDSuite/ABDAnalytics) para recolectar el tracking de uso e impacto operacional.
 
 ---

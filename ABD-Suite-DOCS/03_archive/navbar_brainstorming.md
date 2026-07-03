@@ -1,6 +1,6 @@
 # Smart Navbar — Spec & Implementation Reference
 
-> **Status: ✅ IMPLEMENTED** — This document started as a brainstorming proposal but now serves as the **living specification** for the SmartNavbar, which is fully deployed across all 4 suite apps (ABDAuth, ABDQuiz, ABDLogs, ABDtenantGobernance).
+> **Status: ✅ IMPLEMENTED** — This document started as a brainstorming proposal but now serves as the **living specification** for the SmartNavbar, which is fully deployed across all 4 suite apps (ABDAuth, ABDQuiz, ABDLogs, ABDtenantGovernance).
 > See `@abd/ecosystem-widgets/src/navigation/SmartNavbar.tsx` for the actual implementation.
 
 Este documento detalla el diseño y arquitectura de la barra de navegación superior unificada ("Smart Navbar") inspirada en [antigravity.google](https://antigravity.google/).
@@ -358,7 +358,7 @@ graph TD
 - ✅ `SidebarNavigation.tsx`: Bridge a `SmartNavbar` con `transformHref`
 - ✅ `app/[locale]/page.tsx`: Sin `SystemSettings` redundante
 
-#### ✅ `ABDtenantGobernance` (Fase 3) — COMPLETADO
+#### ✅ `ABDtenantGovernance` (Fase 3) — COMPLETADO
 - ✅ `app/layout.tsx`: `navbar-top-layout`, `SessionProvider`, `BrandingStyles`, `<ThemeScript />` en `<head>`, `NextTopLoader` (zIndex 45)
 - ✅ `app/[locale]/layout.tsx`: `SidebarNavigation` bridge con `tenantSelectorSlot` condicional
 - ✅ `SidebarNavigation.tsx`: Bridge completo a `SmartNavbar` con `transformHref`, `tenantSelectorSlot`, `settingsSlot`
@@ -400,7 +400,7 @@ graph TD
 * **`src/components/layout/SidebarNavigation.tsx`**: ✅ Bridge a `SmartNavbar` con `transformHref` para query params, traducciones localizadas
 * **`src/app/[locale]/page.tsx`**: ✅ Sin `SystemSettings` redundante
 
-### B. Aplicación: `ABDtenantGobernance` — ✅ COMPLETADO (bridge)
+### B. Aplicación: `ABDtenantGovernance` — ✅ COMPLETADO (bridge)
 * **`src/app/layout.tsx`**: ✅ `navbar-top-layout` en `<body>`, `BrandingStyles`, `SessionProvider`, `<ThemeScript />`, `NextTopLoader`
 * **`src/app/[locale]/layout.tsx`**: ✅ `SidebarNavigation` bridge con `tenantSelectorSlot` condicional y `settingsSlot`
 * **`src/components/layout/SidebarNavigation.tsx`**: ✅ Bridge completo a `SmartNavbar` con `transformHref`
@@ -458,7 +458,7 @@ Para asegurar la fidelidad del desarrollo, a continuación se detalla la matriz 
 
 ---
 
-### 2. Aplicación: `ABDtenantGobernance` (Plataforma de Gobernanza)
+### 2. Aplicación: `ABDtenantGovernance` (Plataforma de Gobernanza)
 
 #### A. Estado: No Autenticado / Pantalla de Entrada
 * **Zona Izquierda (Identidad):**
@@ -553,10 +553,10 @@ Para asegurar la fidelidad del desarrollo, a continuación se detalla la matriz 
 * **Audit:** Se encontraron **3 implementaciones diferentes** del mismo patrón:
   - `ABDLogs`: `transformHref` que copia **todos** los `searchParams` (`?${queryStr}`) a cada enlace.
   - `ABDQuiz`: `transformHref` que solo pasa `tenantId` a cada enlace.
-  - `ABDtenantGobernance`: NO usa `transformHref`. Construye `tenantQuery` manualmente concatenando `tenantId`, `contextId`, `contextType` directamente en los `href` de los links (`allLinks`). Es la implementación más completa pero la más ineficiente.
+  - `ABDtenantGovernance`: NO usa `transformHref`. Construye `tenantQuery` manualmente concatenando `tenantId`, `contextId`, `contextType` directamente en los `href` de los links (`allLinks`). Es la implementación más completa pero la más ineficiente.
   - `ABDAuth`: No necesita propagación (es el IAM central).
 * **Esfuerzo estimado:** 2-3h — crear `propagateContext` helper en ecosystem-widgets, migrar los 3 satélites.
-* **Prioridad:** 🟡 **BAJA** — Las apps funcionan correctamente. Es deuda técnica de duplicación. ABDtenantGobernance tiene el patrón más completo y podría servir como base para el helper unificado.
+* **Prioridad:** 🟡 **BAJA** — Las apps funcionan correctamente. Es deuda técnica de duplicación. ABDtenantGovernance tiene el patrón más completo y podría servir como base para el helper unificado.
 
 ### B. Unificar el Atajo de Teclado del Buscador (Ctrl+K)
 * **Situación Actual:** Cada paleta de comandos (`LogsCommandPalette`, `QuizCommandPalette`, etc.) registra de manera independiente un escuchador de eventos de teclado global (`keydown`) para capturar la combinación `Ctrl+K`. Esto puede generar fugas de memoria o múltiples capturas si los eventos no se limpian correctamente al desmontar.
@@ -575,9 +575,9 @@ Para asegurar la fidelidad del desarrollo, a continuación se detalla la matriz 
 * **Audit:** Actualmente `brandName` muestra `tenantId` o `appTitle`, pero **no existe ningún badge visual específico de aplicación**. Los valores actuales de brandName son:
   - `ABDLogs`: `user?.tenantId || t('appTitle') || 'ABD SYSTEM'`
   - `ABDQuiz`: `isLoggedIn && user?.tenantId ? user.tenantId : t('appTitle')`
-  - `ABDtenantGobernance`: `user?.tenantId || t('appTitle') || 'ABD SYSTEM'`
+  - `ABDtenantGovernance`: `user?.tenantId || t('appTitle') || 'ABD SYSTEM'`
   - `ABDAuth`: `user?.tenantId || common("brand")`
-  Todos muestran el tenant activo, no la aplicación. Sin la barra lateral (que tenía títulos como "Logs", "Quiz", "Gobernance", "Auth"), el usuario puede desorientarse.
+  Todos muestran el tenant activo, no la aplicación. Sin la barra lateral (que tenía títulos como "Logs", "Quiz", "Governance", "Auth"), el usuario puede desorientarse.
 * **Esfuerzo estimado:** 1-2h — añadir prop `appBadge?: string` opcional a SmartNavbar, pasarlo desde cada satélite con valor fijo (`'LOGS'`, `'GOV'`, `'QUIZ'`, `'AUTH'`). Renderizar como badge estilizado junto al logo.
 * **Prioridad:** 🟠 **MEDIA** — Mejora real de UX con implementación simple. Ayuda a la orientación espacial al cambiar entre satélites.
 
@@ -833,7 +833,7 @@ La diferencia entre un desarrollo premium y uno amateur radica en los pequeños 
 
 ### B. Checklist de Aceptación — ESTADO REAL
 Antes de propagar la `SmartNavbar` al resto de satélites, la aplicación piloto `ABDLogs` debe cumplir al 100% las siguientes condiciones de validación en el entorno de desarrollo:
-| # | Criterio | ABDLogs | ABDQuiz | ABDtenantGobernance | ABDAuth |
+| # | Criterio | ABDLogs | ABDQuiz | ABDtenantGovernance | ABDAuth |
 |---|----------|---------|---------|-------------------|--------|
 | 1 | Barra lateral eliminada, contenido al 100% ancho | ✅ | ✅ | ✅ | ✅ |
 | 2 | Debug tag de tenantId visible | ✅ | ✅ | ✅ | ✅ |
@@ -844,9 +844,9 @@ Antes de propagar la `SmartNavbar` al resto de satélites, la aplicación piloto
 | 7 | `<ThemeScript />` en `<head>` | ✅ | ✅ | ✅ | ✅ |
 | 8 | Selector de idioma en SmartNavbar (mega-menú Languages) | ✅ | ✅ | ✅ | ✅ |
 
-#### B.2 Preparación para Fase 3 — Auditoría de `ABDtenantGobernance`
+#### B.2 Preparación para Fase 3 — Auditoría de `ABDtenantGovernance`
 
-Como paso previo a la migración de `ABDtenantGobernance`, se realizó una auditoría exhaustiva de márgenes, paddings y componentes heredados del sidebar para identificar las correcciones necesarias.
+Como paso previo a la migración de `ABDtenantGovernance`, se realizó una auditoría exhaustiva de márgenes, paddings y componentes heredados del sidebar para identificar las correcciones necesarias.
 
 **🔴 Hallazgos — Correcciones Aplicadas:**
 

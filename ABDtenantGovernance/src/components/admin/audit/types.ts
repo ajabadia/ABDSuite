@@ -1,6 +1,6 @@
 /**
- * @purpose Gestiona la estructura para registros de auditoría en la aplicación ABDtenantGobernance.
- * @purpose_en Defines the structure for audit log entries in the ABDtenantGobernance application.
+ * @purpose Gestiona la estructura para registros de auditoría en la aplicación ABDtenantGovernance.
+ * @purpose_en Defines the structure for audit log entries in the ABDtenantGovernance application.
  * @refactorable false
  * @classification Type Definition
  * @complexity Low

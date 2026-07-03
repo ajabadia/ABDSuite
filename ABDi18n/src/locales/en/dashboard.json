@@ -59,6 +59,7 @@
       "placeholder_uri": "https://myapp.com/api/auth/callback",
       "add_uri_btn": "Add URI",
       "save": "Persist Satellite",
+      "create": "Create Application",
       "cancel": "Abort",
       "placeholder_client_id": "e.g., sat-xyz-12345",
       "placeholder_client_secret": "****************************"
