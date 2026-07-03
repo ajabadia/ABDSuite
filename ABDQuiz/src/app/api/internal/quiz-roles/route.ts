@@ -167,9 +167,9 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: error.issues }, { status: 400 });
     }
     const err = error as { writeErrors?: unknown[]; insertedCount?: number; rawPayload?: unknown };
-    // Safe extraction of total since ZodError would have triggered above if body was invalid
-    const total = (err.writeErrors !== undefined && typeof raw === 'object' && raw !== null && 'userIds' in (raw as any) && Array.isArray((raw as any).userIds)) 
-      ? ((raw as any).userIds.length as number)
+    const rawObj = raw as { userIds?: unknown[] };
+    const total = (err.writeErrors !== undefined && typeof rawObj === 'object' && rawObj !== null && Array.isArray(rawObj.userIds)) 
+      ? (rawObj.userIds.length ?? 0)
       : 0;
 
     if (err.writeErrors !== undefined || err.insertedCount !== undefined) {

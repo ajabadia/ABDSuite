@@ -49,7 +49,7 @@ export default async function AdminPage({ params }: { params: Promise<{ locale: 
           </div>
           <div className="flex justify-between">
             <span className="uppercase text-muted-foreground">{t('statusLabel')}</span>
-            <span className="text-[#2dd4bf] font-black">[CONNECTED]</span>
+            <span className="text-[#2dd4bf] font-black">[{t('statusOnline').toUpperCase()}]</span>
           </div>
           <div className="flex justify-between">
             <span className="uppercase text-muted-foreground">{t('tenantActiveLabel')}</span>

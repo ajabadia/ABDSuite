@@ -187,7 +187,7 @@ export function GdprConsole({ tenants, userRole }: GdprConsoleProps) {
           <thead>
             <tr className="border-b border-border bg-muted/10 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
               <th className="p-4">{t('organizationHeader')}</th>
-              <th className="p-4">Tenant ID</th>
+              <th className="p-4">{t('tenantIdCol')}</th>
               <th className="p-4">{t('dbPrefixHeader')}</th>
               <th className="p-4">{t('statusHeader')}</th>
               <th className="p-4 text-right">{t('gdprActionsHeader')}</th>

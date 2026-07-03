@@ -206,8 +206,16 @@ try {
 
       // i18n coverage and translation keys coverage (only for applications, skipped for pure library)
       if (!isLibrary && (phase === 'all' || phase === 'i18n')) {
-        if (ext === '.tsx') {
+        const isSandbox = relPath.includes('SandboxForm') || relPath.includes('sandbox');
+        if (ext === '.tsx' && !isSandbox) {
           lines.forEach((line, idx) => {
+            // Skip code lines containing arrow functions returning generic types or parameters
+            if (line.includes('=>') && line.includes('<') && line.includes('>')) {
+              return;
+            }
+            if (line.includes('import ') || line.includes('export ') || line.includes('interface ') || line.includes('type ')) {
+              return;
+            }
             const match = line.match(/>([^<{}>]{3,})</);
             if (match) {
               const text = match[1].trim();

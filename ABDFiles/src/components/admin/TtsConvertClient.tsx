@@ -351,7 +351,7 @@ export default function TtsConvertClient() {
         <div className="w-full bg-border/30 rounded-none h-2">
           <div
             className="bg-primary h-2 transition-all duration-300"
-            style={{ width: `${downloadProgress * 100}%` }}
+            style={ { width: `${downloadProgress * 100}%` } }
           />
         </div>
       )}
