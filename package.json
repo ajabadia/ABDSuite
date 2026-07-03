@@ -15,6 +15,9 @@
     "turbo": "^2.9.16"
   },
   "pnpm": {
+    "overrides": {
+      "sharp": "0.35.2"
+    },
     "onlyBuiltDependencies": [
       "@parcel/watcher",
       "@swc/core",
