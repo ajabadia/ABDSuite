@@ -308,7 +308,7 @@ Write-Log "============================================================" -Foregr
 
 function Assert-FileExists {
     param([string]$Path, [string]$Label)
-    if (-not (Test-Path $Path)) {
+    if (-not (Test-Path -LiteralPath $Path)) {
         Write-Log "  FALTANTE: $Label ($Path)" -ForegroundColor Red
         return $false
     }
@@ -317,8 +317,8 @@ function Assert-FileExists {
 
 function Assert-FileContains {
     param([string]$Path, [string]$Pattern, [string]$Label)
-    if (-not (Test-Path $Path)) { return $false }
-    $content = Get-Content $Path -Raw -ErrorAction SilentlyContinue
+    if (-not (Test-Path -LiteralPath $Path)) { return $false }
+    $content = Get-Content -LiteralPath $Path -Raw -ErrorAction SilentlyContinue
     if ($content -notmatch $Pattern) {
         Write-Log "  INVÁLIDO: $Label ($Path debe contener '$Pattern')" -ForegroundColor Red
         return $false
