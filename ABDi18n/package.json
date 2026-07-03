@@ -1,6 +1,6 @@
 {
   "name": "@ajabadia/i18n",
-  "version": "1.0.60",
+  "version": "1.0.61",
   "type": "module",
   "description": "Centralized i18n messages and routing for ABD Suite",
   "publishConfig": {
