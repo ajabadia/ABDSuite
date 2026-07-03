@@ -17,7 +17,7 @@ export default defineConfig({
   dts: true,
   splitting: true,
   sourcemap: true,
-  clean: true,
+  clean: false,
   minify: false,
   external: ['react', 'react-dom', 'next', '@ajabadia/styles', 'next/server', 'next/headers'],
 });
