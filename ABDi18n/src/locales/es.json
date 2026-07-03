@@ -2072,6 +2072,7 @@
     "system_settings_theme_light": "CLARO",
     "system_settings_theme_dark": "OSCURO",
     "system_settings_theme_system": "SISTEMA",
-    "system_settings_logout": "Cerrar Sesión"
+    "system_settings_logout": "Cerrar Sesión",
+    "typeCommandOrSearch": "Escribe un comando o busca..."
   }
 }

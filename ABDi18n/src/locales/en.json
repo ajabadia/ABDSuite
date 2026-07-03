@@ -2072,6 +2072,7 @@
     "system_settings_theme_light": "LIGHT",
     "system_settings_theme_dark": "DARK",
     "system_settings_theme_system": "SYSTEM",
-    "system_settings_logout": "Sign Out"
+    "system_settings_logout": "Sign Out",
+    "typeCommandOrSearch": "Type a command or search..."
   }
 }
