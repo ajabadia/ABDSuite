@@ -88,6 +88,8 @@ export async function POST(
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    const ipAddress = request.headers.get('x-forwarded-for') || undefined;
+
     const version = await DocumentService.createNewVersion({
       tenantId: user.tenantId,
       actorId: user.email || 'system',
@@ -95,7 +97,8 @@ export async function POST(
       fileBuffer: buffer,
       mimeType: file.type || 'application/octet-stream',
       sizeBytes: file.size,
-      correlationId
+      correlationId,
+      ipAddress,
     });
 
     await logger.audit({

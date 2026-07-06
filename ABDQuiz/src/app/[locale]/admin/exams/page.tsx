@@ -15,6 +15,7 @@ import ExamsList from '@/components/admin/ExamsList';
 import { Button } from '@/components/ui/button';
 import { Plus, ArrowLeft, FolderOpen } from 'lucide-react';
 import { Link } from '@/i18n/routing';
+import NextLink from 'next/link';
 import { getExamConfigsAction } from '@/actions/examConfig';
 import { AdminPageHeader } from '@ajabadia/styles';
 import { GlobalFooter } from '@ajabadia/ecosystem-widgets';
@@ -48,7 +49,7 @@ export default async function AdminExamsPage({
           title={t('examsTitle')}
           backButton={
               <Link 
-                href={`/${locale}/admin${tenantSuffix}`}
+                href={`/admin${tenantSuffix}`}
                 className="inline-flex items-center justify-center p-2 bg-transparent text-muted-foreground hover:text-foreground border border-border hover:border-border/80 transition-all duration-200 cursor-pointer rounded-none active:scale-[0.95] shrink-0 focus:outline-none focus:ring-1 focus:ring-primary/50"
                 aria-label={ap('btnBack')}
                 title="Back to Dashboard"
@@ -59,10 +60,10 @@ export default async function AdminExamsPage({
           description={<>{t('examsSubtitle')} | Tenant: <span className="text-primary font-bold">{resolvedTenantId}</span></>}
         >
           <Button className="rounded-none font-mono text-[10px] tracking-widest uppercase h-12 px-6" asChild>
-            <Link href={`/${locale}/admin/exams/new${tenantSuffix}`}>
+            <NextLink href={`/${locale}/admin/exams/new${tenantSuffix}`}>
               <Plus className="w-4 h-4 mr-2" />
               {t('newExam')}
-            </Link>
+            </NextLink>
           </Button>
         </AdminPageHeader>
 

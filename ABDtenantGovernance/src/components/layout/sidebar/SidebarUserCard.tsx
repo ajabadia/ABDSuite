@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renders a sidebar user card with login and logout functionality.
+ * @purpose Renderiza una tarjeta de usuario con funcionalidad de inicio de sesión y salida.
  * @purpose_en Renders a sidebar user card with login and logout functionality.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:4,sig:wrxjr4
- * @lastUpdated 2026-06-23T21:51:19.193Z
+ * @fingerprint exports:1,imports:4,sig:a0ypb3
+ * @lastUpdated 2026-07-03T15:34:42.208Z
  */
 
 import React from 'react';

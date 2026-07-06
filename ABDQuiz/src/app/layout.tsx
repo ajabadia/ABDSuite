@@ -50,6 +50,9 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning>
       <head>
         <BrandingStyles />
+        {session?.authenticated && session.user?.tenantId ? (
+          <link rel="stylesheet" href={`/api/theme?tenantId=${session.user.tenantId}`} />
+        ) : null}
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased navbar-top-layout selection:bg-primary/30`} suppressHydrationWarning>
         <ThemeProvider

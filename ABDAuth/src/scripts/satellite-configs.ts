@@ -4,8 +4,8 @@
  * @refactorable false
  * @classification Data/Constants
  * @complexity Low
- * @fingerprint exports:2,imports:0,sig:1ribzz
- * @lastUpdated 2026-06-26T15:32:25.366Z
+ * @fingerprint exports:2,imports:0,sig:19vptub
+ * @lastUpdated 2026-07-03T15:34:04.320Z
  */
 
 /* eslint-disable no-console */

@@ -1,350 +1,290 @@
 /**
  * @purpose Gestiona la creación, actualización y eliminación de asignaciones de exámenes dentro del contexto de un inquilino.
  * @purpose_en Manages the creation, updating, and deletion of exam assignments within a tenant context.
- * @refactorable true (contains too many state variables and UI parts)
+ * @refactorable true
  * @classification Business Service
  * @complexity Medium
- * @fingerprint exports:5,imports:10,sig:1khixto
- * @lastUpdated 2026-06-26T10:01:06.416Z
+ * @fingerprint exports:6,imports:8,sig:ci3gq2
+ * @lastUpdated 2026-07-06
  */
 
 'use server';
 
-import { getIndustrialSession } from '@ajabadia/satellite-sdk/auth-middleware';
-import { connectDB, withTenantContext } from '@ajabadia/satellite-sdk/db';
 import { logger } from '@ajabadia/satellite-sdk/logger';
-import { resolveTargetTenantContext } from '@ajabadia/satellite-sdk/utils';
 import ExamConfig from '@/models/ExamConfig';
 import ExamAssignment from '@/models/ExamAssignment';
-import { revalidatePath } from 'next/cache';
+import { withWriteAction } from '@/lib/actions-wrapper';
 import { auditEntry } from './utils';
-import { validateTenantAccess, AssignmentExecutionContext } from './shared';
+import { validateTenantAccess, fromActionContext } from './shared';
 import type { CreateAssignmentData, UpdateAssignmentData } from './types';
 
 // --- Create ---
 
 export async function createAssignmentAction(data: CreateAssignmentData, tenantIdParam?: string) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-
-  return withTenantContext(async () => {
-    try {
-      const ctx = await AssignmentExecutionContext.create(explicitCtx);
-
-      // Validar que examConfigId existe y pertenece al tenant
-      const configExists = await ExamConfig.findOne({
-        _id: data.examConfigId,
-        tenantId: ctx.activeTenantId,
-        active: true,
-      });
-      if (!configExists) {
-        return { success: false, error: 'La configuración de examen no existe o no está activa' };
-      }
-
-      // Validar que endDate > startDate
-      if (new Date(data.endDate) <= new Date(data.startDate)) {
-        return { success: false, error: 'La fecha de fin debe ser posterior a la fecha de inicio' };
-      }
-
-      const newAssignment = await ExamAssignment.create({
-        tenantId: ctx.activeTenantId,
-        examConfigId: data.examConfigId,
-        assignedToType: data.assignedToType,
-        assignedToId: data.assignedToId,
-        startDate: new Date(data.startDate),
-        endDate: new Date(data.endDate),
-        status: 'draft',
-        maxAttempts: data.maxAttempts || 0,
-        active: true,
-        createdBy: ctx.session.user.id,
-        auditTrail: [auditEntry('QUIZ_ASSIGNMENT_CREATE', ctx.session.user.id, ctx.session.user.email || 'system@abd.com', 'Asignación creada')],
-      });
-
-      await logger.audit({
-        tenantId: ctx.activeTenantId,
-        action: 'QUIZ_ASSIGNMENT_CREATE',
-        entityType: 'ASSIGNMENT',
-        entityId: newAssignment._id.toString(),
-        userId: ctx.session.user.id,
-        userEmail: ctx.session.user.email || 'system@abd.com',
-        changedFields: data as unknown as Record<string, unknown>,
-      });
-
-      revalidatePath('/admin/assignments');
-      return { success: true, id: newAssignment._id.toString() };
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'CREATE_ASSIGNMENT_ERROR',
-        entityType: 'ASSIGNMENT',
-        entityId: 'unknown',
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: msg },
-      });
-      console.error('❌ Error creating assignment:', msg);
-      return { success: false, error: msg };
+  return withWriteAction(async (ctx) => {
+    const configExists = await ExamConfig.findOne({
+      _id: data.examConfigId,
+      tenantId: ctx.activeTenantId,
+      active: true,
+    });
+    if (!configExists) {
+      return { success: false, error: 'La configuración de examen no existe o no está activa' };
     }
-  }, explicitCtx);
+
+    if (new Date(data.endDate) <= new Date(data.startDate)) {
+      return { success: false, error: 'La fecha de fin debe ser posterior a la fecha de inicio' };
+    }
+
+    const newAssignment = await ExamAssignment.create({
+      tenantId: ctx.activeTenantId,
+      examConfigId: data.examConfigId,
+      assignedToType: data.assignedToType,
+      assignedToId: data.assignedToId,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+      status: 'draft',
+      maxAttempts: data.maxAttempts || 0,
+      active: true,
+      createdBy: ctx.session.id,
+      auditTrail: [auditEntry('QUIZ_ASSIGNMENT_CREATE', ctx.session.id, ctx.session.email || 'system@abd.com', 'Asignación creada')],
+    });
+
+    await logger.audit({
+      tenantId: ctx.activeTenantId,
+      action: 'QUIZ_ASSIGNMENT_CREATE',
+      entityType: 'ASSIGNMENT',
+      entityId: newAssignment._id.toString(),
+      userId: ctx.session.id,
+      userEmail: ctx.session.email || 'system@abd.com',
+      changedFields: data as unknown as Record<string, unknown>,
+    });
+
+    return { success: true, id: newAssignment._id.toString() } as const;
+  }, {
+    tenantIdParam,
+    revalidatePaths: '/admin/assignments',
+    errorAction: 'CREATE_ASSIGNMENT_ERROR',
+    errorEntityType: 'ASSIGNMENT',
+    errorLogLabel: 'Error creating assignment',
+  });
 }
 
 // --- Update ---
 
 export async function updateAssignmentAction(id: string, data: UpdateAssignmentData, tenantIdParam?: string) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
+  return withWriteAction(async (ctx) => {
+    const aCtx = fromActionContext(ctx);
 
-  return withTenantContext(async () => {
-    try {
-      const ctx = await AssignmentExecutionContext.create(explicitCtx);
-
-      const assignment = await ExamAssignment.findById(id);
-      if (!assignment) {
-        return { success: false, error: 'Asignación no encontrada' };
-      }
-
-      if (!validateTenantAccess(assignment.tenantId, ctx)) {
-        return { success: false, error: 'Acceso no autorizado' };
-      }
-
-      // --- Validación de campos bloqueados en asignaciones publicadas ---
-      if (assignment.status === 'published') {
-        const lockedFields: string[] = [];
-        if (data.examConfigId && data.examConfigId !== assignment.examConfigId.toString()) {
-          lockedFields.push('examen');
-        }
-        if (data.assignedToType && data.assignedToType !== assignment.assignedToType) {
-          lockedFields.push('tipo de destinatario');
-        }
-        if (data.assignedToId && data.assignedToId !== assignment.assignedToId) {
-          lockedFields.push('destinatario');
-        }
-        if (lockedFields.length > 0) {
-          return { success: false, error: `No se puede modificar ${lockedFields.join(', ')} porque la asignación ya está publicada` };
-        }
-      }
-
-      const updateData: Record<string, unknown> = {};
-      if (data.examConfigId) updateData.examConfigId = data.examConfigId;
-      if (data.assignedToType) updateData.assignedToType = data.assignedToType;
-      if (data.assignedToId) updateData.assignedToId = data.assignedToId;
-      if (data.startDate) updateData.startDate = new Date(data.startDate);
-      if (data.endDate) updateData.endDate = new Date(data.endDate);
-      if (data.maxAttempts !== undefined) updateData.maxAttempts = data.maxAttempts;
-
-      // Si se cambia el status a 'published', validar fechas
-      if (data.startDate || data.endDate) {
-        const newStart = data.startDate ? new Date(data.startDate) : assignment.startDate;
-        const newEnd = data.endDate ? new Date(data.endDate) : assignment.endDate;
-        if (newEnd <= newStart) {
-          return { success: false, error: 'La fecha de fin debe ser posterior a la fecha de inicio' };
-        }
-      }
-
-      const previousState = assignment.toObject() as unknown as Record<string, unknown>;
-      const updatedFields = Object.keys(updateData).join(', ');
-      await ExamAssignment.findByIdAndUpdate(id, {
-        $set: updateData,
-        $push: { auditTrail: auditEntry('QUIZ_ASSIGNMENT_UPDATE', ctx.session.user.id, ctx.session.user.email || 'system@abd.com', `Campos modificados: ${updatedFields}`) },
-      });
-
-      await logger.audit({
-        tenantId: assignment.tenantId,
-        action: 'QUIZ_ASSIGNMENT_UPDATE',
-        entityType: 'ASSIGNMENT',
-        entityId: id,
-        userId: ctx.session.user.id,
-        userEmail: ctx.session.user.email || 'system@abd.com',
-        changedFields: updateData,
-        previousState,
-      });
-
-      revalidatePath('/admin/assignments');
-      return { success: true };
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'UPDATE_ASSIGNMENT_ERROR',
-        entityType: 'ASSIGNMENT',
-        entityId: id,
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: msg },
-      });
-      console.error('❌ Error updating assignment:', msg);
-      return { success: false, error: msg };
+    const assignment = await ExamAssignment.findById(id);
+    if (!assignment) {
+      return { success: false, error: 'Asignación no encontrada' };
     }
-  }, explicitCtx);
+
+    if (!validateTenantAccess(assignment.tenantId, aCtx)) {
+      return { success: false, error: 'Acceso no autorizado' };
+    }
+
+    if (assignment.status === 'published') {
+      const lockedFields: string[] = [];
+      if (data.examConfigId && data.examConfigId !== assignment.examConfigId.toString()) {
+        lockedFields.push('examen');
+      }
+      if (data.assignedToType && data.assignedToType !== assignment.assignedToType) {
+        lockedFields.push('tipo de destinatario');
+      }
+      if (data.assignedToId && data.assignedToId !== assignment.assignedToId) {
+        lockedFields.push('destinatario');
+      }
+      if (lockedFields.length > 0) {
+        return { success: false, error: `No se puede modificar ${lockedFields.join(', ')} porque la asignación ya está publicada` };
+      }
+    }
+
+    const updateData: Record<string, unknown> = {};
+    if (data.examConfigId) updateData.examConfigId = data.examConfigId;
+    if (data.assignedToType) updateData.assignedToType = data.assignedToType;
+    if (data.assignedToId) updateData.assignedToId = data.assignedToId;
+    if (data.startDate) updateData.startDate = new Date(data.startDate);
+    if (data.endDate) updateData.endDate = new Date(data.endDate);
+    if (data.maxAttempts !== undefined) updateData.maxAttempts = data.maxAttempts;
+
+    if (data.startDate || data.endDate) {
+      const newStart = data.startDate ? new Date(data.startDate) : assignment.startDate;
+      const newEnd = data.endDate ? new Date(data.endDate) : assignment.endDate;
+      if (newEnd <= newStart) {
+        return { success: false, error: 'La fecha de fin debe ser posterior a la fecha de inicio' };
+      }
+    }
+
+    const previousState = assignment.toObject() as unknown as Record<string, unknown>;
+    const updatedFields = Object.keys(updateData).join(', ');
+    await ExamAssignment.findByIdAndUpdate(id, {
+      $set: updateData,
+      $push: { auditTrail: auditEntry('QUIZ_ASSIGNMENT_UPDATE', ctx.session.id, ctx.session.email || 'system@abd.com', `Campos modificados: ${updatedFields}`) },
+    });
+
+    await logger.audit({
+      tenantId: assignment.tenantId,
+      action: 'QUIZ_ASSIGNMENT_UPDATE',
+      entityType: 'ASSIGNMENT',
+      entityId: id,
+      userId: ctx.session.id,
+      userEmail: ctx.session.email || 'system@abd.com',
+      changedFields: updateData,
+      previousState,
+    });
+
+    return { success: true };
+  }, {
+    tenantIdParam,
+    revalidatePaths: '/admin/assignments',
+    errorAction: 'UPDATE_ASSIGNMENT_ERROR',
+    errorEntityType: 'ASSIGNMENT',
+    errorEntityId: id,
+    errorLogLabel: 'Error updating assignment',
+  });
 }
 
 // --- Publish ---
 
 export async function publishAssignmentAction(id: string, tenantIdParam?: string) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
+  return withWriteAction(async (ctx) => {
+    const aCtx = fromActionContext(ctx);
 
-  return withTenantContext(async () => {
-    try {
-      const ctx = await AssignmentExecutionContext.create(explicitCtx);
-
-      const assignment = await ExamAssignment.findById(id);
-      if (!assignment) {
-        return { success: false, error: 'Asignación no encontrada' };
-      }
-
-      if (!validateTenantAccess(assignment.tenantId, ctx)) {
-        return { success: false, error: 'Acceso no autorizado' };
-      }
-
-      if (assignment.status === 'archived') {
-        return { success: false, error: 'No se puede publicar una asignación archivada' };
-      }
-
-      // Validar que endDate > startDate antes de publicar
-      if (assignment.endDate <= assignment.startDate) {
-        return { success: false, error: 'La fecha de fin debe ser posterior a la fecha de inicio' };
-      }
-
-      const previousState = assignment.toObject() as unknown as Record<string, unknown>;
-      await ExamAssignment.findByIdAndUpdate(id, {
-        $set: { status: 'published' },
-        $push: { auditTrail: auditEntry('QUIZ_ASSIGNMENT_PUBLISHED', ctx.session.user.id, ctx.session.user.email || 'system@abd.com', 'Asignación publicada') },
-      });
-
-      await logger.audit({
-        tenantId: assignment.tenantId,
-        action: 'QUIZ_ASSIGNMENT_PUBLISHED',
-        entityType: 'ASSIGNMENT',
-        entityId: id,
-        userId: ctx.session.user.id,
-        userEmail: ctx.session.user.email || 'system@abd.com',
-        changedFields: { status: 'published' },
-        previousState,
-      });
-
-      revalidatePath('/admin/assignments');
-      revalidatePath('/');
-      return { success: true };
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'PUBLISH_ASSIGNMENT_ERROR',
-        entityType: 'ASSIGNMENT',
-        entityId: id,
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: msg },
-      });
-      console.error('❌ Error publishing assignment:', msg);
-      return { success: false, error: msg };
+    const assignment = await ExamAssignment.findById(id);
+    if (!assignment) {
+      return { success: false, error: 'Asignación no encontrada' };
     }
-  }, explicitCtx);
+
+    if (!validateTenantAccess(assignment.tenantId, aCtx)) {
+      return { success: false, error: 'Acceso no autorizado' };
+    }
+
+    if (assignment.status === 'archived') {
+      return { success: false, error: 'No se puede publicar una asignación archivada' };
+    }
+
+    if (assignment.endDate <= assignment.startDate) {
+      return { success: false, error: 'La fecha de fin debe ser posterior a la fecha de inicio' };
+    }
+
+    const previousState = assignment.toObject() as unknown as Record<string, unknown>;
+    await ExamAssignment.findByIdAndUpdate(id, {
+      $set: { status: 'published' },
+      $push: { auditTrail: auditEntry('QUIZ_ASSIGNMENT_PUBLISHED', ctx.session.id, ctx.session.email || 'system@abd.com', 'Asignación publicada') },
+    });
+
+    await logger.audit({
+      tenantId: assignment.tenantId,
+      action: 'QUIZ_ASSIGNMENT_PUBLISHED',
+      entityType: 'ASSIGNMENT',
+      entityId: id,
+      userId: ctx.session.id,
+      userEmail: ctx.session.email || 'system@abd.com',
+      changedFields: { status: 'published' },
+      previousState,
+    });
+
+    return { success: true };
+  }, {
+    tenantIdParam,
+    revalidatePaths: ['/admin/assignments', '/'],
+    errorAction: 'PUBLISH_ASSIGNMENT_ERROR',
+    errorEntityType: 'ASSIGNMENT',
+    errorEntityId: id,
+    errorLogLabel: 'Error publishing assignment',
+  });
 }
 
-// --- Archive ---
+// --- Status update (archive / delete / restore) ---
 
+type AssignmentStatusAction = 'archive' | 'delete' | 'restore';
+
+const statusActionMap: Record<AssignmentStatusAction, {
+  auditAction: string;
+  auditMsg: string;
+  update: Record<string, unknown>;
+  errorAction: string;
+  errorLogLabel: string;
+}> = {
+  archive: {
+    auditAction: 'QUIZ_ASSIGNMENT_ARCHIVED',
+    auditMsg: 'Asignación archivada',
+    update: { status: 'archived' },
+    errorAction: 'ARCHIVE_ASSIGNMENT_ERROR',
+    errorLogLabel: 'Error archiving assignment',
+  },
+  delete: {
+    auditAction: 'QUIZ_ASSIGNMENT_DELETED',
+    auditMsg: 'Asignación eliminada (soft)',
+    update: { active: false },
+    errorAction: 'DELETE_ASSIGNMENT_ERROR',
+    errorLogLabel: 'Error deleting assignment',
+  },
+  restore: {
+    auditAction: 'QUIZ_ASSIGNMENT_RESTORED',
+    auditMsg: 'Asignación restaurada',
+    update: { active: true, status: 'draft' },
+    errorAction: 'RESTORE_ASSIGNMENT_ERROR',
+    errorLogLabel: 'Error restoring assignment',
+  },
+};
+
+export async function updateAssignmentStatusAction(
+  id: string,
+  action: AssignmentStatusAction,
+  tenantIdParam?: string
+) {
+  const actionConfig = statusActionMap[action];
+  if (!actionConfig) {
+    return { success: false, error: 'Acción no válida' };
+  }
+
+  return withWriteAction(async (ctx) => {
+    const aCtx = fromActionContext(ctx);
+
+    const assignment = await ExamAssignment.findById(id);
+    if (!assignment) {
+      return { success: false, error: 'Asignación no encontrada' };
+    }
+
+    if (!validateTenantAccess(assignment.tenantId, aCtx)) {
+      return { success: false, error: 'Acceso no autorizado' };
+    }
+
+    const previousState = assignment.toObject() as unknown as Record<string, unknown>;
+    await ExamAssignment.findByIdAndUpdate(id, {
+      $set: actionConfig.update,
+      $push: { auditTrail: auditEntry(actionConfig.auditAction, ctx.session.id, ctx.session.email || 'system@abd.com', actionConfig.auditMsg) },
+    });
+
+    await logger.audit({
+      tenantId: assignment.tenantId,
+      action: 'QUIZ_ASSIGNMENT_UPDATE',
+      entityType: 'ASSIGNMENT',
+      entityId: id,
+      userId: ctx.session.id,
+      userEmail: ctx.session.email || 'system@abd.com',
+      changedFields: actionConfig.update as Record<string, unknown>,
+      previousState,
+    });
+
+    return { success: true };
+  }, {
+    tenantIdParam,
+    revalidatePaths: '/admin/assignments',
+    errorAction: actionConfig.errorAction,
+    errorEntityType: 'ASSIGNMENT',
+    errorEntityId: id,
+    errorLogLabel: actionConfig.errorLogLabel,
+  });
+}
+
+// Legacy aliases — kept for backward compatibility
 export async function archiveAssignmentAction(id: string, tenantIdParam?: string) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-
-  return withTenantContext(async () => {
-    try {
-      const ctx = await AssignmentExecutionContext.create(explicitCtx);
-
-      const assignment = await ExamAssignment.findById(id);
-      if (!assignment) {
-        return { success: false, error: 'Asignación no encontrada' };
-      }
-
-      if (!validateTenantAccess(assignment.tenantId, ctx)) {
-        return { success: false, error: 'Acceso no autorizado' };
-      }
-
-      const previousState = assignment.toObject() as unknown as Record<string, unknown>;
-      await ExamAssignment.findByIdAndUpdate(id, {
-        $set: { status: 'archived' },
-        $push: { auditTrail: auditEntry('QUIZ_ASSIGNMENT_ARCHIVED', ctx.session.user.id, ctx.session.user.email || 'system@abd.com', 'Asignación archivada') },
-      });
-
-      await logger.audit({
-        tenantId: assignment.tenantId,
-        action: 'QUIZ_ASSIGNMENT_UPDATE',
-        entityType: 'ASSIGNMENT',
-        entityId: id,
-        userId: ctx.session.user.id,
-        userEmail: ctx.session.user.email || 'system@abd.com',
-        changedFields: { status: 'archived' },
-        previousState,
-      });
-
-      revalidatePath('/admin/assignments');
-      return { success: true };
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'ARCHIVE_ASSIGNMENT_ERROR',
-        entityType: 'ASSIGNMENT',
-        entityId: id,
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: msg },
-      });
-      console.error('❌ Error archiving assignment:', msg);
-      return { success: false, error: msg };
-    }
-  }, explicitCtx);
+  return updateAssignmentStatusAction(id, 'archive', tenantIdParam);
 }
-
-// --- Delete (soft) ---
 
 export async function deleteAssignmentAction(id: string, tenantIdParam?: string) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-
-  return withTenantContext(async () => {
-    try {
-      const ctx = await AssignmentExecutionContext.create(explicitCtx);
-
-      const assignment = await ExamAssignment.findById(id);
-      if (!assignment) {
-        return { success: false, error: 'Asignación no encontrada' };
-      }
-
-      if (!validateTenantAccess(assignment.tenantId, ctx)) {
-        return { success: false, error: 'Acceso no autorizado' };
-      }
-
-      const previousState = assignment.toObject() as unknown as Record<string, unknown>;
-      await ExamAssignment.findByIdAndUpdate(id, {
-        $set: { active: false },
-        $push: { auditTrail: auditEntry('QUIZ_ASSIGNMENT_DELETED', ctx.session.user.id, ctx.session.user.email || 'system@abd.com', 'Asignación eliminada (soft)') },
-      });
-
-      await logger.audit({
-        tenantId: assignment.tenantId,
-        action: 'QUIZ_ASSIGNMENT_UPDATE',
-        entityType: 'ASSIGNMENT',
-        entityId: id,
-        userId: ctx.session.user.id,
-        userEmail: ctx.session.user.email || 'system@abd.com',
-        changedFields: { active: false },
-        previousState,
-      });
-
-      revalidatePath('/admin/assignments');
-      return { success: true };
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'DELETE_ASSIGNMENT_ERROR',
-        entityType: 'ASSIGNMENT',
-        entityId: id,
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: msg },
-      });
-      console.error('❌ Error deleting assignment:', msg);
-      return { success: false, error: msg };
-    }
-  }, explicitCtx);
+  return updateAssignmentStatusAction(id, 'delete', tenantIdParam);
 }

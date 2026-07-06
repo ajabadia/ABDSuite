@@ -1,11 +1,23 @@
-/**
- * @purpose Proporciona notificacion emergente.
- * @purpose_en Exports the default export from the '@ajabadia/i18n/request' module.
- * @refactorable false
- * @classification Helper Utility
- * @complexity Low
- * @fingerprint exports:0,imports:0,sig:zyxd8q
- * @lastUpdated 2026-06-29T22:24:46.523Z
- */
+import { getRequestConfig } from 'next-intl/server';
+import { routing } from '@ajabadia/i18n/routing';
 
-export { default } from '@ajabadia/i18n/request';
+export default getRequestConfig(async ({ requestLocale }) => {
+  let locale = await requestLocale;
+
+  if (!locale || !routing.locales.includes(locale as typeof routing.locales[number])) {
+    locale = routing.defaultLocale;
+  }
+
+  const { locales: allMessages } = await import('@ajabadia/i18n');
+  const messages = JSON.parse(JSON.stringify(allMessages[locale as keyof typeof allMessages]));
+
+  if (messages.common) {
+    messages.common.brandPart2 = 'QUIZ';
+  }
+
+  return {
+    locale,
+    messages,
+    timeZone: 'Europe/Madrid',
+  };
+});

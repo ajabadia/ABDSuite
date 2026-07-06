@@ -63,6 +63,17 @@ export default function ExamConfigForm({ initialData, locale, tenantId }: ExamCo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const firstInvalidInput = e.currentTarget.querySelector(
+      'input:invalid, select:invalid, textarea:invalid, [aria-invalid="true"]'
+    ) as HTMLElement;
+
+    if (firstInvalidInput) {
+      firstInvalidInput.focus();
+      firstInvalidInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {

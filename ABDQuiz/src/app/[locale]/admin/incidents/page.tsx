@@ -9,7 +9,7 @@
  */
 
 import { getTranslations } from 'next-intl/server';
-import { ensureAdminOrProfessor } from '@/lib/auth/ensureQuizAccess';
+import { ensureAdminOrProfessor } from '@/lib/auth';
 import { resolveTenantContext } from '@/lib/tenant-context';
 import { IncidentsManager } from '@/components/admin/IncidentsManager';
 import { AdminPageHeader } from '@ajabadia/styles';

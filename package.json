@@ -9,7 +9,8 @@
     "sync-env": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sync-env.ps1",
     "sync-i18n": "node ./scripts/sync-i18n.mjs",
     "typecheck": "turbo run typecheck",
-    "full-audit": "node ./scripts/audit-all.mjs"
+    "full-audit": "node ./scripts/audit-all.mjs",
+    "lint:i18n": "pnpm --filter @ajabadia/i18n lint:i18n"
   },
   "devDependencies": {
     "turbo": "^2.9.16"

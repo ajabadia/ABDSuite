@@ -8,5 +8,16 @@
     "env": {
       "NEXT_PUBLIC_BASE_URL": "https://abdtenantgovernance.vercel.app"
     }
-  }
+  },
+  "headers": [
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        {
+          "key": "x-vercel-skew-protection",
+          "value": "1"
+        }
+      ]
+    }
+  ]
 }

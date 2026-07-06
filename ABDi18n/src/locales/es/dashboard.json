@@ -317,6 +317,9 @@
   "allMastered": "Todos los objetivos completados",
   "errorLoading": "Error al cargar los datos del panel. Intenta de nuevo más tarde.",
   "backHome": "Volver al inicio",
+  "cognitiveProfile": "Perfil Cognitivo de Rendimiento",
+  "noStrengths": "Aún no se han dominado temas.",
+  "noWeaknesses": "¡Buen trabajo! No hay temas críticos pendientes de refuerzo.",
   "spaces": {
     "title": "Jerarquía de Espacios",
     "subtitle": "Gestión estructurada de áreas y departamentos",

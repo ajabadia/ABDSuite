@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/api/theme.ts'],
   format: ['cjs', 'esm'],
   dts: true,
   clean: true,
@@ -9,4 +9,5 @@ export default defineConfig({
   treeshake: true,
   sourcemap: true,
   minify: false,
+  external: ['@ajabadia/satellite-sdk', 'mongoose'],
 });

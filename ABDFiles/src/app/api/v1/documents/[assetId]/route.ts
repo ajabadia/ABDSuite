@@ -29,7 +29,8 @@ export async function GET(
     const { assetId } = await params;
     await assertAccess({ userId: user.email || 'system', tenantId: user.tenantId, resource: 'document/' + assetId, action: 'view' });
 
-    const document = await DocumentService.getDocument(user.tenantId, assetId);
+    const ipAddress = request.headers.get('x-forwarded-for') || undefined;
+    const document = await DocumentService.getDocument(user.tenantId, assetId, ipAddress);
     await logger.audit({
       tenantId: user.tenantId,
       action: 'DOCUMENT_VIEW',
@@ -70,10 +71,12 @@ export async function DELETE(
     const { assetId } = await params;
     await assertAccess({ userId: user.email || 'system', tenantId: user.tenantId, resource: 'document/' + assetId, action: 'delete' });
 
+    const ipAddress = request.headers.get('x-forwarded-for') || undefined;
     await DocumentService.logicalDeleteDocument({
       tenantId: user.tenantId,
       assetId,
-      actorId: user.email || 'system'
+      actorId: user.email || 'system',
+      ipAddress,
     });
 
     await logger.audit({

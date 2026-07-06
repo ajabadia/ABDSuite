@@ -14,6 +14,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { CheckCircle, AlertTriangle, Trash2, Shield, Lock, Unlock, UploadCloud, RefreshCw } from 'lucide-react';
 import PandocConvertClient from './PandocConvertClient';
+import FileHistoryTimeline from './FileHistoryTimeline';
 
 interface DocumentDetailClientProps {
   assetId: string;
@@ -379,6 +380,13 @@ export default function DocumentDetailClient({ assetId, locale, userRole }: Docu
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="border border-border p-6 bg-card/40 backdrop-blur-sm flex flex-col gap-6">
+            <h3 className="font-mono text-xs font-black uppercase tracking-widest text-primary border-b border-border/40 pb-2">
+              File History Timeline
+            </h3>
+            <FileHistoryTimeline assetId={assetId} />
           </div>
         </div>
       </div>

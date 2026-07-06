@@ -12,7 +12,7 @@ import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { GlobalFooter } from '@ajabadia/ecosystem-widgets';
 import { Separator } from '@/components/ui/separator';
-import { ensureAdminOrProfessor } from '@/lib/auth/ensureQuizAccess';
+import { ensureAdminOrProfessor } from '@/lib/auth';
 import { resolveTenantContext } from '@/lib/tenant-context';
 import { 
   Database, 
@@ -30,6 +30,7 @@ import {
 import { DashboardCard } from '@/components/admin/DashboardCard';
 import { AdminPageHeader } from '@ajabadia/styles';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 
 /**
  * 🛰️ Central Admin Governance Portal Page (Federated Server Component)
@@ -53,7 +54,20 @@ export default async function AdminPortalPage({
   const resolvedTenantId = await resolveTenantContext(searchParams);
   const isSuperAdmin = user.role === 'SUPER_ADMIN';
   const tenantSuffix = isSuperAdmin ? `?tenantId=${resolvedTenantId}` : '';
-  const governanceUrl = process.env.NEXT_PUBLIC_GOVERNANCE_URL || 'https://abd-tenant-governance.vercel.app';
+  
+  const headersList = await headers();
+  const host = headersList.get('host') || '';
+  let resolvedGovernanceUrl = process.env.NEXT_PUBLIC_GOVERNANCE_URL;
+  if (!resolvedGovernanceUrl) {
+    if (host.includes('localhost')) {
+      resolvedGovernanceUrl = 'http://localhost:5002';
+    } else if (host.includes('abdia.es')) {
+      resolvedGovernanceUrl = 'http://tenantgovernance.abdia.es:5002';
+    } else {
+      resolvedGovernanceUrl = 'https://abd-tenant-governance.vercel.app';
+    }
+  }
+  const governanceUrl = `${resolvedGovernanceUrl}/${locale}/admin${tenantSuffix}`;
 
   return (
     <main className="min-h-screen bg-background text-foreground p-6 md:p-12 selection:bg-primary/30" role="main">

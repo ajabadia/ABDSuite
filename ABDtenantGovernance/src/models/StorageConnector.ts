@@ -20,6 +20,8 @@ export type TStorageConnector = Document & {
   allowedScopes: string[];
   retentionPolicy: Record<string, unknown>;
   auditMode: string;
+  maxQuotaBytes: number;
+  lastQuotaWarningPercentage: number | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -37,7 +39,9 @@ const StorageConnectorSchema = new Schema<TStorageConnector>(
     credentialsRef: { type: String, required: true },
     allowedScopes: { type: [String], default: [] },
     retentionPolicy: { type: Schema.Types.Mixed, default: {} },
-    auditMode: { type: String, default: 'standard' }
+    auditMode: { type: String, default: 'standard' },
+    maxQuotaBytes: { type: Number, default: 1073741824 },
+    lastQuotaWarningPercentage: { type: Number, default: null }
   },
   { timestamps: true }
 );

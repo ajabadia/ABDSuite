@@ -14,7 +14,7 @@ import { getIndustrialSession } from '@ajabadia/satellite-sdk/auth-middleware';
 import { withTenantContext, connectDB } from '@ajabadia/satellite-sdk/db';
 import { resolveTargetTenantContext } from '@ajabadia/satellite-sdk/utils';
 import ExamAttempt from '@/models/ExamAttempt';
-import { ensureAdminOrProfessor } from '@/lib/auth/ensureQuizAccess';
+import { ensureAdminOrProfessor } from '@/lib/auth';
 
 export interface ChatMessage {
   sender: 'student' | 'professor';

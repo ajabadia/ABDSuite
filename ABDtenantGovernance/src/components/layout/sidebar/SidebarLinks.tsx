@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renders a sidebar navigation menu with links to various administrative and public pages, conditional rendering based on user authentication and role.
+ * @purpose Renderiza un menú de navegación lateral con enlaces a páginas administrativas y públicas, basado en la autenticación del usuario y su rol.
  * @purpose_en Renders a sidebar navigation menu with links to various administrative and public pages, conditional rendering based on user authentication and role.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:4,sig:1m24nkx
- * @lastUpdated 2026-06-23T21:46:10.119Z
+ * @fingerprint exports:1,imports:4,sig:10fg2pi
+ * @lastUpdated 2026-07-03T15:34:40.288Z
  */
 
 import React from 'react';

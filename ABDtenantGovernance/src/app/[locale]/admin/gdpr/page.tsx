@@ -4,8 +4,8 @@
  * @refactorable false
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:2,imports:7,sig:u0eqa2
- * @lastUpdated 2026-06-25T09:23:32.931Z
+ * @fingerprint exports:2,imports:7,sig:1srqse6
+ * @lastUpdated 2026-07-03T15:34:20.501Z
  */
 
 import React from 'react';
@@ -14,7 +14,9 @@ import { getTranslations } from 'next-intl/server';
 import { ShieldX, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { AdminPageHeader } from '@ajabadia/styles';
-import { GdprForm } from './GdprForm';
+import { connectDB } from '@ajabadia/satellite-sdk/db';
+import { GdprRequest } from '@/models/GdprRequest';
+import { GdprManager } from '@/components/admin/gdpr/GdprManager';
 
 export const revalidate = 0;
 
@@ -30,6 +32,9 @@ export default async function AdminGdprPage({
   const tAdmin = await getTranslations('admin');
 
   await ensureIndustrialAccess('SUPER_ADMIN');
+
+  await connectDB();
+  const requests = await GdprRequest.find().sort({ createdAt: -1 }).lean();
 
   const queryStr = Object.entries(sParams)
     .filter(([_, v]) => v !== undefined)
@@ -56,7 +61,7 @@ export default async function AdminGdprPage({
           }
           description={tAdmin('gdprPageDesc')}
         />
-        <GdprForm />
+        <GdprManager initialRequests={JSON.parse(JSON.stringify(requests))} />
       </div>
     </main>
   );

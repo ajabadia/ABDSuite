@@ -10,67 +10,28 @@
 
 'use server';
 
-import { getIndustrialSession } from '@ajabadia/satellite-sdk/auth-middleware';
-import { connectDB, withTenantContext } from '@ajabadia/satellite-sdk/db';
 import { logger } from '@ajabadia/satellite-sdk/logger';
-import { resolveTargetTenantContext } from '@ajabadia/satellite-sdk/utils';
 import Course from '@/models/Course';
-import { revalidatePath } from 'next/cache';
-
-// --- Tipos serializados ---
-
-import { serializeCourse, type SerializedCourse, findCourseOrThrow } from './courseHelpers';
+import { withReadAction, withWriteAction } from '@/lib/actions-wrapper';
+import { serializeCourse, type SerializedCourse } from './courseHelpers';
 
 export type { SerializedCourse };
 
-// --- List ---
-
-/**
- * Lista todos los cursos activos del tenant, con opción de filtrar por espacio.
- */
 export async function listCoursesAction(spaceId?: string, tenantIdParam?: string) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-
-  return withTenantContext(async () => {
-    try {
-      await connectDB();
-      const session = await getIndustrialSession();
-
-      if (!session?.user?.id || !session?.user?.tenantId) {
-        throw new Error('Unauthorized');
-      }
-
-      const activeTenantId = explicitCtx?.tenantId || session.user.tenantId;
-
-      const query: Record<string, unknown> = { tenantId: activeTenantId, active: true };
-      if (session.user.role === 'PROFESSOR') {
-        query.professors = session.user.id;
-      }
-      if (spaceId) query.spaceId = spaceId;
-
-      const docs = await Course.find(query)
-        .sort({ createdAt: -1 })
-        .lean();
-
-      return docs.map((d) => serializeCourse(d as unknown as Record<string, unknown>));
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'LIST_COURSES_ERROR',
-        entityType: 'COURSE',
-        entityId: 'unknown',
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: msg },
-      });
-      console.error('❌ Error listing courses:', msg);
-      throw new Error(msg);
+  return withReadAction(async (ctx) => {
+    const query: Record<string, unknown> = { tenantId: ctx.activeTenantId, active: true };
+    if (ctx.session.role === 'PROFESSOR') {
+      query.professors = ctx.session.id;
     }
-  }, explicitCtx);
-}
+    if (spaceId) query.spaceId = spaceId;
 
-// --- Create ---
+    const docs = await Course.find(query)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return docs.map((d) => serializeCourse(d as unknown as Record<string, unknown>));
+  }, { tenantIdParam });
+}
 
 export async function createCourseAction(
   data: {
@@ -81,65 +42,41 @@ export async function createCourseAction(
   },
   tenantIdParam?: string
 ) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-
-  return withTenantContext(async () => {
-    try {
-      await connectDB();
-      const session = await getIndustrialSession();
-
-      if (!session?.user?.id || !session?.user?.tenantId) {
-        return { success: false, error: 'Unauthorized' };
-      }
-
-      const activeTenantId = explicitCtx?.tenantId || session.user.tenantId;
-
-      // Validar nombre obligatorio
-      if (!data.name || data.name.trim() === '') {
-        return { success: false, error: 'El nombre del curso es obligatorio' };
-      }
-
-      const newCourse = await Course.create({
-        tenantId: activeTenantId,
-        spaceId: data.spaceId,
-        name: data.name.trim(),
-        description: data.description?.trim(),
-        tags: data.tags || [],
-        learningPath: [],
-        active: true,
-        createdBy: session.user.id,
-      });
-
-      await logger.audit({
-        tenantId: activeTenantId,
-        action: 'QUIZ_COURSE_CREATED',
-        entityType: 'COURSE',
-        entityId: newCourse._id.toString(),
-        userId: session.user.id,
-        userEmail: session.user.email || 'system@abd.com',
-        changedFields: { ...data, tenantId: activeTenantId },
-      });
-
-      revalidatePath('/admin/courses');
-      return { success: true, id: newCourse._id.toString() };
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'CREATE_COURSE_ERROR',
-        entityType: 'COURSE',
-        entityId: 'unknown',
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: msg, name: data.name },
-      });
-      console.error('❌ Error creating course:', msg);
-      return { success: false, error: msg };
+  return withWriteAction(async (ctx) => {
+    if (!data.name || data.name.trim() === '') {
+      return { success: false, error: 'El nombre del curso es obligatorio' };
     }
-  }, explicitCtx);
-}
 
-// --- Update ---
+    const newCourse = await Course.create({
+      tenantId: ctx.activeTenantId,
+      spaceId: data.spaceId,
+      name: data.name.trim(),
+      description: data.description?.trim(),
+      tags: data.tags || [],
+      learningPath: [],
+      active: true,
+      createdBy: ctx.session.id,
+    });
+
+    await logger.audit({
+      tenantId: ctx.activeTenantId,
+      action: 'QUIZ_COURSE_CREATED',
+      entityType: 'COURSE',
+      entityId: newCourse._id.toString(),
+      userId: ctx.session.id,
+      userEmail: ctx.session.email || 'system@abd.com',
+      changedFields: { ...data, tenantId: ctx.activeTenantId },
+    });
+
+    return { success: true, id: newCourse._id.toString() } as const;
+  }, {
+    tenantIdParam,
+    revalidatePaths: '/admin/courses',
+    errorAction: 'CREATE_COURSE_ERROR',
+    errorEntityType: 'COURSE',
+    errorLogLabel: 'Error creating course',
+  });
+}
 
 export async function updateCourseAction(
   id: string,
@@ -151,188 +88,133 @@ export async function updateCourseAction(
   },
   tenantIdParam?: string
 ) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-
-  return withTenantContext(async () => {
-    try {
-      await connectDB();
-      const session = await getIndustrialSession();
-
-      if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
-
-      const course = await Course.findById(id);
-      if (!course) {
-        return { success: false, error: 'Curso no encontrado' };
-      }
-
-      const activeTenantId = explicitCtx?.tenantId || session.user.tenantId;
-      if (course.tenantId !== activeTenantId && session.user.role !== 'SUPER_ADMIN') {
-        return { success: false, error: 'Acceso no autorizado' };
-      }
-
-      if (session.user.role === 'PROFESSOR' && !course.professors.includes(session.user.id)) {
-        return { success: false, error: 'No tienes permisos para modificar este curso' };
-      }
-
-      const updateData: Record<string, unknown> = {};
-      if (data.spaceId) updateData.spaceId = data.spaceId;
-      if (data.name !== undefined) {
-        if (data.name.trim() === '') {
-          return { success: false, error: 'El nombre del curso no puede estar vacío' };
-        }
-        updateData.name = data.name.trim();
-      }
-      if (data.description !== undefined) updateData.description = data.description.trim();
-      if (data.tags !== undefined) updateData.tags = data.tags;
-
-      const previousState = course.toObject() as unknown as Record<string, unknown>;
-      await Course.findByIdAndUpdate(id, { $set: updateData });
-
-      await logger.audit({
-        tenantId: course.tenantId,
-        action: 'QUIZ_COURSE_UPDATED',
-        entityType: 'COURSE',
-        entityId: id,
-        userId: session.user.id,
-        userEmail: session.user.email || 'system@abd.com',
-        changedFields: updateData,
-        previousState,
-      });
-
-      revalidatePath('/admin/courses');
-      return { success: true };
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'UPDATE_COURSE_ERROR',
-        entityType: 'COURSE',
-        entityId: id,
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: msg },
-      });
-      console.error('❌ Error updating course:', msg);
-      return { success: false, error: msg };
+  return withWriteAction(async (ctx) => {
+    const course = await Course.findById(id);
+    if (!course) {
+      return { success: false, error: 'Curso no encontrado' };
     }
-  }, explicitCtx);
-}
 
-// --- Toggle Active ---
+    if (course.tenantId !== ctx.activeTenantId && ctx.session.role !== 'SUPER_ADMIN') {
+      return { success: false, error: 'Acceso no autorizado' };
+    }
+
+    if (ctx.session.role === 'PROFESSOR' && !course.professors.includes(ctx.session.id)) {
+      return { success: false, error: 'No tienes permisos para modificar este curso' };
+    }
+
+    const updateData: Record<string, unknown> = {};
+    if (data.spaceId) updateData.spaceId = data.spaceId;
+    if (data.name !== undefined) {
+      if (data.name.trim() === '') {
+        return { success: false, error: 'El nombre del curso no puede estar vacío' };
+      }
+      updateData.name = data.name.trim();
+    }
+    if (data.description !== undefined) updateData.description = data.description.trim();
+    if (data.tags !== undefined) updateData.tags = data.tags;
+
+    const previousState = course.toObject() as unknown as Record<string, unknown>;
+    await Course.findByIdAndUpdate(id, { $set: updateData });
+
+    await logger.audit({
+      tenantId: course.tenantId,
+      action: 'QUIZ_COURSE_UPDATED',
+      entityType: 'COURSE',
+      entityId: id,
+      userId: ctx.session.id,
+      userEmail: ctx.session.email || 'system@abd.com',
+      changedFields: updateData,
+      previousState,
+    });
+
+    return { success: true };
+  }, {
+    tenantIdParam,
+    revalidatePaths: '/admin/courses',
+    errorAction: 'UPDATE_COURSE_ERROR',
+    errorEntityType: 'COURSE',
+    errorEntityId: id,
+    errorLogLabel: 'Error updating course',
+  });
+}
 
 export async function toggleCourseActiveAction(id: string, tenantIdParam?: string) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-
-  return withTenantContext(async () => {
-    try {
-      await connectDB();
-      const session = await getIndustrialSession();
-
-      if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
-
-      const course = await Course.findById(id);
-      if (!course) {
-        return { success: false, error: 'Curso no encontrado' };
-      }
-
-      const activeTenantId = explicitCtx?.tenantId || session.user.tenantId;
-      if (course.tenantId !== activeTenantId && session.user.role !== 'SUPER_ADMIN') {
-        return { success: false, error: 'Acceso no autorizado' };
-      }
-
-      if (session.user.role === 'PROFESSOR' && !course.professors.includes(session.user.id)) {
-        return { success: false, error: 'No tienes permisos para modificar este curso' };
-      }
-
-      const newActive = !course.active;
-      const previousState = course.toObject() as unknown as Record<string, unknown>;
-      await Course.findByIdAndUpdate(id, { $set: { active: newActive } });
-
-      await logger.audit({
-        tenantId: course.tenantId,
-        action: 'QUIZ_COURSE_UPDATED',
-        entityType: 'COURSE',
-        entityId: id,
-        userId: session.user.id,
-        userEmail: session.user.email || 'system@abd.com',
-        changedFields: { active: newActive },
-        previousState,
-      });
-
-      revalidatePath('/admin/courses');
-      return { success: true, active: newActive };
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'TOGGLE_COURSE_ERROR',
-        entityType: 'COURSE',
-        entityId: id,
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: msg },
-      });
-      console.error('❌ Error toggling course:', msg);
-      return { success: false, error: msg };
+  return withWriteAction(async (ctx) => {
+    const course = await Course.findById(id);
+    if (!course) {
+      return { success: false, error: 'Curso no encontrado' };
     }
-  }, explicitCtx);
+
+    if (course.tenantId !== ctx.activeTenantId && ctx.session.role !== 'SUPER_ADMIN') {
+      return { success: false, error: 'Acceso no autorizado' };
+    }
+
+    if (ctx.session.role === 'PROFESSOR' && !course.professors.includes(ctx.session.id)) {
+      return { success: false, error: 'No tienes permisos para modificar este curso' };
+    }
+
+    const newActive = !course.active;
+    const previousState = course.toObject() as unknown as Record<string, unknown>;
+    await Course.findByIdAndUpdate(id, { $set: { active: newActive } });
+
+    await logger.audit({
+      tenantId: course.tenantId,
+      action: 'QUIZ_COURSE_UPDATED',
+      entityType: 'COURSE',
+      entityId: id,
+      userId: ctx.session.id,
+      userEmail: ctx.session.email || 'system@abd.com',
+      changedFields: { active: newActive },
+      previousState,
+    });
+
+    return { success: true, active: newActive };
+  }, {
+    tenantIdParam,
+    revalidatePaths: '/admin/courses',
+    errorAction: 'TOGGLE_COURSE_ERROR',
+    errorEntityType: 'COURSE',
+    errorEntityId: id,
+    errorLogLabel: 'Error toggling course',
+  });
 }
 
-// --- Delete (soft) ---
-
 export async function deleteCourseAction(id: string, tenantIdParam?: string) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-
-  return withTenantContext(async () => {
-    try {
-      await connectDB();
-      const session = await getIndustrialSession();
-
-      if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
-
-      const course = await Course.findById(id);
-      if (!course) {
-        return { success: false, error: 'Curso no encontrado' };
-      }
-
-      const activeTenantId = explicitCtx?.tenantId || session.user.tenantId;
-      if (course.tenantId !== activeTenantId && session.user.role !== 'SUPER_ADMIN') {
-        return { success: false, error: 'Acceso no autorizado' };
-      }
-
-      if (session.user.role === 'PROFESSOR' && !course.professors.includes(session.user.id)) {
-        return { success: false, error: 'No tienes permisos para eliminar este curso' };
-      }
-
-      const previousState = course.toObject() as unknown as Record<string, unknown>;
-      await Course.findByIdAndUpdate(id, { $set: { active: false } });
-
-      await logger.audit({
-        tenantId: course.tenantId,
-        action: 'QUIZ_COURSE_DELETED',
-        entityType: 'COURSE',
-        entityId: id,
-        userId: session.user.id,
-        userEmail: session.user.email || 'system@abd.com',
-        changedFields: { active: false },
-        previousState,
-      });
-
-      revalidatePath('/admin/courses');
-      return { success: true };
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'DELETE_COURSE_ERROR',
-        entityType: 'COURSE',
-        entityId: id,
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: msg },
-      });
-      console.error('❌ Error deleting course:', msg);
-      return { success: false, error: msg };
+  return withWriteAction(async (ctx) => {
+    const course = await Course.findById(id);
+    if (!course) {
+      return { success: false, error: 'Curso no encontrado' };
     }
-  }, explicitCtx);
+
+    if (course.tenantId !== ctx.activeTenantId && ctx.session.role !== 'SUPER_ADMIN') {
+      return { success: false, error: 'Acceso no autorizado' };
+    }
+
+    if (ctx.session.role === 'PROFESSOR' && !course.professors.includes(ctx.session.id)) {
+      return { success: false, error: 'No tienes permisos para eliminar este curso' };
+    }
+
+    const previousState = course.toObject() as unknown as Record<string, unknown>;
+    await Course.findByIdAndUpdate(id, { $set: { active: false } });
+
+    await logger.audit({
+      tenantId: course.tenantId,
+      action: 'QUIZ_COURSE_DELETED',
+      entityType: 'COURSE',
+      entityId: id,
+      userId: ctx.session.id,
+      userEmail: ctx.session.email || 'system@abd.com',
+      changedFields: { active: false },
+      previousState,
+    });
+
+    return { success: true };
+  }, {
+    tenantIdParam,
+    revalidatePaths: '/admin/courses',
+    errorAction: 'DELETE_COURSE_ERROR',
+    errorEntityType: 'COURSE',
+    errorEntityId: id,
+    errorLogLabel: 'Error deleting course',
+  });
 }

@@ -52,5 +52,17 @@
   "auditWarningDesc": "La base de datos actual está vacía para este Tenant. Mostrando capa analítica simulada para propósitos de demostración técnica.",
   "demoModeBadge": "Modo_Demo_Activo",
   "activeStorageLabel": "Almacenamiento_Activo",
-  "analyticsPanelsAria": "Paneles de analíticas"
+  "analyticsPanelsAria": "Paneles de analíticas",
+  "backToHome": "Volver a Inicio",
+  "activeStudents": "Estudiantes Activos",
+  "completionRate": "Tasa de Finalización",
+  "totalStorage": "Almacenamiento Total",
+  "suiteHealth": "Estado de la Suite",
+  "generalServiceState": "Estado General del Servicio",
+  "microservicePort": "Puerto del Microservicio",
+  "activeLicensedApps": "Aplicaciones con Licencia Activas",
+  "failedLogins24h": "Inicios de Sesión Fallidos (24h)",
+  "menuDashboard": "Panel de Analíticas",
+  "menuAudit": "Auditoría de Logs",
+  "welcomeMenu": "Página de Inicio"
 }

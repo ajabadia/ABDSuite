@@ -60,4 +60,34 @@ export class SecurityService {
       return encryptedText;
     }
   }
+
+  /**
+   * Cifra un texto de forma determinista usando AES-256-CBC.
+   * El IV se deriva del propio texto vía HMAC-SHA256, garantizando que
+   * la misma entrada produzca siempre la misma salida cifrada.
+   * Permite búsquedas exactas: encryptDeterministic(query) === valor en DB.
+   */
+  static encryptDeterministic(text: string): string {
+    if (!text) return '';
+    try {
+      const key = this.getSecret();
+      const hmac = crypto.createHmac('sha256', key);
+      const iv = hmac.update(text, 'utf8').digest().slice(0, 16);
+      const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+      let encrypted = cipher.update(text, 'utf8', 'hex');
+      encrypted += cipher.final('hex');
+      return `${iv.toString('hex')}:${encrypted}`;
+    } catch (e) {
+      console.error('❌ Fallo al cifrar deterministamente:', e);
+      return text;
+    }
+  }
+
+  /**
+   * Descifra un texto cifrado deterministamente.
+   * El formato es idéntico a decrypt() — IV concatenado con el cifrado.
+   */
+  static decryptDeterministic(encryptedText: string): string {
+    return this.decrypt(encryptedText);
+  }
 }

@@ -14,7 +14,9 @@ import { AuditHistoryPanel } from '@/components/admin/audit/AuditHistoryPanel';
 import { IntegrityCheckPanel } from '@/components/admin/audit/IntegrityCheckPanel';
 import { AlertThresholdManager } from '@/components/admin/audit/AlertThresholdManager';
 import { AlertHistoryPanel } from '@/components/admin/audit/AlertHistoryPanel';
-import { ShieldCheck, Activity, ArrowLeft, AlertTriangle, History } from 'lucide-react';
+import { LiveLogsConsole } from '@/components/admin/audit/LiveLogsConsole';
+import Soc2ReportDownload from '@/components/admin/audit/Soc2ReportDownload';
+import { ShieldCheck, Activity, ArrowLeft, AlertTriangle, History, Radio } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { connectDB } from '@ajabadia/satellite-sdk/db';
@@ -80,10 +82,32 @@ export default async function AdminAuditPage({
         {/* Panel de Análisis de Integridad */}
         <IntegrityCheckPanel key={targetTenantId} tenantId={targetTenantId} />
 
+        {/* 📄 SOC2 Compliance Report Download */}
+        <Soc2ReportDownload tenantId={targetTenantId} />
+
         {/* 🔴 Alert Configuration and History */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <AlertThresholdManager tenantId={targetTenantId} />
           <AlertHistoryPanel tenantId={targetTenantId} />
+        </div>
+
+        {/* ⚡ Live Logs Console — Event-Driven SSE */}
+        <div className="flex flex-col gap-6 pt-2">
+          <div className="flex flex-col gap-1.5">
+            <h2 className="text-lg font-extrabold text-foreground tracking-tight flex items-center gap-2">
+              <span className="p-1 rounded-md bg-emerald-500/10 text-emerald-400">
+                <Radio className="w-4.5 h-4.5" />
+              </span>
+              Live Logs Console
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Instant event-driven feed. New logs appear in real time via Server-Sent Events.
+            </p>
+          </div>
+
+          <div className="p-6 bg-card border border-border rounded-xl shadow-sm">
+            <LiveLogsConsole />
+          </div>
         </div>
 
         {/* 📊 Hot Log Streaming — Historial de Auditoría en Vivo */}

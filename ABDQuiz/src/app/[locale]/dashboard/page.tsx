@@ -50,7 +50,7 @@ export default async function DashboardPage({
           <div className="flex flex-col items-center justify-center min-h-[40vh] text-center gap-4">
             <p className="text-sm font-mono text-muted-foreground">{d('errorLoading')}</p>
             <Link
-              href={`/${locale}`}
+              href="/"
               className="text-xs font-mono text-primary hover:underline uppercase tracking-wider"
             >
               {d('backHome')}
@@ -75,7 +75,7 @@ export default async function DashboardPage({
         {/* Back navigation */}
         <div className="flex items-center gap-4">
           <Link
-            href={`/${locale}`}
+            href="/"
             className="inline-flex items-center justify-center p-2 bg-transparent text-muted-foreground hover:text-foreground border border-border hover:border-border/80 transition-all duration-200 cursor-pointer rounded-none active:scale-[0.95] shrink-0 focus:outline-none focus:ring-1 focus:ring-primary/50"
             aria-label="Back to landing"
             title="Back to Landing"

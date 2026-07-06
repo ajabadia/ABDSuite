@@ -1,6 +1,6 @@
 {
   "name": "@ajabadia/styles",
-  "version": "1.0.112",
+  "version": "1.0.113",
   "type": "module",
   "description": "Industrial multi-tenant dynamic styling engine and common visual assets for ABD suite.",
   "main": "dist/index.js",
@@ -16,6 +16,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./api/theme": {
+      "types": "./dist/api/theme.d.ts",
+      "import": "./dist/api/theme.js"
     },
     "./dist/styles/*": "./dist/styles/*"
   },
@@ -51,11 +55,21 @@
     "lucide-react": "catalog:",
     "next-intl": "catalog:"
   },
+  "peerDependenciesMeta": {
+    "@ajabadia/satellite-sdk": {
+      "optional": true
+    },
+    "mongoose": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@ajabadia/satellite-sdk": "^1.0.0",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "lucide-react": "catalog:",
+    "mongoose": "catalog:",
     "next-intl": "catalog:",
     "react": "catalog:",
     "tsup": "^8.3.5",

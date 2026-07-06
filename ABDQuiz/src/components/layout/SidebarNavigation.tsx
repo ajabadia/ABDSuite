@@ -49,14 +49,14 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
   const user = session.user;
 
   const allLinks: AppSidebarLink[] = [
-    { href: '/', label: t('welcomeMenu'), icon: <Home className="w-4 h-4" /> },
+    ...(!isLoggedIn ? [{ href: '/', label: t('welcomeMenu'), icon: <Home className="w-4 h-4" /> }] : []),
     { href: '/dashboard', label: t('dashboardMenu'), icon: <LayoutDashboard className="w-4 h-4" />, requiresAuth: true },
     { href: '/exams', label: t('homeMenu'), icon: <BookOpen className="w-4 h-4" /> },
     { href: '/history', label: t('historyMenu'), icon: <BarChart2 className="w-4 h-4" />, requiresAuth: true },
     { href: '/admin', label: t('adminMenu'), icon: <Terminal className="w-4 h-4" />, requiresAdmin: true },
-    { href: '/admin/allegations', label: t('claimsMenu'), icon: <AlertTriangle className="w-4 h-4" />, requiresAdmin: true },
-    { href: '/admin/assignments', label: t('assignmentsMenu'), icon: <CalendarRange className="w-4 h-4" />, requiresAdmin: true },
     { href: '/admin/dashboard', label: t('billingMenu'), icon: <TrendingUp className="w-4 h-4" />, requiresAdmin: true },
+    { href: '/admin/assignments', label: t('assignmentsMenu'), icon: <CalendarRange className="w-4 h-4" />, requiresAdmin: true },
+    { href: '/admin/allegations', label: t('claimsMenu'), icon: <AlertTriangle className="w-4 h-4" />, requiresAdmin: true },
     { href: '/admin/incidents', label: t('incidentsMenu'), icon: <AlertCircle className="w-4 h-4" />, requiresAdmin: true },
   ];
 

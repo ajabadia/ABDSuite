@@ -1,5 +1,16 @@
 {
   "installCommand": "pnpm install --no-frozen-lockfile",
   "buildCommand": "pnpm run build",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "headers": [
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        {
+          "key": "x-vercel-skew-protection",
+          "value": "1"
+        }
+      ]
+    }
+  ]
 }

@@ -9,7 +9,7 @@
  */
 
 import { getTranslations } from 'next-intl/server';
-import { ensureAdminOrProfessor } from '@/lib/auth/ensureQuizAccess';
+import { ensureAdminOrProfessor } from '@/lib/auth';
 import { resolveTenantContext } from '@/lib/tenant-context';
 import { getDashboardKPIsAction } from '@/actions/adminDashboard';
 import { Card } from '@/components/ui/card';

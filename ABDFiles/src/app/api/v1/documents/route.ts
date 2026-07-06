@@ -109,6 +109,8 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    const ipAddress = request.headers.get('x-forwarded-for') || undefined;
+
     const result = await DocumentService.uploadDocument({
       tenantId: user.tenantId,
       actorId: user.email || 'system',
@@ -121,7 +123,8 @@ export async function POST(request: NextRequest) {
       spaceIds,
       spacePaths,
       tags,
-      correlationId
+      correlationId,
+      ipAddress,
     });
 
     // Save payload response cache for idempotency keys

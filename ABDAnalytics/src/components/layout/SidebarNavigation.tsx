@@ -38,6 +38,7 @@ interface SidebarNavigationProps {
 
 export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settingsSlot }: SidebarNavigationProps) {
   const t = useTranslations('common');
+  const a = useTranslations('analytics');
   const locale = useLocale();
   const [logsAuditUrl, setLogsAuditUrl] = React.useState<string>('/admin/audit');
 
@@ -54,21 +55,26 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
   const user = session.user;
 
   const allLinks: AppSidebarLink[] = [
+    // Welcome Page only shown if not logged in
+    ...(!isLoggedIn
+      ? [
+          {
+            href: '/',
+            label: a('welcomeMenu'),
+            icon: <Home size={14} />
+          }
+        ]
+      : []),
     {
-      href: '/',
-      label: t('welcome'),
-      icon: <Home size={14} />
-    },
-    {
-      href: logsAuditUrl,
-      label: t('chainAudit'),
-      icon: <ShieldCheck size={14} />,
+      href: '/admin',
+      label: a('menuDashboard'),
+      icon: <Terminal size={14} />,
       requiresAdmin: true
     },
     {
-      href: '/admin',
-      label: t('adminMenu'),
-      icon: <Terminal size={14} />,
+      href: logsAuditUrl,
+      label: a('menuAudit'),
+      icon: <ShieldCheck size={14} />,
       requiresAdmin: true
     }
   ];

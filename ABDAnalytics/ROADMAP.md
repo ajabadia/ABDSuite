@@ -23,6 +23,9 @@ Este documento detalla la planificación estratégica, las fases del ecosistema 
   - ✅ Integración de gráficos `recharts` (histogramas Gauss, curvas de aprendizaje, accesos fallidos, consumo espacial).
   - ✅ DashboardClient con tabs modulares (`SuiteTab`, `LmsTab`, `SecurityTab`, `GovernanceTab`).
   - ✅ Certificación ERA 11 COMPLIANT.
+  - ✅ Refactorización de Seguridad (Server Actions Wrapper `withReadAction` + validación ABAC a nivel de endpoint).
+  - ✅ Saneamiento de internacionalización (resolución de 9 claves de traducción `analytics` faltantes en diccionarios locale).
+  - ✅ Reorganización de la barra de navegación lateral (priorización del dashboard central, ocultación condicional del Home público, desacoplamiento de traducciones con namespaces).
 
 ### 🟦 Próximamente (Future Roadmap)
 - **Fase 4: Firma Criptográfica de PDFs y QR**

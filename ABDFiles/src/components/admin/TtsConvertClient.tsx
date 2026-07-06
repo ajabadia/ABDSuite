@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renderiza una interfaz de usuario para convertir texto a voz con opciones para seleccionar la voz, formato de salida y reproducción de audio/descarga.
+ * @purpose Renderiza una interfaz de usuario para convertir texto a voz con opciones para seleccionar la voz, formato de salida y reproducción de audio.
  * @purpose_en Renders a user interface for converting text to speech with options for voice selection, output format, and audio playback/download.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:4,sig:s77j2s
- * @lastUpdated 2026-07-02T18:45:45.201Z
+ * @fingerprint exports:1,imports:4,sig:138z69g
+ * @lastUpdated 2026-07-03T15:34:09.892Z
  */
 
 import React, { useState, useRef } from 'react';

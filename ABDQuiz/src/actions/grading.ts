@@ -14,7 +14,7 @@ import { withTenantContext, connectDB } from '@ajabadia/satellite-sdk/db';
 import { logger } from '@ajabadia/satellite-sdk/logger';
 import { resolveTargetTenantContext, rateLimitMongodb } from '@ajabadia/satellite-sdk/utils';
 import ExamAttempt from '@/models/ExamAttempt';
-import { ensureAdminOrProfessor } from '@/lib/auth/ensureQuizAccess';
+import { ensureAdminOrProfessor } from '@/lib/auth';
 
 import type { SerializedGradingAttempt, AttemptDetail, QuestionGradingData } from './gradingTypes';
 import { sanitizeGradingAttempt, buildAttemptDetail } from './gradingTypes';

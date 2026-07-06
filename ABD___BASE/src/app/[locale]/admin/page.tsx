@@ -1,11 +1,11 @@
 /**
- * @purpose Renderiza una página de panel administrativo con navegación, encabezado y detalles de sesión del usuario.
+ * @purpose Renderiza una página de dashboard administrativo con navegación, encabezado y detalles de sesión del usuario.
  * @purpose_en Renders an administrative dashboard page with navigation, header, and user session details.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:6,sig:1wh3sum
- * @lastUpdated 2026-07-02T18:43:27.065Z
+ * @fingerprint exports:1,imports:6,sig:19drj3t
+ * @lastUpdated 2026-07-03T15:33:59.646Z
  */
 
 import { getTranslations } from 'next-intl/server';

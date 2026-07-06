@@ -15,10 +15,11 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getIndustrialSession } from '@ajabadia/satellite-sdk/auth-middleware';
 import { connectDB, withTenantContext } from '@ajabadia/satellite-sdk/db';
+import { withReadAction, withWriteAction } from '@/lib/actions-wrapper';
 import { logger } from '@ajabadia/satellite-sdk/logger';
 import { resolveTargetTenantContext, rateLimitMongodb } from '@ajabadia/satellite-sdk/utils';
 import ExamAttempt from '@/models/ExamAttempt';
-import { ensureAdminOrProfessor } from '@/lib/auth/ensureQuizAccess';
+import { ensureAdminOrProfessor } from '@/lib/auth';
 import { AnalyticsSyncService } from '@/services/quiz/analyticsSyncService';
 import { publishAttemptStarted, publishAttemptCompleted } from '@/services/quiz/quiz-publisher';
 
@@ -243,101 +244,69 @@ export async function finishQuizAction(attemptId: string, attemptToken?: string,
  * Anula un intento de examen de forma lógica para permitir un reintento
  */
 export async function invalidateAttemptAction(attemptId: string, tenantIdParam?: string) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-  
-  return withTenantContext(async () => {
-    try {
-      const admin = await ensureAdminOrProfessor();
-      await connectDB();
-      
-      const attempt = await ExamAttempt.findById(attemptId);
-      if (!attempt) {
-        return { success: false, error: 'Intento de examen no encontrado' };
-      }
-      
-      // Anti-IDOR Guard
-      const activeTenantId = explicitCtx?.tenantId || admin.tenantId;
-      if (attempt.tenantId !== activeTenantId && admin.role !== 'SUPER_ADMIN') {
-        return { success: false, error: 'Acceso no autorizado' };
-      }
-      
-      const targetTenantId = attempt.tenantId;
-      const previousState = attempt.toObject() as unknown as Record<string, unknown>;
-      attempt.isInvalidated = true;
-      attempt.invalidatedBy = admin.email || admin.id;
-      attempt.invalidatedAt = new Date();
-      
-      await attempt.save();
-      
-      // Log the invalidation event
-      await logger.audit({
-        tenantId: targetTenantId,
-        action: 'EXAM_ATTEMPT_INVALIDATED',
-        entityType: 'EXAM',
-        entityId: attemptId,
-        userId: admin.id,
-        userEmail: admin.email,
-        changedFields: {
-          isInvalidated: true,
-          invalidatedBy: attempt.invalidatedBy,
-          invalidatedAt: attempt.invalidatedAt
-        },
-        previousState
-      });
-      
-      revalidatePath('/admin/attempts');
-      return { success: true };
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'INVALIDATE_ATTEMPT_ERROR',
-        entityType: 'EXAM',
-        entityId: attemptId,
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: message, attemptId },
-      });
-      console.error('❌ [INVALIDATE_ATTEMPT_ACTION_ERROR]:', message);
-      return { success: false, error: message };
+  return withWriteAction(async (ctx) => {
+    const admin = await ensureAdminOrProfessor();
+    
+    const attempt = await ExamAttempt.findById(attemptId);
+    if (!attempt) {
+      return { success: false, error: 'Intento de examen no encontrado' };
     }
-  }, explicitCtx);
+    
+    // Anti-IDOR Guard
+    const activeTenantId = ctx.explicitCtx?.tenantId || admin.tenantId;
+    if (attempt.tenantId !== activeTenantId && admin.role !== 'SUPER_ADMIN') {
+      return { success: false, error: 'Acceso no autorizado' };
+    }
+    
+    const previousState = attempt.toObject() as unknown as Record<string, unknown>;
+    attempt.isInvalidated = true;
+    attempt.invalidatedBy = admin.email || admin.id;
+    attempt.invalidatedAt = new Date();
+    
+    await attempt.save();
+    
+    // Log the invalidation event
+    await logger.audit({
+      tenantId: attempt.tenantId,
+      action: 'EXAM_ATTEMPT_INVALIDATED',
+      entityType: 'EXAM',
+      entityId: attemptId,
+      userId: admin.id,
+      userEmail: admin.email,
+      changedFields: {
+        isInvalidated: true,
+        invalidatedBy: attempt.invalidatedBy,
+        invalidatedAt: attempt.invalidatedAt
+      },
+      previousState
+    });
+    
+    return { success: true };
+  }, {
+    tenantIdParam,
+    revalidatePaths: '/admin/attempts',
+    errorAction: 'INVALIDATE_ATTEMPT_ERROR',
+    errorEntityType: 'EXAM',
+    errorEntityId: attemptId,
+    errorLogLabel: 'INVALIDATE_ATTEMPT_ACTION_ERROR',
+  });
 }
 
 /**
  * Recupera todos los intentos de examen para el tenant actual
  */
 export async function getAttemptsAction(tenantIdParam?: string) {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-  
-  return withTenantContext(async () => {
-    try {
-      const admin = await ensureAdminOrProfessor();
-      await connectDB();
-      
-      const activeTenantId = explicitCtx?.tenantId || admin.tenantId;
-      
-      const attempts = await ExamAttempt.find({
-        tenantId: activeTenantId
-      })
-      .populate('examConfigId')
-      .sort({ createdAt: -1 })
-      .lean();
-      
-      return (attempts as unknown as Record<string, unknown>[]).map(sanitizeAttempt);
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      await logger.audit({
-        tenantId: explicitCtx?.tenantId || 'unknown',
-        action: 'FETCH_ATTEMPTS_ERROR',
-        entityType: 'EXAM',
-        entityId: 'unknown',
-        userId: 'system',
-        userEmail: 'system@abd.com',
-        changedFields: { error: msg },
-      });
-      console.error('❌ Error fetching attempts:', msg);
-      throw new Error(msg);
-    }
-  }, explicitCtx);
+  return withReadAction(async (ctx) => {
+    const admin = await ensureAdminOrProfessor();
+    const activeTenantId = ctx.explicitCtx?.tenantId || admin.tenantId;
+    
+    const attempts = await ExamAttempt.find({
+      tenantId: activeTenantId
+    })
+    .populate('examConfigId')
+    .sort({ createdAt: -1 })
+    .lean();
+    
+    return (attempts as unknown as Record<string, unknown>[]).map(sanitizeAttempt);
+  }, { tenantIdParam });
 }

@@ -1,11 +1,11 @@
 /**
- * @purpose Gestiona la solicitud POST para exportar datos de usuarios GDPR, valida la entrada y autentica la solicitud, y devuelve un archivo ZIP con los datos exportados.
+ * @purpose Gestiona la solicitud POST para exportar datos de usuarios GDPR, valida la entrada y autentica la solicitud, y devuelve un archivo zip con los datos exportados.
  * @purpose_en Handles the POST request for GDPR user data export, validates input, authenticates the request, and returns a zip file containing the exported data.
  * @refactorable false
  * @classification Business Service
  * @complexity Medium
- * @fingerprint exports:1,imports:3,sig:1i62udc
- * @lastUpdated 2026-06-26T06:17:34.874Z
+ * @fingerprint exports:1,imports:3,sig:8q05q6
+ * @lastUpdated 2026-07-03T15:34:12.803Z
  */
 
 import { NextRequest, NextResponse } from 'next/server';

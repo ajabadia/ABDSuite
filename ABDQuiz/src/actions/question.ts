@@ -11,19 +11,11 @@
 'use server';
 
 import { QuestionService, type QuestionFilters } from '@/services/corpus/QuestionService';
-import { revalidatePath } from 'next/cache';
-import { ensureAdminOrProfessor } from '@/lib/auth/ensureQuizAccess';
+import { ensureAdminOrProfessor } from '@/lib/auth';
 import { type IQuestion } from '@/models/Question';
-import { connectDB, withTenantContext } from '@ajabadia/satellite-sdk/db';
-import { resolveTargetTenantContext } from '@ajabadia/satellite-sdk/utils';
+import { withReadAction, withWriteAction } from '@/lib/actions-wrapper';
 import Question from '@/models/Question';
 import Course from '@/models/Course';
-
-interface ActionResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
 
 /**
  * Obtiene el listado paginado y filtrado de preguntas para el tenant activo
@@ -31,26 +23,18 @@ interface ActionResponse<T> {
 export async function getQuestionsAction(
   filters: QuestionFilters,
   tenantIdParam?: string
-): Promise<ActionResponse<{ questions: IQuestion[]; total: number; page: number; pages: number }>> {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-  
-  return withTenantContext(async () => {
-    try {
-      const user = await ensureAdminOrProfessor();
-      const activeTenantId = explicitCtx?.tenantId || user.tenantId;
+): Promise<{ questions: IQuestion[]; total: number; page: number; pages: number }> {
+  return withReadAction(async (ctx) => {
+    const user = await ensureAdminOrProfessor();
+    const activeTenantId = ctx.explicitCtx?.tenantId || user.tenantId;
 
-      if (user.role === 'PROFESSOR') {
-        const profCourses = await Course.find({ tenantId: activeTenantId, professors: user.id, active: true }, { _id: 1 }).lean();
-        filters.courseIds = profCourses.map((c: { _id: unknown }) => String(c._id));
-      }
-
-      const result = await QuestionService.getQuestions(activeTenantId, filters);
-      return { success: true, data: result };
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return { success: false, error: message };
+    if (user.role === 'PROFESSOR') {
+      const profCourses = await Course.find({ tenantId: activeTenantId, professors: user.id, active: true }, { _id: 1 }).lean();
+      filters.courseIds = profCourses.map((c: { _id: unknown }) => String(c._id));
     }
-  }, explicitCtx);
+
+    return QuestionService.getQuestions(activeTenantId, filters);
+  }, { tenantIdParam });
 }
 
 /**
@@ -59,36 +43,27 @@ export async function getQuestionsAction(
 export async function checkQuestionTraceabilityAction(
   questionId: string,
   tenantIdParam?: string
-): Promise<ActionResponse<boolean>> {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-  
-  return withTenantContext(async () => {
-    try {
-      const user = await ensureAdminOrProfessor();
-      await connectDB();
-      const oldQuestion = await Question.findById(questionId);
-      if (!oldQuestion) {
-        return { success: false, error: 'Reactivo no encontrado' };
-      }
-      const activeTenantId = explicitCtx?.tenantId || user.tenantId;
-      if (oldQuestion.tenantId !== activeTenantId && user.role !== 'SUPER_ADMIN') {
-        return { success: false, error: 'Acceso no autorizado' };
-      }
-
-      if (user.role === 'PROFESSOR' && oldQuestion.courseId) {
-        const ownsCourse = await Course.exists({ tenantId: activeTenantId, professors: user.id, _id: oldQuestion.courseId });
-        if (!ownsCourse) {
-          return { success: false, error: 'No tienes permisos para acceder a esta pregunta' };
-        }
-      }
-
-      const result = await QuestionService.checkTraceability(questionId);
-      return { success: true, data: result };
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return { success: false, error: message };
+): Promise<boolean> {
+  return withReadAction(async (ctx) => {
+    const user = await ensureAdminOrProfessor();
+    const oldQuestion = await Question.findById(questionId);
+    if (!oldQuestion) {
+      throw new Error('Reactivo no encontrado');
     }
-  }, explicitCtx);
+    const activeTenantId = ctx.explicitCtx?.tenantId || user.tenantId;
+    if (oldQuestion.tenantId !== activeTenantId && user.role !== 'SUPER_ADMIN') {
+      throw new Error('Acceso no autorizado');
+    }
+
+    if (user.role === 'PROFESSOR' && oldQuestion.courseId) {
+      const ownsCourse = await Course.exists({ tenantId: activeTenantId, professors: user.id, _id: oldQuestion.courseId });
+      if (!ownsCourse) {
+        throw new Error('No tienes permisos para acceder a esta pregunta');
+      }
+    }
+
+    return QuestionService.checkTraceability(questionId);
+  }, { tenantIdParam });
 }
 
 /**
@@ -105,44 +80,36 @@ export async function saveQuestionAction(
     module: string;
     source: string;
     tags: string[];
-    /** §12.A — Adjuntos */
     attachments?: { url: string; name: string; type: string; size: number }[];
   },
   tenantIdParam?: string
-): Promise<ActionResponse<IQuestion>> {
-  const explicitCtx = await resolveTargetTenantContext(tenantIdParam);
-  
-  return withTenantContext(async () => {
-    try {
-      const user = await ensureAdminOrProfessor();
-      await connectDB();
-      const oldQuestion = await Question.findById(questionId);
-      if (!oldQuestion) {
-        return { success: false, error: 'Reactivo no encontrado' };
-      }
-      const activeTenantId = explicitCtx?.tenantId || user.tenantId;
-      if (oldQuestion.tenantId !== activeTenantId && user.role !== 'SUPER_ADMIN') {
-        return { success: false, error: 'Acceso no autorizado' };
-      }
-
-      if (user.role === 'PROFESSOR' && oldQuestion.courseId) {
-        const ownsCourse = await Course.exists({ tenantId: activeTenantId, professors: user.id, _id: oldQuestion.courseId });
-        if (!ownsCourse) {
-          return { success: false, error: 'No tienes permisos para modificar esta pregunta' };
-        }
-      }
-
-      const result = await QuestionService.saveQuestion(questionId, updatedData);
-      
-      // Forzar revalidación de las consolas de simulación y administración
-      revalidatePath('/admin/corpus');
-      revalidatePath('/admin/questions');
-      revalidatePath('/exams');
-      
-      return { success: true, data: result };
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return { success: false, error: message };
+): Promise<import('@/lib/actions-wrapper').ActionResult> {
+  return withWriteAction(async (ctx) => {
+    const user = await ensureAdminOrProfessor();
+    const oldQuestion = await Question.findById(questionId);
+    if (!oldQuestion) {
+      return { success: false as const, error: 'Reactivo no encontrado' };
     }
-  }, explicitCtx);
+    const activeTenantId = ctx.explicitCtx?.tenantId || user.tenantId;
+    if (oldQuestion.tenantId !== activeTenantId && user.role !== 'SUPER_ADMIN') {
+      return { success: false as const, error: 'Acceso no autorizado' };
+    }
+
+    if (user.role === 'PROFESSOR' && oldQuestion.courseId) {
+      const ownsCourse = await Course.exists({ tenantId: activeTenantId, professors: user.id, _id: oldQuestion.courseId });
+      if (!ownsCourse) {
+        return { success: false as const, error: 'No tienes permisos para modificar esta pregunta' };
+      }
+    }
+
+    const question = await QuestionService.saveQuestion(questionId, updatedData);
+    return { success: true as const, data: question };
+  }, {
+    tenantIdParam,
+    revalidatePaths: ['/admin/corpus', '/admin/questions', '/exams'],
+    errorAction: 'SAVE_QUESTION_ERROR',
+    errorEntityType: 'QUESTION',
+    errorEntityId: questionId,
+    errorLogLabel: 'SAVE_QUESTION_ACTION_ERROR',
+  });
 }

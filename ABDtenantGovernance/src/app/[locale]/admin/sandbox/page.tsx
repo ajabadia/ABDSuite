@@ -1,11 +1,11 @@
 /**
- * @purpose Renders the QA Sandbox admin page to inject JWTs, perform role shifting, and simulate licenses.
+ * @purpose Renderiza la página de administración del sandbox QA para inyectar JWTs, realizar cambios de rol y simular licencias.
  * @purpose_en Renders the QA Sandbox admin page to inject JWTs, perform role shifting, and simulate licenses.
  * @refactorable false
- * @classification Helper Utility
+ * @classification UI Component
  * @complexity Low
- * @fingerprint exports:2,imports:9,sig:rs2q2c
- * @lastUpdated 2026-06-26T10:21:01.028Z
+ * @fingerprint exports:2,imports:9,sig:lcm3am
+ * @lastUpdated 2026-07-03T15:34:24.094Z
  */
 
 import React from 'react';

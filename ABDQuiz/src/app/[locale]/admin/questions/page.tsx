@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { AdminPageHeader } from '@ajabadia/styles';
 import { GlobalFooter } from '@ajabadia/ecosystem-widgets';
 import { Link } from '@/i18n/routing';
+import NextLink from 'next/link';
 
 /**
  * 🛰️ Admin Questions Repository Page (Federated Server Component)
@@ -63,10 +64,10 @@ export default async function AdminQuestionsPage({
           description={<>{t('subtitle')} | Tenant: <span className="text-primary font-bold">{resolvedTenantId}</span></>}
         >
           <Button className="rounded-none font-mono text-[10px] tracking-widest uppercase h-12 px-6" asChild>
-            <Link href={`/${locale}/admin/questions/new${tenantSuffix}`}>
-              <Plus className="w-4 h-4 mr-2" />
-              {t('newQuestion')}
-            </Link>
+            <NextLink href={`/${locale}/admin/questions/new${tenantSuffix}`}>
+               <Plus className="w-4 h-4 mr-2" />
+               {t('newQuestion')}
+            </NextLink>
           </Button>
         </AdminPageHeader>
 

@@ -69,7 +69,7 @@ export function QuestionEditorModal({ question, onClose, onSuccess }: QuestionEd
 
   useEffect(() => {
     checkQuestionTraceabilityAction(question._id)
-      .then(res => { if (res.success && res.data !== undefined) setHasBeenAnswered(res.data); })
+      .then(setHasBeenAnswered)
       .catch(console.error);
   }, [question._id]);
 

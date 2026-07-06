@@ -8,7 +8,7 @@
  * @lastUpdated 2026-06-23T23:23:01.928Z
  */
 
-import { ensureAdminOrProfessor } from '@/lib/auth/ensureQuizAccess';
+import { ensureAdminOrProfessor } from '@/lib/auth';
 
 /**
  * Resolves the tenant context for a request or page based on session and searchParams.

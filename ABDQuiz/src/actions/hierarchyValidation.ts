@@ -14,7 +14,7 @@ import { connectDB } from '@ajabadia/satellite-sdk/db';
 import { SpaceServiceClient } from '@/services/space-client';
 import Course from '@/models/Course';
 import { revalidatePath } from 'next/cache';
-import { ensureAdminOrProfessor } from '@/lib/auth/ensureQuizAccess';
+import { ensureAdminOrProfessor } from '@/lib/auth';
 
 interface ActionResponse<T> {
   success: boolean;

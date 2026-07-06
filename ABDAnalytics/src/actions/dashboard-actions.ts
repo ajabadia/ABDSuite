@@ -10,20 +10,20 @@
 
 'use server';
 
-import { withTenantContext } from '@ajabadia/satellite-sdk/db';
 import type { DashboardMetrics } from '@/types/dashboard-metrics';
 import { getMockDashboardMetrics } from '@/lib/mock-dashboard-data';
 import UserCourseSummary from '@/models/UserCourseSummary';
 import CourseAnalytics from '@/models/CourseAnalytics';
 import AuthAnalytics from '@/models/AuthAnalytics';
 import GovernanceAnalytics from '@/models/GovernanceAnalytics';
+import { withReadAction } from '@/lib/actions-wrapper';
 
 /**
  * 🛰️ Server Action to fetch metrics for the active tenant.
- * Automatically wraps queries in `withTenantContext` and falls back to structured mock data if counts are 0.
+ * Automatically wraps queries in `withReadAction` with ABAC validation and falls back to structured mock data if counts are 0.
  */
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  return await withTenantContext(async () => {
+  return await withReadAction(async () => {
     try {
       // 1. Gather counts/documents from the dynamic tenant connection
       const [userSummaries, courses, authDoc, govDoc] = await Promise.all([
@@ -111,5 +111,5 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       console.error('[DashboardActions] Error querying db, falling back to preview mock data:', err);
       return getMockDashboardMetrics();
     }
-  });
+  }, { resource: 'analytics:dashboard', action: 'view' });
 }

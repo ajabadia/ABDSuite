@@ -1,13 +1,13 @@
 'use client'
 
 /**
- * @purpose Renders a table to display and manage delegations of roles within a tenant, including the ability to revoke active delegations.
+ * @purpose Renderiza una tabla para mostrar y gestionar delegaciones de roles dentro de un inquilino, incluyendo la capacidad de revocar delegaciones activas.
  * @purpose_en Renders a table to display and manage delegations of roles within a tenant, including the ability to revoke active delegations.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:2,imports:7,sig:1418v68
- * @lastUpdated 2026-06-23T20:38:59.082Z
+ * @fingerprint exports:2,imports:8,sig:189wb41
+ * @lastUpdated 2026-07-03T15:34:22.962Z
  */
 
 import React, { useState, useEffect } from 'react';

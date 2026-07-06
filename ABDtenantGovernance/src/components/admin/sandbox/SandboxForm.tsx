@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Formulario de control Sandbox para inyectar JWTs de prueba, simular desconexión de licencias y saltos de rol instantáneos.
- * @purpose_en Sandbox control form to inject test JWTs, simulate license disconnects, and perform instant role shifting.
- * @refactorable false
- * @classification Helper Utility
+ * @purpose Gestiona entornos sandbox, incluyendo inyectar tokens JWT de prueba, simular desconexiones de licencia y realizar cambios de rol instantáneos.
+ * @purpose_en Renders a form for managing sandbox environments, including injecting test JWTs, simulating license disconnects, and performing instant role shifts.
+ * @refactorable true (contains too many state variables and UI parts)
+ * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:3,sig:1nqxtsd
- * @lastUpdated 2026-06-26T10:21:01.040Z
+ * @fingerprint exports:1,imports:3,sig:1gczlw8
+ * @lastUpdated 2026-07-03T15:34:32.333Z
  */
 
 import React, { useState } from 'react';

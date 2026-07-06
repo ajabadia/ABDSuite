@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureIndustrialAccess } from '@ajabadia/satellite-sdk/auth-middleware';
+import { SecurityService } from '@ajabadia/satellite-sdk/core';
 import { logger } from '@ajabadia/satellite-sdk/logger';
 import type { PipelineStage } from 'mongoose';
 import Document from '@/models/Document';
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
             must: [{
               text: {
                 query: q,
-                path: ['title', 'tags'],
+                path: ['tags'],
                 fuzzy: { maxEdits: 1 }
               }
             }],
@@ -74,6 +75,12 @@ export async function GET(request: NextRequest) {
       }
     ];
     const results = await Document.aggregate(pipeline as PipelineStage[]);
+
+    for (const doc of results) {
+      if (doc.title && typeof doc.title === 'string' && doc.title.includes(':')) {
+        doc.title = SecurityService.decrypt(doc.title);
+      }
+    }
 
     await logger.audit({
       tenantId: user.tenantId,

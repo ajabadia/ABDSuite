@@ -59,6 +59,7 @@ export const SystemEventType = {
   LICENSE_RESOLVED: 'license.resolved',
   QUIZ_ATTEMPT_STARTED: 'quiz.attempt.started',
   QUIZ_ATTEMPT_COMPLETED: 'quiz.attempt.completed',
+  TENANT_QUOTA_EXCEEDED: 'tenant.quota.exceeded',
 } as const;
 
 export type SystemEventTypeValue = (typeof SystemEventType)[keyof typeof SystemEventType];

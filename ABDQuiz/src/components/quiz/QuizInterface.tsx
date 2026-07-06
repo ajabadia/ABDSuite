@@ -11,10 +11,7 @@
  */
 
 import { useState, useRef } from 'react';
-import { useQuizTimeout } from '@/hooks/useQuizTimeout';
-import { useQuizFinish } from '@/hooks/useQuizFinish';
-import { useQuizTimerOrchestrator } from '@/hooks/useQuizTimerOrchestrator';
-import { useQuizQuestionState } from '@/hooks/useQuizQuestionState';
+import { useQuizTimeout, useQuizFinish, useQuizTimerOrchestrator, useQuizQuestionState } from '@/hooks';
 import { QuizHeader } from './QuizHeader';
 import QuizQuestion from './QuizQuestion';
 import QuizFooter from './QuizFooter';
@@ -25,7 +22,7 @@ import { FinishConfirmDialog } from './FinishConfirmDialog';
 import { OmittedDialog } from './OmittedDialog';
 import { useQuizHeartbeat } from './useQuizHeartbeat';
 import { useQuizNavigation } from './useQuizNavigation';
-import { useAIFeedback } from '@/hooks/useAIFeedback';
+import { useAIFeedback } from '@/hooks';
 import { formatTime } from '@/lib/format';
 import { IncidentChatDrawer } from './IncidentChatDrawer';
 

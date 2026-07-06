@@ -13,6 +13,8 @@ import { connectDB } from '@ajabadia/satellite-sdk/db';
 import { rateLimitMongodb } from '@ajabadia/satellite-sdk/utils';
 import { AuditLog } from '@/models/AuditLog';
 import { computeBlockHash } from '@ajabadia/satellite-sdk/utils';
+import { logEventEmitter } from '@/lib/log-event-bus';
+import { runIngestionGuards } from '@/services/tenant/ingestion-guard';
 
 import { z } from 'zod';
 
@@ -87,6 +89,10 @@ export async function POST(request: NextRequest) {
     body.hash = hash;
     
     const newLog = await AuditLog.create(body);
+    logEventEmitter.emit('new_log', newLog.toObject());
+    runIngestionGuards(newLog.toObject()).catch(err =>
+      console.error('[INGESTION_GUARD_ERROR]', err)
+    );
     return NextResponse.json({ success: true, id: newLog._id, hash: newLog.hash }, { status: 201 });
   } catch (error) {
     console.error('[INGEST_LOG_ERROR]', error);

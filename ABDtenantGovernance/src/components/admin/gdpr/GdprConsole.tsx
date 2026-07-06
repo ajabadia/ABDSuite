@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Consola interactiva de GDPR y Portabilidad para exportar datos en ZIP y ejecutar purgas físicas en cascada (derecho al olvido).
- * @purpose_en Interactive GDPR and Portability console to export data in ZIP and perform cascading physical purges.
- * @refactorable false
- * @classification Helper Utility
+ * @purpose Gestiona y renderiza una consola interactiva GDPR y Portabilidad para exportar datos en ZIP y realizar purges físicas cascadas.
+ * @purpose_en Manages and renders an interactive GDPR and Portability console for exporting data in ZIP and performing cascading physical purges.
+ * @refactorable true (contains too many state variables and UI parts)
+ * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:5,sig:y01p6x
- * @lastUpdated 2026-06-26T10:21:01.036Z
+ * @fingerprint exports:1,imports:6,sig:1a1nnyk
+ * @lastUpdated 2026-07-03T15:34:30.558Z
  */
 
 import React, { useState } from 'react';

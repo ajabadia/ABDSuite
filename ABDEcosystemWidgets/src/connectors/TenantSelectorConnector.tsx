@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Gestiona la integración del componente UI de seleccionador de teniente con preocupaciones aplicativas específicas como la extracción de API, el manejo de cookies y la ruta de parámetros de URL.
+ * @purpose Gestiona la integración del componente UI de seleccionador de teniente con preocupaciones aplicativas específicas como la extracción de API, el manejo de cookies y la ruta de parámetros URL.
  * @purpose_en Manages the integration of a tenant selector UI component with application-specific concerns such as API fetching, cookie management, and URL parameter routing.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:2,imports:4,sig:of0ys2
- * @lastUpdated 2026-06-26T09:59:38.234Z
+ * @fingerprint exports:2,imports:4,sig:9ekq06
+ * @lastUpdated 2026-07-03T15:34:07.212Z
  */
 
 import { useState, useEffect, useMemo, useCallback } from "react";

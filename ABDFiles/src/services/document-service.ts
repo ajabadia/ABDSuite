@@ -12,13 +12,16 @@ import crypto from 'crypto';
 import Document, { TDocument } from '@/models/Document';
 import DocumentVersion, { TDocumentVersion } from '@/models/DocumentVersion';
 import DocumentEvent from '@/models/DocumentEvent';
+import FileEvent from '@/models/FileEvent';
 import DeletionJob from '@/models/DeletionJob';
 import StorageConnector from '@/models/StorageConnector';
+import { checkQuotaAndPublish } from './quota-service';
 import { StorageService } from './storage-service';
 import { SpaceLinkService } from './space-link-service';
 import { LegalHoldService } from './legal-hold-service';
 import { WebhookService } from './webhook-service';
 import { IntegrationLogsService } from './integration-logs-service';
+import { PurgerService } from './purger-service';
 
 export type UploadInput = {
   tenantId: string;
@@ -33,6 +36,7 @@ export type UploadInput = {
   spacePaths?: string[];
   tags?: string[];
   correlationId?: string;
+  ipAddress?: string;
 };
 
 export type NewVersionInput = {
@@ -43,7 +47,10 @@ export type NewVersionInput = {
   mimeType: string;
   sizeBytes: number;
   correlationId?: string;
+  ipAddress?: string;
 };
+
+
 
 /**
  * Service managing document assets and version histories.
@@ -130,7 +137,22 @@ export const DocumentService = {
       }
     });
 
-    // 6. Link to Spaces
+    // 6. FileEvent for compliance
+    await FileEvent.create({
+      eventId: crypto.randomUUID(),
+      tenantId: input.tenantId,
+      fileId: assetId,
+      action: 'UPLOAD',
+      userId: input.actorId,
+      fileHash: hash,
+      fileSize: input.sizeBytes,
+      ipAddress: input.ipAddress,
+    });
+
+    // 7. Check storage quota and publish event if threshold crossed
+    void checkQuotaAndPublish(input.tenantId);
+
+    // 8. Link to Spaces
     if (input.spaceIds && input.spaceIds.length > 0) {
       for (let i = 0; i < input.spaceIds.length; i++) {
         const spaceId = input.spaceIds[i];
@@ -241,6 +263,21 @@ export const DocumentService = {
       }
     });
 
+    // 7. FileEvent for compliance
+    await FileEvent.create({
+      eventId: crypto.randomUUID(),
+      tenantId: input.tenantId,
+      fileId: input.assetId,
+      action: 'OVERWRITE',
+      userId: input.actorId,
+      fileHash: hash,
+      fileSize: input.sizeBytes,
+      ipAddress: input.ipAddress,
+    });
+
+    // 8. Check storage quota and publish event if threshold crossed
+    void checkQuotaAndPublish(input.tenantId);
+
     // Integrate external webhook and logs replication
     const eventPayload = { assetId: input.assetId, versionId, versionNumber: newVersionNumber };
     void WebhookService.emitWebhook('DOCUMENT_VERSION_CREATED', input.tenantId, eventPayload);
@@ -252,7 +289,7 @@ export const DocumentService = {
   /**
    * Retrieves document metadata including signed URL of current version.
    */
-  async getDocument(tenantId: string, assetId: string): Promise<TDocument & { signedUrl: string }> {
+  async getDocument(tenantId: string, assetId: string, ipAddress?: string): Promise<TDocument & { signedUrl: string }> {
     const asset = await Document.findOne({ tenantId, assetId });
     if (!asset) {
       throw new Error('Document not found');
@@ -264,6 +301,17 @@ export const DocumentService = {
     }
 
     const signedUrl = await StorageService.getSignedUrl(asset.storageRefCurrent, currentVersion.mimeType, tenantId);
+
+    void FileEvent.create({
+      eventId: crypto.randomUUID(),
+      tenantId,
+      fileId: assetId,
+      action: 'DOWNLOAD',
+      userId: 'system',
+      fileHash: currentVersion.hash,
+      fileSize: currentVersion.sizeBytes,
+      ipAddress,
+    });
 
     return {
       ...asset.toObject(),
@@ -297,6 +345,7 @@ export const DocumentService = {
     assetId: string;
     actorId: string;
     correlationId?: string;
+    ipAddress?: string;
   }): Promise<void> {
     const asset = await Document.findOne({ tenantId: input.tenantId, assetId: input.assetId });
     if (!asset) {
@@ -352,82 +401,30 @@ export const DocumentService = {
         retentionClass: asset.retentionClass
       }
     });
+
+    // FileEvent for compliance
+    const currentVersion = await DocumentVersion.findOne({
+      tenantId: input.tenantId,
+      assetId: input.assetId,
+      versionId: asset.currentVersionId,
+    });
+    await FileEvent.create({
+      eventId: crypto.randomUUID(),
+      tenantId: input.tenantId,
+      fileId: input.assetId,
+      action: 'DELETE',
+      userId: input.actorId,
+      fileHash: asset.latestHash,
+      fileSize: currentVersion?.sizeBytes || 0,
+      ipAddress: input.ipAddress,
+    });
   },
 
   /**
    * Worker method to process pending deletion jobs.
    */
   async purgeExpiredDocuments(now: Date): Promise<void> {
-    // Find deletion jobs that are pending and due
-    const pendingJobs = await DeletionJob.find({
-      status: 'pending',
-      purgeAt: { $lte: now }
-    });
-
-    for (const job of pendingJobs) {
-      try {
-        const asset = await Document.findOne({ tenantId: job.tenantId, assetId: job.assetId });
-        if (!asset) {
-          job.status = 'failed';
-          job.lastError = 'Associated document asset not found';
-          await job.save();
-          continue;
-        }
-
-        // If a legal hold is active, bypass purging for now
-        if (asset.legalHold) {
-          continue;
-        }
-
-        // Fetch current version to know the mimeType for destruction
-        const currentVersion = await DocumentVersion.findOne({
-          tenantId: job.tenantId,
-          assetId: job.assetId,
-          versionId: asset.currentVersionId
-        });
-
-        const mimeType = currentVersion?.mimeType || 'application/octet-stream';
-
-        // Physically delete from storage
-        await StorageService.deleteFile(asset.storageRefCurrent, mimeType, job.tenantId);
-
-        // Update document status
-        asset.status = 'purged';
-        asset.version = asset.version + 1;
-        await asset.save();
-
-        // Update job status
-        job.status = 'completed';
-        job.attempts = job.attempts + 1;
-        await job.save();
-
-        // Write audit event
-        await DocumentEvent.create({
-          eventId: crypto.randomUUID(),
-          tenantId: job.tenantId,
-          assetId: job.assetId,
-          type: 'DOCUMENT_PURGED',
-          actorId: 'cron-worker',
-          correlationId: crypto.randomUUID(),
-          payload: {
-            purgedAt: now.toISOString()
-          }
-        });
-
-        // Integrate external webhook and logs replication
-        const eventPayload = { assetId: job.assetId, purgedAt: now.toISOString() };
-        void WebhookService.emitWebhook('DOCUMENT_PURGED', job.tenantId, eventPayload);
-        void IntegrationLogsService.replicateEvent(job.tenantId, job.assetId, 'DOCUMENT_PURGED', eventPayload);
-      } catch (error: unknown) {
-        const err = error as Error;
-        job.attempts = job.attempts + 1;
-        job.lastError = err.message || 'Unknown purging error';
-        if (job.attempts >= 5) {
-          job.status = 'failed';
-        }
-        await job.save();
-      }
-    }
+    await PurgerService.purgeExpiredDocuments(now);
   },
 
   /**

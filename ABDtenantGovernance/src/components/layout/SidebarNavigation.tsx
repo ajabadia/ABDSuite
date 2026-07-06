@@ -1,17 +1,17 @@
 'use client';
 
 /**
- * @purpose Renders a sidebar navigation component with various links based on user authentication and role.
+ * @purpose Renderiza un componente de navegación lateral con enlaces variados según la autenticación del usuario y su rol.
  * @purpose_en Renders a sidebar navigation component with various links based on user authentication and role.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:4,sig:1olmeng
- * @lastUpdated 2026-06-29T22:24:58.606Z
+ * @fingerprint exports:1,imports:4,sig:sk10zr
+ * @lastUpdated 2026-07-03T15:34:44.455Z
  */
 
 import React from 'react';
-import { Home, Palette, Folder, Terminal, ShieldCheck, Building, GraduationCap, Cloud, Zap, ShieldX } from 'lucide-react';
+import { Home, Palette, Folder, Terminal, ShieldCheck, Building, GraduationCap, Cloud, UserPlus, Zap, ShieldX } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { AppSidebarNavigation, type AppSidebarLink } from '@ajabadia/ecosystem-widgets';
 
@@ -59,10 +59,21 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
   const user = session.user;
 
   const allLinks: AppSidebarLink[] = [
+    // Welcome Page only shown if not logged in
+    ...(!isLoggedIn
+      ? [
+          {
+            href: `/${tenantQuery}`,
+            label: t('navWelcome'),
+            icon: <Home size={14} />
+          }
+        ]
+      : []),
     {
-      href: `/${tenantQuery}`,
-      label: t('navWelcome'),
-      icon: <Home size={14} />
+      href: `/admin${tenantQuery}`,
+      label: t('adminMenu'),
+      icon: <Terminal size={14} />,
+      requiresAdmin: true
     },
     {
       href: `/admin/tenants${tenantQuery}`,
@@ -101,6 +112,12 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
       requiresAdmin: true
     },
     {
+      href: `/admin/leads${tenantQuery}`,
+      label: t('navLeads'),
+      icon: <UserPlus size={14} />,
+      requiresSuperAdmin: true
+    },
+    {
       href: `/admin/sandbox${tenantQuery}`,
       label: t('navSandbox'),
       icon: <Zap size={14} />,
@@ -111,12 +128,6 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
       label: t('navGdpr'),
       icon: <ShieldX size={14} />,
       requiresSuperAdmin: true
-    },
-    {
-      href: `/admin${tenantQuery}`,
-      label: t('adminMenu'),
-      icon: <Terminal size={14} />,
-      requiresAdmin: true
     }
   ];
 

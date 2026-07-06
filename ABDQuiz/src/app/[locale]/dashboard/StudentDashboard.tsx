@@ -20,6 +20,7 @@ import { type CourseProgressResult } from '@/actions/course-progress';
 import { KPISection } from '@/components/dashboard/KPISection';
 import { AvailableExamsSection } from '@/components/dashboard/AvailableExamsSection';
 import { RecentAttemptsSection } from '@/components/dashboard/RecentAttemptsSection';
+import { CognitiveStatusSection } from '@/components/dashboard/CognitiveStatusSection';
 import { CourseProgressSection } from '@/components/dashboard/CourseProgressSection';
 
 interface StudentDashboardProps {
@@ -51,6 +52,14 @@ export function StudentDashboard({ data, progressData }: StudentDashboardProps) 
 
       {/* KPI Scorecards */}
       <KPISection data={data} />
+
+      {/* Cognitive Profile — Strengths & Weaknesses */}
+      {progressData && progressData.courses.length > 0 && (
+        <>
+          <CognitiveStatusSection courses={progressData.courses} />
+          <Separator className="my-6 opacity-30" />
+        </>
+      )}
 
       {/* Course Objective Progress */}
       {progressData && progressData.courses.length > 0 && (

@@ -46,7 +46,13 @@ function getStatusColor(status: string) {
 
 export function CourseProgressSection({ courses }: CourseProgressSectionProps) {
   const d = useTranslations('dashboard');
-  const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
+  const [expandedCourses, setExpandedCourses] = useState<Set<string>>(() => {
+    const initial = new Set<string>();
+    if (courses.length > 0) {
+      initial.add(courses[0].courseId);
+    }
+    return initial;
+  });
   const [certStatus, setCertStatus] = useState<Record<string, 'idle' | 'loading' | 'ready' | 'error'>>({});
   const [certData, setCertData] = useState<Record<string, { certId: string }>>({});
 

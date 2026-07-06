@@ -317,6 +317,9 @@
   "allMastered": "All objectives mastered",
   "errorLoading": "Error loading dashboard data. Please try again later.",
   "backHome": "Back to home",
+  "cognitiveProfile": "Cognitive Performance Profile",
+  "noStrengths": "No topics mastered yet.",
+  "noWeaknesses": "Great work! No critical topics pending reinforcement.",
   "spaces": {
     "title": "Space Hierarchy",
     "subtitle": "Structured management of areas and departments",

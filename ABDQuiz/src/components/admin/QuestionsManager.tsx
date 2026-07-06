@@ -56,7 +56,7 @@ export default function QuestionsManager({ tenantId }: QuestionsManagerProps) {
     setIsLoading(true);
     try {
       const activeFilter = filters.active === 'all' ? undefined : filters.active === 'true';
-      const res = await getQuestionsAction({
+      const data = await getQuestionsAction({
         page: filters.page,
         limit: 10,
         search: filters.search || undefined,
@@ -64,24 +64,22 @@ export default function QuestionsManager({ tenantId }: QuestionsManagerProps) {
         active: activeFilter,
         module: filters.module || undefined
       }, tenantId);
-      if (res.success && res.data) {
-        const mapped: QuestionItem[] = res.data.questions.map(q => ({
-          _id: String(q._id),
-          questionText: q.questionText,
-          module: q.module,
-          source: q.source,
-          difficulty: q.difficulty as 'easy' | 'medium' | 'hard',
-          active: q.active,
-          version: q.version,
-          options: q.options,
-          correctOptionIndex: q.correctOptionIndex,
-          explanation: q.explanation || '',
-          tags: q.tags || [],
-          attachments: q.attachments || []
-        }));
-        setQuestions(mapped);
-        setPagination({ total: res.data.total, pages: res.data.pages });
-      }
+      const mapped: QuestionItem[] = data.questions.map(q => ({
+        _id: String(q._id),
+        questionText: q.questionText,
+        module: q.module,
+        source: q.source,
+        difficulty: q.difficulty as 'easy' | 'medium' | 'hard',
+        active: q.active,
+        version: q.version,
+        options: q.options,
+        correctOptionIndex: q.correctOptionIndex,
+        explanation: q.explanation || '',
+        tags: q.tags || [],
+        attachments: q.attachments || []
+      }));
+      setQuestions(mapped);
+      setPagination({ total: data.total, pages: data.pages });
     } finally {
       setIsLoading(false);
     }

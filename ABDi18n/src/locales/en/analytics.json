@@ -52,5 +52,17 @@
   "auditWarningDesc": "The current database is empty for this Tenant. Showing simulated analytics layer for technical demonstration purposes.",
   "demoModeBadge": "Demo_Mode_Active",
   "activeStorageLabel": "Active_Storage",
-  "analyticsPanelsAria": "Analytics panels"
+  "analyticsPanelsAria": "Analytics panels",
+  "backToHome": "Back to Home",
+  "activeStudents": "Active Students",
+  "completionRate": "Completion Rate",
+  "totalStorage": "Total Storage",
+  "suiteHealth": "Suite Health",
+  "generalServiceState": "General Service State",
+  "microservicePort": "Microservice Port",
+  "activeLicensedApps": "Active Licensed Apps",
+  "failedLogins24h": "Failed Logins (24h)",
+  "menuDashboard": "Analytics Dashboard",
+  "menuAudit": "Audit Trail",
+  "welcomeMenu": "Welcome Page"
 }

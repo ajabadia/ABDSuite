@@ -9,7 +9,7 @@
  */
 
 import mongoose, { Schema, Document } from 'mongoose';
-import { getTenantModel } from '@ajabadia/satellite-sdk/db';
+import { getTenantModel, encryptionPlugin } from '@ajabadia/satellite-sdk/db';
 
 export type TDocument = Document & {
   assetId: string;
@@ -77,5 +77,9 @@ DocumentSchema.index({ tenantId: 1, status: 1, updatedAt: -1 });
 DocumentSchema.index({ tenantId: 1, currentVersionId: 1 });
 DocumentSchema.index({ tenantId: 1, title: 1 });
 DocumentSchema.index({ tenantId: 1, tags: 1 });
+
+// Deterministic encryption on title — enables exact-match findOne({ title: ... })
+// while preventing plaintext exposure at rest
+DocumentSchema.plugin(encryptionPlugin(['title'], { deterministic: true }));
 
 export default getTenantModel<TDocument>('Document', DocumentSchema);

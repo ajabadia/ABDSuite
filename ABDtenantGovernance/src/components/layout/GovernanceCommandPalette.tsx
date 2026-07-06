@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * @purpose Renders a command palette with various governance-related commands, including navigation and settings actions.
+ * @purpose Renderiza una pestaña de comandos con diversas acciones relacionadas con la gobernanza, incluyendo acciones de navegación y configuración.
  * @purpose_en Renders a command palette with various governance-related commands, including navigation and settings actions.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Low
- * @fingerprint exports:1,imports:5,sig:lu0k7f
- * @lastUpdated 2026-06-30T05:49:48.881Z
+ * @fingerprint exports:1,imports:5,sig:15re1og
+ * @lastUpdated 2026-07-03T15:34:37.450Z
  */
 
 import React from 'react';

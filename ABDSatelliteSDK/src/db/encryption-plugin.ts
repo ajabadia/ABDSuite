@@ -12,13 +12,23 @@
  * Mongoose plugin for transparent field-level AES-256-CBC encryption.
  * Encrypts specified PII fields on save, decrypts on read.
  *
+ * Supports two modes:
+ * - random (default): Uses a random IV — more secure, but disables queries.
+ * - deterministic: Uses an HMAC-derived IV — enables exact-match queries
+ *   (e.g., findOne({ title: encryptDeterministic('query') })).
+ *
  * Limitations:
  * - findOneAndUpdate / updateOne / bulkWrite skip Mongoose hooks — use save() instead.
- * - Encrypted fields cannot be used in MongoDB queries (no plaintext matching).
+ * - Encrypted fields cannot be used with $regex or full-text search.
+ * - Deterministic mode reveals which documents have the same plaintext value.
  */
 
 import { Schema } from 'mongoose';
 import { SecurityService } from '../core/security';
+
+export interface EncryptionPluginOptions {
+  deterministic?: boolean;
+}
 
 function getField(obj: Record<string, unknown>, path: string): unknown {
   return path.split('.').reduce<unknown>((acc, key) => {
@@ -39,7 +49,7 @@ function setField(obj: Record<string, unknown>, path: string, value: unknown): v
   current[keys[keys.length - 1]] = value;
 }
 
-export function encryptionPlugin(fieldPaths: string[]) {
+export function encryptionPlugin(fieldPaths: string[], options?: EncryptionPluginOptions) {
   return function (schema: Schema) {
     if (!fieldPaths.length) return;
 
@@ -49,7 +59,10 @@ export function encryptionPlugin(fieldPaths: string[]) {
         for (const fieldPath of fieldPaths) {
           const value = getField(doc, fieldPath);
           if (value && typeof value === 'string') {
-            setField(doc, fieldPath, SecurityService.encrypt(value));
+            const encrypted = options?.deterministic
+              ? SecurityService.encryptDeterministic(value)
+              : SecurityService.encrypt(value);
+            setField(doc, fieldPath, encrypted);
           }
         }
       } catch {

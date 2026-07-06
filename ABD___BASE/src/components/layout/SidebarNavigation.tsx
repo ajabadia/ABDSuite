@@ -48,7 +48,16 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
   const user = session.user;
 
   const allLinks: AppSidebarLink[] = [
-    { href: '/', label: t('home'), icon: <Home className="w-4 h-4" /> },
+    // Welcome Page only shown if not logged in
+    ...(!isLoggedIn
+      ? [
+          {
+            href: '/',
+            label: t('home'),
+            icon: <Home className="w-4 h-4" />
+          }
+        ]
+      : []),
     { href: '/dashboard', label: t('myDashboard'), icon: <LayoutDashboard className="w-4 h-4" />, requiresAuth: true },
     { href: '/admin', label: t('adminMenu'), icon: <Terminal className="w-4 h-4" />, requiresAdmin: true },
   ];

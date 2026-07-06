@@ -10,7 +10,6 @@
 
 import { getIndustrialSession } from '@ajabadia/satellite-sdk/auth-middleware';
 import { connectDB } from '@ajabadia/satellite-sdk/db';
-import { resolveTargetTenantContext } from '@ajabadia/satellite-sdk/utils';
 import type { TenantContext } from '@ajabadia/satellite-sdk/db';
 
 export interface SessionWithTenant {
@@ -40,6 +39,18 @@ export class AssignmentExecutionContext {
     const activeTenantId = explicitCtx?.tenantId || session.user.tenantId;
     return new AssignmentExecutionContext(session as unknown as SessionWithTenant, activeTenantId);
   }
+}
+
+export function fromActionContext(ctx: { session: { id: string; tenantId: string; email?: string; role?: string }; activeTenantId: string }): AssignmentExecutionContext {
+  const session: SessionWithTenant = {
+    user: {
+      id: ctx.session.id || '',
+      tenantId: ctx.session.tenantId || '',
+      email: ctx.session.email,
+      role: ctx.session.role,
+    },
+  };
+  return new AssignmentExecutionContext(session, ctx.activeTenantId);
 }
 
 export function validateTenantAccess(

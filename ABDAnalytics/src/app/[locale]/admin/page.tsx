@@ -1,11 +1,11 @@
 /**
- * @purpose Renderiza la página de administración central de análisis con un dashboard, gestionando el acceso del usuario y las traducciones locales específicas.
+ * @purpose Renderiza la página de administración central con análisis, incluyendo un panel de control que maneja el acceso del usuario y las traducciones locales.
  * @purpose_en Renders the central admin analytics portal page with a dashboard, handling user access and locale-specific translations.
  * @refactorable true (contains too many state variables and UI parts)
  * @classification UI Component
  * @complexity Medium
- * @fingerprint exports:1,imports:11,sig:9jkype
- * @lastUpdated 2026-07-02T18:43:36.906Z
+ * @fingerprint exports:1,imports:11,sig:o2az25
+ * @lastUpdated 2026-07-03T15:34:00.837Z
  */
 
 import { Suspense } from 'react';

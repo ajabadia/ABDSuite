@@ -68,5 +68,21 @@
   "ecosystemFeatures": "Ecosystem Features",
   "ecosystemModules": "— Ecosystem Modules",
   "available": "Available",
-  "style": "Style"
+  "style": "Style",
+  "onboardingTitle": "Pre-register Your Organization",
+  "onboardingDesc": "Fill out this form and our team will review your application to join the platform.",
+  "onboardingSuccess": "Registration Submitted",
+  "onboardingSuccessDesc": "Thank you! Your pre-registration has been received. Our team will review your application and send an activation link to {email}.",
+  "dbPrefixDesc": "3-10 lowercase letters or numbers",
+  "orgName": "Organization Name",
+  "dbPrefix": "Database Prefix",
+  "yourName": "Your Name",
+  "email": "Email",
+  "registerBtn": "Register Your Organization",
+  "submitting": "Submitting...",
+  "errOrgName": "Must be at least 3 characters",
+  "errDbPrefix": "3-10 lowercase alphanumeric characters (a-z, 0-9)",
+  "errEmail": "Invalid email address",
+  "errYourName": "Must be at least 2 characters",
+  "errNetwork": "Network error. Please try again."
 }

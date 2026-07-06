@@ -31,3 +31,18 @@ Este archivo actúa como diario de bitácora y registro cronológico de los avan
 * **Certificación Industrial**:
   * Superadas las 6 fases de la auditoría estructural y de código (`SYSTEM CERTIFIED - ERA 11 COMPLIANT`).
 
+## [2026-07-06] - Refactorización de Seguridad (Acciones del Servidor) e i18n
+* **Wrapper de Acciones del Servidor (`withReadAction`):**
+  * Creado `src/lib/actions-wrapper.ts` implementando el decorador de seguridad para encapsular de forma centralizada la conexión a base de datos, sesiones federadas e intercepción de errores de auditoría.
+  * Añadida validación de control de acceso basada en atributos (ABAC) llamando a `assertAccess()` a nivel de Server Action.
+* **Seguridad en Ingesta de Métricas:**
+  * Refactorizado `dashboard-actions.ts` para que `getDashboardMetrics` consuma `withReadAction` y valide la capacidad `analytics:dashboard:view`, eliminando la vulnerabilidad de acceso directo no autorizado a las colecciones del tenant.
+* **Internacionalización y Consola Limpia:**
+  * Integradas las 9 claves de traducción faltantes para el resumen de la suite y KPIs (`backToHome`, `activeStudents`, `completionRate`, `totalStorage`, `suiteHealth`, `generalServiceState`, `microservicePort`, `activeLicensedApps`, `failedLogins24h`), resolviendo los errores y advertencias `MISSING_MESSAGE` en consola.
+* **Reorganización y Limpieza de la Navbar:**
+  * Reestructurado `SidebarNavigation.tsx` para priorizar la vista del dashboard central (`/admin`) en primera posición, seguido de la auditoría remota de logs.
+  * Ocultado dinámicamente el enlace de bienvenida ("Welcome Page" `/`) ante sesiones autenticadas para evitar enlaces redundantes y bucles de redirección.
+  * Mapeados los textos del menú usando el namespace `analytics` para desacoplarlos de las claves compartidas del monorepo (`menuDashboard`, `menuAudit`, `welcomeMenu`).
+
+
+

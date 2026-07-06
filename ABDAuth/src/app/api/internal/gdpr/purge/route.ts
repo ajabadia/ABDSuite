@@ -1,11 +1,11 @@
 /**
- * @purpose Gestiona la solicitud de eliminación de datos para cumplir con la normativa GDPR al anonimizar los datos del usuario, eliminar sesiones y eliminar cuentas.
+ * @purpose Gestiona la solicitud de purgación para cumplir con la normativa GDPR al anonimizar datos del usuario, eliminar sesiones y eliminar cuentas.
  * @purpose_en Handles the purge request for GDPR compliance by anonymizing user data, deleting sessions, and removing accounts.
  * @refactorable false
  * @classification Business Service
  * @complexity Medium
- * @fingerprint exports:1,imports:2,sig:ga4jf5
- * @lastUpdated 2026-07-02T18:44:09.997Z
+ * @fingerprint exports:1,imports:2,sig:10puted
+ * @lastUpdated 2026-07-03T15:34:03.173Z
  */
 
 import { NextRequest, NextResponse } from 'next/server';

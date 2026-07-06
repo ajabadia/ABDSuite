@@ -68,5 +68,21 @@
   "ecosystemFeatures": "Características del Ecosistema",
   "ecosystemModules": "— Módulos Disponibles",
   "available": "Disponible",
-  "style": "Estilo"
+  "style": "Estilo",
+  "onboardingTitle": "Pre-registrar tu Organización",
+  "onboardingDesc": "Completa este formulario y nuestro equipo revisará tu solicitud para unirse a la plataforma.",
+  "onboardingSuccess": "Registro Enviado",
+  "onboardingSuccessDesc": "¡Gracias! Tu pre-registro ha sido recibido. Nuestro equipo revisará la solicitud y enviará un enlace de activación a {email}.",
+  "dbPrefixDesc": "3-10 letras minúsculas o números",
+  "orgName": "Nombre de la Organización",
+  "dbPrefix": "Prefijo de Base de Datos",
+  "yourName": "Tu Nombre",
+  "email": "Email",
+  "registerBtn": "Registrar Organización",
+  "submitting": "Enviando...",
+  "errOrgName": "Debe tener al menos 3 caracteres",
+  "errDbPrefix": "3-10 caracteres alfanuméricos en minúsculas (a-z, 0-9)",
+  "errEmail": "Dirección de correo no válida",
+  "errYourName": "Debe tener al menos 2 caracteres",
+  "errNetwork": "Error de red. Por favor, inténtalo de nuevo."
 }

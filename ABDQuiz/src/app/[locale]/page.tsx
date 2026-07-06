@@ -20,7 +20,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const session = await getIndustrialSession();
 
   if (session.authenticated && session.user) {
-    redirect(`/${locale}/examinar`);
+    redirect(`/${locale}/dashboard`);
   }
 
   const t = await getTranslations('common');
@@ -36,7 +36,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       <main className="flex flex-col gap-16">
         <SubtleLoginButton
-          href={`/${locale}/examinar`}
+          href={`/${locale}/dashboard`}
           label={h('accessSimulator')}
           hint={h('loginHint')}
         />

@@ -688,7 +688,16 @@
     "toastSuperAdminOnly": "Solo el rol SUPER_ADMIN está autorizado a purgar físicamente organizaciones.",
     "gdprDesc": "Este panel proporciona herramientas centralizadas de soberanía de datos y portabilidad. Los administradores pueden descargar instantáneamente un volcado completo de datos en formato ZIP (Portabilidad), y los Super Administradores pueden purgar de forma definitiva e irreversible la información de un inquilino en toda la red de microservicios (Derecho al Olvido).",
     "purgeConfirmTitle": "ELIMINACIÓN DEFINITIVA GDPR",
-    "purgeConfirmMessage": "¿Estás seguro de que deseas purgar la organización '{tenantId}'? Esta acción es definitiva y eliminará físicamente las bases de datos de Quiz, Files, Logs y el registro central de Gobernanza. No se puede deshacer."
+    "purgeConfirmMessage": "¿Estás seguro de que deseas purgar la organización '{tenantId}'? Esta acción es definitiva y eliminará físicamente las bases de datos de Quiz, Files, Logs y el registro central de Gobernanza. No se puede deshacer.",
+    "initiateBtn": "Iniciar Purga GDPR",
+    "initiating": "Iniciando...",
+    "requestId": "ID de Solicitud",
+    "statusCol": "Estado",
+    "satellitesCol": "Satélites",
+    "errorDetails": "Detalles del Error",
+    "createdAt": "Fecha",
+    "noRequests": "No se encontraron solicitudes GDPR.",
+    "initiateSuccess": "Purga GDPR iniciada correctamente"
   },
   "sandbox": {
     "generateJwt": "Generar JWT",

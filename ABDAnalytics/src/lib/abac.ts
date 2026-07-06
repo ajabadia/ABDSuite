@@ -4,8 +4,8 @@
  * @refactorable false
  * @classification Helper Utility
  * @complexity Low
- * @fingerprint exports:2,imports:1,sig:xe7cw6
- * @lastUpdated 2026-06-25T10:14:28.809Z
+ * @fingerprint exports:2,imports:1,sig:h52pqx
+ * @lastUpdated 2026-07-03T15:34:01.964Z
  */
 
 import { evaluateAccess, InsufficientPrivilegesError } from '@ajabadia/satellite-sdk/auth-middleware';

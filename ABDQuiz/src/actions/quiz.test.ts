@@ -105,7 +105,10 @@ describe('finishQuizAction', () => {
 });
 
 describe('invalidateAttemptAction', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getIndustrialSession.mockResolvedValue(adminSession);
+  });
 
   it('should return unauthorized if ensureAdminOrProfessor throws', async () => {
     ensureAdminOrProfessor.mockRejectedValue(new Error('Unauthorized'));

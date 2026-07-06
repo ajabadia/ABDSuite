@@ -54,21 +54,26 @@ export function SidebarNavigation({ session, logoUrl, tenantSelectorSlot, settin
   const user = session.user;
 
   const allLinks: AppSidebarLink[] = [
+    // Welcome Page only shown if not logged in
+    ...(!isLoggedIn
+      ? [
+          {
+            href: '/',
+            label: t('navWelcome'),
+            icon: <Home size={14} />
+          }
+        ]
+      : []),
     {
-      href: '/',
-      label: t('navWelcome'),
-      icon: <Home size={14} />
+      href: '/admin',
+      label: t('adminMenu'),
+      icon: <Terminal size={14} />,
+      requiresAdmin: true
     },
     {
       href: logsAuditUrl,
       label: t('navAudit'),
       icon: <ShieldCheck size={14} />,
-      requiresAdmin: true
-    },
-    {
-      href: '/admin',
-      label: t('adminMenu'),
-      icon: <Terminal size={14} />,
       requiresAdmin: true
     }
   ];

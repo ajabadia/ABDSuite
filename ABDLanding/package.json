@@ -30,15 +30,16 @@
     "react-dom": "catalog:",
     "sonner": "catalog:",
     "tailwind-merge": "catalog:",
-    "tw-animate-css": "catalog:"
+    "tw-animate-css": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
     "@axe-core/playwright": "catalog:",
     "@eslint/compat": "catalog:",
     "@eslint/eslintrc": "catalog:",
     "@playwright/test": "catalog:",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",

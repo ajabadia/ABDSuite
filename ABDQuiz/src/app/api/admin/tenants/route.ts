@@ -9,7 +9,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { ensureAdminOrProfessor } from '@/lib/auth/ensureQuizAccess';
+import { ensureAdminOrProfessor } from '@/lib/auth';
 import { getGlobalModel } from '@ajabadia/satellite-sdk/db';
 import mongoose from 'mongoose';
 
