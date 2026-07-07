@@ -15,7 +15,9 @@ export async function themeRouteHandler(request: Request): Promise<Response> {
   }
 
   try {
-    const { connectDB, getGlobalModel } = await import('@ajabadia/satellite-sdk/db');
+    // @ts-ignore
+    const sdkDb = await import('@ajabadia/satellite-sdk/db' as any);
+    const { connectDB, getGlobalModel } = sdkDb;
     const mongooseMod = await import('mongoose');
     const mongoose = mongooseMod.default || mongooseMod;
 
