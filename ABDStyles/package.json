@@ -1,6 +1,6 @@
 {
   "name": "@ajabadia/styles",
-  "version": "1.0.114",
+  "version": "1.0.115",
   "type": "module",
   "description": "Industrial multi-tenant dynamic styling engine and common visual assets for ABD suite.",
   "main": "dist/index.js",
@@ -64,7 +64,6 @@
     }
   },
   "devDependencies": {
-    "@ajabadia/satellite-sdk": "^1.0.0",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@vitest/coverage-v8": "catalog:",
